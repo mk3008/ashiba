@@ -37,23 +37,41 @@ export type AshibaPostgresAdapterOptions = {
 };
 
 /**
- * Per-execution metadata, query model, and safe sort options for PostgreSQL execution.
+ * CLI-generated query model required by the PostgreSQL adapter.
  */
-export type AshibaPostgresExecuteOptions = {
-  metadata?: AshibaSqlExecutionMetadata;
-  queryModel?: {
-    analysis: AshibaQueryModelAnalysis;
-    bindings?: {
-      postgres?: {
-        sourceHash?: string;
-        sql: string;
-        orderedNames: readonly string[];
-        safeSortInsertion?: {
-          index: number;
-        };
+export type AshibaPostgresQueryModel = {
+  analysis: AshibaQueryModelAnalysis;
+  bindings?: {
+    postgres?: {
+      sourceHash?: string;
+      sql: string;
+      orderedNames: readonly string[];
+      safeSortInsertion?: {
+        index: number;
       };
     };
   };
+};
+
+/**
+ * File-backed SQL query source generated or loaded from a reviewed SQL file.
+ */
+export type AshibaPostgresQuerySource = {
+  sql: string;
+  sqlPath: string;
+  queryModel: AshibaPostgresQueryModel;
+  metadata?: AshibaSqlExecutionMetadata;
+};
+
+/**
+ * Per-execution metadata and safe sort options for PostgreSQL execution.
+ */
+export type AshibaPostgresExecuteOptions = {
+  metadata?: AshibaSqlExecutionMetadata;
+  /**
+   * @deprecated Prefer putting query model metadata on AshibaPostgresQuerySource.
+   */
+  queryModel?: AshibaPostgresQueryModel;
   sortProfile?: AshibaSortProfile;
   sort?: readonly AshibaSortInput[];
 };
@@ -63,7 +81,7 @@ export type AshibaPostgresExecuteOptions = {
  */
 export type AshibaPostgresAdapter = {
   execute<Row = unknown>(
-    sql: string,
+    query: AshibaPostgresQuerySource,
     params?: Readonly<Record<string, unknown>>,
     options?: AshibaPostgresExecuteOptions,
   ): Promise<NodePostgresQueryResult<Row>>;
@@ -125,13 +143,17 @@ export function createPostgresAdapter(
 ): AshibaPostgresAdapter {
   return {
     async execute<Row = unknown>(
-      sql: string,
+      query: AshibaPostgresQuerySource,
       params: Readonly<Record<string, unknown>> = {},
       executeOptions: AshibaPostgresExecuteOptions = {},
     ): Promise<NodePostgresQueryResult<Row>> {
+      const sql = query.sql;
+      const queryModel = executeOptions.queryModel ?? query.queryModel;
       const metadata = {
+        ...query.metadata,
         ...executeOptions.metadata,
-        dialect: executeOptions.metadata?.dialect ?? 'postgres',
+        sqlPath: executeOptions.metadata?.sqlPath ?? query.metadata?.sqlPath ?? query.sqlPath,
+        dialect: executeOptions.metadata?.dialect ?? query.metadata?.dialect ?? 'postgres',
       };
       const startedAt = Date.now();
       let sourceSql = sql;
@@ -139,8 +161,8 @@ export function createPostgresAdapter(
       let bound: { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } | undefined;
 
       try {
-        const sortInsertion = getSortInsertion(sql, executeOptions);
-        bound = bindPostgresParameters(sql, params, { queryModel: executeOptions.queryModel });
+        const sortInsertion = getSortInsertion({ ...query, queryModel }, executeOptions);
+        bound = bindPostgresParameters({ ...query, queryModel }, params);
         if (sortInsertion) {
           sourceSql = spliceOrderBy(sql, sortInsertion.insertion, sortInsertion.orderBy);
           compiledSql = spliceOrderBy(bound.sql, sortInsertion.compiledInsertion, sortInsertion.orderBy);
@@ -196,13 +218,11 @@ export function createPostgresAdapter(
 }
 
 function bindPostgresParameters(
-  sourceSql: string,
+  query: AshibaPostgresQuerySource,
   params: Readonly<Record<string, unknown>>,
-  options: {
-    queryModel?: AshibaPostgresExecuteOptions['queryModel'];
-  },
 ): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
-  const precomputed = options.queryModel?.bindings?.postgres;
+  const sourceSql = query.sql;
+  const precomputed = query.queryModel?.bindings?.postgres;
   if (!precomputed) {
     throw new AshibaPostgresQueryModelError(
       'ASHIBA_BINDING_METADATA_REQUIRED',
@@ -210,7 +230,7 @@ function bindPostgresParameters(
     );
   }
   const currentHash = hashSql(sourceSql);
-  if (options.queryModel?.analysis.sourceHash !== currentHash || precomputed.sourceHash !== currentHash) {
+  if (query.queryModel?.analysis.sourceHash !== currentHash || precomputed.sourceHash !== currentHash) {
     throw new AshibaPostgresQueryModelError(
       'ASHIBA_QUERY_MODEL_STALE',
       'Query model binding metadata was generated from different source SQL.',
@@ -245,7 +265,7 @@ function bindCompiledNamedParameters(
 }
 
 function getSortInsertion(
-  sql: string,
+  query: AshibaPostgresQuerySource,
   options: AshibaPostgresExecuteOptions,
 ): {
   insertion: { index: number; mode: 'order-by' | 'comma' };
@@ -253,36 +273,38 @@ function getSortInsertion(
   orderBy: string;
 } | undefined {
   if (!options.sort || options.sort.length === 0) return undefined;
-  if (!options.queryModel?.analysis) {
+  const sql = query.sql;
+  const queryModel = query.queryModel;
+  if (!queryModel?.analysis) {
     throw new AshibaSortError(
       'ASHIBA_SORT_QUERY_MODEL_REQUIRED',
       'Safe sort requires a CLI-generated query model analysis.',
     );
   }
   if (
-    options.queryModel.analysis.astParse !== 'ok' ||
-    options.queryModel.analysis.statementKind !== 'select'
+    queryModel.analysis.astParse !== 'ok' ||
+    queryModel.analysis.statementKind !== 'select'
   ) {
     throw new AshibaSortError(
       'ASHIBA_SORT_UNSUPPORTED_QUERY_MODEL',
       'Safe sort requires a parsed SELECT query model.',
     );
   }
-  if (options.queryModel.analysis.rootQueryShape === 'compound-select') {
+  if (queryModel.analysis.rootQueryShape === 'compound-select') {
     throw new AshibaSortError(
       'ASHIBA_SORT_UNSUPPORTED_QUERY_MODEL',
       'Root compound SELECT safe sort is not supported. Wrap the compound query in a subquery and expose stable sortable columns.',
     );
   }
-  if (!options.queryModel.analysis.sourceHash || options.queryModel.analysis.sourceHash !== hashSql(sql)) {
+  if (!queryModel.analysis.sourceHash || queryModel.analysis.sourceHash !== hashSql(sql)) {
     throw new AshibaSortError(
       'ASHIBA_SORT_QUERY_MODEL_STALE',
       'Safe sort requires query model metadata generated from the same source SQL.',
     );
   }
-  if (!options.queryModel.analysis.safeSort || options.queryModel.analysis.safeSort.insertion.status !== 'ready') {
-    const reason = options.queryModel.analysis.safeSort?.insertion.status === 'unresolved'
-      ? options.queryModel.analysis.safeSort.insertion.reason
+  if (!queryModel.analysis.safeSort || queryModel.analysis.safeSort.insertion.status !== 'ready') {
+    const reason = queryModel.analysis.safeSort?.insertion.status === 'unresolved'
+      ? queryModel.analysis.safeSort.insertion.reason
       : undefined;
     throw new AshibaSortError(
       'ASHIBA_SORT_INSERTION_UNRESOLVED',
@@ -292,7 +314,7 @@ function getSortInsertion(
       ].join(' '),
     );
   }
-  const sortProfile = resolveSortProfile(options.queryModel.analysis, options.sortProfile);
+  const sortProfile = resolveSortProfile(queryModel.analysis, options.sortProfile);
   if (!sortProfile) {
     throw new AshibaSortError(
       'ASHIBA_EMPTY_SORT_PROFILE',
@@ -301,7 +323,7 @@ function getSortInsertion(
   }
 
   const orderBy = renderSafeOrderBy(sortProfile, options.sort);
-  const compiledIndex = options.queryModel.bindings?.postgres?.safeSortInsertion?.index;
+  const compiledIndex = queryModel.bindings?.postgres?.safeSortInsertion?.index;
   if (compiledIndex === undefined) {
     throw new AshibaSortError(
       'ASHIBA_SORT_QUERY_MODEL_STALE',
@@ -309,10 +331,10 @@ function getSortInsertion(
     );
   }
   return {
-    insertion: options.queryModel.analysis.safeSort.insertion,
+    insertion: queryModel.analysis.safeSort.insertion,
     compiledInsertion: {
       index: compiledIndex,
-      mode: options.queryModel.analysis.safeSort.insertion.mode,
+      mode: queryModel.analysis.safeSort.insertion.mode,
     },
     orderBy,
   };

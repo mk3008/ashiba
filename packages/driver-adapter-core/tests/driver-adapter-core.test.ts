@@ -26,6 +26,14 @@ describe('@ashiba/driver-adapter-core', () => {
     expect(() => renderSafeOrderBy({ name: { sql: '"name"' } }, [{ key: 'raw sql' }])).toThrow(AshibaSortError);
   });
 
+  test('requires exact sort key matches from the whitelist', () => {
+    const profile = { createdAt: { sql: '"created_at"' } };
+
+    expect(renderSafeOrderBy(profile, [{ key: 'createdAt' }])).toBe('order by "created_at" asc');
+    expect(() => renderSafeOrderBy(profile, [{ key: 'createdat' }])).toThrow(AshibaSortError);
+    expect(() => renderSafeOrderBy(profile, [{ key: '"created_at"' }])).toThrow(AshibaSortError);
+  });
+
   test('normalizes thrown errors', () => {
     const error = new AshibaSortError('ASHIBA_UNKNOWN_SORT_KEY', 'Nope');
 

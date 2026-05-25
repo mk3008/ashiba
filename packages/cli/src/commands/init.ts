@@ -219,15 +219,27 @@ export type SmokeQueryResult = {
   email: string;
 };
 
+export type SmokeQuerySource = {
+  id: string;
+  path: string;
+  sql: string;
+};
+
+export const smokeQuery = {
+  id: 'smoke.smoke',
+  path: 'src/features/smoke/queries/smoke/smoke.sql',
+  sql: smokeQuerySql,
+} as const;
+
 export type SmokeQueryExecutor = {
-  query<T = unknown>(sql: string, params: Record<string, unknown>): Promise<T[]>;
+  query<T = unknown>(query: SmokeQuerySource, params: Record<string, unknown>): Promise<T[]>;
 };
 
 export async function executeSmokeQuery(
   executor: SmokeQueryExecutor,
   params: SmokeQueryParams,
 ): Promise<SmokeQueryResult> {
-  const rows = await executor.query<SmokeQueryResult>(smokeQuerySql, params);
+  const rows = await executor.query<SmokeQueryResult>(smokeQuery, params);
   if (rows.length !== 1) {
     throw new Error(\`smoke query expected exactly one row, but got \${rows.length}.\`);
   }
@@ -354,7 +366,13 @@ export default cases;
 import { verifyQuerySpecZtdCase, type QuerySpecExecutionEvidence } from './verifier.js';
 
 export type QuerySpecExecutorClient = {
-  query<T = unknown>(sql: string, params: Record<string, unknown>): Promise<T[]>;
+  query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]>;
+};
+
+export type QuerySpecSqlSource = {
+  id: string;
+  path: string;
+  sql: string;
 };
 
 type QuerySpecExecutor<Input, Output> = (
@@ -473,10 +491,10 @@ function createQuerySpecExecutor(
   trace: QueryExecutionTrace[],
 ): QuerySpecExecutorClient {
   return {
-    async query<T = unknown>(sql: string, params: Record<string, unknown>): Promise<T[]> {
-      const bound = bindNamedParams(sql, params);
+    async query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]> {
+      const bound = bindNamedParams(query.sql, params);
       trace.push({
-        originalSql: sql,
+        originalSql: query.sql,
         boundSql: bound.boundSql,
         boundParams: bound.boundValues,
         rewriteApplied: false,

@@ -495,6 +495,53 @@ Hidden CLI-generated SQL rewriting makes the full query harder to understand, ma
 
 `mostly done`
 
+## File-Backed Runtime SQL
+
+### Definition
+
+Runtime application code should not pass arbitrary SQL strings into Ashiba execution boundaries. Runtime execution should start from a reviewed SQL file or a generated query source object that carries the SQL text, SQL path, and matching CLI-generated query model metadata.
+
+The final database driver call inevitably receives a SQL string. That string is an internal adapter detail, not the public application boundary. The application-facing boundary should be query-model-backed so Ashiba can verify the source hash, named-parameter metadata, and safe-sort metadata before execution.
+
+### Why It Exists
+
+If Ashiba accepts an arbitrary SQL string at runtime, the adapter cannot know whether the string came from a reviewed file, a generated boundary, concatenated application logic, or user-controlled input. Requiring a file-backed query source closes that injection route at the Ashiba boundary. If a developer intentionally writes a SQL file or generated boundary that embeds unsafe SQL, that is outside Ashiba's automatic protection: the developer has already crossed the source-code trust boundary.
+
+Safe sort is the narrow exception to fully static SQL text. It is not a free-form SQL string escape hatch. The requested sort key must exactly match a key recorded in the query model whitelist, and the rendered SQL expression must come from the CLI-generated sortable dictionary. Sort direction is limited to `asc` or `desc`.
+
+### Included Responsibilities
+
+- Use generated or loaded query source objects instead of `execute(sql: string, ...)` style public APIs.
+- Carry SQL path, source SQL, query model analysis, and dialect binding metadata together.
+- Verify source hash before using named-parameter or safe-sort metadata.
+- Treat the query model safe-sort dictionary as the maximum runtime sort surface.
+- Require safe-sort keys to match the query model whitelist exactly.
+- Keep the raw string passed to the underlying DB driver inside the adapter implementation.
+
+### Excluded Responsibilities
+
+- Accepting arbitrary SQL strings as application-facing runtime input.
+- Runtime dynamic SQL construction for filters, joins, projections, or business clauses.
+- Sanitizing user-provided SQL fragments.
+- Treating safe sort as an arbitrary ORDER BY string feature.
+
+### Related Concepts
+
+- `Visible SQL`
+- `No Query DSL Ceremony`
+- `Named Parameter Binding`
+- `Safe Sort Profile`
+- `Logger-Ready Execution Event`
+
+### Current Source Artifacts
+
+- `packages/driver-adapter-pg/src/index.ts`
+- `packages/driver-adapter-pg/tests/driver-adapter-pg.test.ts`
+
+### Implementation Status
+
+`partial`
+
 ## Thin Driver Adapter
 
 ### Definition
@@ -521,6 +568,7 @@ Wrapper package names must make the wrapped library or executable explicit. Ashi
 - Row result normalization contracts.
 - Runtime-light execution that prefers CLI-generated query metadata over runtime AST parsing.
 - Rejection of unsafe driver-side SQL handling when required metadata is missing or stale.
+- File-backed or generated query source objects as the application-facing execution input.
 - Package naming that includes the wrapped driver library or executable.
 
 ### Excluded Responsibilities
@@ -533,6 +581,7 @@ Wrapper package names must make the wrapped library or executable explicit. Ashi
 - Logger implementation.
 - Transaction management policy.
 - Runtime AST parsing as the default mechanism for SQL understanding.
+- Arbitrary runtime SQL string execution as the application-facing boundary.
 - Proprietary SQL comments, replacement markers, or template directives.
 
 ### Notes
@@ -752,11 +801,14 @@ The sortable dictionary maps public sort names to reviewed SQL expressions. For 
 
 The query model sortable dictionary is the maximum runtime sort surface. Runtime options may refine presentation details such as default direction, but they must not replace the SQL expression recorded in the CLI-generated metadata.
 
+Sort key matching is exact. A runtime sort request must use a key that exactly matches the query model whitelist; case folding, fuzzy matching, alias guessing, raw column expressions, and arbitrary ORDER BY fragments are rejected.
+
 Root compound SELECT queries such as `UNION`, `INTERSECT`, or `EXCEPT` are intentionally conservative. The query model should record this as development-time metadata, such as `rootQueryShape: "compound-select"`, so the runtime driver does not need to inspect SQL text. Their stable sortable surface can be ambiguous, and Ashiba must not rewrite them into a different query shape. If safe sort is needed for a root compound query, the query should be written as an explicit subquery that exposes stable sortable columns, and Ashiba should report that next action instead of rewriting automatically.
 
 ### Included Responsibilities
 
 - Allow only known sort keys.
+- Require the requested sort key to exactly match a key in the query model whitelist.
 - Allow only `asc` or `desc`.
 - Require CLI-generated query model analysis for safe sort execution.
 - Prefer development-time insertion metadata plus source SQL hash over runtime AST parsing.

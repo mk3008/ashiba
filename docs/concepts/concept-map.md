@@ -38,6 +38,7 @@ These concepts apply to the whole repository and constrain all packages.
 | `mapper-tested-type-safety` | Mapper-Tested Type Safety | mostly done | DTO and mapper type safety is guaranteed by mapper tests and DB-backed integration tests, not runtime result-row validation. |
 | `error-output-modes` | Error Output Modes | mostly done | Shared formatter and CLI option support human-oriented and AI-oriented modes. Both modes include cause and next action/hint; known production errors in the current package set expose structured cause/action metadata, with formatter fallbacks kept as a safety net for unexpected errors. |
 | `tooling-ast-dependency-policy` | Tooling AST Dependency Policy | partial | Ashiba tooling may depend on `rawsql-ts` core AST APIs through npm; development-only Runtime Zero support capabilities should be folded into `@ashiba/cli` unless a real non-CLI consumer exists. Dev-time SQL structural analysis should prefer tested AST APIs over regex/lexical parsing; remaining non-AST helpers are parser/AST capability debt unless limited to source offsets, generated TypeScript artifact extraction, or explicit diagnostics. Silent fallback is rejected. |
+| `file-backed-runtime-sql` | File-Backed Runtime SQL | partial | Runtime execution boundaries accept reviewed SQL files or generated query source objects with SQL path and query model metadata, not arbitrary SQL string input. The underlying driver still receives a string internally after metadata checks. |
 | `public-api-and-help-surface` | Public API and Help Surface | partial | Public exported functions require JSDoc. CLI commands require help surfaces before execution, with AI-oriented help allowed when a structured form is safer. |
 | `cli-dry-run` | CLI Dry Run | partial | Mutating CLI commands must expose dry-run or equivalent preview behavior that reports planned effects without changing files or external state. Read-only inspection commands are already observational. |
 
@@ -68,7 +69,7 @@ These concepts belong to driver-neutral SQL libraries, production driver adapter
 | `thin-driver-adapter` | Thin Driver Adapter | mostly done | `pg` adapter owns named binding, parameter checks, query-model-gated safe sort, stale metadata rejection, and observer events while avoiding ORM and transaction ownership. Wrapper package names include the wrapped driver or tool name. |
 | `named-parameter-binding` | Named Parameter Binding | mostly done | Source SQL uses named parameters such as `:name` or `@name`; DB driver wrappers compile them to driver placeholders. |
 | `parameter-contract-check` | Parameter Contract Check | mostly done | Missing and unused parameters fail before execution in binder and PostgreSQL adapter paths. |
-| `safe-sort-profile` | Safe Sort Profile | mostly done | DB driver wrapper-owned safe sort surface based on whitelisted profiles and CLI-generated query model metadata: source hash, root query shape, insertion position, order-by/comma mode, and sortable dictionary. |
+| `safe-sort-profile` | Safe Sort Profile | mostly done | DB driver wrapper-owned safe sort surface based on whitelisted profiles and CLI-generated query model metadata: source hash, root query shape, insertion position, order-by/comma mode, and sortable dictionary. Sort keys must exactly match the query model whitelist. |
 | `logger-ready-execution-event` | Logger-Ready Execution Event | mostly done | Structured driver observer events cover start/end/error, masked params by default, optional unmasked params, query metadata, DB errors, and pre-execution validation failures. |
 
 ## Transform Package Concepts
@@ -114,6 +115,7 @@ flowchart TD
   Drivers --> ThinAdapter["Thin Driver Adapter"]
   ThinAdapter --> NamedParams["Named Parameter Binding"]
   ThinAdapter --> ParamCheck["Parameter Contract Check"]
+  ThinAdapter --> FileBackedSql["File-Backed Runtime SQL"]
   ThinAdapter --> SafeSort["Safe Sort Profile"]
   ThinAdapter --> LoggerEvent["Logger-Ready Execution Event"]
 
@@ -137,6 +139,8 @@ flowchart TD
   AstPolicy --> Sqlgrep
   NoAgentFiles --> ErrorModes
   PublicApiHelp --> ErrorModes
+  FileBackedSql --> NamedParams
+  FileBackedSql --> SafeSort
 ```
 
 ## Review Checks
@@ -155,5 +159,7 @@ flowchart TD
 - CLI help may be split into human-oriented and AI-oriented forms when that makes command contracts safer to consume.
 - Core CLI scaffolding must not hide SQL transformation or dynamic SQL building inside generated application code; keep SQL visible and use driver/extension concepts for their bounded responsibilities.
 - Driver package concepts must stay thin and must not own business SQL.
+- Driver execution boundaries should not expose arbitrary SQL string input; use file-backed/generated query source objects and keep the final driver SQL string internal.
+- Safe sort requests must exactly match query model whitelist keys; raw ORDER BY fragments and guessed column names are not accepted.
 - Transform package concepts must preserve visible SQL and must not become a query DSL.
 - `Safe Sort Profile` is owned by the driver wrapper boundary; transform packages may define static schema or validation helpers only if that does not move ORDER BY rendering out of the driver wrapper or require Ashiba-only SQL notation.

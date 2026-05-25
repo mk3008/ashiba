@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, test } from 'vitest';
-import { AshibaParameterError, createPostgresAdapter, type NodePostgresQueryable } from '../src/index.js';
+import {
+  AshibaParameterError,
+  createPostgresAdapter,
+  type AshibaPostgresQueryModel,
+  type NodePostgresQueryable,
+} from '../src/index.js';
 import { AshibaSortError, type AshibaSqlExecutionEvent } from '@ashiba/driver-adapter-core';
 
 describe('@ashiba/driver-adapter-pg', () => {
@@ -15,7 +20,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
     const sourceSql = 'select * from users where id = :id';
 
-    const result = await adapter.execute(sourceSql, { id: 1 }, {
+    const result = await adapter.execute(querySource(sourceSql), { id: 1 }, {
       queryModel: queryModelFor(sourceSql, {
         sql: 'select * from users where id = $1',
         orderedNames: ['id'],
@@ -38,7 +43,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       { id: 1, status: 'active' },
       {
         queryModel: {
@@ -74,7 +79,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       { id: 1 },
       {
         queryModel: {
@@ -108,7 +113,14 @@ describe('@ashiba/driver-adapter-pg', () => {
     };
     const adapter = createPostgresAdapter(client);
 
-    await expect(adapter.execute('select * from users where id = :id', { id: 1 }))
+    await expect(adapter.execute(querySource('select * from users where id = :id', {
+      analysis: {
+        astParse: 'ok',
+        statementKind: 'select',
+        hasTopLevelOrderBy: false,
+        sourceHash: hashSql('select * from users where id = :id'),
+      },
+    }), { id: 1 }))
       .rejects.toMatchObject({
         code: 'ASHIBA_BINDING_METADATA_REQUIRED',
         causeText: 'The PostgreSQL adapter is running in metadata-based binding mode, but the query model did not include Postgres binding metadata.',
@@ -134,7 +146,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     });
 
     const sourceSql = 'select :secret';
-    await adapter.execute(sourceSql, { secret: 'value' }, {
+    await adapter.execute(querySource(sourceSql), { secret: 'value' }, {
       metadata: { queryId: 'q1' },
       queryModel: queryModelFor(sourceSql, {
         sql: 'select $1',
@@ -167,7 +179,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     });
 
     await expect(adapter.execute(
-      'select :id',
+      querySource('select :id'),
       {},
       {
         metadata: { queryId: 'users.get', sqlPath: 'src/features/users/queries/get/get.sql' },
@@ -210,7 +222,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       {},
       {
         queryModel: {
@@ -248,7 +260,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       {},
       {
         queryModel: {
@@ -289,7 +301,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       { status: 'active', limit: 10 },
       {
         queryModel: {
@@ -335,7 +347,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       { user_id: 1 },
       {
         queryModel: {
@@ -377,7 +389,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      'select * from users',
+      querySource('select * from users'),
       {},
       {
         queryModel: {
@@ -412,7 +424,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       { user_id: 1 },
       {
         queryModel: {
@@ -454,7 +466,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const sourceSql = 'select user_id as id from active_users union all select user_id as id from archived_users';
 
     await expect(adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       {},
       {
         queryModel: {
@@ -497,7 +509,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       {},
       {
         queryModel: {
@@ -531,7 +543,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      sourceSql,
+      querySource(sourceSql),
       {},
       {
         queryModel: {
@@ -568,7 +580,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      'select * from users',
+      querySource('select * from users'),
       {},
       {
         queryModel: {
@@ -599,7 +611,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      'select * from users order by created_at desc',
+      querySource('select * from users order by created_at desc', {} as AshibaPostgresQueryModel),
       {},
       {
         sortProfile: {
@@ -619,7 +631,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      'select * from users',
+      querySource('select * from users'),
       {},
       {
         queryModel: {
@@ -642,7 +654,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
 
     await expect(adapter.execute(
-      'update users set name = :name',
+      querySource('update users set name = :name'),
       {},
       {
         queryModel: {
@@ -676,7 +688,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     });
 
     const sourceSql = 'select * from missing where id = :id';
-    await expect(adapter.execute(sourceSql, { id: 1 }, {
+    await expect(adapter.execute(querySource(sourceSql), { id: 1 }, {
       queryModel: queryModelFor(sourceSql, {
         sql: 'select * from missing where id = $1',
         orderedNames: ['id'],
@@ -699,7 +711,7 @@ describe('@ashiba/driver-adapter-pg', () => {
     };
     const adapter = createPostgresAdapter(client);
 
-    await expect(adapter.execute('select :id', { id: 1, unused: true }, {
+    await expect(adapter.execute(querySource('select :id'), { id: 1, unused: true }, {
       queryModel: queryModelFor('select :id', {
         sql: 'select $1',
         orderedNames: ['id'],
@@ -711,6 +723,14 @@ describe('@ashiba/driver-adapter-pg', () => {
 
 function hashSql(sql: string): string {
   return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+}
+
+function querySource(sourceSql: string, queryModel: AshibaPostgresQueryModel = queryModelFor(sourceSql)) {
+  return {
+    sql: sourceSql,
+    sqlPath: 'queries/test.sql',
+    queryModel,
+  };
 }
 
 function queryModelFor(
