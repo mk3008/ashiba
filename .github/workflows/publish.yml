@@ -1,0 +1,89 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      verification_mode:
+        description: "release=publish to npm, proof=run the hosted publish proof without npm publish"
+        required: false
+        default: "release"
+        type: choice
+        options:
+          - release
+          - proof
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
+      NPM_CONFIG_PROVENANCE: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail unless running release mode from main
+        if: ${{ inputs.verification_mode != 'proof' }}
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "This publish workflow must be run from the main branch."
+            echo "Current ref: ${GITHUB_REF}"
+            exit 1
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify workspace
+        run: pnpm verify
+
+      - name: Verify publish proof
+        if: ${{ inputs.verification_mode == 'proof' }}
+        run: pnpm verify:consumer-install
+
+      - name: Configure npm token fallback
+        if: ${{ inputs.verification_mode != 'proof' }}
+        shell: bash
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "${NPM_TOKEN}" ]; then
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+            echo "npm token fallback configured"
+          else
+            echo "No NPM_TOKEN secret configured; relying on npm Trusted Publishing/OIDC."
+          fi
+
+      - name: Publish packages
+        if: ${{ inputs.verification_mode != 'proof' }}
+        uses: changesets/action@v1
+        with:
+          publish: pnpm changesets:publish
+          commitMode: git-cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"

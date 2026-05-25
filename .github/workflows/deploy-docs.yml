@@ -1,9 +1,15 @@
-name: Deploy VitePress Docs
+name: Docs
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
 permissions:
@@ -12,8 +18,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: docs
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -21,11 +27,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.19.0
+          run_install: false
 
       - name: Setup Node
         uses: actions/setup-node@v4

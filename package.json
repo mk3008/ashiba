@@ -19,6 +19,7 @@
     "verify:customer-tutorial:docker": "node scripts/verify-customer-tutorial.mjs --with-docker",
     "changeset": "changeset",
     "changesets:version": "changeset version",
+    "changesets:version-lockfile": "changeset version && pnpm install --lockfile-only",
     "changesets:publish": "changeset publish",
     "changesets:status": "changeset status",
     "prepare": "husky"
