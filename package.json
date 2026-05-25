@@ -1,0 +1,35 @@
+{
+  "name": "ashiba-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.19.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "docs:build": "vitepress build docs",
+    "docs:dev": "vitepress dev docs --host 127.0.0.1",
+    "docs:preview": "vitepress preview docs --host 127.0.0.1",
+    "test": "pnpm -r test",
+    "verify": "pnpm typecheck && pnpm build && pnpm test && pnpm docs:build && pnpm verify:consumer-install && pnpm verify:customer-tutorial",
+    "verify:postgres-live": "pnpm --filter @ashiba/driver-adapter-pg test:live",
+    "pack:cli": "pnpm --filter @ashiba/cli pack --pack-destination ../../tmp",
+    "verify:consumer-install": "node scripts/verify-consumer-install.mjs",
+    "verify:customer-tutorial": "node scripts/verify-customer-tutorial.mjs",
+    "verify:customer-tutorial:docker": "node scripts/verify-customer-tutorial.mjs --with-docker",
+    "changeset": "changeset",
+    "changesets:version": "changeset version",
+    "changesets:publish": "changeset publish",
+    "changesets:status": "changeset status",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.31.0",
+    "@types/node": "^22.13.10",
+    "husky": "^9.1.7",
+    "typescript": "^5.8.2",
+    "vitepress": "^1.6.4",
+    "vitest": "^4.0.7"
+  }
+}
