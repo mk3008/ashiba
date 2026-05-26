@@ -2099,6 +2099,16 @@ describe('@ashiba/cli smoke', () => {
         adoptedIndexTarget: 'db/ddl',
       });
       expect(readFileSync(path.join(rootDir, 'perf/scenarios/users-list/README.md'), 'utf8')).toContain('Accepted indexes must be promoted into db/ddl');
+      expect(() => runPerfScenarioInit({
+        rootDir,
+        scenario: 'missing-query',
+        query: 'src/features/users-list/queries/list/missing.sql',
+      })).toThrow('file was not found');
+      expect(() => runPerfScenarioInit({
+        rootDir,
+        scenario: 'duplicate-target-rows',
+        targetRows: ['public.users=100000', 'public.users=200000'],
+      })).toThrow('Duplicate target rows entry');
 
       const measurement = runPerfScenarioMeasure({
         rootDir,
@@ -2108,19 +2118,27 @@ describe('@ashiba/cli smoke', () => {
         evidenceName: 'candidate-001',
       });
 
-      expect(measurement.ok).toBe(false);
+      expect(measurement.recorded).toBe(true);
       expect(measurement.result).toEqual({
         durationMs: 182.4,
         timedOut: false,
         meetsRequirement: false,
       });
       expect(measurement.evidence.measurementPath).toBe('perf/scenarios/users-list/evidence/candidate-001.json');
+      expect(measurement.evidence.explainCollected).toBe(true);
       expect(measurement.nextActions).toContain('Accepted indexes must be written to db/ddl before they become product schema.');
       expect(JSON.parse(readFileSync(path.join(rootDir, 'perf/scenarios/users-list/evidence/candidate-001.json'), 'utf8'))).toMatchObject({
         scenario: 'users-list',
         result: { durationMs: 182.4, meetsRequirement: false },
+        evidence: { explainCollected: true },
         indexPolicy: { candidateIndexScope: 'sandbox-only' },
       });
+      expect(() => runPerfScenarioMeasure({
+        rootDir,
+        scenario: 'users-list',
+        durationMs: '42',
+        explain: 'missing-explain.json',
+      })).toThrow('file was not found');
 
       const timedOut = runPerfScenarioMeasure({
         rootDir,
@@ -2129,8 +2147,10 @@ describe('@ashiba/cli smoke', () => {
         evidenceName: 'timeout',
         dryRun: true,
       });
-      expect(timedOut.ok).toBe(false);
+      expect(timedOut.recorded).toBe(true);
       expect(timedOut.result).toMatchObject({ durationMs: null, timedOut: true, meetsRequirement: false });
+      expect(timedOut.nextActions[0]).toContain('Treat the timeout as performance evidence');
+      expect(timedOut.nextActions).toContain('Collect EXPLAIN evidence and pass --explain on the next measurement so the timing result has a plan to review.');
       expect(existsSync(path.join(rootDir, 'perf/scenarios/users-list/evidence/timeout.json'))).toBe(false);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });

@@ -258,6 +258,12 @@ try {
   ], starterRoot);
   assertFileContains(path.join(starterRoot, 'perf', 'scenarios', 'users-list', 'scenario.json'), '"public.users": 100000');
   assertFileContains(path.join(starterRoot, 'perf', 'scenarios', 'users-list', 'README.md'), 'Accepted indexes must be promoted into db/ddl');
+  mkdirSync(path.join(starterRoot, 'tmp', 'perf'), { recursive: true });
+  writeFileSync(
+    path.join(starterRoot, 'tmp', 'perf', 'users-list-explain.json'),
+    `${JSON.stringify([{ Plan: { 'Node Type': 'Seq Scan', 'Relation Name': 'users' } }], null, 2)}\n`,
+    'utf8',
+  );
   run(corepack, [
     'pnpm',
     'exec',
@@ -269,10 +275,13 @@ try {
     'users-list',
     '--duration-ms',
     '42',
+    '--explain',
+    'tmp/perf/users-list-explain.json',
     '--evidence-name',
     'baseline',
   ], starterRoot);
   assertFileContains(path.join(starterRoot, 'perf', 'scenarios', 'users-list', 'evidence', 'baseline.json'), '"durationMs": 42');
+  assertFileContains(path.join(starterRoot, 'perf', 'scenarios', 'users-list', 'evidence', 'baseline.json'), '"explainCollected": true');
   assertFileContains(path.join(starterRoot, 'perf', 'scenarios', 'users-list', 'evidence', 'baseline.json'), '"candidateIndexScope": "sandbox-only"');
   assertFileContains(path.join(starterRoot, 'perf', 'scenarios', 'users-list', 'evidence', 'baseline.json'), 'Accepted indexes must be written to db/ddl');
   run(corepack, ['pnpm', 'exec', 'ashiba', '--help'], starterRoot);

@@ -1,8 +1,8 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { compileNamedParameters } from '../parameter-metadata.js';
-import { requiredCliValueError } from '../errors.js';
+import { invalidCliInputError, requiredCliValueError } from '../errors.js';
 
 export interface PerfInitOptions {
   rootDir?: string;
@@ -110,11 +110,12 @@ export interface PerfScenarioMeasureResult {
   evidence: {
     measurementPath: string;
     explainPath: string | null;
+    explainCollected: boolean;
     dryRun: boolean;
   };
   indexPolicy: PerfIndexPolicy;
   nextActions: string[];
-  ok: boolean;
+  recorded: boolean;
 }
 
 export interface PerfIndexPolicy {
@@ -203,7 +204,6 @@ Use case:
     .action((options: PerfScenarioMeasureOptions) => {
       const result = runPerfScenarioMeasure(options);
       writeResult('perf-scenario-measure', result, options.format, formatPerfScenarioMeasureResult);
-      if (!result.ok) process.exitCode = 1;
     });
 }
 
@@ -292,9 +292,10 @@ export function runPerfScenarioInit(options: PerfScenarioInitOptions): PerfScena
   const scenario = requireValue(options.scenario, '--scenario');
   const scenarioDir = path.join('perf', 'scenarios', scenario);
   const requirements = buildScenarioRequirements(options);
+  const query = options.query ? validateExistingProjectFile(rootDir, options.query, '--query') : null;
   const scenarioConfig = {
     scenario,
-    query: options.query ? normalizePath(options.query) : null,
+    query,
     requirements,
     indexPolicy: createPerfIndexPolicy(),
   };
@@ -365,7 +366,7 @@ export function runPerfScenarioMeasure(options: PerfScenarioMeasureOptions): Per
     : durationMs <= requirements.maxDurationMs;
   const evidenceName = normalizeEvidenceName(options.evidenceName);
   const measurementPath = normalizePath(path.join('perf', 'scenarios', scenario, 'evidence', `${evidenceName}.json`));
-  const explainPath = options.explain ? normalizePath(options.explain) : null;
+  const explainPath = options.explain ? validateExistingProjectFile(rootDir, options.explain, '--explain') : null;
   const result: PerfScenarioMeasureResult = {
     rootDir,
     scenario,
@@ -379,11 +380,12 @@ export function runPerfScenarioMeasure(options: PerfScenarioMeasureOptions): Per
     evidence: {
       measurementPath,
       explainPath,
+      explainCollected: explainPath !== null,
       dryRun: options.dryRun === true,
     },
     indexPolicy: createPerfIndexPolicy(),
-    nextActions: buildScenarioMeasureNextActions({ timedOut, meetsRequirement }),
-    ok: timedOut !== true && meetsRequirement !== false,
+    nextActions: buildScenarioMeasureNextActions({ timedOut, meetsRequirement, explainCollected: explainPath !== null }),
+    recorded: true,
   };
   if (options.dryRun !== true) {
     const destination = path.join(rootDir, measurementPath);
@@ -436,8 +438,9 @@ function formatPerfScenarioInitResult(result: PerfScenarioInitResult): string {
 }
 
 function formatPerfScenarioMeasureResult(result: PerfScenarioMeasureResult): string {
+  const status = result.result.timedOut || result.result.meetsRequirement === false ? 'needs tuning' : 'recorded';
   return `${[
-    `Perf scenario measurement: ${result.ok ? 'ok' : 'needs tuning'}`,
+    `Perf scenario measurement: ${status}`,
     `- scenario: ${result.scenario}`,
     `- query: ${result.query ?? '(unspecified)'}`,
     `- duration ms: ${result.result.durationMs ?? 'unknown'}`,
@@ -445,6 +448,7 @@ function formatPerfScenarioMeasureResult(result: PerfScenarioMeasureResult): str
     `- meets requirement: ${result.result.meetsRequirement ?? 'unknown'}`,
     `- measurement: ${result.evidence.measurementPath}${result.evidence.dryRun ? ' (dry-run, not written)' : ''}`,
     `- explain: ${result.evidence.explainPath ?? '(not provided)'}`,
+    `- explain collected: ${result.evidence.explainCollected}`,
     `- index policy: ${result.indexPolicy.rule}`,
     ...result.nextActions.map((action) => `- next: ${action}`),
   ].join('\n')}\n`;
@@ -552,7 +556,7 @@ function buildScenarioRequirements(options: PerfScenarioInitOptions): PerfScenar
   return {
     targetRows: parseTargetRows(options.targetRows),
     maxDurationMs: parseOptionalNonNegativeNumber(options.maxDurationMs, '--max-duration-ms'),
-    timeoutMs: parsePositiveNumber(options.timeoutMs ?? '30000', '--timeout-ms'),
+    timeoutMs: parsePositiveInteger(options.timeoutMs ?? '30000', '--timeout-ms'),
   };
 }
 
@@ -563,7 +567,9 @@ function normalizeScenarioRequirements(value: unknown): PerfScenarioRequirements
       ? Object.fromEntries(Object.entries(record.targetRows).filter((entry): entry is [string, number] => typeof entry[1] === 'number'))
       : {},
     maxDurationMs: typeof record.maxDurationMs === 'number' ? record.maxDurationMs : null,
-    timeoutMs: typeof record.timeoutMs === 'number' ? record.timeoutMs : 30000,
+    timeoutMs: typeof record.timeoutMs === 'number' && Number.isInteger(record.timeoutMs) && record.timeoutMs > 0
+      ? record.timeoutMs
+      : 30000,
   };
 }
 
@@ -574,14 +580,22 @@ function parseTargetRows(values: string[] | undefined): Record<string, number> {
     if (!table || !countText || extra !== undefined) {
       throw requiredCliValueError('--target-rows <table=count>');
     }
-    targetRows[table] = parsePositiveNumber(countText, '--target-rows');
+    if (Object.prototype.hasOwnProperty.call(targetRows, table)) {
+      throw invalidCliInputError(
+        'ASHIBA_DUPLICATE_PERF_TARGET_ROWS',
+        `Duplicate target rows entry for ${table}.`,
+        'Pass each --target-rows table at most once so the scenario requirement is explicit.',
+        { table },
+      );
+    }
+    targetRows[table] = parsePositiveInteger(countText, '--target-rows');
   }
   return targetRows;
 }
 
-function parsePositiveNumber(value: string, label: string): number {
+function parsePositiveInteger(value: string, label: string): number {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
+  if (!Number.isInteger(parsed) || parsed <= 0) {
     throw requiredCliValueError(label);
   }
   return parsed;
@@ -619,13 +633,40 @@ function createPerfIndexPolicy(): PerfIndexPolicy {
   };
 }
 
-function buildScenarioMeasureNextActions(input: { timedOut: boolean; meetsRequirement: boolean | null }): string[] {
+function validateExistingProjectFile(rootDir: string, value: string, label: string): string {
+  const inputPath = requireValue(value, label);
+  const absolutePath = path.resolve(rootDir, inputPath);
+  const projectRelativePath = path.relative(rootDir, absolutePath);
+  if (projectRelativePath.startsWith('..') || path.isAbsolute(projectRelativePath)) {
+    throw invalidCliInputError(
+      'ASHIBA_PROJECT_FILE_OUTSIDE_ROOT',
+      `${label} must point inside the project root.`,
+      'Pass a project-relative file path under the Ashiba project root.',
+      { label, value },
+    );
+  }
+  const relativePath = normalizePath(projectRelativePath);
+  if (!existsSync(absolutePath) || !statSync(absolutePath).isFile()) {
+    throw invalidCliInputError(
+      'ASHIBA_PROJECT_FILE_NOT_FOUND',
+      `${label} file was not found: ${relativePath}`,
+      'Create the referenced file first, then rerun the command so the performance evidence points to a real artifact.',
+      { label, path: relativePath },
+    );
+  }
+  return relativePath;
+}
+
+function buildScenarioMeasureNextActions(input: { timedOut: boolean; meetsRequirement: boolean | null; explainCollected: boolean }): string[] {
   const actions = [
     'Use the execution plan and timing evidence to decide the next SQL or index experiment.',
     'Candidate indexes may be applied to the sandbox database for measurement only.',
     'Accepted indexes must be written to db/ddl before they become product schema.',
     'After applying a candidate index, run ANALYZE and record another measurement.',
   ];
+  if (!input.explainCollected) {
+    actions.unshift('Collect EXPLAIN evidence and pass --explain on the next measurement so the timing result has a plan to review.');
+  }
   if (input.timedOut) {
     actions.unshift('Treat the timeout as performance evidence and inspect the plan before retrying with a candidate change.');
   } else if (input.meetsRequirement === false) {

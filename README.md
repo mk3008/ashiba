@@ -20,6 +20,20 @@ Ashiba is a SQL-first scaffolder for TypeScript applications. Keep raw SQL visib
 
 The ConceptSpec is the source of truth for the product philosophy: [docs/concepts/](docs/concepts/index.md).
 
+## Supported DBMS And Drivers
+
+Ashiba is not PostgreSQL-only. DBMS support is selected explicitly by DBMS and wrapped driver name.
+
+| DBMS | Wrapped driver/tool | Package | Current status |
+|---|---|---|---|
+| PostgreSQL | `pg` | `@ashiba/driver-adapter-pg` | Starter, generated ZTD mapper tests, query metadata, named-parameter binding, safe sort, SSSQL compression, logger-ready events, and customer tutorial path are implemented. |
+| PostgreSQL | `pg` testkit | `@ashiba/testkit-adapter-pg` | ZTD mapper-test adapter for the PostgreSQL starter. |
+| PostgreSQL | `pg_dump` | `@ashiba/ddl-pull-pg-dump` | Optional DDL pull helper backed by the external `pg_dump` executable. |
+| MySQL | `mysql2` | `@ashiba/driver-adapter-mysql2` | Thin driver adapter with metadata-backed named-parameter binding and DB-backed customer functional tests. Full `ashiba init` starter is not implemented yet. |
+| SQL Server | `mssql` | `@ashiba/driver-adapter-mssql` | Thin driver adapter with metadata-backed named-parameter binding and DB-backed customer functional tests. Full `ashiba init` starter is not implemented yet. |
+
+`ashiba init` currently implements the starter path for `--db postgres --driver pg`. Other wrapper packages exist so applications can validate adapter behavior and so future starters can be added without changing the DBMS/driver naming rule.
+
 ## Getting Started
 
 Install Docker with PostgreSQL support available first. The starter is meant to prove the DB-backed unit-test lane, so it includes a small Compose-managed PostgreSQL service.

@@ -1131,6 +1131,8 @@ Query tuning needs real database state, statistics, indexes, execution plans, an
 - Record whether a measurement timed out.
 - Record measured duration when the query returns.
 - Point to execution-plan evidence collected during the tuning session.
+- Treat timeout or response-time misses as tuning evidence, not as ordinary CLI execution failure.
+- Reject missing referenced query or execution-plan evidence files instead of recording fake paths.
 - Return AI/human next actions that explain the tuning loop.
 - State that candidate indexes are sandbox-only.
 - State that accepted indexes must be promoted into `db/ddl` before they become product schema.
