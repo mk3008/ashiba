@@ -1,6 +1,6 @@
 export type NamedParameterStyle = 'colon' | 'at' | 'both';
 
-export type PlaceholderStyle = 'postgres' | 'question';
+export type PlaceholderStyle = 'postgres' | 'question' | 'named-at';
 
 export type CompileNamedParametersOptions = {
   parameterStyle?: NamedParameterStyle;
@@ -140,7 +140,7 @@ export function compileNamedParameters(
       while (end < sql.length && isNamePart(sql[end] ?? '')) end += 1;
       const name = sql.slice(index + 1, end);
       orderedNames.push(name);
-      output += renderPlaceholder(resolved.placeholderStyle, orderedNames.length);
+      output += renderPlaceholder(resolved.placeholderStyle, orderedNames.length, name);
       index = end - 1;
       continue;
     }
@@ -154,8 +154,9 @@ export function compileNamedParameters(
   };
 }
 
-function renderPlaceholder(style: PlaceholderStyle, position: number): string {
+function renderPlaceholder(style: PlaceholderStyle, position: number, name: string): string {
   if (style === 'postgres') return `$${position}`;
+  if (style === 'named-at') return `@${name}`;
   return '?';
 }
 

@@ -558,7 +558,8 @@ function extractQueryModelMetadata(specFilePath: string): {
     return { hasQueryModel: false, analysisNamedParameters: [], analysisResultColumns: [], bindingOrderedNames: [] };
   }
 
-  const analysisObject = parseObjectLiteralAfter(source, 'analysis:');
+  const analysisObject = parseObjectLiteralAfter(source, 'analysis:')
+    ?? parseObjectLiteralAfter(source, '"analysis":');
   const analysisBlock = stringifyRecord(analysisObject);
   const queryModelSourceHash = readStringProperty(analysisObject, 'sourceHash')
     ?? source.match(/"sourceHash"\s*:\s*"([^"]+)"/)?.[1];
@@ -583,7 +584,8 @@ function extractQueryModelMetadata(specFilePath: string): {
   const analysisSssqlCompressionJson = analysisObject && Object.prototype.hasOwnProperty.call(analysisObject, 'sssqlCompression')
     ? JSON.stringify(analysisObject.sssqlCompression)
     : undefined;
-  const bindingsObject = parseObjectLiteralAfter(source, 'bindings:');
+  const bindingsObject = parseObjectLiteralAfter(source, 'bindings:')
+    ?? parseObjectLiteralAfter(source, '"bindings":');
   const postgresObject = isRecord(bindingsObject?.postgres) ? bindingsObject.postgres : undefined;
   const postgresBlock = stringifyRecord(postgresObject);
   const bindingSourceHash = readStringProperty(postgresObject, 'sourceHash')

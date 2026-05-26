@@ -23,6 +23,7 @@ export const COMMANDS = [
   { name: 'query sssql remove', summary: 'Remove SQL-first optional-condition metadata.' },
   { name: 'feature scaffold', summary: 'Scaffold editable feature-local SQL boundaries.' },
   { name: 'feature query scaffold', summary: 'Add another editable query boundary under an existing feature.' },
+  { name: 'feature query refresh', summary: 'Refresh generated query model metadata after SQL-only edits.' },
   { name: 'feature tests scaffold', summary: 'Scaffold feature-local mapper and traditional test lane files.' },
   { name: 'feature tests check', summary: 'Check and optionally fix generated mapping test assets.' },
   { name: 'feature generated-mapper check', summary: 'Check named-parameter drift between SQL and editable query boundary contracts.' },

@@ -33,7 +33,7 @@ npm install @ashiba/driver-adapter-pg pg
 npm install -D @ashiba/cli
 npm install -D @ashiba/testkit-adapter-pg @types/pg typescript vitest dotenv
 
-npx ashiba init --db postgres --with-demo-ddl --with-migration-demo-ddl
+npx ashiba init --db postgres --driver pg --with-demo-ddl --with-migration-demo-ddl
 ```
 
 Copy the starter environment file and start PostgreSQL:
@@ -44,15 +44,13 @@ docker compose up -d
 ```
 
 If port `5432` is already in use, change `ASHIBA_TEST_DB_PORT` in `.env` before running Compose. The generated Vitest setup derives `ASHIBA_TEST_DATABASE_URL` from `ASHIBA_TEST_DB_HOST`, `ASHIBA_TEST_DB_PORT`, `ASHIBA_TEST_DB_NAME`, `ASHIBA_TEST_DB_USER`, and `ASHIBA_TEST_DB_PASSWORD`. If an explicit `ASHIBA_TEST_DATABASE_URL` conflicts with those values, the setup fails fast instead of silently choosing one source.
-Ashiba does not create or manage `package.json` during `init`: package ownership and DB driver choice belong to the application. `--db postgres` selects the Postgres starter files after the matching dependencies are installed.
+Ashiba does not create or manage `package.json` during `init`: package ownership and DB driver choice belong to the application. `--db postgres --driver pg` selects the Postgres starter files for the `pg` wrapper after the matching dependencies are installed.
 
 Add a feature from the demo DDL, run tests, and finish by generating reviewable migration SQL from the temporary old DDL snapshot:
 
 ```bash
-npx ashiba feature scaffold --table users --action list --dry-run
-npx ashiba feature scaffold --table users --action list
+npx ashiba feature scaffold --feature-name users-list --table users --action list
 npm test
-npx ashiba ddl migration generate --from tmp/ddl/production.sql --to db/ddl/public.sql --out tmp/ddl/migration.sql --dry-run
 npx ashiba ddl migration generate --from tmp/ddl/production.sql --to db/ddl/public.sql --out tmp/ddl/migration.sql
 ```
 
@@ -71,6 +69,7 @@ Run `ashiba --help`, `ashiba <command> --help`, or `ashiba describe command --fo
 | `ashiba describe command` | Describes one command or lists the command catalog for humans and AI agents. |
 | `ashiba feature scaffold` | Scaffolds a feature-local boundary from DDL metadata. |
 | `ashiba feature query scaffold` | Adds another query boundary under an existing feature. |
+| `ashiba feature query refresh` | Refreshes generated query model metadata after SQL-only edits. |
 | `ashiba feature tests scaffold` | Adds mapper/traditional test lane files. |
 | `ashiba feature tests check` | Detects and optionally fixes generated mapping-test drift. |
 | `ashiba feature generated-mapper check` | Checks named-parameter drift between SQL and editable query contracts. |
@@ -113,7 +112,7 @@ Feature boundaries may be subgrouped when the review responsibility needs it; sh
 
 ### Add a query to an existing feature
 
-Use `ashiba feature query scaffold`, then use `ashiba model-gen` to create the editable query contract for the SQL. A feature can grow by adding more query boundaries; the scaffold is not a create-and-hide generator.
+Use `ashiba feature query scaffold` to add the query boundary and generated query metadata in one step. If you later edit only the SQL file, run `ashiba feature query refresh` to refresh the query model metadata without recreating the feature. A feature can grow by adding more query boundaries; the scaffold is not a create-and-hide generator.
 
 ### Change DDL
 
@@ -121,7 +120,7 @@ Use `ashiba ddl diff`, `ashiba ddl migration generate`, and `ashiba ddl migratio
 
 ### Change SQL
 
-Use `ashiba query outline`, `ashiba query graph`, `ashiba query lint`, and `ashiba check-contract` to understand the query shape and catch contract drift.
+Use `ashiba query outline`, `ashiba query graph`, `ashiba query lint`, `ashiba feature query refresh`, and `ashiba check-contract` to understand the query shape, refresh generated metadata, and catch contract drift.
 
 ### Add test patterns
 
@@ -196,7 +195,7 @@ Run only the customer tutorial smoke:
 pnpm verify:customer-tutorial
 ```
 
-That check packs local `@ashiba/*` packages, creates a clean pseudo-user project with explicit Postgres dependencies, installs through local tarball overrides, runs `ashiba init --db postgres`, and runs the starter tests. To also exercise the generated Compose path:
+That check packs local `@ashiba/*` packages, creates a clean pseudo-user project with explicit Postgres `pg` wrapper dependencies, installs through local tarball overrides, runs `ashiba init --db postgres --driver pg`, and runs the starter tests. To also exercise the generated Compose path:
 
 ```bash
 pnpm verify:customer-tutorial:docker

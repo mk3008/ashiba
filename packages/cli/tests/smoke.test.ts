@@ -9,7 +9,7 @@ import { runCheckContract, formatCheckContractResult } from '../src/commands/che
 import { createDefaultConfig, formatDefaultConfig } from '../src/commands/config.js';
 import { runDdlDiff, runDdlMigrationGenerate, runDdlMigrationInfo, runDdlRisk } from '../src/commands/ddl.js';
 import { COMMANDS, formatDescribe } from '../src/commands/describe.js';
-import { runFeatureGeneratedMapperCheck, runFeatureQueryScaffold, runFeatureScaffold, runFeatureTestsCheck, runFeatureTestsScaffold } from '../src/commands/feature.js';
+import { runFeatureGeneratedMapperCheck, runFeatureQueryMetadataRefresh, runFeatureQueryScaffold, runFeatureScaffold, runFeatureTestsCheck, runFeatureTestsScaffold } from '../src/commands/feature.js';
 import { runLint } from '../src/commands/lint.js';
 import { runModelGen } from '../src/commands/model-gen.js';
 import { runPerfInit, runPerfReportDiff, runPerfRun } from '../src/commands/perf.js';
@@ -92,7 +92,8 @@ describe('@ashiba/cli smoke', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-init-'));
 
     try {
-      const result = runInit({ dir: rootDir, db: 'postgres' });
+      writePostgresStarterPackageJson(rootDir);
+      const result = runInit({ dir: rootDir, db: 'postgres', driver: 'pg' });
 
       expect(result.files.some((file) => file.relativePath === 'db/ddl/public.sql')).toBe(false);
       expect(result.files.some((file) => file.relativePath === 'ashiba.config.json')).toBe(true);
@@ -103,6 +104,8 @@ describe('@ashiba/cli smoke', () => {
       expect(result.files.some((file) => file.relativePath === 'tests/support/setup-env.ts')).toBe(true);
       expect(result.files.some((file) => file.relativePath === 'tests/support/ztd/harness.ts')).toBe(true);
       expect(result.files.some((file) => file.relativePath === 'tests/support/ztd/verifier.ts')).toBe(true);
+      expect(result.files.some((file) => file.relativePath === 'src/features/_shared/featureQueryExecutor.ts')).toBe(true);
+      expect(result.files.some((file) => file.relativePath === 'src/adapters/pg/pool.ts')).toBe(true);
       expect(readFileSync(path.join(rootDir, 'README.md'), 'utf8')).toContain('Show me the SQL.');
       expect(readFileSync(path.join(rootDir, 'README.md'), 'utf8')).toContain('docker compose up -d');
       expect(readFileSync(path.join(rootDir, 'README.md'), 'utf8')).toContain('#features/*');
@@ -120,11 +123,18 @@ describe('@ashiba/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'tests/support/setup-env.ts'), 'utf8')).toContain('ASHIBA_TEST_DATABASE_URL');
       expect(readFileSync(path.join(rootDir, 'tests/support/setup-env.ts'), 'utf8')).toContain('ASHIBA_TEST_DATABASE_URL conflicts');
       expect(readFileSync(path.join(rootDir, 'tests/support/setup-env.ts'), 'utf8')).toContain('ASHIBA_TEST_DB_HOST');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('createPgPool');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('createPgFeatureQueryExecutor');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgFeatureQueryExecutor');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgTransaction');
       expect(existsSync(path.join(rootDir, 'src/features/smoke'))).toBe(false);
       expect(result.files.some((file) => file.relativePath === 'package.json')).toBe(false);
-      expect(existsSync(path.join(rootDir, 'package.json'))).toBe(false);
+      expect(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).toContain('"name": "starter"');
       expect(readFileSync(path.join(rootDir, 'docs/migration/status.md'), 'utf8')).toContain('ashiba feature scaffold');
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/harness.ts'), 'utf8')).toContain('runQuerySpecZtdCases');
+      expect(readFileSync(path.join(rootDir, 'tests/support/ztd/harness.ts'), 'utf8')).toContain('createQuerySpecZtdVerifier');
+      expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain('createQuerySpecZtdVerifier');
+      expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain('await pool.end()');
       expect(result.files.some((file) => /(^|\/)(AGENTS|AGENT|SKILL)\.md$/i.test(file.relativePath))).toBe(false);
       expect(result.files.some((file) => /(^|\/)(\.agent|\.agents|\.codex|skills|prompts|hooks)(\/|$)/i.test(file.relativePath))).toBe(false);
       expect(existsSync(path.join(rootDir, 'AGENTS.md'))).toBe(false);
@@ -139,7 +149,27 @@ describe('@ashiba/cli smoke', () => {
 
     try {
       expect(() => runInit({ dir: rootDir })).toThrow('ashiba init requires an explicit database starter');
-      expect(() => runInit({ dir: rootDir, db: 'mysql' })).toThrow('Unsupported Ashiba init database');
+      expect(() => runInit({ dir: rootDir, db: 'mysql' })).toThrow('requires an explicit wrapped driver');
+      expect(() => runInit({ dir: rootDir, db: 'postgres', driver: 'postgres-js' })).toThrow('Unsupported Ashiba init database/driver pair');
+      expect(() => runInit({ dir: rootDir, db: 'postgres', driver: 'pg' })).toThrow('requires package.json');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('requires postgres starter dependencies before generating pg-specific code', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-init-deps-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+        name: 'starter',
+        private: true,
+        type: 'module',
+        dependencies: { pg: '^8.0.0' },
+        devDependencies: { '@ashiba/cli': '^0.0.0' },
+      }, null, 2)}\n`);
+
+      expect(() => runInit({ dir: rootDir, db: 'postgres', driver: 'pg' })).toThrow('@ashiba/driver-adapter-pg');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -149,7 +179,8 @@ describe('@ashiba/cli smoke', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-init-demo-ddl-'));
 
     try {
-      const result = runInit({ dir: rootDir, db: 'postgres', withDemoDdl: true, withMigrationDemoDdl: true });
+      writePostgresStarterPackageJson(rootDir);
+      const result = runInit({ dir: rootDir, db: 'postgres', driver: 'pg', withDemoDdl: true, withMigrationDemoDdl: true });
 
       expect(result.files.some((file) => file.relativePath === 'db/ddl/public.sql')).toBe(true);
       expect(result.files.some((file) => file.relativePath === 'tmp/ddl/production.sql')).toBe(true);
@@ -340,11 +371,50 @@ describe('@ashiba/cli smoke', () => {
       expect(queryBoundary).not.toContain("from 'zod'");
       expect(queryBoundary).toContain("from '#features/_shared/featureQueryExecutor.js'");
       expect(queryBoundary).toContain("from '#features/_shared/loadSqlResource.js'");
+      expect(queryBoundary).toContain('sqlPath');
+      expect(queryBoundary).toContain('metadata');
+      expect(queryBoundary).toContain('queryModel');
+      expect(queryBoundary).toContain('sssqlCompression: true');
+      expect(queryBoundary).toContain('"sssqlCompression"');
+      expect(queryBoundary).toContain('"postgres"');
+      expect(queryBoundary).toContain('"mysql2"');
+      expect(queryBoundary).toContain('"mssql"');
       expect(queryZtdTest).toContain("from '#tests/support/ztd/harness.js'");
       expect(queryZtdTypes).toContain("from '#tests/support/ztd/case-types.js'");
       expect(querySql).toContain(':email');
       expect(querySql).not.toContain(':user_id');
       expect(querySql).toContain('returning "user_id", "email", "display_name"');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('refreshes generated query metadata after SQL-only edits', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-query-refresh-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      const sqlPath = path.join(rootDir, 'src/features/users-list/queries/list/list.sql');
+      writeFileSync(sqlPath, `${readFileSync(sqlPath, 'utf8')}\n-- SQL-only metadata refresh smoke\n`, 'utf8');
+
+      const stale = runCheckContract({ rootDir, feature: 'users-list' });
+      expect(stale.ok).toBe(false);
+      expect(stale.catalogCheck.checked[0]?.issues).toContain('queryModel.analysis.sourceHash is stale.');
+
+      const refresh = runFeatureQueryMetadataRefresh({ rootDir, feature: 'users-list', query: 'list' });
+      expect(refresh.changed).toBe(true);
+      expect(refresh.boundaryFile).toBe('src/features/users-list/queries/list/boundary.ts');
+
+      const fresh = runCheckContract({ rootDir, feature: 'users-list' });
+      expect(fresh.ok).toBe(true);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -429,7 +499,7 @@ describe('@ashiba/cli smoke', () => {
       expect(result.outputs.some((output) => output.path.endsWith('generated/TEST_PLAN.md'))).toBe(true);
       expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/TEST_PLAN.md'), 'utf8')).toContain('library-owned');
       expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/list.boundary.ztd.test.ts'), 'utf8')).toContain('runQuerySpecZtdCases');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('db-pg-type-mapping');
+      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('db-type-mapping');
       expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('boundary-value-mapping');
       expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/cases/logic.case.ts'), 'utf8')).toContain('Human/AI-owned SQL logic cases');
     } finally {
@@ -1262,7 +1332,7 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
-  test('generates optional condition compression metadata only when requested', () => {
+  test('generates optional condition compression metadata by default', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-sssql-compression-'));
 
     try {
@@ -1277,14 +1347,9 @@ describe('@ashiba/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
 
-      const defaultResult = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/search/search.sql' });
-      expect(defaultResult.analysis.sssqlCompression).toBeUndefined();
-      expect(defaultResult.bindings.postgres.sssqlCompression).toBeUndefined();
-
       const result = runModelGen({
         rootDir,
         sqlFile: 'src/features/users/queries/search/search.sql',
-        sssqlCompression: true,
       });
 
       expect(result.analysis.sssqlCompression).toMatchObject({
@@ -2187,3 +2252,23 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 });
+
+function writePostgresStarterPackageJson(rootDir: string): void {
+  writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+    name: 'starter',
+    private: true,
+    type: 'module',
+    dependencies: {
+      '@ashiba/driver-adapter-pg': '^0.0.0',
+      pg: '^8.0.0',
+    },
+    devDependencies: {
+      '@ashiba/cli': '^0.0.0',
+      '@ashiba/testkit-adapter-pg': '^0.0.0',
+      '@types/pg': '^8.0.0',
+      dotenv: '^16.0.0',
+      typescript: '^5.0.0',
+      vitest: '^4.0.0',
+    },
+  }, null, 2)}\n`);
+}

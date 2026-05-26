@@ -84,7 +84,7 @@ export function registerModelGenCommand(program: Command): void {
     .option('--id <id>', 'Override the query id')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--ddl-dir <path>', 'Optional DDL directory for static row type hints')
-    .option('--sssql-compression', 'Generate optional condition compression metadata', false)
+    .option('--sssql-compression', 'Deprecated no-op; query metadata now always includes optional condition compression metadata', false)
     .option('--dry-run', 'Print the generated scaffold without writing it', false)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((sqlFile: string, options: Omit<ModelGenOptions, 'sqlFile'>) => {
@@ -117,7 +117,7 @@ export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, options.ddlDir);
   const resultColumns = resultColumnContracts.map((column) => column.name);
   const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
-    sssqlCompression: options.sssqlCompression === true,
+    sssqlCompression: true,
   });
   const bindings = {
     postgres: {
@@ -188,7 +188,7 @@ function renderQueryContract(params: {
   ].join('\n');
 }
 
-function buildPostgresSafeSortBindingMetadata(
+export function buildPostgresSafeSortBindingMetadata(
   sourceSql: string,
   safeSort: SqlSafeSortMetadata,
 ): { safeSortInsertion?: { index: number } } {

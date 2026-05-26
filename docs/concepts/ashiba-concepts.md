@@ -506,6 +506,8 @@ Runtime application code should not pass arbitrary SQL strings into Ashiba execu
 
 The final database driver call inevitably receives a SQL string. That string is an internal adapter detail, not the public application boundary. The application-facing boundary should be query-model-backed so Ashiba can verify the source hash, named-parameter metadata, and safe-sort metadata before execution.
 
+This concept applies to scaffolded and generated application code, not only to code inside driver adapter library packages. When `@ashiba/cli` generates a SQL client, feature executor, connection seam, or starter adapter file, that generated code is part of the concept check surface. A generated starter must not bypass the file-backed or query-model-backed execution boundary just because the unsafe code lives in the consuming project after scaffolding.
+
 ### Why It Exists
 
 If Ashiba accepts an arbitrary SQL string at runtime, the adapter cannot know whether the string came from a reviewed file, a generated boundary, concatenated application logic, or user-controlled input. Requiring a file-backed query source closes that injection route at the Ashiba boundary. If a developer intentionally writes a SQL file or generated boundary that embeds unsafe SQL, that is outside Ashiba's automatic protection: the developer has already crossed the source-code trust boundary.
@@ -520,6 +522,8 @@ Safe sort is the narrow exception to fully static SQL text. It is not a free-for
 - Treat the query model safe-sort dictionary as the maximum runtime sort surface.
 - Require safe-sort keys to match the query model whitelist exactly.
 - Keep the raw string passed to the underlying DB driver inside the adapter implementation.
+- Require generated SQL client and executor scaffolds to route runtime execution through the same file-backed or query-model-backed boundary.
+- Treat scaffolded low-level connection helpers as non-execution helpers unless they also provide the file-backed or query-model-backed execution guard.
 
 ### Excluded Responsibilities
 
@@ -527,6 +531,7 @@ Safe sort is the narrow exception to fully static SQL text. It is not a free-for
 - Runtime dynamic SQL construction for filters, joins, projections, or business clauses.
 - Sanitizing user-provided SQL fragments.
 - Treating safe sort as an arbitrary ORDER BY string feature.
+- Treating generated starter code as outside the concept check surface after it is written into the consuming project.
 
 ### Related Concepts
 
@@ -538,6 +543,8 @@ Safe sort is the narrow exception to fully static SQL text. It is not a free-for
 
 ### Current Source Artifacts
 
+- `packages/cli/src/commands/init.ts`
+- `packages/cli/src/commands/feature.ts`
 - `packages/driver-adapter-pg/src/index.ts`
 - `packages/driver-adapter-pg/tests/driver-adapter-pg.test.ts`
 
@@ -914,7 +921,7 @@ Root compound SELECT queries such as `UNION`, `INTERSECT`, or `EXCEPT` are inten
 
 Optional condition compression is explicit driver-owned SSSQL branch removal. Source SQL remains ordinary SQL with named parameters and supported optional-condition branches such as `(:status is null or status = :status)`. The SQL file must not contain Ashiba-only comments, replacement markers, or template directives.
 
-The preferred path avoids runtime AST parsing. `@ashiba/cli` records supported optional-condition source ranges, dialect-specific compiled removal ranges, and the source SQL hash in the query model. The runtime driver may remove a recorded branch only when compression is explicitly enabled for that execution and the controlling parameter is explicitly present with `null` or `undefined`.
+The preferred path avoids runtime AST parsing. `@ashiba/cli` records supported optional-condition source ranges, dialect-specific compiled removal ranges, and the source SQL hash in the query model. Scaffolded query boundaries should generate this metadata by default because SQL-only edits are expected and metadata can be refreshed explicitly. The runtime driver may remove a recorded branch only when compression is explicitly enabled for that execution and the controlling parameter is explicitly present with `null` or `undefined`.
 
 ### Why It Exists
 
@@ -925,6 +932,8 @@ This is intentionally optional. When compression is not enabled, the SQL execute
 ### Included Responsibilities
 
 - Require explicit runtime opt-in for compression.
+- Generate optional-condition compression metadata during query scaffolding and model generation.
+- Provide an explicit metadata refresh command for SQL-only edits.
 - Use CLI-generated query model metadata for removable branch ranges.
 - Verify source SQL hash and dialect binding metadata before compression.
 - Remove only branches recorded as supported during development.
@@ -968,18 +977,22 @@ Ashiba should expose logger-ready structured execution events without shipping a
 
 Applications need observability seams, but Ashiba should not choose a logging library or leak sensitive values by default. The DB driver wrapper owns the logger integration seam.
 
+This concept also applies to scaffolded and generated application code. If `@ashiba/cli` generates a SQL client, feature executor, starter adapter, or connection seam that is presented as the application execution path, that generated path must preserve the logger-ready seam or explicitly stay below the execution boundary. A generated low-level pool helper that exposes direct driver queries without observer events is not sufficient as the scaffolded SQL client.
+
 ### Included Responsibilities
 
 - Event types for `start`, `end`, and `error`.
 - Metadata such as `sqlId`, `queryId`, SQL path or file path, `dialect`, ordered parameter names, masked parameters, optional unmasked parameters when explicitly enabled, elapsed time, row count, and error summary.
 - Default parameter masking.
 - Driver-wrapper observer or hook for application-owned loggers.
+- Generated SQL client or executor scaffolds that either emit these events through the driver wrapper or clearly delegate execution to a wrapper that does.
 
 ### Excluded Responsibilities
 
 - Logger implementation.
 - OpenTelemetry SDK dependency.
 - Production log policy ownership.
+- Treating scaffolded SQL execution code as exempt from logger-ready event expectations.
 
 ### Related Concepts
 
@@ -991,6 +1004,8 @@ Applications need observability seams, but Ashiba should not choose a logging li
 
 - `packages/driver-adapter-core/src/index.ts`
 - `packages/driver-adapter-pg/src/index.ts`
+- `packages/cli/src/commands/init.ts`
+- `packages/cli/src/commands/feature.ts`
 
 ### Implementation Status
 
@@ -1013,7 +1028,7 @@ Runtime zero does not mean safety-free. Safety moves from runtime abstraction to
 - Test plan generation.
 - Query-boundary test entrypoints.
 - Persistent case files that are not overwritten.
-- Library-owned generated mapping cases for DB/PG type mapping, nullable output mapping when nullable columns are observable, boundary value mapping, and generated/default value mapping when the query contract can observe it.
+- Library-owned generated mapping cases for DB/driver type mapping, nullable output mapping when nullable columns are observable, boundary value mapping, and generated/default value mapping when the query contract can observe it.
 - Missing, stale, or drifted generated mapping test assets should be detectable and repairable by an explicit command.
 - Zero Table Dependency and traditional DB-backed lanes where appropriate.
 - Mapper tests that prove SQL result rows map to DTOs correctly.
@@ -1050,7 +1065,9 @@ Ashiba supports two unit-test lanes: traditional tests and Zero Table Dependency
 
 ### Why It Exists
 
-Mapper tests need deterministic SQL-to-DTO contract checks without depending on unrelated table state. Zero Table Dependency fits that purpose. Performance tests need realistic database execution, query planning, indexes, data volume, and timing behavior, so traditional DB-backed tests are the appropriate default.
+Mapper tests need deterministic SQL-to-DTO contract checks without depending on unrelated table state. Zero Table Dependency fits that purpose, and the generated ZTD harness may share expensive connection resources inside one mapper-test run to preserve fast feedback. Connection open/close cost can dominate small DB-backed mapper checks; if the harness reconnects for every mapping case, it weakens the main ZTD benefit of fast repetition without migrations.
+
+Performance tests need realistic database execution, query planning, indexes, data volume, timing behavior, and physical state lifecycle, so traditional DB-backed tests are the appropriate default and should not silently share mutable state unless the application test explicitly owns that policy. Traditional tests may share a pool when the test harness explicitly scopes setup, cleanup, transactions, and state ownership, but Ashiba should not assume that sharing is safe by default.
 
 ### Included Responsibilities
 
@@ -1058,6 +1075,10 @@ Mapper tests need deterministic SQL-to-DTO contract checks without depending on 
 - Support Zero Table Dependency tests.
 - Recommend Zero Table Dependency for mapper tests.
 - Recommend traditional DB-backed tests for performance tests.
+- Keep mapper-test connection reuse explicit and local to the ZTD harness.
+- Avoid per-case connection open/close in generated ZTD mapper harnesses when a scoped shared connection can preserve deterministic isolation.
+- Keep traditional/performance state lifecycle application-owned.
+- Require traditional/performance connection sharing to be explicit about setup, cleanup, and mutable state ownership.
 - Keep ZTD as a test technique, not the Ashiba product identity.
 
 ### Excluded Responsibilities
@@ -1065,6 +1086,8 @@ Mapper tests need deterministic SQL-to-DTO contract checks without depending on 
 - Treating Zero Table Dependency as the only supported test style.
 - Using Zero Table Dependency as the default for performance measurement.
 - Treating traditional DB-backed tests as required for every mapper contract.
+- Silently sharing mutable traditional/performance test state across cases.
+- Reconnecting per generated ZTD mapper case when a scoped harness-level connection is sufficient.
 
 ### Related Concepts
 

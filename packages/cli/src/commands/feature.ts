@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
@@ -17,6 +18,13 @@ import {
   type ValueComponent,
 } from 'rawsql-ts';
 import { extractSqlResultColumns } from './sql-result-columns.js';
+import {
+  analyzeQueryModel,
+  buildPostgresOptionalConditionCompressionBindingMetadata,
+  buildPostgresSafeSortBindingMetadata,
+  buildQueryResultColumnContracts,
+  type QueryModelBindings,
+} from './model-gen.js';
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
 
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
@@ -47,6 +55,15 @@ export interface FeatureQueryScaffoldOptions {
   workingDir?: string;
   dryRun?: boolean;
   force?: boolean;
+}
+
+export interface FeatureQueryMetadataRefreshOptions {
+  query?: string;
+  feature?: string;
+  boundaryDir?: string;
+  rootDir?: string;
+  dryRun?: boolean;
+  format?: 'text' | 'json';
 }
 
 export interface FeatureTestsScaffoldOptions {
@@ -83,6 +100,16 @@ export interface FeatureScaffoldResult {
   primaryKeyColumn: string;
   dryRun: boolean;
   outputs: Array<{ path: string; written: boolean; kind: 'directory' | 'file' }>;
+}
+
+export interface FeatureQueryMetadataRefreshResult {
+  rootDir: string;
+  featureName: string;
+  queryName: string;
+  sqlFile: string;
+  boundaryFile: string;
+  dryRun: boolean;
+  changed: boolean;
 }
 
 export interface FeatureGeneratedMapperCheckResult {
@@ -196,6 +223,24 @@ export function registerFeatureCommand(program: Command): void {
       process.stdout.write(formatFeatureScaffoldResult('Feature query scaffold', runFeatureQueryScaffold(options)));
     });
 
+  query
+    .command('refresh')
+    .description('Refresh query model metadata after editing visible SQL')
+    .requiredOption('--query <name>', 'Query boundary name under the feature queries directory')
+    .option('--feature <name>', 'Resolve target as src/features/<feature>')
+    .option('--boundary-dir <path>', 'Explicit boundary directory')
+    .option('--root-dir <path>', 'Project root directory', '.')
+    .option('--dry-run', 'Print the refresh result without writing boundary.ts', false)
+    .option('--format <format>', 'Output format: text or json', 'text')
+    .action((options: FeatureQueryMetadataRefreshOptions) => {
+      const result = runFeatureQueryMetadataRefresh(options);
+      if (options.format === 'json') {
+        process.stdout.write(`${JSON.stringify({ kind: 'feature-query-refresh', ...result }, null, 2)}\n`);
+        return;
+      }
+      process.stdout.write(formatFeatureQueryMetadataRefresh(result));
+    });
+
   tests
     .command('scaffold')
     .description('Scaffold editable mapper test files and library-owned generated test schema files')
@@ -289,7 +334,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
     );
   }
 
-  const files = buildQueryFiles(relativeBoundary, queryName, action, table, primaryKeyColumn);
+  const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
   const featureName = path.basename(boundaryDir);
 
@@ -301,6 +346,51 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
     primaryKeyColumn,
     dryRun: options.dryRun === true,
     outputs,
+  };
+}
+
+export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefreshOptions): FeatureQueryMetadataRefreshResult {
+  const rootDir = path.resolve(options.rootDir ?? '.');
+  const boundaryDir = resolveExplicitFeatureBoundaryDir(rootDir, options.feature, options.boundaryDir, 'feature query refresh');
+  const featureName = path.basename(boundaryDir);
+  const queryName = normalizeQueryName(requireValue(options.query, '--query'));
+  const queryDir = path.join(boundaryDir, 'queries', queryName);
+  const sqlPath = path.join(queryDir, `${queryName}.sql`);
+  const boundaryPath = path.join(queryDir, 'boundary.ts');
+  if (!existsSync(sqlPath)) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_QUERY_SQL_NOT_FOUND',
+      `SQL file was not found for query metadata refresh: ${toProjectPath(rootDir, sqlPath)}.`,
+      'Run feature query scaffold first, or pass the correct --feature/--boundary-dir and --query values.',
+      { sqlFile: toProjectPath(rootDir, sqlPath) },
+    );
+  }
+  if (!existsSync(boundaryPath)) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_QUERY_BOUNDARY_NOT_FOUND',
+      `Boundary file was not found for query metadata refresh: ${toProjectPath(rootDir, boundaryPath)}.`,
+      'Run feature query scaffold first, or recreate the query boundary before refreshing metadata.',
+      { boundaryFile: toProjectPath(rootDir, boundaryPath) },
+    );
+  }
+
+  const sql = readFileSync(sqlPath, 'utf8');
+  const queryModel = buildFeatureQueryModel(sql, rootDir);
+  const boundarySource = readFileSync(boundaryPath, 'utf8');
+  const refreshedSource = replaceQueryModelObject(boundarySource, queryModel);
+  const changed = refreshedSource !== boundarySource;
+  if (!options.dryRun && changed) {
+    writeFileSync(boundaryPath, refreshedSource, 'utf8');
+  }
+
+  return {
+    rootDir,
+    featureName,
+    queryName,
+    sqlFile: toProjectPath(rootDir, sqlPath),
+    boundaryFile: toProjectPath(rootDir, boundaryPath),
+    dryRun: options.dryRun === true,
+    changed,
   };
 }
 
@@ -607,7 +697,7 @@ function buildFeatureFiles(
       kind: 'file',
       contents: renderFeatureBoundaryTest(featureName, queryName, actionPlan),
     },
-    ...buildQueryFiles(boundary, queryName, action, table, primaryKeyColumn),
+    ...buildQueryFiles(rootDir, boundary, queryName, action, table, primaryKeyColumn),
   ];
 }
 
@@ -897,6 +987,7 @@ function formatFeatureTestsCheck(result: FeatureTestsCheckResult): string {
 }
 
 function buildQueryFiles(
+  rootDir: string,
   boundary: string,
   queryName: string,
   action: FeatureAction,
@@ -916,7 +1007,7 @@ function buildQueryFiles(
     {
       relativePath: `${queryDir}/boundary.ts`,
       kind: 'file',
-      contents: renderQueryBoundary(queryName, actionPlan),
+      contents: renderQueryBoundary(rootDir, queryName, actionPlan, table, primaryKeyColumn),
     },
     { relativePath: `${queryDir}/tests`, kind: 'directory' },
     { relativePath: `${queryDir}/tests/cases`, kind: 'directory' },
@@ -969,10 +1060,35 @@ function buildSharedFiles(): GeneratedFile[] {
       kind: 'file',
       overwrite: false,
       contents: [
+        'export type FeatureQueryModel = {',
+        '  analysis: {',
+        "    astParse: 'ok' | 'failed';",
+        "    statementKind: 'select' | 'insert' | 'update' | 'delete' | 'unknown';",
+        "    rootQueryShape?: 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';",
+        '    hasTopLevelOrderBy: boolean;',
+        '    sourceHash?: string;',
+        '  };',
+        '  bindings?: {',
+        '    postgres?: { sourceHash?: string; sql: string; orderedNames: readonly string[] };',
+        '    mysql2?: { sourceHash?: string; sql: string; orderedNames: readonly string[] };',
+        '    mssql?: { sourceHash?: string; sql: string; orderedNames: readonly string[] };',
+        '  };',
+        '};',
+        '',
         'export interface FeatureQuerySource {',
         '  id: string;',
         '  path: string;',
+        '  sqlPath: string;',
         '  sql: string;',
+        '  queryModel: FeatureQueryModel;',
+        '  sssqlCompression?: boolean;',
+        '  metadata?: {',
+        '    sqlId?: string;',
+        '    queryId?: string;',
+        '    sqlFile?: string;',
+        '    sqlPath?: string;',
+        '    dialect?: string;',
+        '  };',
         '}',
         '',
         'export interface FeatureQueryExecutor {',
@@ -1519,7 +1635,13 @@ function sampleFieldValue(field: RenderField): unknown {
   return `${field.name}-value`;
 }
 
-function renderQueryBoundary(queryName: string, plan: ReturnType<typeof buildActionPlan>): string {
+function renderQueryBoundary(
+  rootDir: string,
+  queryName: string,
+  plan: ReturnType<typeof buildActionPlan>,
+  table: DdlTable,
+  primaryKeyColumn: string,
+): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
   const result = plan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
@@ -1532,6 +1654,8 @@ function renderQueryBoundary(queryName: string, plan: ReturnType<typeof buildAct
         '  }',
         '  return row;',
       ].join('\n  ');
+  const sql = renderActionSql(plan, table, primaryKeyColumn);
+  const queryModel = buildFeatureQueryModel(sql, rootDir);
   return [
     "import { dirname } from 'node:path';",
     "import { fileURLToPath } from 'node:url';",
@@ -1544,7 +1668,16 @@ function renderQueryBoundary(queryName: string, plan: ReturnType<typeof buildAct
     `export const ${camel}Query = {`,
     `  id: '${queryName}',`,
     `  path: '${queryName}.sql',`,
+    `  sqlPath: '${queryName}.sql',`,
     `  sql: ${camel}Sql,`,
+    `  queryModel: ${JSON.stringify(queryModel, null, 2).replace(/\n/g, '\n  ')},`,
+    '  sssqlCompression: true,',
+    '  metadata: {',
+    `    sqlId: '${queryName}',`,
+    `    queryId: '${queryName}',`,
+    `    sqlFile: '${queryName}.sql',`,
+    `    sqlPath: '${queryName}.sql',`,
+    '  },',
     '} as const;',
     '',
     `export interface ${pascal}QueryParams ${renderInterfaceBody(plan.params)}`,
@@ -1565,11 +1698,104 @@ function renderQueryBoundary(queryName: string, plan: ReturnType<typeof buildAct
   ].join('\n');
 }
 
+function buildFeatureQueryModel(sql: string, rootDir: string): {
+  analysis: ReturnType<typeof analyzeQueryModel>;
+  bindings: {
+    postgres: QueryModelBindings['postgres'];
+    mysql2: { sourceHash: string; sql: string; orderedNames: string[] };
+    mssql: { sourceHash: string; sql: string; orderedNames: string[] };
+  };
+} {
+  const sourceHash = hashSql(sql);
+  const postgres = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
+  const mysql2 = compileNamedParameters(sql, { placeholderStyle: 'question' });
+  const mssql = compileNamedParameters(sql, { placeholderStyle: 'named-at' });
+  const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
+  const parameters = [...new Set(postgres.orderedNames)];
+  const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, { sssqlCompression: true });
+  return {
+    analysis,
+    bindings: {
+      postgres: {
+        sourceHash,
+        ...postgres,
+        ...buildPostgresSafeSortBindingMetadata(sql, analysis.safeSort),
+        ...buildPostgresOptionalConditionCompressionBindingMetadata(sql, analysis.sssqlCompression),
+      },
+      mysql2: { sourceHash, ...mysql2 },
+      mssql: { sourceHash, ...mssql },
+    },
+  };
+}
+
+function replaceQueryModelObject(source: string, queryModel: ReturnType<typeof buildFeatureQueryModel>): string {
+  const marker = '  queryModel:';
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_QUERY_MODEL_NOT_FOUND',
+      'queryModel was not found in the query boundary.',
+      'Regenerate the query boundary or add queryModel before running feature query refresh.',
+    );
+  }
+  const objectStart = source.indexOf('{', markerIndex + marker.length);
+  if (objectStart < 0) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_QUERY_MODEL_INVALID',
+      'queryModel in the query boundary is not an object literal.',
+      'Regenerate the query boundary or repair queryModel before running feature query refresh.',
+    );
+  }
+  const objectEnd = findMatchingObjectBrace(source, objectStart);
+  if (objectEnd < 0) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_QUERY_MODEL_INVALID',
+      'queryModel object in the query boundary is not balanced.',
+      'Regenerate the query boundary or repair queryModel before running feature query refresh.',
+    );
+  }
+  const replacement = JSON.stringify(queryModel, null, 2).replace(/\n/g, '\n  ');
+  return `${source.slice(0, objectStart)}${replacement}${source.slice(objectEnd + 1)}`;
+}
+
+function findMatchingObjectBrace(source: string, start: number): number {
+  let depth = 0;
+  let quote: '"' | "'" | undefined;
+  let escaped = false;
+  for (let index = start; index < source.length; index += 1) {
+    const char = source[index] ?? '';
+    if (quote) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === quote) {
+        quote = undefined;
+      }
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+    if (char === '{') depth += 1;
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
 function renderInterfaceBody(columns: DdlColumn[]): string {
   if (columns.length === 0) {
     return '{ [key: string]: never; }';
   }
   return `{\n${columns.map((column) => `  ${column.name}: ${toTsType(column)};`).join('\n')}\n}`;
+}
+
+function hashSql(sql: string): string {
+  return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
 }
 
 function renderFeatureBoundaryTest(
@@ -1775,7 +2001,7 @@ function buildGeneratedMappingZtdCases(
 
   if (actionPlan.action === 'get-by-id' || actionPlan.action === 'list') {
     const cases = [
-      buildReadMappingCase('db-pg-type-mapping', queryName, actionPlan, beforeDb, firstRow, primaryKeyColumn),
+      buildReadMappingCase('db-type-mapping', queryName, actionPlan, beforeDb, [firstRow, secondRow], primaryKeyColumn),
       buildReadMappingCase('boundary-value-mapping', queryName, actionPlan, {
         [table.schema]: { [table.name]: [buildBoundaryFixtureRow(table)] },
       }, buildBoundaryFixtureRow(table), primaryKeyColumn),
@@ -1833,7 +2059,7 @@ function buildGeneratedMappingZtdCases(
   if (actionPlan.action === 'update') {
     const updatedValues = Object.fromEntries(actionPlan.writeColumns.map((column) => [column.name, sampleColumnValue(column, 3)]));
     return [{
-      name: `db-pg-type-mapping: updates ${queryName} row and maps returned columns`,
+      name: `db-type-mapping: updates ${queryName} row and maps returned columns`,
       beforeDb,
       input: { [primaryKeyColumn]: firstRow[primaryKeyColumn], ...updatedValues },
       output: pickColumns({ ...firstRow, ...updatedValues }, actionPlan.rows),
@@ -1842,7 +2068,7 @@ function buildGeneratedMappingZtdCases(
 
   if (actionPlan.action === 'delete') {
     return [{
-      name: `db-pg-type-mapping: deletes ${queryName} row and maps returned columns`,
+      name: `db-type-mapping: deletes ${queryName} row and maps returned columns`,
       beforeDb,
       input: { [primaryKeyColumn]: firstRow[primaryKeyColumn] },
       output: pickColumns(firstRow, actionPlan.rows),
@@ -1857,22 +2083,24 @@ function buildReadMappingCase(
   queryName: string,
   actionPlan: ReturnType<typeof buildActionPlan>,
   beforeDb: Record<string, unknown>,
-  row: Record<string, unknown>,
+  row: Record<string, unknown> | Record<string, unknown>[],
   primaryKeyColumn: string,
 ): unknown {
-  const output = pickColumns(row, actionPlan.rows);
+  const rows = Array.isArray(row) ? row : [row];
+  const output = pickColumns(rows[0] ?? {}, actionPlan.rows);
   if (actionPlan.action === 'list') {
     return {
       name: `${kind}: lists ${queryName} rows and maps returned columns`,
       beforeDb,
       input: Object.fromEntries(actionPlan.params.map((column) => [column.name, sampleParameterValue(column)])),
-      output: [output],
+      output: rows.map((entry) => pickColumns(entry, actionPlan.rows)),
     };
   }
+  const singleRow = rows[0] ?? {};
   return {
     name: `${kind}: selects ${queryName} row and maps returned columns`,
     beforeDb,
-    input: { [primaryKeyColumn]: row[primaryKeyColumn] },
+    input: { [primaryKeyColumn]: singleRow[primaryKeyColumn] },
     output,
   };
 }
@@ -2047,6 +2275,18 @@ function renderFeatureReadme(featureName: string, queryName: string, action: Fea
 
 function formatFeatureScaffoldResult(label: string, result: FeatureScaffoldResult): string {
   return formatFilePlan(`${label} ${result.dryRun ? 'plan' : 'completed'}: ${result.featureName}`, process.cwd(), result.dryRun, result.outputs);
+}
+
+function formatFeatureQueryMetadataRefresh(result: FeatureQueryMetadataRefreshResult): string {
+  return [
+    `Feature query refresh ${result.dryRun ? 'plan' : 'completed'}: ${result.featureName}/${result.queryName}`,
+    '',
+    `- sql: ${result.sqlFile}`,
+    `- boundary: ${result.boundaryFile}`,
+    `- changed: ${result.changed ? 'yes' : 'no'}`,
+    `- dry-run: ${result.dryRun ? 'true' : 'false'}`,
+    '',
+  ].join('\n');
 }
 
 function formatFilePlan(

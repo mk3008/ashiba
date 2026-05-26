@@ -42,6 +42,12 @@ if (!tarballs.has('@ashiba/cli')) {
 if (!tarballs.has('@ashiba/driver-adapter-pg')) {
   throw new Error('Missing @ashiba/driver-adapter-pg tarball.');
 }
+if (!tarballs.has('@ashiba/driver-adapter-mysql2')) {
+  throw new Error('Missing @ashiba/driver-adapter-mysql2 tarball.');
+}
+if (!tarballs.has('@ashiba/driver-adapter-mssql')) {
+  throw new Error('Missing @ashiba/driver-adapter-mssql tarball.');
+}
 
 writePackageJson(starterRoot, {
   name: 'ashiba-starter',
@@ -51,16 +57,21 @@ writePackageJson(starterRoot, {
   scripts: {
     typecheck: 'tsc --noEmit -p tsconfig.json',
     test: 'vitest run',
-    'test:mapper': 'vitest run "src/features/**/*.ztd.test.ts"',
+    'test:mapper': 'vitest run src/features -t ZTD',
     'test:evidence': 'ashiba test-evidence collect --out .ashiba/test-evidence.json',
   },
   dependencies: {
+    '@ashiba/driver-adapter-mssql': '^0.0.0',
+    '@ashiba/driver-adapter-mysql2': '^0.0.0',
     '@ashiba/driver-adapter-pg': '^0.0.0',
+    mssql: '^11.0.1',
+    mysql2: '^3.15.3',
     pg: '^8.16.3',
   },
   devDependencies: {
     '@ashiba/cli': '^0.0.0',
     '@ashiba/testkit-adapter-pg': '^0.0.0',
+    '@types/mssql': '^9.1.8',
     '@types/pg': '^8.15.5',
     dotenv: '^16.6.1',
     typescript: '^5.9.3',
@@ -79,6 +90,8 @@ run(corepack, [
   'init',
   '--db',
   'postgres',
+  '--driver',
+  'pg',
   '--with-demo-ddl',
   '--with-migration-demo-ddl',
 ], starterRoot);
@@ -92,7 +105,14 @@ assertFileContains(path.join(starterRoot, '.env.example'), 'ASHIBA_TEST_DB_PASSW
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'setup-env.ts'), 'ASHIBA_TEST_DATABASE_URL');
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'setup-env.ts'), 'ASHIBA_TEST_DATABASE_URL conflicts');
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'harness.ts'), 'runQuerySpecZtdCases');
+assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'harness.ts'), 'createQuerySpecZtdVerifier');
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'verifier.ts'), '@ashiba/testkit-adapter-pg');
+assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'verifier.ts'), 'await pool.end()');
+assertFileContains(path.join(starterRoot, 'src', 'features', '_shared', 'featureQueryExecutor.ts'), 'FeatureQueryExecutor');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'createPgPool');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'createPgFeatureQueryExecutor');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'withPgFeatureQueryExecutor');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'withPgTransaction');
 assertFileContains(path.join(starterRoot, 'vitest.config.ts'), "'#features'");
 assertFileContains(path.join(starterRoot, 'vitest.config.ts'), "'#tests'");
 assertFileContains(path.join(starterRoot, 'tsconfig.json'), '"#features/*"');
@@ -105,10 +125,16 @@ assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'external_
 assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'production.sql'), 'create table public.users');
 assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'production.sql'), 'user_id bigserial primary key');
 assertPathMissing(path.join(starterRoot, 'src', 'features', 'smoke'));
+assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/driver-adapter-mssql');
+assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/driver-adapter-mysql2');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/driver-adapter-pg');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/testkit-adapter-pg');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/cli');
 assertFileContains(path.join(starterRoot, 'README.md'), 'docker compose up -d');
+
+runDirect(process.execPath, ['--input-type=module', '-e', driverAdapterSmokeScript()], starterRoot);
+writeDriverAdapterTypeSmoke(starterRoot);
+run(corepack, ['pnpm', 'typecheck'], starterRoot);
 
 copyFileSync(path.join(starterRoot, '.env.example'), path.join(starterRoot, '.env'));
 if (dockerPort) {
@@ -131,15 +157,25 @@ try {
     run(docker, ['compose', 'up', '-d'], starterRoot);
     waitForPostgres(starterRoot, dockerPort);
   }
-  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--table', 'users', '--action', 'list', '--dry-run'], starterRoot);
-  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--table', 'users', '--action', 'list'], starterRoot);
+  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--feature-name', 'users-list', '--table', 'users', '--action', 'list', '--dry-run'], starterRoot);
+  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--feature-name', 'users-list', '--table', 'users', '--action', 'list'], starterRoot);
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'list.sql'), 'from "public"."users"');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), "from '#features/_shared/featureQueryExecutor.js'");
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), 'sqlPath');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), 'metadata');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), 'queryModel');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), 'sssqlCompression: true');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), '"sssqlCompression"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), '"postgres"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), '"mysql2"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), '"mssql"');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'tests', 'list.boundary.ztd.test.ts'), "from '#tests/support/ztd/harness.js'");
+  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'query', 'refresh', '--feature', 'users-list', '--query', 'list', '--dry-run'], starterRoot);
   run(corepack, ['pnpm', 'test'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
+  run(corepack, ['pnpm', 'test:mapper'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
   run(corepack, ['pnpm', 'typecheck'], starterRoot);
-  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--table', 'users', '--action', 'insert', '--dry-run'], starterRoot);
-  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--table', 'users', '--action', 'insert'], starterRoot);
+  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--feature-name', 'users-insert', '--table', 'users', '--action', 'insert', '--dry-run'], starterRoot);
+  run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--feature-name', 'users-insert', '--table', 'users', '--action', 'insert'], starterRoot);
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'insert-users.sql'), ':email');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'insert-users.sql'), ':display_name');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'insert-users.sql'), ':external_account_id');
@@ -155,6 +191,7 @@ try {
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'external_account_id: "-9223372036854775808"');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'cases', 'logic.case.ts'), 'Human/AI-owned SQL logic cases');
   run(corepack, ['pnpm', 'test'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
+  run(corepack, ['pnpm', 'test:mapper'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
   run(corepack, ['pnpm', 'typecheck'], starterRoot);
   run(corepack, [
     'pnpm',
@@ -266,6 +303,133 @@ function isBusyFsError(error) {
 
 function sortedObject(entries) {
   return Object.fromEntries([...entries.entries()].sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function writeDriverAdapterTypeSmoke(rootDir) {
+  const smokePath = path.join(rootDir, 'src', 'adapters', 'driver-adapter-type-smoke.ts');
+  mkdirSync(path.dirname(smokePath), { recursive: true });
+  writeFileSync(smokePath, `
+import { createMssqlAdapter } from '@ashiba/driver-adapter-mssql';
+import { createMysql2Adapter } from '@ashiba/driver-adapter-mysql2';
+import { createPostgresAdapter } from '@ashiba/driver-adapter-pg';
+
+import { createPgFeatureQueryExecutor } from './pg/pool.js';
+
+const sourceSql = 'select * from users where id = :id';
+const sourceHash = 'sha256:customer-test-hash';
+const querySource = {
+  id: 'users-by-id',
+  path: 'users-by-id.sql',
+  sql: sourceSql,
+  sqlPath: 'src/features/users-list/queries/list/list.sql',
+  queryModel: {
+    analysis: {
+      astParse: 'ok',
+      statementKind: 'select',
+      rootQueryShape: 'simple-select',
+      hasTopLevelOrderBy: false,
+      sourceHash,
+    },
+    bindings: {
+      postgres: { sourceHash, sql: 'select * from users where id = $1', orderedNames: ['id'] },
+      mysql2: { sourceHash, sql: 'select * from users where id = ?', orderedNames: ['id'] },
+      mssql: { sourceHash, sql: 'select * from users where id = @id', orderedNames: ['id'] },
+    },
+  },
+} as const;
+
+createPostgresAdapter({
+  async query() {
+    return { rows: [{ id: 1 }], rowCount: 1 };
+  },
+});
+
+createMysql2Adapter({
+  async execute() {
+    return [[{ id: 1 }], []];
+  },
+});
+
+createMssqlAdapter({
+  request<Row = unknown>() {
+    return {
+      input() {
+        return this;
+      },
+      async query() {
+        return { recordset: [{ id: 1 }] as Row[], rowsAffected: [1] };
+      },
+    };
+  },
+});
+
+createPgFeatureQueryExecutor({
+  async query() {
+    return { rows: [{ id: 1 }], rowCount: 1 };
+  },
+}).query(querySource, { id: 1 });
+`, 'utf8');
+}
+
+function driverAdapterSmokeScript() {
+  return `
+    const { createHash } = await import('node:crypto');
+    const { createPostgresAdapter } = await import('@ashiba/driver-adapter-pg');
+    const { createMysql2Adapter } = await import('@ashiba/driver-adapter-mysql2');
+    const { createMssqlAdapter } = await import('@ashiba/driver-adapter-mssql');
+
+    const hashSql = (sql) => \`sha256:\${createHash('sha256').update(sql).digest('hex')}\`;
+    const sourceSql = 'select * from users where id = :id';
+    const sourceHash = hashSql(sourceSql);
+    const analysis = { astParse: 'ok', statementKind: 'select', hasTopLevelOrderBy: false, sourceHash };
+
+    const pgCalls = [];
+    await createPostgresAdapter({
+      async query(sql, values) {
+        pgCalls.push({ sql, values });
+        return { rows: [{ id: 1 }], rowCount: 1 };
+      },
+    }).execute({ sql: sourceSql, sqlPath: 'users.sql', queryModel: {
+      analysis,
+      bindings: { postgres: { sourceHash, sql: 'select * from users where id = $1', orderedNames: ['id'] } },
+    } }, { id: 1 });
+
+    const mysqlCalls = [];
+    await createMysql2Adapter({
+      async execute(sql, values) {
+        mysqlCalls.push({ sql, values });
+        return [[{ id: 1 }], []];
+      },
+    }).execute({ sql: sourceSql, sqlPath: 'users.sql', queryModel: {
+      analysis,
+      bindings: { mysql2: { sourceHash, sql: 'select * from users where id = ?', orderedNames: ['id'] } },
+    } }, { id: 1 });
+
+    const mssqlInputs = [];
+    const mssqlQueries = [];
+    await createMssqlAdapter({
+      request() {
+        return {
+          input(name, value) {
+            mssqlInputs.push({ name, value });
+            return this;
+          },
+          async query(sql) {
+            mssqlQueries.push(sql);
+            return { recordset: [{ id: 1 }], rowsAffected: [1] };
+          },
+        };
+      },
+    }).execute({ sql: sourceSql, sqlPath: 'users.sql', queryModel: {
+      analysis,
+      bindings: { mssql: { sourceHash, sql: 'select * from users where id = @id', orderedNames: ['id'] } },
+    } }, { id: 1 });
+
+    if (pgCalls[0]?.sql !== 'select * from users where id = $1') throw new Error('pg adapter smoke failed');
+    if (mysqlCalls[0]?.sql !== 'select * from users where id = ?') throw new Error('mysql2 adapter smoke failed');
+    if (mssqlQueries[0] !== 'select * from users where id = @id') throw new Error('mssql adapter smoke failed');
+    if (mssqlInputs[0]?.name !== 'id') throw new Error('mssql input smoke failed');
+  `;
 }
 
 function assertFileContains(filePath, expected) {
