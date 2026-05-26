@@ -39,8 +39,8 @@ importers:
         specifier: ^8.0.2
         version: 8.0.4
       rawsql-ts:
-        specifier: ^0.20.0
-        version: 0.20.0
+        specifier: ^0.21.1
+        version: 0.21.1
     devDependencies:
       '@types/node':
         specifier: ^22.13.10
@@ -1393,8 +1393,8 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  rawsql-ts@0.20.0:
-    resolution: {integrity: sha512-rFpTDRNbv9wwX6HeWfxPSZcy1J+Pv85EEIuwMOSu482V2guYpw8Bgk0SVcF3u4FoQ42s0st9WeK+nbR+XjwT3A==}
+  rawsql-ts@0.21.1:
+    resolution: {integrity: sha512-dCUMNdcCn0AlBmeGNbC3c+t0ApqzV4v4/HeT4sbQQqAd+pRdPfYIJXXcLwPe41tk+0uvBMmOOptfm6UYPHy3Bg==}
 
   read-yaml-file@1.1.0:
     resolution: {integrity: sha512-VIMnQi/Z4HT2Fxuwg5KrY174U1VdUIASQVWXXyqtNRtxSr9IYkn1rsI6Tb6HsrHCmB7gVpNwX6JxPTHcH6IoTA==}
@@ -3024,7 +3024,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  rawsql-ts@0.20.0: {}
+  rawsql-ts@0.21.1: {}
 
   read-yaml-file@1.1.0:
     dependencies:

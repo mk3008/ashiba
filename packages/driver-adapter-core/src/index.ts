@@ -91,6 +91,23 @@ export type AshibaQueryModelAnalysis = {
       };
     sortable?: Readonly<Record<string, AshibaSortProfileEntry>>;
   };
+  sssqlCompression?: {
+    enabled: true;
+    branches: readonly {
+      parameterName: string;
+      kind: 'expression';
+      sourceRange: {
+        start: number;
+        end: number;
+        text?: string;
+      };
+      removalRange: {
+        start: number;
+        end: number;
+        text?: string;
+      };
+    }[];
+  };
 };
 
 /**

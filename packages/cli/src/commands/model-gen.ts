@@ -7,6 +7,10 @@ import { BinarySelectQuery, ColumnReference, DeleteQuery, InsertQuery, SimpleSel
 import { loadDdlSchemaModel, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
 import { extractSqlResultColumnAstItems, extractSqlResultColumnContracts, type SqlResultColumnContract } from './sql-result-columns.js';
 import { buildSqlSafeSortMetadata, type SqlSafeSortMetadata } from './sql-safe-sort-metadata.js';
+import {
+  buildSqlOptionalConditionCompressionMetadata,
+  type SqlOptionalConditionCompressionMetadata,
+} from './sql-optional-condition-compression-metadata.js';
 import { inferSqlExpressionContractType } from './sql-expression-type.js';
 import { requiredCliValueError } from '../errors.js';
 
@@ -18,6 +22,7 @@ export interface ModelGenOptions {
   ddlDir?: string;
   dryRun?: boolean;
   format?: 'text' | 'json';
+  sssqlCompression?: boolean;
 }
 
 export interface ModelGenResult {
@@ -42,6 +47,7 @@ export interface QueryModelAnalysis {
   hasTopLevelOrderBy: boolean;
   sourceHash: string;
   safeSort: SqlSafeSortMetadata;
+  sssqlCompression?: SqlOptionalConditionCompressionMetadata;
   resultColumns: string[];
   resultColumnTypes: Record<string, SqlResultColumnContract['type']>;
   namedParameters: string[];
@@ -56,6 +62,16 @@ export interface QueryModelBindings {
     safeSortInsertion?: {
       index: number;
     };
+    sssqlCompression?: {
+      branches: Array<{
+        parameterName: string;
+        removalRange: {
+          start: number;
+          end: number;
+          text?: string;
+        };
+      }>;
+    };
   };
 }
 
@@ -68,6 +84,7 @@ export function registerModelGenCommand(program: Command): void {
     .option('--id <id>', 'Override the query id')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--ddl-dir <path>', 'Optional DDL directory for static row type hints')
+    .option('--sssql-compression', 'Generate optional condition compression metadata', false)
     .option('--dry-run', 'Print the generated scaffold without writing it', false)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((sqlFile: string, options: Omit<ModelGenOptions, 'sqlFile'>) => {
@@ -99,13 +116,16 @@ export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const parameters = [...new Set(postgresBinding.orderedNames)];
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, options.ddlDir);
   const resultColumns = resultColumnContracts.map((column) => column.name);
-  const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts);
+  const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
+    sssqlCompression: options.sssqlCompression === true,
+  });
   const bindings = {
     postgres: {
       sourceHash: analysis.sourceHash,
       sql: postgresBinding.sql,
       orderedNames: postgresBinding.orderedNames,
       ...buildPostgresSafeSortBindingMetadata(sql, analysis.safeSort),
+      ...buildPostgresOptionalConditionCompressionBindingMetadata(sql, analysis.sssqlCompression),
     },
   };
   const id = options.id ?? deriveQueryId(rootDir, sqlPath);
@@ -185,6 +205,37 @@ function buildPostgresSafeSortBindingMetadata(
   };
 }
 
+/**
+ * Builds Postgres compiled removal ranges for CLI-generated optional condition compression metadata.
+ */
+export function buildPostgresOptionalConditionCompressionBindingMetadata(
+  sourceSql: string,
+  metadata: SqlOptionalConditionCompressionMetadata | undefined,
+): { sssqlCompression?: NonNullable<QueryModelBindings['postgres']['sssqlCompression']> } {
+  if (!metadata) {
+    return {};
+  }
+
+  return {
+    sssqlCompression: {
+      branches: metadata.branches.map((branch) => ({
+        parameterName: branch.parameterName,
+        removalRange: {
+          start: compileNamedParameters(sourceSql.slice(0, branch.removalRange.start), {
+            placeholderStyle: 'postgres',
+          }).sql.length,
+          end: compileNamedParameters(sourceSql.slice(0, branch.removalRange.end), {
+            placeholderStyle: 'postgres',
+          }).sql.length,
+          text: compileNamedParameters(branch.removalRange.text ?? sourceSql.slice(branch.removalRange.start, branch.removalRange.end), {
+            placeholderStyle: 'postgres',
+          }).sql,
+        },
+      })),
+    },
+  };
+}
+
 export function buildQueryResultColumnContracts(sql: string, rootDir?: string, ddlDir?: string): SqlResultColumnContract[] {
   const ddlModel = rootDir ? loadDdlSchemaModel(path.resolve(rootDir), ddlDir) : undefined;
   return applyDdlTypeHints(sql, extractSqlResultColumnContracts(sql), ddlModel);
@@ -194,6 +245,7 @@ export function analyzeQueryModel(
   sql: string,
   namedParameters: string[],
   resultColumnContracts: SqlResultColumnContract[],
+  options: { sssqlCompression?: boolean } = {},
 ): QueryModelAnalysis {
   const sourceHash = hashSql(sql);
   const resultColumns = resultColumnContracts.map((column) => column.name);
@@ -207,6 +259,9 @@ export function analyzeQueryModel(
       hasTopLevelOrderBy: hasTopLevelOrderBy(parsed),
       sourceHash,
       safeSort: buildSqlSafeSortMetadata(sql),
+      ...(options.sssqlCompression
+        ? { sssqlCompression: buildSqlOptionalConditionCompressionMetadata(sql) }
+        : {}),
       resultColumns,
       resultColumnTypes,
       namedParameters,
@@ -225,6 +280,9 @@ export function analyzeQueryModel(
         },
         sortable: {},
       },
+      ...(options.sssqlCompression
+        ? { sssqlCompression: { enabled: true as const, branches: [] } }
+        : {}),
       resultColumns,
       resultColumnTypes,
       namedParameters,

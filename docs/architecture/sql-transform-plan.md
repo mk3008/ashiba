@@ -6,7 +6,7 @@ Plan Ashiba's future SQL transformation capabilities as extensions without turni
 
 SQL remains SQL. Transforms may help maintain, slice, or scaffold SQL. They must not replace SQL with a library-owned query DSL, and transformed output must preserve a path to SQL that can be run in a SQL client for debugging.
 
-Core `@ashiba/cli` should not hide dynamic SQL rewriting inside generated application code. Hidden rewriting makes the full query harder to understand, makes debugging harder, and increases injection risk. Pipeline and scalar expansion are useful but intentionally extension capabilities because they are not part of the CLI Runtime Zero path. Safe sort condition expansion through a whitelisted sort profile belongs to the DB driver wrapper.
+Core `@ashiba/cli` should not hide dynamic SQL rewriting inside generated application code. Hidden rewriting makes the full query harder to understand, makes debugging harder, and increases injection risk. Pipeline and scalar expansion are useful but intentionally extension capabilities because they are not part of the CLI Runtime Zero path. Safe sort rendering and explicit optional-condition compression through reviewed query model metadata belong to the DB driver wrapper.
 
 ## Package Names
 
@@ -112,6 +112,28 @@ Source evidence to inspect:
 
 - `packages/core/src/transformers/SqlSortInjector.ts`
 - `packages/core/tests/transformers/SqlSortInjector.test.ts`
+
+## Optional Condition Compression
+
+Package: none planned as a transform package for runtime compression.
+
+Purpose: allow authored SSSQL optional branches to be removed at execution time without runtime SQL parsing or Ashiba-only SQL syntax.
+
+Position: DB driver wrapper capability. `@ashiba/cli` generates metadata during development; the runtime adapter uses it only when explicitly enabled. This differs from scalar expansion commands, which maintain or scaffold SQL files.
+
+Responsibilities:
+
+- CLI-generated source removal ranges and dialect compiled removal ranges.
+- Source hash verification.
+- Explicit runtime opt-in.
+- Missing/stale metadata errors.
+- Composition with named parameter binding and safe sort.
+
+Non-responsibilities:
+
+- Runtime optional-condition discovery from SQL text.
+- General SQL transformation.
+- Business condition assembly.
 
 ## CLI Command Draft
 

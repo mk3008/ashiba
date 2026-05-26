@@ -210,6 +210,493 @@ describe('@ashiba/driver-adapter-pg', () => {
     expect(events[0]?.maskedParams).toBeUndefined();
   });
 
+  test('compresses optional SSSQL conditions only when explicitly enabled', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where tenant_id = :tenant_id and (:status is null or status = :status)';
+    const compiledSql = 'select * from users where tenant_id = $1 and ($2 is null or status = $3)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(
+      querySource(sourceSql),
+      { tenant_id: 10, status: null },
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status'],
+          sssqlCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or status = $3)'),
+        }, {
+          sssqlCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)'),
+        }),
+        sssqlCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users where tenant_id = $1 ',
+      values: [10],
+    }]);
+  });
+
+  test('keeps optional SSSQL conditions when compression is not enabled', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where tenant_id = :tenant_id and (:status is null or status = :status)';
+    const compiledSql = 'select * from users where tenant_id = $1 and ($2 is null or status = $3)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(
+      querySource(sourceSql),
+      { tenant_id: 10, status: null },
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status'],
+          sssqlCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or status = $3)'),
+        }, {
+          sssqlCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)'),
+        }),
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: compiledSql,
+      values: [10, null, null],
+    }]);
+  });
+
+  test('rejects SSSQL compression when metadata is missing', async () => {
+    let called = false;
+    const sourceSql = 'select * from users where id = :id';
+    const client: NodePostgresQueryable = {
+      async query() {
+        called = true;
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await expect(adapter.execute(querySource(sourceSql), { id: 1 }, {
+      queryModel: queryModelFor(sourceSql, {
+        sql: 'select * from users where id = $1',
+        orderedNames: ['id'],
+      }),
+      sssqlCompression: true,
+    })).rejects.toMatchObject({
+      code: 'ASHIBA_SSSQL_COMPRESSION_METADATA_REQUIRED',
+      nextAction: 'Regenerate the query model with optional condition compression metadata, or disable sssqlCompression for this execution.',
+    });
+    expect(called).toBe(false);
+  });
+
+  test('rejects SSSQL compression when query model AST analysis failed', async () => {
+    let called = false;
+    const sourceSql = 'select * from users where id = :id';
+    const client: NodePostgresQueryable = {
+      async query() {
+        called = true;
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await expect(adapter.execute(querySource(sourceSql), { id: 1 }, {
+      queryModel: queryModelFor(sourceSql, {
+        sql: 'select * from users where id = $1',
+        orderedNames: ['id'],
+        sssqlCompression: { branches: [] },
+      }, {
+        astParse: 'failed',
+        sssqlCompression: { enabled: true, branches: [] },
+      }),
+      sssqlCompression: true,
+    })).rejects.toMatchObject({
+      code: 'ASHIBA_SSSQL_COMPRESSION_UNSUPPORTED_QUERY_MODEL',
+      nextAction: 'Fix the SQL shape or parser support, then regenerate the query model before enabling sssqlCompression.',
+    });
+    expect(called).toBe(false);
+  });
+
+  test('combines SSSQL compression, named parameters, and safe sort metadata', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a where a.tenant_id = :tenant_id and (:status is null or a.status = :status) limit :limit';
+    const compiledSql = 'select a.user_id as id from users a where a.tenant_id = $1 and ($2 is null or a.status = $3) limit $4';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(
+      querySource(sourceSql),
+      { tenant_id: 7, status: null, limit: 10 },
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status', 'limit'],
+          safeSortInsertion: { index: compiledSql.indexOf('limit $4') },
+          sssqlCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or a.status = $3)'),
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.indexOf('limit :limit'), mode: 'order-by' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+          sssqlCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
+        }),
+        sssqlCompression: true,
+        sort: [{ key: 'id', direction: 'desc' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1 order by a.user_id desc limit $2',
+      values: [7, 10],
+    }]);
+  });
+
+  test('renumbers placeholders above $10 after SSSQL compression and safe sort', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const beforeNames = Array.from({ length: 9 }, (_, index) => `p${String(index + 1).padStart(2, '0')}`);
+    const afterNames = Array.from({ length: 3 }, (_, index) => `p${String(index + 10).padStart(2, '0')}`);
+    const beforeSource = beforeNames.map((name) => `a.${name} = :${name}`).join(' and ');
+    const afterSource = afterNames.map((name) => `a.${name} = :${name}`).join(' and ');
+    const beforeCompiled = beforeNames.map((name, index) => `a.${name} = $${index + 1}`).join(' and ');
+    const afterCompiled = afterNames.map((name, index) => `a.${name} = $${index + 12}`).join(' and ');
+    const afterRenumbered = afterNames.map((name, index) => `a.${name} = $${index + 10}`).join(' and ');
+    const sourceSql = `select a.user_id as id from users a where ${beforeSource} and (:status is null or a.status = :status) and ${afterSource} order by a.created_at`;
+    const compiledSql = `select a.user_id as id from users a where ${beforeCompiled} and ($10 is null or a.status = $11) and ${afterCompiled} order by a.created_at`;
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(
+      querySource(sourceSql),
+      Object.fromEntries([
+        ...beforeNames.map((name, index) => [name, index + 1] as const),
+        ['status', null] as const,
+        ...afterNames.map((name, index) => [name, index + 10] as const),
+      ]),
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: [...beforeNames, 'status', 'status', ...afterNames],
+          safeSortInsertion: { index: compiledSql.length },
+          sssqlCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($10 is null or a.status = $11)'),
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.length, mode: 'comma' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+          sssqlCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
+        }),
+        sssqlCompression: true,
+        sort: [{ key: 'id' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: `select a.user_id as id from users a where ${beforeCompiled}  and ${afterRenumbered} order by a.created_at, a.user_id asc`,
+      values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    }]);
+  });
+
+  test('keeps SQL-like parameter values bound when SSSQL compression and safe sort compose', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a where a.tenant_id = :tenant_id and (:status is null or a.status = :status) and (:email is null or a.email = :email)';
+    const compiledSql = 'select a.user_id as id from users a where a.tenant_id = $1 and ($2 is null or a.status = $3) and ($4 is null or a.email = $5)';
+    const injectedEmail = "x@example.test' or 1=1; drop table users;--";
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(
+      querySource(sourceSql),
+      { tenant_id: 7, status: null, email: injectedEmail },
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status', 'email', 'email'],
+          safeSortInsertion: { index: compiledSql.length },
+          sssqlCompression: {
+            branches: [
+              ...optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or a.status = $3)').branches,
+              ...optionalCompressionBinding(compiledSql, 'email', 'and ($4 is null or a.email = $5)').branches,
+            ],
+          },
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.length, mode: 'order-by' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+          sssqlCompression: {
+            enabled: true,
+            branches: [
+              ...optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'email', 'and (:email is null or a.email = :email)').branches,
+            ],
+          },
+        }),
+        sssqlCompression: true,
+        sort: [{ key: 'id', direction: 'desc' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and ($2 is null or a.email = $3) order by a.user_id desc',
+      values: [7, injectedEmail, injectedEmail],
+    }]);
+    expect(calls[0]?.sql).not.toContain(injectedEmail);
+  });
+
+  test('does not renumber placeholder-like text inside strings or comments during SSSQL compression', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const beforeNames = Array.from({ length: 9 }, (_, index) => `p${String(index + 1).padStart(2, '0')}`);
+    const beforeSource = beforeNames.map((name) => `a.${name} = :${name}`).join(' and ');
+    const beforeCompiled = beforeNames.map((name, index) => `a.${name} = $${index + 1}`).join(' and ');
+    const sourceSql = `select '$12 is literal' as note from users a where ${beforeSource} and (:status is null or a.status = :status) and a.email = :email -- $13 is a comment`;
+    const compiledSql = `select '$12 is literal' as note from users a where ${beforeCompiled} and ($10 is null or a.status = $11) and a.email = $12 -- $13 is a comment`;
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(
+      querySource(sourceSql),
+      Object.fromEntries([
+        ...beforeNames.map((name, index) => [name, index + 1] as const),
+        ['status', null] as const,
+        ['email', 'safe@example.test'] as const,
+      ]),
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: [...beforeNames, 'status', 'status', 'email'],
+          sssqlCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($10 is null or a.status = $11)'),
+        }, {
+          sssqlCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
+        }),
+        sssqlCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: `select '$12 is literal' as note from users a where ${beforeCompiled}  and a.email = $10 -- $13 is a comment`,
+      values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 'safe@example.test'],
+    }]);
+  });
+
+  test('ignores placeholder-like text across Postgres lexical contexts during SSSQL compression', async () => {
+    const lexicalCases = [
+      {
+        label: 'escape string',
+        sourcePrefix: "select E'\\\\$12 is literal' as note",
+        compiledPrefix: "select E'\\\\$12 is literal' as note",
+      },
+      {
+        label: 'double quoted identifier',
+        sourcePrefix: 'select "$12_identifier" as note',
+        compiledPrefix: 'select "$12_identifier" as note',
+      },
+      {
+        label: 'dollar quoted string',
+        sourcePrefix: 'select $$ $12 is literal $$ as note',
+        compiledPrefix: 'select $$ $12 is literal $$ as note',
+      },
+      {
+        label: 'tagged dollar quoted string',
+        sourcePrefix: 'select $tag$ $12 is literal $tag$ as note',
+        compiledPrefix: 'select $tag$ $12 is literal $tag$ as note',
+      },
+      {
+        label: 'block comment',
+        sourcePrefix: 'select 1 /* $12 is a comment */',
+        compiledPrefix: 'select 1 /* $12 is a comment */',
+      },
+    ];
+
+    for (const lexicalCase of lexicalCases) {
+      const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+      const sourceSql = `${lexicalCase.sourcePrefix} from users a where a.p01 = :p01 and (:status is null or a.status = :status) and a.email = :email`;
+      const compiledSql = `${lexicalCase.compiledPrefix} from users a where a.p01 = $1 and ($2 is null or a.status = $3) and a.email = $4`;
+      const client: NodePostgresQueryable = {
+        async query(sql, values) {
+          calls.push({ sql, values });
+          return { rows: [], rowCount: 0 };
+        },
+      };
+      const adapter = createPostgresAdapter(client);
+
+      await adapter.execute(
+        querySource(sourceSql),
+        { p01: 1, status: null, email: `${lexicalCase.label}' or 1=1;--` },
+        {
+          queryModel: queryModelFor(sourceSql, {
+            sql: compiledSql,
+            orderedNames: ['p01', 'status', 'status', 'email'],
+            sssqlCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or a.status = $3)'),
+          }, {
+            sssqlCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
+          }),
+          sssqlCompression: true,
+        },
+      );
+
+      expect(calls, lexicalCase.label).toEqual([{
+        sql: `${lexicalCase.compiledPrefix} from users a where a.p01 = $1  and a.email = $2`,
+        values: [1, `${lexicalCase.label}' or 1=1;--`],
+      }]);
+    }
+  });
+
+  test('combines SSSQL compression with mixed optional parameters and comma-mode safe sort', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a where a.tenant_id = :tenant_id and (:status is null or a.status = :status) and (:email is null or a.email = :email) order by a.created_at';
+    const compiledSql = 'select a.user_id as id from users a where a.tenant_id = $1 and ($2 is null or a.status = $3) and ($4 is null or a.email = $5) order by a.created_at';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(
+      querySource(sourceSql),
+      { tenant_id: 7, status: null, email: 'a@example.test' },
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status', 'email', 'email'],
+          safeSortInsertion: { index: compiledSql.length },
+          sssqlCompression: {
+            branches: [
+              ...optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or a.status = $3)').branches,
+              ...optionalCompressionBinding(compiledSql, 'email', 'and ($4 is null or a.email = $5)').branches,
+            ],
+          },
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.length, mode: 'comma' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+          sssqlCompression: {
+            enabled: true,
+            branches: [
+              ...optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'email', 'and (:email is null or a.email = :email)').branches,
+            ],
+          },
+        }),
+        sssqlCompression: true,
+        sort: [{ key: 'id' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and ($2 is null or a.email = $3) order by a.created_at, a.user_id asc',
+      values: [7, 'a@example.test', 'a@example.test'],
+    }]);
+  });
+
+  test('does not compress missing optional parameters as absent before parameter validation', async () => {
+    let called = false;
+    const sourceSql = 'select * from users where tenant_id = :tenant_id and (:status is null or status = :status)';
+    const compiledSql = 'select * from users where tenant_id = $1 and ($2 is null or status = $3)';
+    const client: NodePostgresQueryable = {
+      async query() {
+        called = true;
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await expect(adapter.execute(
+      querySource(sourceSql),
+      { tenant_id: 10 },
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status'],
+          sssqlCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or status = $3)'),
+        }, {
+          sssqlCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)'),
+        }),
+        sssqlCompression: true,
+      },
+    )).rejects.toMatchObject({
+      code: 'ASHIBA_MISSING_PARAMETER',
+      parameterNames: ['status'],
+    });
+    expect(called).toBe(false);
+  });
+
+  test('rejects stale SSSQL compression range text before broken SQL can be emitted', async () => {
+    let called = false;
+    const sourceSql = 'select * from users where tenant_id = :tenant_id and (:status is null or status = :status)';
+    const compiledSql = 'select * from users where tenant_id = $1 and ($2 is null or status = $3)';
+    const staleBinding = optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or status = $3)');
+    const client: NodePostgresQueryable = {
+      async query() {
+        called = true;
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await expect(adapter.execute(
+      querySource(sourceSql),
+      { tenant_id: 10, status: null },
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status'],
+          sssqlCompression: {
+            branches: [{
+              ...staleBinding.branches[0],
+              removalRange: {
+                ...staleBinding.branches[0]!.removalRange,
+                text: 'and ($2 is null or hacked = $3)',
+              },
+            }],
+          },
+        }, {
+          sssqlCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)'),
+        }),
+        sssqlCompression: true,
+      },
+    )).rejects.toMatchObject({
+      code: 'ASHIBA_SSSQL_COMPRESSION_METADATA_STALE',
+    });
+    expect(called).toBe(false);
+  });
+
   test('renders safe sort from query model sortable metadata without proprietary SQL markers', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select a.user_id as id from users a';
@@ -450,6 +937,58 @@ describe('@ashiba/driver-adapter-pg', () => {
         sort: [{ key: 'id' }],
       },
     )).rejects.toMatchObject({ code: 'ASHIBA_SORT_QUERY_MODEL_STALE' });
+
+    expect(called).toBe(false);
+  });
+
+  test('rejects SQL-like sort key and direction before execution', async () => {
+    let called = false;
+    const sourceSql = 'select a.user_id as id from users a';
+    const client: NodePostgresQueryable = {
+      async query() {
+        called = true;
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await expect(adapter.execute(
+      querySource(sourceSql),
+      {},
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: sourceSql,
+          orderedNames: [],
+          safeSortInsertion: { index: sourceSql.length },
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.length, mode: 'order-by' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+        }),
+        sort: [{ key: 'id desc; drop table users;--' }],
+      },
+    )).rejects.toMatchObject({ code: 'ASHIBA_UNKNOWN_SORT_KEY' });
+
+    await expect(adapter.execute(
+      querySource(sourceSql),
+      {},
+      {
+        queryModel: queryModelFor(sourceSql, {
+          sql: sourceSql,
+          orderedNames: [],
+          safeSortInsertion: { index: sourceSql.length },
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.length, mode: 'order-by' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+        }),
+        sort: [{ key: 'id', direction: 'desc; drop table users;--' as 'desc' }],
+      },
+    )).rejects.toMatchObject({ code: 'ASHIBA_INVALID_SORT_DIRECTION' });
 
     expect(called).toBe(false);
   });
@@ -735,7 +1274,21 @@ function querySource(sourceSql: string, queryModel: AshibaPostgresQueryModel = q
 
 function queryModelFor(
   sourceSql: string,
-  binding: { sql?: string; orderedNames?: readonly string[]; safeSortInsertion?: { index: number } } = {},
+  binding: {
+    sql?: string;
+    orderedNames?: readonly string[];
+    safeSortInsertion?: { index: number };
+    sssqlCompression?: {
+      branches: readonly {
+        parameterName: string;
+          removalRange: {
+            start: number;
+            end: number;
+            text?: string;
+          };
+        }[];
+      };
+  } = {},
   analysis: Record<string, unknown> = {},
 ) {
   return {
@@ -752,7 +1305,47 @@ function queryModelFor(
         sql: binding.sql ?? sourceSql,
         orderedNames: binding.orderedNames ?? [],
         ...(binding.safeSortInsertion ? { safeSortInsertion: binding.safeSortInsertion } : {}),
+        ...(binding.sssqlCompression ? { sssqlCompression: binding.sssqlCompression } : {}),
       },
     },
+  };
+}
+
+function optionalCompressionAnalysis(sourceSql: string, parameterName: string, removalText: string) {
+  const removalStart = sourceSql.indexOf(removalText);
+  if (removalStart < 0) throw new Error(`Missing source removal text: ${removalText}`);
+  const sourceText = removalText.replace(/^and\s+/i, '');
+  const sourceStart = sourceSql.indexOf(sourceText, removalStart);
+  return {
+    enabled: true,
+    branches: [{
+      parameterName,
+      kind: 'expression',
+      sourceRange: {
+        start: sourceStart,
+        end: sourceStart + sourceText.length,
+        text: sourceText,
+      },
+      removalRange: {
+        start: removalStart,
+        end: removalStart + removalText.length,
+        text: removalText,
+      },
+    }],
+  };
+}
+
+function optionalCompressionBinding(compiledSql: string, parameterName: string, removalText: string) {
+  const removalStart = compiledSql.indexOf(removalText);
+  if (removalStart < 0) throw new Error(`Missing compiled removal text: ${removalText}`);
+  return {
+    branches: [{
+      parameterName,
+      removalRange: {
+        start: removalStart,
+        end: removalStart + removalText.length,
+        text: removalText,
+      },
+    }],
   };
 }

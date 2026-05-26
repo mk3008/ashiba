@@ -628,6 +628,50 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
+  test('checks stale SSSQL compression query model metadata', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-contract-sssql-compression-'));
+
+    try {
+      const queryDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(queryDir, 'search.sql');
+      mkdirSync(queryDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id from public.users',
+        'where tenant_id = :tenant_id',
+        '  and (:status is null or status = :status);',
+        '',
+      ].join('\n'), 'utf8');
+      runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+        out: 'src/features/users/queries/search/search.query.ts',
+        sssqlCompression: true,
+      });
+
+      expect(runCheckContract({ rootDir, scopeDir: 'src/features/users/queries/search' }).ok).toBe(true);
+
+      writeFileSync(sqlPath, [
+        'select user_id from public.users',
+        'where tenant_id = :tenant_id',
+        '  and (:status is null or email = :status);',
+        '',
+      ].join('\n'), 'utf8');
+      const fail = runCheckContract({ rootDir, scopeDir: 'src/features/users/queries/search' });
+
+      expect(fail.ok).toBe(false);
+      expect(fail.catalogCheck.checked[0]?.issues).toEqual(expect.arrayContaining([
+        'queryModel.analysis.sourceHash is stale.',
+        'queryModel.analysis.sssqlCompression is stale.',
+        'queryModel.bindings.postgres.sourceHash is stale.',
+        'queryModel.bindings.postgres.sql is stale.',
+        'queryModel.bindings.postgres.sssqlCompression is stale.',
+      ]));
+      expect(fail.attainment.nextActions).toContain('Regenerate query model metadata from the current visible SQL.');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('checks stale query model shape and result column metadata', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-contract-query-model-shape-'));
 
@@ -1023,6 +1067,51 @@ describe('@ashiba/cli smoke', () => {
       expect(readFileSync(outPath, 'utf8')).toContain('bindings:');
       expect(readFileSync(outPath, 'utf8')).toContain('email: unknown');
       expect(readFileSync(outPath, 'utf8')).toContain('user_id: unknown');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('generates optional condition compression metadata only when requested', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-sssql-compression-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id as id, email',
+        'from public.users',
+        'where tenant_id = :tenant_id',
+        '  and (:status is null or status = :status);',
+        '',
+      ].join('\n'), 'utf8');
+
+      const defaultResult = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/search/search.sql' });
+      expect(defaultResult.analysis.sssqlCompression).toBeUndefined();
+      expect(defaultResult.bindings.postgres.sssqlCompression).toBeUndefined();
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+        sssqlCompression: true,
+      });
+
+      expect(result.analysis.sssqlCompression).toMatchObject({
+        enabled: true,
+        branches: [{
+          parameterName: 'status',
+          kind: 'expression',
+        }],
+      });
+      expect(result.analysis.sssqlCompression?.branches[0]?.removalRange.text)
+        .toContain('and (:status is null or status = :status)');
+      expect(result.bindings.postgres.sssqlCompression).toMatchObject({
+        branches: [{
+          parameterName: 'status',
+        }],
+      });
+      expect(result.contents).toContain('sssqlCompression');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

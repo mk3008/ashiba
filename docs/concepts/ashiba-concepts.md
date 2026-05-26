@@ -542,6 +542,57 @@ Safe sort is the narrow exception to fully static SQL text. It is not a free-for
 
 `partial`
 
+## Query Model Metadata Contract
+
+### Definition
+
+Query model metadata is the development-time SQL analysis record that lets Ashiba support bounded SQL handling without turning generated application code into an Ashiba runtime.
+
+Runtime Zero can still support advanced SQL handling when the required SQL structure is analyzed during development and recorded beside the reviewed SQL. That recorded analysis is part of the query contract, not a loose cache.
+
+### Why It Exists
+
+Some SQL behavior needs structural knowledge that would normally require runtime parsing or dynamic SQL construction. Ashiba prefers to move that structural work to development time by using tested AST analysis and generating metadata that runtime code can verify.
+
+That only remains safe when the SQL text and the recorded metadata describe the same query. If they drift apart, the metadata becomes misleading. Therefore source hashes or equivalent drift checks are mandatory before runtime code uses metadata that affects SQL handling.
+
+### Included Responsibilities
+
+- Treat SQL analysis metadata as part of the query contract.
+- Generate structural metadata from development-time SQL analysis rather than runtime SQL parsing when possible.
+- Keep metadata tied to the reviewed SQL path and source SQL.
+- Verify source hashes or equivalent drift evidence before metadata is used for runtime SQL handling.
+- Fail clearly when metadata is missing, stale, or inconsistent with the SQL text.
+- Apply the same drift principle to composed metadata-driven behavior, such as binding, safe sort, and optional condition compression.
+
+### Excluded Responsibilities
+
+- Treating query model metadata as an optional runtime cache.
+- Using stale analysis because the SQL string still parses or appears similar.
+- Runtime AST parsing as the default way to recover missing metadata.
+- Silent fallback from metadata-backed behavior to ad hoc SQL scanning.
+- Hiding Ashiba-only markers inside SQL to avoid metadata generation.
+
+### Related Concepts
+
+- `Ashiba Runtime Zero`
+- `Tooling AST Dependency Policy`
+- `File-Backed Runtime SQL`
+- `Named Parameter Binding`
+- `Safe Sort Profile`
+- `Optional Condition Compression`
+- `Explicit Drift Recovery`
+
+### Current Source Artifacts
+
+- `packages/cli/src/commands/model-gen.ts`
+- `packages/cli/src/commands/check-contract.ts`
+- `packages/driver-adapter-pg/src/index.ts`
+
+### Implementation Status
+
+`partial`
+
 ## Thin Driver Adapter
 
 ### Definition
@@ -550,7 +601,7 @@ A thin driver adapter is allowed because raw database drivers are not enough for
 
 ### Why It Exists
 
-Named parameters, parameter checks, safe sort profiles, and logger-ready execution events need a small DB driver wrapper seam without becoming an ORM.
+Named parameters, parameter checks, safe sort profiles, optional condition compression, and logger-ready execution events need a small DB driver wrapper seam without becoming an ORM.
 
 Driver adapters should stay runtime-light. They should avoid runtime SQL AST parsing when development-time query metadata can make the behavior safe. Runtime AST parsing is not part of the current driver path. If metadata cannot solve a required SQL shape later, adding runtime AST parsing requires an explicit human design decision because it adds execution overhead and couples production behavior to parser defects.
 
@@ -563,6 +614,7 @@ Wrapper package names must make the wrapped library or executable explicit. Ashi
 - Driver placeholder style.
 - Ordered parameter name metadata.
 - Safe sort profile interface and query-model-gated ORDER BY rendering as bounded driver-owned SQL handling.
+- Optional condition compression as explicit query-model-gated SSSQL branch removal.
 - Logger-ready event types.
 - Masking policy types.
 - Row result normalization contracts.
@@ -593,6 +645,7 @@ Ashiba may scaffold feature code that shows transaction-shaped usage, following 
 - `Named Parameter Binding`
 - `Parameter Contract Check`
 - `Safe Sort Profile`
+- `Optional Condition Compression`
 - `CLI No Hidden SQL Rewrite`
 - `Logger-Ready Execution Event`
 
@@ -851,6 +904,56 @@ Root compound SELECT queries such as `UNION`, `INTERSECT`, or `EXCEPT` are inten
 ### Implementation Status
 
 `mostly done`
+
+## Optional Condition Compression
+
+### Definition
+
+Optional condition compression is explicit driver-owned SSSQL branch removal. Source SQL remains ordinary SQL with named parameters and supported optional-condition branches such as `(:status is null or status = :status)`. The SQL file must not contain Ashiba-only comments, replacement markers, or template directives.
+
+The preferred path avoids runtime AST parsing. `@ashiba/cli` records supported optional-condition source ranges, dialect-specific compiled removal ranges, and the source SQL hash in the query model. The runtime driver may remove a recorded branch only when compression is explicitly enabled for that execution and the controlling parameter is explicitly present with `null` or `undefined`.
+
+### Why It Exists
+
+Optional filters are useful, but building WHERE clauses dynamically is a common SQL injection and debuggability risk. SSSQL keeps the full query visible and directly runnable, while metadata-backed compression removes absent optional branches without letting runtime code invent SQL structure.
+
+This is intentionally optional. When compression is not enabled, the SQL executes exactly as authored. When compression is enabled, missing or stale metadata is an error, not a reason to scan SQL at runtime or silently fall back.
+
+### Included Responsibilities
+
+- Require explicit runtime opt-in for compression.
+- Use CLI-generated query model metadata for removable branch ranges.
+- Verify source SQL hash and dialect binding metadata before compression.
+- Remove only branches recorded as supported during development.
+- Treat `null` and `undefined` as absent only when the controlling parameter key is explicitly present.
+- Compose with named-parameter binding and safe sort by using dialect-specific compiled ranges.
+- Reject missing, stale, ambiguous, or overlapping metadata before execution.
+
+### Excluded Responsibilities
+
+- Runtime AST parsing as the default mechanism.
+- Runtime discovery of optional branches from raw SQL text.
+- Ashiba-only SQL markers or replacement comments.
+- Free-form SQL condition assembly from user input.
+- Silent fallback when metadata is missing or stale.
+
+### Related Concepts
+
+- `Named Parameter Binding`
+- `Safe Sort Profile`
+- `Thin Driver Adapter`
+- `No Query DSL Ceremony`
+- `File-Backed Runtime SQL`
+
+### Current Source Artifacts
+
+- `packages/cli/src/commands/sql-optional-condition-compression-metadata.ts`
+- `packages/cli/src/commands/model-gen.ts`
+- `packages/driver-adapter-pg/src/index.ts`
+
+### Implementation Status
+
+`partial`
 
 ## Logger-Ready Execution Event
 

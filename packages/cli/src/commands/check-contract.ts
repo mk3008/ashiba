@@ -4,7 +4,11 @@ import path from 'node:path';
 import type { Command } from 'commander';
 import { compileNamedParameters } from '../parameter-metadata.js';
 import { runFeatureGeneratedMapperCheck, type FeatureGeneratedMapperCheckResult } from './feature.js';
-import { analyzeQueryModel, buildQueryResultColumnContracts } from './model-gen.js';
+import {
+  analyzeQueryModel,
+  buildPostgresOptionalConditionCompressionBindingMetadata,
+  buildQueryResultColumnContracts,
+} from './model-gen.js';
 import {
   discoverProjectSqlCatalogSpecFiles,
   loadSqlCatalogSpecsFromFile,
@@ -383,8 +387,12 @@ function runCatalogContractCheck(options: {
         sqlResultColumnTypes = Object.fromEntries(
           resultColumnContracts.map((column) => [column.name, column.type]).sort(([left], [right]) => left.localeCompare(right))
         );
-        const currentAnalysis = analyzeQueryModel(sql, orderedUniqueSqlParameters, resultColumnContracts);
         const metadata = extractQueryModelMetadata(loaded.filePath);
+        const checksSssqlCompression = metadata.analysisSssqlCompressionJson !== undefined
+          || metadata.bindingSssqlCompressionJson !== undefined;
+        const currentAnalysis = analyzeQueryModel(sql, orderedUniqueSqlParameters, resultColumnContracts, {
+          sssqlCompression: checksSssqlCompression,
+        });
         queryModelSourceHash = metadata.queryModelSourceHash;
         bindingSourceHash = metadata.bindingSourceHash;
         if (metadata.hasQueryModel) {
@@ -436,6 +444,13 @@ function runCatalogContractCheck(options: {
           } else if (metadata.analysisSafeSortJson !== JSON.stringify(currentAnalysis.safeSort)) {
             issues.push('queryModel.analysis.safeSort is stale.');
           }
+          if (checksSssqlCompression) {
+            if (!metadata.analysisSssqlCompressionJson) {
+              issues.push('queryModel.analysis.sssqlCompression is missing.');
+            } else if (metadata.analysisSssqlCompressionJson !== JSON.stringify(currentAnalysis.sssqlCompression)) {
+              issues.push('queryModel.analysis.sssqlCompression is stale.');
+            }
+          }
           if (!metadata.bindingSourceHash) {
             issues.push('queryModel.bindings.postgres.sourceHash is missing.');
           } else if (metadata.bindingSourceHash !== currentHash) {
@@ -449,6 +464,17 @@ function runCatalogContractCheck(options: {
             JSON.stringify(metadata.bindingOrderedNames) !== JSON.stringify(compiled.orderedNames)
           ) {
             issues.push('queryModel.bindings.postgres.orderedNames is stale.');
+          }
+          if (checksSssqlCompression) {
+            const currentBindingSssqlCompression = buildPostgresOptionalConditionCompressionBindingMetadata(
+              sql,
+              currentAnalysis.sssqlCompression,
+            ).sssqlCompression;
+            if (!metadata.bindingSssqlCompressionJson) {
+              issues.push('queryModel.bindings.postgres.sssqlCompression is missing.');
+            } else if (metadata.bindingSssqlCompressionJson !== JSON.stringify(currentBindingSssqlCompression)) {
+              issues.push('queryModel.bindings.postgres.sssqlCompression is stale.');
+            }
           }
         }
       }
@@ -521,8 +547,10 @@ function extractQueryModelMetadata(specFilePath: string): {
   analysisResultColumns: string[];
   analysisResultColumnTypesJson?: string;
   analysisSafeSortJson?: string;
+  analysisSssqlCompressionJson?: string;
   bindingSql?: string;
   bindingOrderedNames: string[];
+  bindingSssqlCompressionJson?: string;
 } {
   const source = readFileSync(specFilePath, 'utf8');
   const hasQueryModel = /\bqueryModel\b/.test(source);
@@ -552,11 +580,21 @@ function extractQueryModelMetadata(specFilePath: string): {
   const analysisSafeSortJson = analysisObject && Object.prototype.hasOwnProperty.call(analysisObject, 'safeSort')
     ? JSON.stringify(analysisObject.safeSort)
     : undefined;
-  const postgresBlock = source.match(/"postgres"\s*:\s*\{([\s\S]*?)\n\s*\}/)?.[1] ?? '';
-  const bindingSourceHash = postgresBlock.match(/"sourceHash"\s*:\s*"([^"]+)"/)?.[1];
+  const analysisSssqlCompressionJson = analysisObject && Object.prototype.hasOwnProperty.call(analysisObject, 'sssqlCompression')
+    ? JSON.stringify(analysisObject.sssqlCompression)
+    : undefined;
+  const bindingsObject = parseObjectLiteralAfter(source, 'bindings:');
+  const postgresObject = isRecord(bindingsObject?.postgres) ? bindingsObject.postgres : undefined;
+  const postgresBlock = stringifyRecord(postgresObject);
+  const bindingSourceHash = readStringProperty(postgresObject, 'sourceHash')
+    ?? postgresBlock.match(/"sourceHash"\s*:\s*"([^"]+)"/)?.[1];
   const rawBindingSql = postgresBlock.match(/"sql"\s*:\s*"((?:\\.|[^"\\])*)"/)?.[1];
   const bindingSql = rawBindingSql ? JSON.parse(`"${rawBindingSql}"`) as string : undefined;
-  const bindingOrderedNames = extractStringArray(postgresBlock, 'orderedNames');
+  const bindingOrderedNames = readStringArrayProperty(postgresObject, 'orderedNames')
+    ?? extractStringArray(postgresBlock, 'orderedNames');
+  const bindingSssqlCompressionJson = postgresObject && Object.prototype.hasOwnProperty.call(postgresObject, 'sssqlCompression')
+    ? JSON.stringify(postgresObject.sssqlCompression)
+    : undefined;
 
   return {
     hasQueryModel,
@@ -570,8 +608,10 @@ function extractQueryModelMetadata(specFilePath: string): {
     analysisResultColumns,
     analysisResultColumnTypesJson,
     analysisSafeSortJson,
+    analysisSssqlCompressionJson,
     bindingSql,
     bindingOrderedNames,
+    bindingSssqlCompressionJson,
   };
 }
 

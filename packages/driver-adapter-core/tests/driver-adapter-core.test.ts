@@ -34,6 +34,15 @@ describe('@ashiba/driver-adapter-core', () => {
     expect(() => renderSafeOrderBy(profile, [{ key: '"created_at"' }])).toThrow(AshibaSortError);
   });
 
+  test('rejects SQL-like sort input instead of rendering it', () => {
+    const profile = { name: { sql: '"name"' } };
+
+    expect(() => renderSafeOrderBy(profile, [{ key: 'name desc; drop table users;--' }]))
+      .toThrow(AshibaSortError);
+    expect(() => renderSafeOrderBy(profile, [{ key: 'name', direction: 'desc; drop table users;--' as 'desc' }]))
+      .toThrow(AshibaSortError);
+  });
+
   test('normalizes thrown errors', () => {
     const error = new AshibaSortError('ASHIBA_UNKNOWN_SORT_KEY', 'Nope');
 
