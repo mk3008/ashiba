@@ -1,0 +1,52 @@
+name: Release PR
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release_pr:
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: 0
+      CHANGESETS_TOKEN: ${{ secrets.CHANGESETS_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Require release PR token
+        shell: bash
+        run: |
+          if [ -z "${CHANGESETS_TOKEN}" ]; then
+            echo "Release PR requires the CHANGESETS_TOKEN secret."
+            echo "A workflow-created PR should use a PAT so pull_request checks run on the release PR branch."
+            exit 1
+          fi
+
+      - name: Create or update release PR
+        uses: changesets/action@v1
+        with:
+          version: pnpm changesets:version-lockfile
+          commit: "chore(release): version packages"
+          title: "chore(release): version packages"
+          commitMode: git-cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.CHANGESETS_TOKEN }}
