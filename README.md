@@ -60,36 +60,53 @@ By default, `ashiba init` does not distribute demo DDL. Use `--with-demo-ddl` fo
 
 Run `ashiba --help`, `ashiba <command> --help`, or `ashiba describe command --format json` for command details.
 
-| Area | Command | What it does |
-|---|---|---|
-| Project setup | `ashiba init` | Creates a SQL-first starter after the user chooses a DBMS and driver. |
-| Project setup | `ashiba config` | Prints an Ashiba config starter. Use `--compact` for one-line JSON. |
-| Command discovery | `ashiba describe command` | Lists the command catalog with AI-readable use cases. |
-| Feature scaffolding | `ashiba feature scaffold` | Creates a feature boundary, query boundary, visible SQL, DTO contracts, and mapper tests from DDL. |
-| Feature scaffolding | `ashiba feature query scaffold` | Adds another query boundary under an existing feature. |
-| Feature scaffolding | `ashiba feature query refresh` | Refreshes generated query model metadata after SQL-only edits. |
-| Feature scaffolding | `ashiba feature tests scaffold` | Adds generated mapper cases and human-owned logic test placeholders. |
-| Feature scaffolding | `ashiba feature tests check` | Detects and optionally fixes generated mapping-test drift. |
-| Drift checks | `ashiba feature generated-mapper check` | Checks SQL parameters and result columns against editable query contracts. |
-| Drift checks | `ashiba check-contract` | Runs a broader visible-SQL contract drift check before commit or release. |
-| Model generation | `ashiba model-gen` | Generates editable query contracts and generated query metadata from visible SQL. |
-| DDL review | `ashiba ddl migration generate` | Compares two DDL snapshots and emits reviewable migration SQL plus risk info. |
-| SQL investigation | `ashiba query uses table` | Finds SQL assets that reference a table. |
-| SQL investigation | `ashiba query uses column` | Finds SQL assets that reference a column. |
-| SQL investigation | `ashiba query outline` | Describes statement, CTE, and base-table structure. |
-| SQL investigation | `ashiba query graph` | Builds a dependency graph for CTE-heavy SQL. |
-| SQL investigation | `ashiba query slice` | Extracts a runnable CTE debug slice for SQL-client investigation. |
-| SQL investigation | `ashiba query lint` | Reports structural SQL maintainability risks. |
-| SQL investigation | `ashiba lint` | Runs aggregate SQL lint over a file or directory. |
-| Optional SQL filters | `ashiba query sssql add` | Adds a SQL-first optional condition and refreshes metadata. |
-| Optional SQL filters | `ashiba query sssql refresh` | Refreshes optional-condition metadata after SQL edits. |
-| Optional SQL filters | `ashiba query sssql remove` | Removes a supported optional condition and refreshes metadata. |
-| Performance evidence | `ashiba perf init` | Scaffolds the traditional performance lane. |
-| Performance evidence | `ashiba perf run` | Inspects benchmark parameters without owning DB execution. |
-| Performance evidence | `ashiba perf scenario init` | Scaffolds a manual DB-backed tuning scenario with row-count, response-time, and timeout requirements. |
-| Performance evidence | `ashiba perf scenario measure` | Records timing evidence, timeout status, index policy, and AI-oriented next actions. |
-| Performance evidence | `ashiba perf report diff` | Compares saved performance reports. |
-| Review boundaries | `ashiba rfba inspect` | Inspects review-first feature/query boundaries. |
+### Core Workflow
+
+| Command | What it does |
+|---|---|
+| `ashiba init` | Creates a SQL-first starter after the user chooses a DBMS and driver. |
+| `ashiba feature scaffold` | Creates a feature boundary, query boundary, visible SQL, DTO contracts, and mapper tests from DDL. |
+| `ashiba feature query scaffold` | Adds another query boundary under an existing feature. |
+| `ashiba feature query refresh` | Refreshes generated query model metadata after SQL-only edits. |
+| `ashiba feature tests scaffold` | Adds generated mapper cases and human-owned logic test placeholders. |
+| `ashiba feature tests check` | Detects and optionally fixes generated mapping-test drift. |
+| `ashiba feature generated-mapper check` | Checks SQL parameters and result columns against editable query contracts. |
+| `ashiba check-contract` | Runs a broader visible-SQL contract drift check before commit or release. |
+| `ashiba ddl migration generate` | Compares two DDL snapshots and emits reviewable migration SQL plus risk info. |
+
+### SQL Investigation And Editing Aids
+
+| Command | What it does |
+|---|---|
+| `ashiba query uses table` | Finds SQL assets that reference a table. |
+| `ashiba query uses column` | Finds SQL assets that reference a column. |
+| `ashiba query outline` | Describes statement, CTE, and base-table structure. |
+| `ashiba query graph` | Builds a dependency graph for CTE-heavy SQL. |
+| `ashiba query slice` | Extracts a runnable CTE debug slice for SQL-client investigation. |
+| `ashiba query lint` | Reports structural SQL maintainability risks. |
+| `ashiba query sssql add` | Adds a SQL-first optional condition and refreshes metadata. |
+| `ashiba query sssql refresh` | Refreshes optional-condition metadata after SQL edits. |
+| `ashiba query sssql remove` | Removes a supported optional condition and refreshes metadata. |
+| `ashiba lint` | Runs aggregate SQL lint over a file or directory. |
+
+### Performance Evidence
+
+| Command | What it does |
+|---|---|
+| `ashiba perf init` | Scaffolds the traditional performance lane. |
+| `ashiba perf run` | Inspects benchmark parameters without owning DB execution. |
+| `ashiba perf scenario init` | Scaffolds a manual DB-backed tuning scenario with row-count, response-time, and timeout requirements. |
+| `ashiba perf scenario measure` | Records timing evidence, timeout status, index policy, and AI-oriented next actions. |
+| `ashiba perf report diff` | Compares saved performance reports. |
+
+### General Helpers
+
+| Command | What it does |
+|---|---|
+| `ashiba config` | Prints an Ashiba config starter. Use `--compact` for one-line JSON. |
+| `ashiba describe command` | Lists the command catalog with AI-readable use cases. |
+| `ashiba model-gen` | Generates editable query contracts and generated query metadata from visible SQL. |
+| `ashiba rfba inspect` | Inspects review-first feature/query boundaries. |
 
 ## Use Cases
 
