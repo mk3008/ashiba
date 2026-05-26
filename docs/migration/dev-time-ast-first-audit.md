@@ -23,14 +23,15 @@ Regex and lexical scans are acceptable only for narrow helper work:
 
 - `ashiba query uses table`
 - `ashiba query uses column`
-- `ashiba query match-observed`
 - `ashiba query outline`
 - `ashiba query graph`
 - `ashiba query slice`
-- `ashiba query plan`
 - `ashiba query lint`
 - `ashiba lint` DDL-aware table, column, predicate, mutation, and returning checks
 - DDL schema model extraction from `CREATE TABLE` statements
+
+Historical `query match-observed` and `query plan` helpers were removed before release
+because their use cases were too narrow after `query slice` and the impact commands were clarified.
 - DDL migration diff generation through `rawsql-ts` `DDLDiffGenerator`
 - DDL migration risk analysis through rawsql-ts DDL AST statements for supported DDL shapes
 - Feature scaffold table metadata extraction from `CREATE TABLE` statements

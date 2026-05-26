@@ -15,7 +15,6 @@ import { registerLintCommand } from './commands/lint.js';
 import { registerModelGenCommand } from './commands/model-gen.js';
 import { registerPerfCommand } from './commands/perf.js';
 import { registerQueryCommand } from './commands/query.js';
-import { registerTestEvidenceCommand } from './commands/test-evidence.js';
 import { registerRfbaCommand } from './commands/rfba.js';
 
 /**
@@ -40,8 +39,16 @@ Core message:
 
 Status:
   This CLI includes scaffolding, DDL review, query analysis, contract checks,
-  model generation, RFBA inspection, performance evidence, and test evidence.
+  model generation, RFBA inspection, and performance evidence.
   Command migration from ztd-cli is tracked in docs/migration/status.md.
+
+Common use cases:
+  ashiba init                 Create a SQL-first starter after choosing a DBMS/driver.
+  ashiba feature scaffold     Add a reviewable feature boundary from DDL metadata.
+  ashiba query slice          Debug one CTE step inside a complex WITH query.
+  ashiba ddl migration generate
+                              Compare two DDL snapshots and review migration risk.
+  ashiba describe command     Show the command catalog with AI-readable use cases.
 `);
 
   registerCheckContractCommand(program);
@@ -55,7 +62,6 @@ Status:
   registerPerfCommand(program);
   registerQueryCommand(program);
   registerRfbaCommand(program);
-  registerTestEvidenceCommand(program);
 
   return program;
 }

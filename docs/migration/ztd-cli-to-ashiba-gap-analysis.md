@@ -25,7 +25,7 @@ The initial command migration, packaged consumer smoke, and PostgreSQL adapter c
 
 | Capability | Status | Notes |
 |---|---|---|
-| DDL-first workflow | mostly done | `ddl migration generate`, `ddl migration info`, `ashiba-config`, templates. `pg_dump`-based DDL pull exists in the baseline, but DB connection is outside Ashiba migration query generation scope. |
+| DDL-first workflow | mostly done | `ddl migration generate`, `ashiba config`, templates. `pg_dump`-based DDL pull exists in the baseline, but DB connection is outside Ashiba migration query generation scope. |
 | SQL files as review boundary | mostly done | Feature/query scaffolds create visible `.sql` files. |
 | Feature scaffold | mostly done | `feature scaffold` creates boundary, query, SQL, tests entrypoint. |
 | Query boundary scaffold | mostly done | `feature query scaffold` adds child query boundaries without rewriting parent boundary. |
@@ -33,14 +33,14 @@ The initial command migration, packaged consumer smoke, and PostgreSQL adapter c
 | Generated mapper drift check | mostly done | `feature generated-mapper check` checks named parameters and result columns, including aliases, CTE output select lists, and supported SQL/DDL-derived type hints, against editable query boundary interfaces. |
 | Feature tests scaffold | mostly done | `feature tests scaffold` refreshes generated plans/types and preserves cases. |
 | ZTD test lane | mostly done | Strong baseline; Ashiba should keep ZTD as a test technique, not product identity. Mapper tests should prefer this lane. |
-| Traditional DB-backed test lane | mostly done | Supported as a scaffold lane concept with `ashiba perf` plan inspection, report diffing, evidence completeness checks, and `test-evidence` lane reporting. DB lifecycle and execution remain application-owned by concept. |
+| Traditional DB-backed test lane | mostly done | Supported as a scaffold lane concept with `ashiba perf` plan inspection, report diffing, evidence completeness checks, and feature/perf checks. DB lifecycle and execution remain application-owned by concept. |
 | DDL pull | PostgreSQL `pg_dump` helper | `@ashiba/ddl-pull-pg-dump` provides PostgreSQL `pg_dump` command construction, redacted command preview, and explicit pull execution helpers. It avoids a generic DDL pull name because it does not own MySQL or SQL Server pull behavior. It remains an extension helper because core migration query generation compares explicit DDL inputs without DB connection. It is not part of the `pg` driver adapter because it depends on external DBMS tooling, not the TypeScript driver API. |
 | DDL diff | mostly done | Review-oriented artifacts are produced. |
-| DDL risk analysis | mostly done | `ddl migration info` and migration risk analysis. |
+| DDL risk analysis | mostly done | `ddl migration generate` and migration risk analysis. |
 | Migration artifact review | mostly done | Diff output includes SQL and companion review artifacts. |
 | Query uses table | mostly done | `query uses table`. |
 | Query uses column | mostly done | `query uses column`. |
-| Observed SQL matching | mostly done | `query match-observed` is integrated into `@ashiba/cli` and uses `rawsql-ts` core AST APIs. |
+| Observed SQL matching | removed | Removed before release because the use case was too narrow. |
 | model-gen QuerySpec output | mostly done | `model-gen` handles SQL scan, named parameters, Postgres binding metadata with source SQL hash, query ID derivation, output rendering, query analysis snapshots, root query shape, safe-sort metadata, and result-column/type contracts. Live DB probing is deferred unless an explicit DB-dependent inspection workflow is requested. |
 | sqlgrep naming | decided | Keep `sqlgrep` as the capability name and expose it through Ashiba query commands where useful. |
 | driver-adapter-core | initial implementation | `@ashiba/driver-adapter-core` now provides shared event, masking, error, and safe sort contracts. |

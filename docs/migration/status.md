@@ -4,19 +4,13 @@
 
 - `ashiba init`
 - `ashiba config`
-- `ashiba-config`
 - `ashiba ddl migration generate`
-- `ashiba ddl migration info`
 - `ashiba query uses table`
 - `ashiba query uses column`
-- `ashiba query match-observed`
 - `ashiba query outline`
 - `ashiba query graph`
 - `ashiba query slice`
-- `ashiba query plan`
 - `ashiba query lint`
-- `ashiba query patch apply`
-- `ashiba query sssql list`
 - `ashiba query sssql add`
 - `ashiba query sssql refresh`
 - `ashiba query sssql remove`
@@ -31,22 +25,19 @@
 - `ashiba perf init`
 - `ashiba perf run --dry-run`
 - `ashiba perf report diff`
-- `ashiba test-evidence collect`
-- `ashiba test-evidence render`
-- `ashiba test-evidence diff`
 - `ashiba rfba inspect`
 - `ashiba describe command`
-- packaged `ashiba` and `ashiba-config` bin smoke with local tarball overrides
+- packaged `ashiba` bin smoke with local tarball overrides
 - workspace `pnpm verify` acceptance gate
 - optional workspace `pnpm verify:postgres-live` PostgreSQL smoke gate
 
-The current implementation provides `ashiba --help`, `ashiba --version`, `ashiba config`, `ashiba-config`, DDL migration generate/info commands, query impact commands, observed SQL matching, CTE structure/graph/slice/plan commands, query lint, SQL patch apply, SSSQL authoring helpers, feature/query/test scaffolds, generated mapper drift checks, SQL-file model generation, top-level lint and contract-check commands, lightweight performance lane planning and report diffing, lightweight test evidence collection/rendering/diffing, RFBA boundary inspection, command descriptors, and a SQL-first `ashiba init` starter for explicit feature scaffolding flows. The starter remains intentionally smaller than the full `ztd-cli` starter where that starter would imply AI behavior-file distribution or runtime ownership.
+The current implementation provides `ashiba --help`, `ashiba --version`, `ashiba config`, DDL migration generate with risk info, query impact commands, CTE structure/graph/slice commands, query lint, SSSQL authoring helpers, feature/query/test scaffolds, generated mapper drift checks, SQL-file model generation, top-level lint and contract-check commands, lightweight performance lane planning and report diffing, RFBA boundary inspection, command descriptors, and a SQL-first `ashiba init` starter for explicit feature scaffolding flows. The starter remains intentionally smaller than the full `ztd-cli` starter where that starter would imply AI behavior-file distribution or runtime ownership.
 
 RFBA is adopted as an Ashiba concept. Scaffolding should separate files by reviewable feature/query behavior using VSA-style boundaries, not by technical layers such as repository/service/model as the primary layout. Because review scope is partly subjective, Ashiba fixes the concrete review grain through feature and query scaffolds. A feature may contain multiple query boundaries, and feature boundaries may be subgrouped under the feature root. Generated imports use root-stable aliases for shared seams and app-level test support so subgroup depth does not make scaffolds fragile.
 
 Watch-mode automatic regeneration is intentionally not implemented. DDL-derived schema/model drift should be detected explicitly by tests or checks, with clear cause and next action, then repaired by an explicit command so file changes remain reviewable.
 
-Ashiba tooling may depend on `rawsql-ts` core AST APIs through npm. This is accepted for CLI-side development workflows such as query analysis, sqlgrep, CTE planning, linting, patch helpers, SSSQL helpers, and migration review support. Generated application code remains Ashiba Runtime Zero and must not depend on Ashiba CLI/runtime libraries or `rawsql-ts` parser internals.
+Ashiba tooling may depend on `rawsql-ts` core AST APIs through npm. This is accepted for CLI-side development workflows such as query analysis, sqlgrep, CTE debugging, linting, SSSQL helpers, and migration review support. Generated application code remains Ashiba Runtime Zero and must not depend on Ashiba CLI/runtime libraries or `rawsql-ts` parser internals.
 
 Dev-time SQL structural analysis is AST-first. The `rawsql-ts` AST parser is the trusted source for development-time SQL structure. Regex or hand-written lexical parsing that interprets SQL structure is treated as Ashiba AST migration debt, or as a reportable `rawsql-ts` parser/AST issue when valid SQL cannot be parsed, unless the code is limited to source offsets or explicit diagnostics. Ashiba should fail clearly or require explicit human-controlled fallback rather than silently repairing, rewriting, or reinterpreting SQL.
 
@@ -69,7 +60,7 @@ Dev-time SQL structural analysis is AST-first. The `rawsql-ts` AST parser is the
 - Product: `ztd-cli` baseline -> `Ashiba`
 - Package: `@rawsql-ts/ztd-cli` -> `@ashiba/cli`
 - CLI command: `ztd` -> `ashiba`
-- Config command: `ztd-config` -> `ashiba-config`
+- Config command: `ztd-config` -> `ashiba config`
 
 ## Deferred Decisions
 
@@ -85,7 +76,6 @@ Dev-time SQL structural analysis is AST-first. The `rawsql-ts` AST parser is the
 - Dev-time AST-first audit is tracked in `docs/migration/dev-time-ast-first-audit.md`. Model generation now uses AST traversal for result columns, expression type hints, DDL schema metadata, DDL-derived relation extraction, and safe-sort sortable dictionaries. Feature scaffolding and DDL schema model generation identify `CREATE TABLE` statements through AST nodes rather than regex prefilters. DDL migration generation uses `rawsql-ts` `DDLDiffGenerator`, and DDL migration risk analysis uses rawsql-ts DDL AST statements for supported shapes. Remaining SQL source-offset helpers are tracked separately; if valid SQL cannot be parsed, treat that as a parser/AST bug to investigate or report, not as a silent fallback trigger.
 - `ashiba check-contract` currently checks generated mapper drift plus QuerySpec-like catalog `sqlFile` resolution, named-parameter contracts, result-column contracts, result-column type contracts, generated query model source hash, AST parse status, statement kind, root query shape, top-level ORDER BY presence, named-parameter/result-column/result-type analysis freshness, safe-sort metadata freshness, and Postgres binding freshness. It also reports overall/mapper/catalog attainment and next actions for common drift repairs. Deeper QuerySpec coverage can be added when a concrete review consumer needs it.
 - `ashiba perf` currently scaffolds and validates traditional performance lane plans, reports attainment/next actions for missing or unused benchmark parameters, and compares saved report durations with evidence completeness next actions without owning DB execution.
-- `ashiba test-evidence collect` currently writes a test inventory, overall and per-lane done/partial/not done attainment, recommended mapper/performance test modes, todo-only test detection, result-file inventory, and next actions for missing or placeholder-only lanes; `ashiba test-evidence render` renders a collected summary as Markdown with attainment, next actions, and per-file executable/todo details; `ashiba test-evidence diff` compares collected summaries. Richer rawsql-ts evidence workflows remain, but the Ashiba review summary is now machine-readable.
 - `ashiba rfba inspect` reports feature/query review boundaries, expected file existence, attainment, issues, and next actions. `ashiba describe command` covers the migrated Ashiba command surface. They are Ashiba-native review aids rather than full rawsql-ts descriptor/registry clones.
 - `findings validate` is intentionally not migrated. Finding registries were a retrospective storage mechanism and a ConceptSpec predecessor; Ashiba should use Codex App past-log analysis to promote durable findings into ConceptSpec instead of keeping a separate findings registry feature.
 - Production `pg` driver adapter has a thin implementation with `pg`-compatible contract tests for query delegation, required precomputed binding metadata, missing/stale query model rejection, parameter checks, query-model-gated safe sort rendering from source and compiled insertion metadata including `LIMIT` and `FOR UPDATE` guard positions, query-model sortable metadata as the maximum sort surface, root compound SELECT safe-sort rejection with subquery guidance, and logger-ready observer events for start/end/DB-error/pre-execution validation failures. Optional live PostgreSQL smoke exists and runs when `ASHIBA_TEST_DATABASE_URL` or `DATABASE_URL` is provided.
@@ -99,10 +89,10 @@ Dev-time SQL structural analysis is AST-first. The `rawsql-ts` AST parser is the
 
 ## Decided Direction
 
-- `ztd-config` is migrated as `ashiba-config`.
+- `ztd-config` is consolidated into `ashiba config`; the standalone config bin is removed before release.
 - `ashiba init` may create README/docs, but Ashiba must not distribute `AGENTS.md`, `AGENT.md`, `SKILL.md`, skills, prompts, or other AI behavior files. AI guidance should come from visible scaffolding, contracts, command descriptors, and AI-oriented errors.
 - DDL watch auto-update is not migrated. Prefer explicit drift failures and actionable error messages over silent background regeneration.
-- Public v1 query analysis should migrate the full `ztd-cli` query analysis command set.
+- Public v1 query analysis keeps the `ztd-cli` capabilities that have a clear Ashiba review/debug use case; narrow historical helpers are removed before release.
 - Unused named parameters are errors.
 - PostgreSQL `ddl pull` through `pg_dump` is represented by the `@ashiba/ddl-pull-pg-dump` helper package. It is not an initial migration query generation responsibility and is not part of the `pg` driver adapter. The package name is intentionally capability-plus-wrapper specific because this package does not own MySQL or SQL Server pull behavior.
 - Keep `sqlgrep` as the capability name and expose it through Ashiba query commands where useful.

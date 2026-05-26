@@ -2,21 +2,15 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
 import {
-  buildObservedSqlMatchReport,
   buildQueryLintReport,
-  buildQueryPipelinePlan,
   buildQuerySliceReport,
   buildQueryStructureReport,
-  applyQueryPatch,
   addSssql,
-  listSssqlBranches,
   normalizeSssqlBranchKind,
   refreshSssql,
   removeSssql,
   buildQueryUsageReport,
-  formatObservedSqlMatchReport,
   formatQueryLintReport,
-  formatQueryPipelinePlan,
   formatQueryStructureReport,
   formatQueryUsageReport,
 } from '../sqlgrep/index.js';
@@ -42,13 +36,6 @@ export interface QueryUsesOptions {
   allowParserFallback?: boolean;
 }
 
-export interface QueryMatchObservedOptions {
-  format?: 'text' | 'json';
-  rootDir?: string;
-  sql?: string;
-  sqlFile?: string;
-}
-
 export interface QueryStructureOptions {
   format?: 'text' | 'json' | 'dot';
 }
@@ -59,24 +46,10 @@ export interface QuerySliceOptions {
   limit?: string;
 }
 
-export interface QueryPlanOptions {
-  format?: 'text' | 'json';
-  material?: string;
-  scalarFilterColumn?: string;
-}
-
 export interface QueryLintOptions {
   format?: 'text' | 'json';
   rootDir?: string;
   rules?: string;
-}
-
-export interface QueryPatchApplyOptions {
-  cte?: string;
-  from?: string;
-  out?: string;
-  preview?: boolean;
-  format?: 'text' | 'json';
 }
 
 export interface QuerySssqlOptions {
@@ -97,18 +70,31 @@ export interface QuerySssqlOptions {
 }
 
 /**
- * Registers SQL inspection, patching, SSSQL, and usage-analysis commands.
+ * Registers SQL inspection, SSSQL, and usage-analysis commands.
  */
 export function registerQueryCommand(program: Command): void {
   const query = program
     .command('query')
-    .description('Impact investigation for SQL assets and QuerySpec-like catalogs');
+    .description('Impact investigation for SQL assets and QuerySpec-like catalogs')
+    .addHelpText('after', `
+Use cases:
+  uses table/column  Estimate impact before changing schema objects.
+  outline/graph      Understand CTE-heavy SQL before editing it.
+  slice              Run a smaller CTE debug query in a SQL client.
+  sssql add          Add an explicit optional filter and refresh metadata.
+  lint               Catch hard-to-review query shapes before review.
+`);
 
   const uses = query.command('uses').description('Find where SQL assets use a table or column target');
 
   uses
     .command('table <target>')
     .description('Find statements that use a table target')
+    .addHelpText('after', `
+Use case:
+  Use this before renaming, dropping, or changing a table to find the visible
+  SQL files that need review.
+`)
     .option('--format <format>', 'Output format: text or json', 'text')
     .option('--view <view>', 'Investigation view: impact or detail', 'impact')
     .option('--root-dir <path>', 'Project root to scan', process.cwd())
@@ -124,6 +110,11 @@ export function registerQueryCommand(program: Command): void {
   uses
     .command('column <target>')
     .description('Find statements that use a column target')
+    .addHelpText('after', `
+Use case:
+  Use this before renaming, dropping, changing nullability/type, or changing
+  semantics of a column to find the SQL files that need review.
+`)
     .option('--format <format>', 'Output format: text or json', 'text')
     .option('--view <view>', 'Investigation view: impact or detail', 'impact')
     .option('--root-dir <path>', 'Project root to scan', process.cwd())
@@ -140,6 +131,11 @@ export function registerQueryCommand(program: Command): void {
   query
     .command('outline <sqlFile>')
     .description('Summarize query structure, CTE dependencies, and base table usage')
+    .addHelpText('after', `
+Use case:
+  Use this to understand a complex SQL file before editing it or regenerating
+  query metadata.
+`)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((sqlFile: string, options: QueryStructureOptions) => {
       process.stdout.write(runQueryStructure(sqlFile, { ...options, format: normalizeStructureFormat(options.format ?? 'text', false) }));
@@ -148,6 +144,11 @@ export function registerQueryCommand(program: Command): void {
   query
     .command('graph <sqlFile>')
     .description('Emit the query dependency graph in text, JSON, or DOT form')
+    .addHelpText('after', `
+Use case:
+  Use this when a WITH query has many CTEs and reviewers need the dependency
+  shape without reading the full SQL first.
+`)
     .option('--format <format>', 'Output format: text, json, or dot', 'text')
     .action((sqlFile: string, options: QueryStructureOptions) => {
       process.stdout.write(runQueryStructure(sqlFile, { ...options, format: normalizeStructureFormat(options.format ?? 'text', true) }));
@@ -155,7 +156,12 @@ export function registerQueryCommand(program: Command): void {
 
   query
     .command('slice <sqlFile>')
-    .description('Generate a minimal executable SQL slice for a target CTE or the final query')
+    .description('Extract a runnable CTE debug slice to find where a complex WITH query breaks')
+    .addHelpText('after', `
+Use case:
+  Use this when a large WITH query fails or returns surprising rows and you want
+  to run one CTE, or the final query with unused CTEs removed, in a SQL client.
+`)
     .option('--cte <name>', 'Slice a specific CTE into a standalone debug query')
     .option('--final', 'Slice the final query while removing unused CTEs')
     .option('--limit <count>', 'Add LIMIT to the emitted debug query when supported')
@@ -163,31 +169,25 @@ export function registerQueryCommand(program: Command): void {
       process.stdout.write(runQuerySlice(sqlFile, options));
     });
 
-  query
-    .command('plan <sqlFile>')
-    .description('Emit deterministic execution steps from CTE metadata')
-    .option('--format <format>', 'Output format: text or json', 'text')
-    .option('--material <names>', 'Comma-separated CTE names to materialize')
-    .option('--scalar-filter-column <names>', 'Comma-separated column names to bind from WHERE scalar filters')
-    .action((sqlFile: string, options: QueryPlanOptions) => {
-      process.stdout.write(runQueryPlan(sqlFile, options));
-    });
-
   const sssql = query
     .command('sssql')
-    .description('Generate and refresh SQL-first optional filter scaffolds');
-
-  sssql
-    .command('list <sqlFile>')
-    .description('List supported SSSQL optional branches discovered in the query')
-    .option('--format <format>', 'Output format: text or json', 'text')
-    .action((sqlFile: string, options: QuerySssqlOptions) => {
-      process.stdout.write(runQuerySssqlList(sqlFile, options));
-    });
+    .description('Generate and refresh SQL-first optional filter scaffolds')
+    .addHelpText('after', `
+Use cases:
+  add      Add an explicit optional predicate to a SQL file and refresh metadata.
+  refresh  Rebuild metadata after SQL-only edits.
+  remove   Remove a supported optional predicate and refresh metadata.
+`);
 
   sssql
     .command('add <sqlFile>')
     .description('Add SSSQL optional filter branches near the closest source query')
+    .addHelpText('after', `
+Use case:
+  Use this at development time to add a SQL-first optional filter to the SQL
+  file itself. Runtime code still consumes generated metadata; this command is
+  not a runtime SQL string API.
+`)
     .option('--format <format>', 'Output format: text or json', 'text')
     .option('--filter <name>', 'Target column for scalar scaffold, or primary anchor column for EXISTS/NOT EXISTS')
     .option('--parameter <name>', 'Explicit parameter name for structured SSSQL scaffold')
@@ -207,6 +207,11 @@ export function registerQueryCommand(program: Command): void {
   sssql
     .command('refresh <sqlFile>')
     .description('Refresh existing SSSQL optional filter scaffolds without changing predicate meaning')
+    .addHelpText('after', `
+Use case:
+  Use this after editing optional-condition SQL by hand so generated query
+  metadata matches the visible SQL again.
+`)
     .option('--format <format>', 'Output format: text or json', 'text')
     .option('--preview', 'Emit a unified diff without writing files')
     .option('--out <path>', 'Write output to file')
@@ -217,6 +222,11 @@ export function registerQueryCommand(program: Command): void {
   sssql
     .command('remove <sqlFile>')
     .description('Remove one supported SSSQL optional filter branch safely')
+    .addHelpText('after', `
+Use case:
+  Use this when an optional condition is no longer part of the query contract.
+  The SQL file is updated and metadata is refreshed together.
+`)
     .option('--format <format>', 'Output format: text or json', 'text')
     .option('--all', 'Remove all recognized SSSQL branches in the query')
     .option('--parameter <name>', 'Parameter name that identifies the target branch')
@@ -230,22 +240,13 @@ export function registerQueryCommand(program: Command): void {
     });
 
   query
-    .command('patch')
-    .description('Apply AI-edited SQL fragments back onto the original query safely')
-    .command('apply <sqlFile>')
-    .description('Replace one CTE in the original SQL with the matching definition from an edited SQL file')
-    .requiredOption('--cte <name>', 'Target CTE name to replace in the original query')
-    .requiredOption('--from <path>', 'Edited SQL file that contains the replacement CTE definition')
-    .option('--out <path>', 'Write the patched SQL to a new file instead of overwriting the original')
-    .option('--preview', 'Emit a unified diff without writing files')
-    .option('--format <format>', 'Output format: text or json', 'text')
-    .action((sqlFile: string, options: QueryPatchApplyOptions) => {
-      process.stdout.write(runQueryPatchApply(sqlFile, options));
-    });
-
-  query
     .command('lint <sqlFile>')
     .description('Report structural maintainability and analysis-safety issues in a SQL query')
+    .addHelpText('after', `
+Use case:
+  Use this before review to catch SQL shapes that are hard to analyze, debug, or
+  maintain.
+`)
     .option('--format <format>', 'Output format: text or json', 'text')
     .option('--root-dir <path>', 'Project root for config and DDL-aware rules', process.cwd())
     .option('--rules <list>', 'Comma-separated lint rules to enable, for example: join-direction')
@@ -253,16 +254,6 @@ export function registerQueryCommand(program: Command): void {
       process.stdout.write(runQueryLint(sqlFile, options));
     });
 
-  query
-    .command('match-observed')
-    .description('Rank candidate SQL assets for an observed SELECT statement')
-    .option('--sql <sql>', 'Observed SQL text to rank')
-    .option('--sql-file <path>', 'Read observed SQL text from a file')
-    .option('--root-dir <path>', 'Project root to scan', process.cwd())
-    .option('--format <format>', 'Output format: text or json', 'text')
-    .action((options: QueryMatchObservedOptions) => {
-      process.stdout.write(runQueryMatchObserved(options));
-    });
 }
 
 /**
@@ -285,18 +276,6 @@ export function runQuerySlice(sqlFile: string, options: QuerySliceOptions): stri
 }
 
 /**
- * Builds a formatted query pipeline plan from a visible SQL file.
- */
-export function runQueryPlan(sqlFile: string, options: QueryPlanOptions = {}): string {
-  const format = normalizeFormat(options.format ?? 'text');
-  const plan = buildQueryPipelinePlan(sqlFile, {
-    material: normalizeCommaList(options.material),
-    scalarFilterColumns: normalizeCommaList(options.scalarFilterColumn),
-  });
-  return formatQueryPipelinePlan(plan, format);
-}
-
-/**
  * Runs query lint rules and formats the resulting report.
  */
 export function runQueryLint(sqlFile: string, options: QueryLintOptions = {}): string {
@@ -306,67 +285,6 @@ export function runQueryLint(sqlFile: string, options: QueryLintOptions = {}): s
     rules: normalizeLintRules(options.rules),
   });
   return formatQueryLintReport(report, format);
-}
-
-/**
- * Applies a supported development-time query patch and formats the patch report.
- */
-export function runQueryPatchApply(sqlFile: string, options: QueryPatchApplyOptions): string {
-  if (!options.cte) {
-    throw requiredCliValueError('--cte');
-  }
-  if (!options.from) {
-    throw requiredCliValueError('--from');
-  }
-
-  const report = applyQueryPatch(sqlFile, {
-    cte: options.cte,
-    from: options.from,
-    out: options.out,
-    preview: Boolean(options.preview),
-  });
-
-  if (normalizeFormat(options.format ?? 'text') === 'json') {
-    return `${JSON.stringify({
-      command: 'query patch apply',
-      file: report.file,
-      edited_file: report.edited_file,
-      target_cte: report.target_cte,
-      preview: report.preview,
-      changed: report.changed,
-      written: report.written,
-      output_file: report.output_file,
-      diff: report.diff,
-      updated_sql: report.updated_sql,
-    }, null, 2)}\n`;
-  }
-
-  if (report.preview) {
-    return report.diff.endsWith('\n') ? report.diff : `${report.diff}\n`;
-  }
-
-  return [
-    `Patched CTE: ${report.target_cte}`,
-    `Edited SQL: ${report.edited_file}`,
-    `Output file: ${report.output_file}`,
-    `Changed: ${report.changed ? 'yes' : 'no'}`,
-    '',
-  ].join('\n');
-}
-
-/**
- * Lists supported SSSQL optional-condition branches in a visible SQL file.
- */
-export function runQuerySssqlList(sqlFile: string, options: QuerySssqlOptions = {}): string {
-  const format = normalizeFormat(options.format ?? 'text');
-  const branches = listSssqlBranches(sqlFile);
-  if (format === 'json') {
-    return `${JSON.stringify({ command: 'query sssql list', file: sqlFile, branch_count: branches.length, branches }, null, 2)}\n`;
-  }
-  if (branches.length === 0) {
-    return 'No supported SSSQL branches found.\n';
-  }
-  return `${branches.map((branch, index) => `${index + 1}. parameter: ${branch.parameterName}\n   kind: ${branch.kind}\n   target: ${branch.target ?? '(none)'}`).join('\n')}\n`;
 }
 
 /**
@@ -429,42 +347,6 @@ export function runQueryUses(kind: 'table' | 'column', target: string, options: 
   });
 
   return formatQueryUsageReport(report, format);
-}
-
-/**
- * Matches observed runtime SQL against known SQL catalog assets.
- */
-export function runQueryMatchObserved(options: QueryMatchObservedOptions): string {
-  const format = normalizeFormat(options.format ?? 'text');
-  const report = buildObservedSqlMatchReport({
-    observedSql: resolveObservedSqlInput(options),
-    rootDir: options.rootDir ?? process.cwd(),
-  });
-
-  return formatObservedSqlMatchReport(report, format);
-}
-
-function resolveObservedSqlInput(options: QueryMatchObservedOptions): string {
-  if (options.sql && options.sqlFile) {
-    throw invalidCliInputError(
-      'ASHIBA_QUERY_OBSERVED_INPUT_CONFLICT',
-      'Use either --sql or --sql-file, not both.',
-      'Choose one observed SQL input source and rerun the command.',
-      { options: ['--sql', '--sql-file'] },
-    );
-  }
-  if (options.sql) {
-    return options.sql;
-  }
-  if (options.sqlFile) {
-    return readFileSync(options.sqlFile, 'utf8');
-  }
-  throw invalidCliInputError(
-    'ASHIBA_QUERY_OBSERVED_INPUT_REQUIRED',
-    'Provide observed SQL with --sql or --sql-file.',
-    'Pass the observed SQL text with --sql, or pass a file path with --sql-file.',
-    { options: ['--sql', '--sql-file'] },
-  );
 }
 
 function normalizeFormat(value: string): 'text' | 'json' {

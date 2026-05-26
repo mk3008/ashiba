@@ -7,16 +7,14 @@ import path from 'node:path';
 import { runInit } from '../src/commands/init.js';
 import { runCheckContract, formatCheckContractResult } from '../src/commands/check-contract.js';
 import { createDefaultConfig, formatDefaultConfig } from '../src/commands/config.js';
-import { runDdlMigrationGenerate, runDdlMigrationInfo } from '../src/commands/ddl.js';
+import { runDdlMigrationGenerate } from '../src/commands/ddl.js';
 import { COMMANDS, formatDescribe } from '../src/commands/describe.js';
 import { runFeatureGeneratedMapperCheck, runFeatureQueryMetadataRefresh, runFeatureQueryScaffold, runFeatureScaffold, runFeatureTestsCheck, runFeatureTestsScaffold } from '../src/commands/feature.js';
 import { runLint } from '../src/commands/lint.js';
 import { runModelGen } from '../src/commands/model-gen.js';
 import { runPerfInit, runPerfReportDiff, runPerfRun } from '../src/commands/perf.js';
-import { runQueryLint, runQueryMatchObserved, runQueryPatchApply, runQueryPlan, runQuerySlice, runQuerySssqlAdd, runQuerySssqlList, runQueryStructure, runQueryUses } from '../src/commands/query.js';
+import { runQueryLint, runQuerySlice, runQuerySssqlAdd, runQueryStructure, runQueryUses } from '../src/commands/query.js';
 import { runRfbaInspect } from '../src/commands/rfba.js';
-import { runTestEvidenceCollect, runTestEvidenceDiff, runTestEvidenceRender } from '../src/commands/test-evidence.js';
-import { buildConfigProgram } from '../src/config-bin.js';
 
 describe('@ashiba/cli smoke', () => {
   test('builds an ashiba program', () => {
@@ -56,14 +54,13 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
-  test('exposes config command and ashiba-config bin program', () => {
+  test('exposes config command', () => {
     const program = buildProgram();
-    const configProgram = buildConfigProgram();
 
     expect(program.commands.some((command) => command.name() === 'config')).toBe(true);
-    expect(configProgram.name()).toBe('ashiba-config');
     expect(createDefaultConfig().tests.mapperLane).toBe('ztd');
     expect(formatDefaultConfig()).toContain('"parameterStyle": "both"');
+    expect(formatDefaultConfig({ pretty: false })).not.toContain('\n  ');
   });
 
   test('describes the migrated command surface', () => {
@@ -72,21 +69,20 @@ describe('@ashiba/cli smoke', () => {
 
     expect(commandNames).toEqual(expect.arrayContaining([
       'ddl migration generate',
-      'ddl migration info',
       'query outline',
       'query graph',
+      'query slice',
       'query sssql add',
       'query sssql refresh',
       'feature query scaffold',
       'feature tests scaffold',
       'feature tests check',
       'perf report diff',
-      'test-evidence render',
-      'test-evidence diff',
       'rfba inspect',
     ]));
     expect(rendered).toContain('Ashiba command catalog');
     expect(rendered).toContain('- query graph: Build a dependency graph for CTE-heavy SQL.');
+    expect(rendered).toContain('use case: Debug a complex CTE');
   });
 
   test('creates a small SQL-first starter', () => {
@@ -202,22 +198,6 @@ describe('@ashiba/cli smoke', () => {
     expect(program.commands.some((command) => command.name() === 'ddl')).toBe(true);
   });
 
-  test('analyzes migration risk from a file', () => {
-    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-risk-'));
-
-    try {
-      const filePath = path.join(rootDir, 'migration.sql');
-      writeFileSync(filePath, 'DROP TABLE public.users CASCADE;', 'utf8');
-
-      const output = runDdlMigrationInfo({ file: filePath });
-
-      expect(output).toContain('drop_table');
-      expect(output).toContain('cascade_drop');
-    } finally {
-      rmSync(rootDir, { recursive: true, force: true });
-    }
-  });
-
   test('compares DDL snapshots and can write generated SQL', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-diff-'));
 
@@ -237,7 +217,7 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
-  test('exposes concept-aligned ddl migration generate and info commands', () => {
+  test('exposes concept-aligned ddl migration generate with risk info', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-migration-'));
 
     try {
@@ -248,12 +228,10 @@ describe('@ashiba/cli smoke', () => {
       writeFileSync(toPath, 'CREATE TABLE public.users (id integer not null);', 'utf8');
 
       const generateOutput = runDdlMigrationGenerate({ from: fromPath, to: toPath, out: outPath });
-      const infoOutput = runDdlMigrationInfo({ file: outPath });
 
       expect(generateOutput).toContain('DDL migration generate');
       expect(readFileSync(outPath, 'utf8')).toContain('DROP COLUMN');
-      expect(infoOutput).toContain('Migration info');
-      expect(infoOutput).toContain('drop_column');
+      expect(generateOutput).toContain('drop_column');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -424,7 +402,7 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
-  test('scaffolds features from ashiba-config ddl.sourceDir', () => {
+  test('scaffolds features from ashiba.config.json ddl.sourceDir', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-config-ddl-'));
 
     try {
@@ -2092,68 +2070,6 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
-  test('collects lightweight mapper and performance test evidence inventory', () => {
-    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-test-evidence-'));
-
-    try {
-      const testDir = path.join(rootDir, 'src/features/users/queries/list/tests');
-      mkdirSync(testDir, { recursive: true });
-      writeFileSync(path.join(testDir, 'list.boundary.ztd.test.ts'), "import { test } from 'vitest';\ntest.todo('mapper');\n", 'utf8');
-      mkdirSync(path.join(rootDir, 'perf/evidence'), { recursive: true });
-      writeFileSync(path.join(rootDir, 'users.performance.test.ts'), "import { test } from 'vitest';\ntest('perf smoke', () => {});\n", 'utf8');
-      writeFileSync(path.join(rootDir, 'perf/evidence/users.performance.json'), JSON.stringify({ durationMs: 12 }), 'utf8');
-
-      const dryRun = runTestEvidenceCollect({ rootDir, dryRun: true });
-      expect(dryRun.dryRun).toBe(true);
-      expect(dryRun.written).toContain('artifacts/test-evidence/summary.json (dry-run, not written)');
-      expect(existsSync(path.join(rootDir, 'artifacts/test-evidence/summary.json'))).toBe(false);
-
-      const result = runTestEvidenceCollect({ rootDir });
-
-      expect(result.dryRun).toBe(false);
-      expect(result.mapperTests).toHaveLength(1);
-      expect(result.performanceTests).toHaveLength(1);
-      expect(result.lanes.mapper).toMatchObject({ status: 'needs-implementation', recommendedMode: 'zero-table-dependency' });
-      expect(result.lanes.performance).toMatchObject({ status: 'present', recommendedMode: 'traditional-db-backed' });
-      expect(result.attainment).toMatchObject({
-        overall: 'partial',
-        mapper: 'partial',
-        performance: 'done',
-        nextActions: ['Replace mapper test.todo placeholders with executable mapper assertions.'],
-      });
-      expect(result.lanes.mapper.todoFiles).toEqual(['src/features/users/queries/list/tests/list.boundary.ztd.test.ts']);
-      expect(result.lanes.performance.resultFiles).toContain('perf/evidence/users.performance.json');
-      expect(result.written).toContain('artifacts/test-evidence/summary.json');
-      expect(JSON.parse(readFileSync(path.join(rootDir, 'artifacts/test-evidence/summary.json'), 'utf8')).attainment).toMatchObject({
-        overall: 'partial',
-      });
-      expect(readFileSync(path.join(rootDir, 'artifacts/test-evidence/README.md'), 'utf8')).toContain('Recommended mode: traditional-db-backed');
-      expect(readFileSync(path.join(rootDir, 'artifacts/test-evidence/README.md'), 'utf8')).toContain('Todo-only files: 1');
-      expect(readFileSync(path.join(rootDir, 'artifacts/test-evidence/README.md'), 'utf8')).toContain('Overall attainment: partial');
-      expect(readFileSync(path.join(rootDir, 'artifacts/test-evidence/README.md'), 'utf8')).toContain('Mapper lane attainment: partial');
-      expect(readFileSync(path.join(rootDir, 'artifacts/test-evidence/README.md'), 'utf8')).toContain('Next action: Replace mapper test.todo placeholders with executable mapper assertions.');
-      expect(readFileSync(path.join(rootDir, 'artifacts/test-evidence/README.md'), 'utf8')).toContain('| File | Lane | Executable | Todo count |');
-
-      const baseline = path.join(rootDir, 'baseline.json');
-      const candidate = path.join(rootDir, 'artifacts/test-evidence/summary.json');
-      writeFileSync(baseline, JSON.stringify({ testFiles: [], mapperTests: [], performanceTests: [] }), 'utf8');
-      const diff = runTestEvidenceDiff(baseline, candidate);
-
-      expect(diff.added.length).toBeGreaterThan(0);
-      expect(diff.mapperDelta).toBe(1);
-      expect(diff.performanceDelta).toBe(1);
-
-      const rendered = runTestEvidenceRender(candidate, { out: 'rendered.md' });
-
-      expect(rendered.written).toBe(true);
-      expect(rendered.markdown).toContain('## Lane Status');
-      expect(rendered.markdown).toContain('## Test File Details');
-      expect(readFileSync(path.join(rootDir, 'artifacts/test-evidence/rendered.md'), 'utf8')).toContain('Mapper lane files: 1');
-    } finally {
-      rmSync(rootDir, { recursive: true, force: true });
-    }
-  });
-
   test('inspects RFBA boundaries', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-rfba-'));
 
@@ -2209,28 +2125,7 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
-  test('matches observed SQL against project SQL assets', () => {
-    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-observed-'));
-
-    try {
-      const sqlDir = path.join(rootDir, 'src', 'sql', 'users');
-      const sqlPath = path.join(sqlDir, 'list.sql');
-      mkdirSync(sqlDir, { recursive: true });
-      writeFileSync(sqlPath, 'SELECT id, email FROM public.users WHERE active = true;', 'utf8');
-
-      const output = runQueryMatchObserved({
-        rootDir,
-        sql: 'select id, email from public.users where active = true',
-        format: 'json',
-      });
-
-      expect(output).toContain('list.sql');
-    } finally {
-      rmSync(rootDir, { recursive: true, force: true });
-    }
-  });
-
-  test('summarizes, graphs, slices, and plans CTE-heavy SQL files', () => {
+  test('summarizes, graphs, and slices CTE-heavy SQL files', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-structure-'));
 
     try {
@@ -2248,12 +2143,10 @@ describe('@ashiba/cli smoke', () => {
       const outline = runQueryStructure(sqlPath);
       const graph = runQueryStructure(sqlPath, { format: 'dot' });
       const slice = runQuerySlice(sqlPath, { cte: 'filtered', limit: '5' });
-      const plan = runQueryPlan(sqlPath, { material: 'base', format: 'json' });
 
       expect(outline).toContain('CTE count: 2');
       expect(graph).toContain('digraph query_structure');
       expect(slice).toContain('from "filtered"');
-      expect(plan).toContain('"target": "base"');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -2280,38 +2173,7 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
-  test('previews and writes targeted CTE patch application', () => {
-    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-patch-'));
-
-    try {
-      const originalPath = path.join(rootDir, 'original.sql');
-      const editedPath = path.join(rootDir, 'edited.sql');
-      const outPath = path.join(rootDir, 'patched.sql');
-      writeFileSync(originalPath, `
-        WITH base AS (
-          SELECT id, email FROM public.users
-        )
-        SELECT * FROM base;
-      `, 'utf8');
-      writeFileSync(editedPath, `
-        WITH base AS (
-          SELECT id, email FROM public.users WHERE active = true
-        )
-        SELECT * FROM base;
-      `, 'utf8');
-
-      const preview = runQueryPatchApply(originalPath, { cte: 'base', from: editedPath, preview: true });
-      const written = runQueryPatchApply(originalPath, { cte: 'base', from: editedPath, out: outPath });
-
-      expect(preview).toContain('active');
-      expect(written).toContain('Patched CTE: base');
-      expect(readFileSync(outPath, 'utf8')).toContain('active');
-    } finally {
-      rmSync(rootDir, { recursive: true, force: true });
-    }
-  });
-
-  test('adds and lists SQL-first optional filter branches', () => {
+  test('adds SQL-first optional filter branches and refreshes metadata', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-sssql-add-'));
 
     try {
@@ -2324,14 +2186,12 @@ describe('@ashiba/cli smoke', () => {
       `, 'utf8');
 
       const add = runQuerySssqlAdd(sqlPath, { filter: 'status', out: outPath });
-      const list = runQuerySssqlList(outPath);
 
       expect(add).toContain('query sssql add');
       expect(readFileSync(outPath, 'utf8').toLowerCase()).toContain(':status is null');
       const metadata = readFileSync(path.join(rootDir, 'generated', 'query.meta.ts'), 'utf8');
       expect(metadata).toContain('"sssqlCompression"');
       expect(metadata).toContain('"parameterName": "status"');
-      expect(list).toContain('parameter: status');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

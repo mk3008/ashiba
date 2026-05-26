@@ -42,7 +42,7 @@ Do not migrate watch-mode automatic regeneration for DDL-derived schema model ar
 Migrate and reshape:
 
 - `ddl migration generate`
-- `ddl migration info`
+- `ddl migration generate`
 - migration DDL generation from two explicit DDL inputs
 - migration risk/info output from two explicit DDL inputs
 
@@ -79,11 +79,11 @@ Migrate:
 
 - `query uses table`
 - `query uses column`
-- `query match-observed`
+- (removed before release)
 - `query outline`
 - `query graph`
 - `query slice`
-- `query plan`
+- (removed before release)
 - `query lint`
 
 Public v1 should migrate the full `ztd-cli` query analysis command set. Keep `sqlgrep` as the capability name and expose it through Ashiba query commands where useful.
@@ -125,16 +125,16 @@ Classify terms before renaming:
 | Source | Target |
 |---|---|
 | `ztd init` | `ashiba init` |
-| `ztd ztd-config` | `ashiba config`, `ashiba-config` |
+| `ztd ztd-config` | `ashiba config` |
 | `ztd feature scaffold` | `ashiba feature scaffold` |
 | `ztd feature query scaffold` | `ashiba feature query scaffold` |
 | `ztd feature tests scaffold` | `ashiba feature tests scaffold` |
 | `ztd feature generated-mapper check` | `ashiba feature generated-mapper check` |
 | `ztd ddl diff` | `ashiba ddl migration generate` |
-| `ztd ddl risk` | `ashiba ddl migration info` |
+| `ztd ddl risk` | `ashiba ddl migration generate` |
 | `ztd query uses table` | `ashiba query uses table` |
 | `ztd query uses column` | `ashiba query uses column` |
-| `ztd query match-observed` | `ashiba query match-observed` |
+| `ztd query match-observed` | (removed before release) |
 | `ztd model-gen` | `ashiba model-gen` |
 
 ## Source Files
@@ -161,7 +161,7 @@ Classify terms before renaming:
 
 ## Decided Direction
 
-- Public v1 query analysis migrates the full `ztd-cli` query analysis command set.
+- Public v1 query analysis keeps the `ztd-cli` capabilities that have a clear Ashiba review/debug use case; narrow historical helpers are removed before release.
 - Unused named parameters are errors.
 - Initial database target is PostgreSQL; MySQL and SQL Server are target families for later driver adapters.
 - PostgreSQL `ddl pull` through `pg_dump` is implemented as the `@ashiba/ddl-pull-pg-dump` helper package because of `pg_dump` references, not as an initial migration query generation responsibility or `pg` driver adapter responsibility. The package name is not generic because it does not cover MySQL or SQL Server DDL pull.

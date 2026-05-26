@@ -64,7 +64,7 @@ execFileSync(corepack, ['pnpm', 'exec', 'ashiba', '--help'], {
   stdio: 'inherit',
   shell: process.platform === 'win32',
 });
-execFileSync(corepack, ['pnpm', 'exec', 'ashiba-config', '--compact'], {
+execFileSync(corepack, ['pnpm', 'exec', 'ashiba', 'config', '--compact'], {
   cwd: consumerRoot,
   stdio: 'inherit',
   shell: process.platform === 'win32',

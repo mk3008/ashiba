@@ -151,7 +151,7 @@ Reserve, but do not implement yet:
 
 - CLI package: `@ashiba/cli`
 - CLI command: `ashiba`
-- Config command: `ashiba-config`
+- Config command: `ashiba config`
 - Production driver adapters: `@ashiba/driver-adapter-*`
 - Testkit adapters: `@ashiba/testkit-adapter-*`
 

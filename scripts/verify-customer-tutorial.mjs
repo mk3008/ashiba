@@ -51,7 +51,6 @@ writePackageJson(starterRoot, {
     typecheck: 'tsc --noEmit -p tsconfig.json',
     test: 'vitest run',
     'test:mapper': 'vitest run src/features -t ZTD',
-    'test:evidence': 'ashiba test-evidence collect --out .ashiba/test-evidence.json',
   },
   dependencies: {
     '@ashiba/driver-adapter-pg': '^0.0.0',
@@ -240,7 +239,7 @@ try {
   ], starterRoot);
   assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'migration.sql'), 'email');
   run(corepack, ['pnpm', 'exec', 'ashiba', '--help'], starterRoot);
-  run(corepack, ['pnpm', 'exec', 'ashiba-config', '--compact'], starterRoot);
+  run(corepack, ['pnpm', 'exec', 'ashiba', 'config', '--compact'], starterRoot);
 } finally {
   if (withDocker) {
     try {

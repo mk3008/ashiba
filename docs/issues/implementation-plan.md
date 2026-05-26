@@ -68,7 +68,7 @@
 
 - `ashiba ddl migration generate` works from explicit DDL inputs.
 - `ashiba ddl migration generate` works from explicit DDL inputs.
-- `ashiba ddl migration info` reports risk from explicit DDL inputs.
+- `ashiba ddl migration generate` reports risk from explicit DDL inputs.
 - Migration artifacts are reviewable.
 - Two DDL inputs can produce reviewable migration DDL and risk info.
 - DB connection is not required for migration query generation.
@@ -160,7 +160,7 @@
 - Identify test-technique ZTD terminology.
 - Rename product-level ztd to Ashiba.
 - Keep ZTD only if it still means Zero Table Dependency testing.
-- Rename `ztd-config` to `ashiba-config`.
+- Rename `ztd-config` to `ashiba config`.
 
 ### Acceptance Criteria
 
@@ -168,7 +168,7 @@
 - Keep map exists.
 - Command rename map exists.
 - Docs terminology map exists.
-- `ashiba-config` is used as the config command name.
+- `ashiba config` is used as the config command name.
 
 ## 10. Add Migration Verification
 

@@ -50,11 +50,11 @@ These concepts primarily belong to `@ashiba/cli`.
 | ID | Display name | Status | Notes |
 |---|---|---|---|
 | `scaffolded-unit-tests` | Scaffolded Unit Tests | mostly done | Safety mechanism for Ashiba Runtime Zero development. |
-| `test-lanes` | Test Lanes | mostly done | Supports traditional and Zero Table Dependency lanes through init/test scaffolds, test-evidence collection, Markdown rendering, lane attainment, and next-action reporting. |
+| `test-lanes` | Test Lanes | mostly done | Supports traditional and Zero Table Dependency lanes through init, feature test scaffolds, generated mapping checks, and performance-lane helpers. |
 | `drift-detection` | Drift Detection | mostly done | Checks DDL, SQL, DTO types, and mappers during development. |
 | `migration-artifact` | Migration Artifact | mostly done | Review-oriented migration output, not hidden apply behavior. |
 | `migration-query-generation` | Migration Query Generation | mostly done | CLI compares two DDL inputs and emits migration DDL plus risk info; DB connection and apply are out of scope. |
-| `sql-impact-analysis` | SQL Impact Analysis | mostly done | Table usage, column usage, observed SQL matching, and JSON output. |
+| `sql-impact-analysis` | SQL Impact Analysis | mostly done | Table usage, column usage, query outline, dependency graph, CTE slice debugging, and JSON output. |
 | `sqlgrep` | sqlgrep | mostly done | Keep `sqlgrep` as the capability name; expose it through Ashiba query commands where useful. |
 | `cli-no-hidden-sql-rewrite` | CLI No Hidden SQL Rewrite | mostly done | `@ashiba/cli` does not hide dynamic SQL rewriting in generated application code; driver adapters and SQL-first extensions keep their own explicit boundaries. |
 | `rfba` | RFBA | mostly done | Review-First Boundary Architecture: scaffolding fixes repeatable VSA-style feature/query review grain, supports subgrouped boundaries, and avoids technical-layer folders as the primary split. |

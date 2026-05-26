@@ -52,7 +52,8 @@ Existing `ztd-cli` references to inspect:
 - `query outline`
 - `query graph`
 - `query slice`
-- `query plan`
+- Historical `query plan` helper was removed before release because `query slice`
+  covers the concrete CTE debugging use case.
 
 ## Scalar Expansion
 
@@ -79,7 +80,8 @@ Non-responsibilities:
 
 Existing `ztd-cli` references to inspect:
 
-- `query sssql list`
+- Historical `query sssql list` helper was removed before release because it had
+  no clear workflow beyond the add/refresh/remove commands.
 - `query sssql add`
 - `query sssql refresh`
 - `query sssql remove`

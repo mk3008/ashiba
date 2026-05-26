@@ -1,40 +1,32 @@
 import type { Command } from 'commander';
 
 export const COMMANDS = [
-  { name: 'init', summary: 'Create a small Ashiba SQL-first starter.' },
-  { name: 'config', summary: 'Emit Ashiba project configuration.' },
-  { name: 'describe command', summary: 'Describe one command or list the command catalog for humans and AI agents.' },
-  { name: 'ddl migration generate', summary: 'Compare two DDL snapshots and generate reviewable migration SQL.' },
-  { name: 'ddl migration info', summary: 'Report destructive and operational risk for migration SQL.' },
-  { name: 'query uses table', summary: 'Find SQL assets that reference a table.' },
-  { name: 'query uses column', summary: 'Find SQL assets that reference a column.' },
-  { name: 'query match-observed', summary: 'Match observed SQL against visible project SQL assets.' },
-  { name: 'query outline', summary: 'Describe CTE and statement structure for a SQL file.' },
-  { name: 'query graph', summary: 'Build a dependency graph for CTE-heavy SQL.' },
-  { name: 'query slice', summary: 'Extract a reviewable SQL slice around a target CTE.' },
-  { name: 'query plan', summary: 'Plan materialization and review steps for large SQL.' },
-  { name: 'query lint', summary: 'Report structural SQL maintainability risks.' },
-  { name: 'query patch apply', summary: 'Apply a reviewed SQL patch to visible SQL assets.' },
-  { name: 'query sssql list', summary: 'List SQL-first optional-condition scaffold metadata.' },
-  { name: 'query sssql add', summary: 'Add SQL-first optional-condition metadata.' },
-  { name: 'query sssql refresh', summary: 'Refresh SQL-first optional-condition metadata.' },
-  { name: 'query sssql remove', summary: 'Remove SQL-first optional-condition metadata.' },
-  { name: 'feature scaffold', summary: 'Scaffold editable feature-local SQL boundaries.' },
-  { name: 'feature query scaffold', summary: 'Add another editable query boundary under an existing feature.' },
-  { name: 'feature query refresh', summary: 'Refresh generated query model metadata after SQL-only edits.' },
-  { name: 'feature tests scaffold', summary: 'Scaffold feature-local mapper and traditional test lane files.' },
-  { name: 'feature tests check', summary: 'Check and optionally fix generated mapping test assets.' },
-  { name: 'feature generated-mapper check', summary: 'Check named-parameter drift between SQL and editable query boundary contracts.' },
-  { name: 'model-gen', summary: 'Generate editable query contracts and generated query metadata files from visible SQL.' },
-  { name: 'lint', summary: 'Aggregate SQL lint over a file or directory.' },
-  { name: 'check-contract', summary: 'Check visible SQL contracts against generated mapper boundaries.' },
-  { name: 'perf init', summary: 'Scaffold the traditional performance lane.' },
-  { name: 'perf run', summary: 'Inspect a performance run plan without owning DB execution.' },
-  { name: 'perf report diff', summary: 'Compare saved performance reports and evidence completeness.' },
-  { name: 'test-evidence collect', summary: 'Collect lightweight mapper/performance test evidence inventory.' },
-  { name: 'test-evidence render', summary: 'Render collected test evidence as Markdown.' },
-  { name: 'test-evidence diff', summary: 'Compare collected test evidence snapshots.' },
-  { name: 'rfba inspect', summary: 'Inspect feature/query review boundaries.' },
+  { name: 'init', summary: 'Create a SQL-first starter after the user has chosen a DBMS and driver.', useCase: 'Start a new Ashiba project with visible SQL, DDL, ZTD test support, and no AI behavior files.' },
+  { name: 'config', summary: 'Emit Ashiba project configuration.', useCase: 'Create or inspect ashiba.config.json; use --compact for machine-readable one-line JSON.' },
+  { name: 'describe command', summary: 'Describe one command or list the command catalog for humans and AI agents.', useCase: 'Let an AI or reviewer understand the intended command surface before choosing a workflow.' },
+  { name: 'ddl migration generate', summary: 'Compare two DDL snapshots, generate reviewable migration SQL, and include migration risk info.', useCase: 'Review a schema change before DB deployment without connecting to or mutating a database.' },
+  { name: 'query uses table', summary: 'Find SQL assets that reference a table.', useCase: 'Estimate impact before renaming, dropping, or changing a table.' },
+  { name: 'query uses column', summary: 'Find SQL assets that reference a column.', useCase: 'Estimate impact before renaming, dropping, changing type/nullability, or changing semantics of a column.' },
+  { name: 'query outline', summary: 'Describe CTE and statement structure for a SQL file.', useCase: 'Understand a complex SQL file before editing it or refreshing metadata.' },
+  { name: 'query graph', summary: 'Build a dependency graph for CTE-heavy SQL.', useCase: 'See how CTEs depend on each other when reviewing a large query.' },
+  { name: 'query slice', summary: 'Extract a runnable SQL slice around a target CTE or final query.', useCase: 'Debug a complex CTE by running one intermediate point in a SQL client to find where rows or values break.' },
+  { name: 'query lint', summary: 'Report structural SQL maintainability risks.', useCase: 'Catch query shapes that are hard to review, maintain, or analyze before they enter a feature boundary.' },
+  { name: 'query sssql add', summary: 'Add an optional filter branch and refresh query metadata.', useCase: 'Make an optional condition explicit in SQL while keeping runtime behavior metadata-backed.' },
+  { name: 'query sssql refresh', summary: 'Refresh optional-condition metadata after SQL edits.', useCase: 'Regenerate metadata when the SQL still owns the intended optional filter shape.' },
+  { name: 'query sssql remove', summary: 'Remove an optional filter branch and refresh query metadata.', useCase: 'Delete optional-condition scaffolding without hand-editing metadata.' },
+  { name: 'feature scaffold', summary: 'Scaffold editable feature-local SQL boundaries.', useCase: 'Create a reviewable feature entrypoint, query.ts, SQL, DTO contracts, and mapper tests from DDL.' },
+  { name: 'feature query scaffold', summary: 'Add another editable query boundary under an existing feature.', useCase: 'Grow a feature by adding a second SQL behavior without regenerating or hiding existing code.' },
+  { name: 'feature query refresh', summary: 'Refresh generated query model metadata after SQL-only edits.', useCase: 'Fix drift after a human or AI edits the SQL file.' },
+  { name: 'feature tests scaffold', summary: 'Scaffold feature-local mapper and logic test files.', useCase: 'Add generated mapping cases and human-owned logic case placeholders to an existing query boundary.' },
+  { name: 'feature tests check', summary: 'Check and optionally fix generated mapping test assets.', useCase: 'Detect missing generated mapping coverage after DDL or query changes.' },
+  { name: 'feature generated-mapper check', summary: 'Check named-parameter and result-column drift between SQL and editable query contracts.', useCase: 'Find contract drift before running or publishing generated application code.' },
+  { name: 'model-gen', summary: 'Generate editable query contracts and generated query metadata files from visible SQL.', useCase: 'Use Ashiba metadata generation outside the feature scaffold flow.' },
+  { name: 'lint', summary: 'Aggregate SQL lint over a file or directory.', useCase: 'Run project-level SQL maintainability checks in CI or before review.' },
+  { name: 'check-contract', summary: 'Check visible SQL contracts against generated mapper boundaries.', useCase: 'Run a broad drift check before commit or release.' },
+  { name: 'perf init', summary: 'Scaffold the traditional performance lane.', useCase: 'Start an application-owned tuning scenario for realistic row counts and indexes.' },
+  { name: 'perf run', summary: 'Inspect a performance run plan without owning DB execution.', useCase: 'Check benchmark parameters before an application-owned traditional DB-backed performance test.' },
+  { name: 'perf report diff', summary: 'Compare saved performance reports and evidence completeness.', useCase: 'Review whether a tuning change improved representative query duration.' },
+  { name: 'rfba inspect', summary: 'Inspect feature/query review boundaries.', useCase: 'Confirm the project still exposes reviewable feature boundaries and query.ts files.' },
 ] as const;
 
 export interface DescribeOptions {
@@ -59,9 +51,12 @@ export function registerDescribeCommand(program: Command): void {
     });
 }
 
-export function formatDescribe(commands: readonly { name: string; summary: string }[]): string {
+export function formatDescribe(commands: readonly { name: string; summary: string; useCase?: string }[]): string {
   if (commands.length === 0) {
     return 'No command descriptor found.\n';
   }
-  return `${['Ashiba command catalog', ...commands.map((command) => `- ${command.name}: ${command.summary}`)].join('\n')}\n`;
+  return `${[
+    'Ashiba command catalog',
+    ...commands.map((command) => `- ${command.name}: ${command.summary}${command.useCase ? `\n  use case: ${command.useCase}` : ''}`),
+  ].join('\n')}\n`;
 }

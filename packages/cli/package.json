@@ -4,8 +4,7 @@
   "description": "Ashiba Runtime Zero SQL scaffolder for TypeScript applications.",
   "type": "module",
   "bin": {
-    "ashiba": "dist/index.js",
-    "ashiba-config": "dist/config-bin.js"
+    "ashiba": "dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

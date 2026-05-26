@@ -169,7 +169,6 @@ Ashiba should reduce mechanical data-access work while leaving meaningful SQL an
 - `packages/cli/src/commands/feature.ts`
 - `packages/cli/src/commands/model-gen.ts`
 - `packages/cli/src/commands/check-contract.ts`
-- `packages/cli/src/commands/test-evidence.ts`
 - `packages/cli/src/sqlgrep`
 
 ### Implementation Status
@@ -847,7 +846,6 @@ Ashiba is used as a development tool and as a scaffold for generated application
 ### Current Source Artifacts
 
 - `packages/cli/src/index.ts`
-- `packages/cli/src/config-bin.ts`
 - `packages/cli/src/commands`
 
 ### Implementation Status
@@ -1110,7 +1108,6 @@ Performance tests need realistic database execution, query planning, indexes, da
 - `packages/ztd-cli/src/perf/benchmark.ts`
 - `packages/ztd-cli/tests/perfBenchmark.unit.test.ts`
 - `packages/cli/src/commands/feature.ts`
-- `packages/cli/src/commands/test-evidence.ts`
 - `packages/cli/src/commands/perf.ts`
 
 ### Implementation Status
@@ -1378,7 +1375,7 @@ Schema changes need a repeatable review surface before humans decide whether and
 
 ### Definition
 
-SQL impact analysis reports how tables, columns, and observed SQL relate to project QuerySpec-backed SQL assets.
+SQL impact analysis reports how tables, columns, and query structure relate to project QuerySpec-backed SQL assets.
 
 ### Why It Exists
 
@@ -1388,7 +1385,7 @@ Reviewers and agents need deterministic evidence before editing schema or query 
 
 - Table usage.
 - Column usage.
-- Observed SQL matching.
+- CTE outline, dependency graph, and runnable debug slices.
 - Human-readable and JSON output.
 
 ### Excluded Responsibilities
@@ -1415,7 +1412,7 @@ Reviewers and agents need deterministic evidence before editing schema or query 
 
 ### Definition
 
-sqlgrep is the SQL search and matching capability for project SQL assets and observed SQL.
+sqlgrep is the SQL search and structure-analysis capability for project SQL assets.
 
 ### Why It Exists
 
@@ -1425,8 +1422,8 @@ The `sqlgrep` name is retained as the capability name because it is short, grep-
 
 ### Included Responsibilities
 
-- SQL matching.
-- Observed SQL matching.
+- SQL usage matching.
+- CTE outline, dependency graph, and runnable debug slices.
 - Naming and CLI surface for SQL search.
 
 ### Excluded Responsibilities

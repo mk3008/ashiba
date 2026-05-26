@@ -15,7 +15,7 @@ Ashiba is a SQL-first scaffolder for TypeScript applications. Keep raw SQL visib
 - **Type safety by tests**: mapper tests, DB-backed checks, and drift detection prove the SQL-to-TypeScript contract.
 - **Editable generated code**: generated code is repository code. Read it, edit it, test it, keep it.
 - **Breakage is visible**: stale SQL, stale metadata, missing parameters, and unsafe drift should fail with cause and next action.
-- **Pre-change investigation**: inspect SQL usage, query shape, observed SQL matches, migration risk, and performance evidence before editing.
+- **Pre-change investigation**: inspect SQL usage, query shape, migration risk, CTE slices, and performance evidence before editing.
 - **Logger-ready driver seam**: thin driver adapters expose query IDs, SQL paths, masked parameters, and execution events for application-owned loggers.
 
 The ConceptSpec is the source of truth for the product philosophy: [docs/concepts/](docs/concepts/index.md).
@@ -63,7 +63,7 @@ Run `ashiba --help`, `ashiba <command> --help`, or `ashiba describe command --fo
 | Command | What it does |
 |---|---|
 | `ashiba init` | Creates a small SQL-first starter with DDL, SQL, feature boundaries, and executable mapper test lanes. |
-| `ashiba config` / `ashiba-config` | Prints an Ashiba config starter. |
+| `ashiba config` | Prints an Ashiba config starter. Use `--compact` for one-line JSON. |
 | `ashiba describe command` | Describes one command or lists the command catalog for humans and AI agents. |
 | `ashiba feature scaffold` | Scaffolds a feature-local boundary from DDL metadata. |
 | `ashiba feature query scaffold` | Adds another query boundary under an existing feature. |
@@ -74,27 +74,19 @@ Run `ashiba --help`, `ashiba <command> --help`, or `ashiba describe command --fo
 | `ashiba model-gen` | Generates editable query contracts and generated query metadata files from visible SQL. |
 | `ashiba check-contract` | Checks visible SQL contracts against mapper boundaries. |
 | `ashiba lint` | Runs aggregate SQL lint over a file or directory. |
-| `ashiba ddl migration generate` | Generates reviewable migration SQL from two DDL snapshots. |
-| `ashiba ddl migration info` | Reports risk for generated or hand-edited migration SQL. |
+| `ashiba ddl migration generate` | Generates reviewable migration SQL and risk info from two DDL snapshots. |
 | `ashiba query uses table` | Finds SQL assets that reference a table. |
 | `ashiba query uses column` | Finds SQL assets that reference a column. |
-| `ashiba query match-observed` | Matches observed SQL against visible project SQL assets. |
 | `ashiba query outline` | Describes statement, CTE, and base-table structure. |
 | `ashiba query graph` | Builds a dependency graph for CTE-heavy SQL. |
-| `ashiba query slice` | Extracts a reviewable SQL slice around a target CTE. |
-| `ashiba query plan` | Plans materialization and review steps for large SQL. |
+| `ashiba query slice` | Extracts a runnable CTE debug slice to find where a complex query breaks. |
 | `ashiba query lint` | Reports structural SQL maintainability risks. |
-| `ashiba query patch apply` | Applies a reviewed SQL patch back to visible SQL. |
-| `ashiba query sssql list` | Lists SQL-first optional-condition scaffold metadata. |
 | `ashiba query sssql add` | Rewrites a SQL file with a SQL-first optional condition and refreshes metadata. |
 | `ashiba query sssql refresh` | Refreshes SQL-first optional-condition metadata. |
-| `ashiba query sssql remove` | Removes SQL-first optional-condition metadata. |
+| `ashiba query sssql remove` | Removes a supported SQL-first optional condition and refreshes metadata. |
 | `ashiba perf init` | Scaffolds the traditional performance lane. |
 | `ashiba perf run` | Inspects a performance run plan without owning DB execution. |
 | `ashiba perf report diff` | Compares saved performance reports. |
-| `ashiba test-evidence collect` | Collects mapper/performance test evidence. |
-| `ashiba test-evidence render` | Renders collected evidence as Markdown. |
-| `ashiba test-evidence diff` | Compares evidence snapshots. |
 | `ashiba rfba inspect` | Inspects review-first feature/query boundaries. |
 
 ## Use Cases
@@ -112,15 +104,15 @@ Use `ashiba feature query scaffold` to add the query boundary and generated quer
 
 ### Change DDL
 
-Use `ashiba ddl migration generate` and `ashiba ddl migration info` to review the schema change before deployment.
+Use `ashiba ddl migration generate` to review the schema change and risk information before deployment.
 
 ### Change SQL
 
-Use `ashiba query outline`, `ashiba query graph`, `ashiba query lint`, `ashiba feature query refresh`, and `ashiba check-contract` to understand the query shape, refresh generated metadata, and catch contract drift.
+Use `ashiba query outline`, `ashiba query graph`, `ashiba query slice`, `ashiba query lint`, `ashiba feature query refresh`, and `ashiba check-contract` to understand the query shape, debug CTE breakpoints, refresh generated metadata, and catch contract drift.
 
 ### Add test patterns
 
-Use `ashiba feature tests scaffold` and `ashiba test-evidence collect`. Prefer Zero Table Dependency for mapper tests and traditional DB-backed tests for performance evidence.
+Use `ashiba feature tests scaffold` and `ashiba feature tests check`. Prefer Zero Table Dependency for mapper tests and traditional DB-backed tests for performance evidence.
 
 ### Deploy a migration
 
