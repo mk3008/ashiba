@@ -58,6 +58,8 @@ Reserved names:
 
 Testkit adapters are not production driver adapters.
 
+Testkit adapter package names must identify the wrapped driver library or driver-family adapter target in the same style as production driver adapters. Use `pg`, `mysql2`, and `mssql` rather than generic DBMS labels when the implementation is tied to those driver ecosystems.
+
 ## Driver-Neutral SQL Libraries
 
 Use:

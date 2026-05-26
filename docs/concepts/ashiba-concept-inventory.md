@@ -46,19 +46,24 @@ Ashiba CLI commands that mutate files or external state must provide dry-run or 
 - `CLI No Hidden SQL Rewrite`: the `@ashiba/cli` Runtime Zero path must not hide dynamic SQL rewriting in generated application code. Driver adapters and SQL-first extension packages may perform bounded SQL handling when their own package concept requires it, but source SQL must not depend on proprietary Ashiba syntax.
 - `Editable Generated Code`: generated code is visible repository code, editable by humans and AI agents, not hidden behind `generate`, and protected by drift checks.
 - `Explicit Drift Recovery`: drift should be detected with clear failures, cause, and next action rather than hidden watch-mode regeneration.
-- `RFBA`: Review-First Boundary Architecture; file boundaries follow VSA-style feature/query review units, not technical layers.
+- `RFBA`: Review-First Boundary Architecture; scaffolding fixes a repeatable VSA-style feature/query review grain instead of splitting by technical layers.
 - `Mapper-Tested Type Safety`: DTO and mapper type safety is guaranteed by mapper tests and DB-backed integration tests, not runtime result-row validation.
 - `Test Lanes`: traditional and Zero Table Dependency test lanes; mapper tests prefer ZTD, performance tests prefer traditional DB-backed tests.
+- `Generated Mapping Tests`: library-owned ZTD cases for DB/PG type, nullable output, boundary value, and observable generated/default value mapping; human-owned logic cases stay separate.
 - `Migration Query Generation`: CLI-owned DDL comparison that emits migration DDL and risk info without connecting to or mutating a database.
 - `Error Output Modes`: human-oriented and AI-oriented error formats selected by execution parameter, with cause and suggested next action or repair hint in both modes.
 - `Public API and Help Surface`: public exported functions require JSDoc, and CLI commands require help surfaces; AI-oriented help may be added when a structured command contract is safer.
 - `CLI Dry Run`: mutating CLI commands must expose a preview mode that reports planned effects without writing files or changing external state.
 - `Query Boundary`: feature-local named SQL access boundary for SQL, query ID, DTO/mapped result contract, parameter contract, execution contract, log trace identity, and query-local verification.
-- `Feature Boundary`: feature-owned review boundary that contains query boundaries.
+- `Feature Boundary`: feature-owned review boundary that may contain one or more query boundaries.
 
 ## 3. Responsibility Boundaries
 
 Ashiba owns scaffolding, generated code layout, RFBA/VSA-style feature and query review boundaries, generated code that remains visible and editable by humans and AI agents, library-owned generated-folder unit-test schema files derived from DDL, DTO definitions, mapper scaffolding, query ID numbering, test scaffolding, drift detection, migration artifacts for review, migration query generation from DDL comparison, SQL search, SQL impact analysis, named parameter compilation, safe sort profile support, error output modes, and logger-ready event seams.
+
+Review scope is partly subjective, so Ashiba should not depend on prose rules alone. Scaffolding owns the concrete review grain by creating feature boundaries and query boundaries that can be inspected repeatedly. Existing features may receive additional query boundaries when the behavior grows.
+
+Feature boundaries may be subgrouped below the feature root when that better matches review responsibility. Scaffolded code should use root-stable aliases for cross-root or shared-seam imports such as feature shared support and test support, rather than making those imports depend on relative path depth.
 
 Ashiba package public surfaces own their own JSDoc. Ashiba CLI commands own their help surface, including human-readable help and AI-oriented help when a structured form is useful. Help must be available before mutating or expensive operations run.
 
@@ -71,6 +76,8 @@ Ashiba should not watch DDL files and automatically rewrite schema model or gene
 `@ashiba/cli` owns the Ashiba Runtime Zero promise for generated application code. Driver adapters and extension packages may have runtime dependencies when their package responsibility requires them.
 
 Ashiba's product-level setup and test vocabulary should be DBMS-neutral. Use specific DBMS names only where the artifact is actually DBMS-specific, such as `@ashiba/driver-adapter-pg`, `@ashiba/ddl-pull-pg-dump`, or a PostgreSQL Compose starter service.
+
+Ashiba setup should require explicit DBMS starter selection instead of silently choosing a database driver. `ashiba init` may create starter files for the selected DBMS, but package installation and `package.json` ownership belong to the consuming application.
 
 Ashiba tooling packages may depend on `rawsql-ts` core for SQL AST analysis. That is a development-tooling dependency boundary, not a generated application runtime dependency. Generated DTOs, mappers, and feature code must not import Ashiba CLI/runtime libraries or `rawsql-ts` parser internals.
 
@@ -143,6 +150,8 @@ Reserve, but do not implement yet:
 - Config command: `ashiba-config`
 - Production driver adapters: `@ashiba/driver-adapter-*`
 - Testkit adapters: `@ashiba/testkit-adapter-*`
+
+Driver and testkit adapter suffixes should follow wrapped driver names such as `pg`, `mysql2`, and `mssql`. This keeps PostgreSQL `pg` support distinct from possible future PostgreSQL driver adapters such as `postgres.js`.
 - Driver-neutral SQL libraries: `@ashiba/sql-*`
 - Dialects: `@ashiba/dialect-*`
 - Extensions: `@ashiba/extension-*`, only after a plugin mechanism exists.

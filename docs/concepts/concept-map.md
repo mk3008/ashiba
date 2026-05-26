@@ -26,7 +26,7 @@ These concepts apply to the whole repository and constrain all packages.
 
 | ID | Display name | Status | Notes |
 |---|---|---|---|
-| `ashiba` | Ashiba | mostly done | Product identity for the `ztd-cli` rebrand; package and command surfaces now use Ashiba naming. Ashiba is not PostgreSQL-only; product-level vocabulary stays DBMS-neutral while DBMS-specific wrappers name their concrete driver or tool. |
+| `ashiba` | Ashiba | mostly done | Product identity for the `ztd-cli` rebrand; package and command surfaces now use Ashiba naming. Ashiba is not PostgreSQL-only; product-level vocabulary stays DBMS-neutral while DBMS-specific wrappers name their concrete driver or tool. Setup requires explicit DBMS starter selection and keeps package manager state application-owned. |
 | `visible-sql` | Visible SQL | mostly done | SQL remains readable, reviewable, editable, executable, searchable, and uses named parameters for maintainability. |
 | `boring-parts` | Boring Parts | mostly done | DTO definitions, mappers, query ID numbering, tests, migration review, sqlgrep, and impact analysis have initial Ashiba surfaces; richer row typing remains. |
 | `ashiba-runtime-zero` | Ashiba Runtime Zero | mostly done | `@ashiba/cli` generates native TypeScript application code; generated application code does not require Ashiba CLI/runtime libraries, while driver adapters and extensions may have runtime dependencies. |
@@ -57,9 +57,9 @@ These concepts primarily belong to `@ashiba/cli`.
 | `sql-impact-analysis` | SQL Impact Analysis | mostly done | Table usage, column usage, observed SQL matching, and JSON output. |
 | `sqlgrep` | sqlgrep | mostly done | Keep `sqlgrep` as the capability name; expose it through Ashiba query commands where useful. |
 | `cli-no-hidden-sql-rewrite` | CLI No Hidden SQL Rewrite | mostly done | `@ashiba/cli` does not hide dynamic SQL rewriting in generated application code; driver adapters and SQL-first extensions keep their own explicit boundaries. |
-| `rfba` | RFBA | mostly done | Review-First Boundary Architecture: VSA-style file separation by feature/query review boundary, not by technical layer. |
+| `rfba` | RFBA | mostly done | Review-First Boundary Architecture: scaffolding fixes repeatable VSA-style feature/query review grain, supports subgrouped boundaries, and avoids technical-layer folders as the primary split. |
 | `query-boundary` | Query Boundary | mostly done | Feature-local named SQL access boundary for SQL, query ID, DTO/mapped result contract, parameter contract, execution contract, log trace identity, and verification. |
-| `feature-boundary` | Feature Boundary | mostly done | Feature-owned public surface and query boundary container; primary organization is behavior/review boundary rather than repository/service/model layers. |
+| `feature-boundary` | Feature Boundary | mostly done | Feature-owned public surface and query boundary container; one feature may contain multiple query boundaries as behavior grows. |
 
 ## Driver Package Concepts
 
@@ -157,6 +157,9 @@ flowchart TD
 - Development-time capabilities that only support the Runtime Zero workflow should be integrated into `@ashiba/cli`; `sqlgrep` is the representative case.
 - CLI concepts must cover practical ORM-like development support through scaffolding and checks, without implying an ORM runtime.
 - RFBA must separate files by reviewable feature/query behavior using VSA-style boundaries, not by technical layers such as repository/service/model as the primary layout.
+- Scaffolding must fix a repeatable review grain because review scope is subjective; prose concepts alone are not enough.
+- A feature may contain multiple query boundaries, and `feature query scaffold` must support adding SQL behavior to an existing feature without forcing a new feature boundary.
+- Feature boundaries may be subgrouped under the feature root; imports to shared seams or app-level test support should use root-stable aliases instead of depth-sensitive relative paths.
 - Query boundaries should expose typed DTO/mapped result contracts to feature code and provide stable query IDs or names for debugging, drift checks, logs, performance evidence, and AI-oriented errors.
 - Public exported functions must have JSDoc, and CLI commands must expose help before running mutating or expensive work.
 - CLI help may be split into human-oriented and AI-oriented forms when that makes command contracts safer to consume.

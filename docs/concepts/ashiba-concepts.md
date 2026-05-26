@@ -34,6 +34,8 @@ Ashiba should cover practical development support often expected from ORMs, excl
 - Product identity for the rebranded `ztd-cli` foundation.
 - CLI scaffolding for SQL-first TypeScript projects.
 - DBMS-neutral product vocabulary and configuration surfaces, even when the initial starter uses PostgreSQL.
+- Explicit DBMS starter selection during setup; Ashiba should not silently choose an application database driver.
+- Application-owned package manager state. `ashiba init` may scaffold files, but it should not create or manage `package.json` as if Ashiba owned the consuming project.
 - Review-oriented generated artifacts around SQL, DDL, tests, mappings, migrations, sqlgrep, and impact analysis.
 - Generated code that humans and AI agents may edit after scaffolding.
 
@@ -43,6 +45,7 @@ Ashiba should cover practical development support often expected from ORMs, excl
 - Runtime entity tracking.
 - Business SQL ownership.
 - Application transaction policy.
+- Application dependency installation and package manager policy.
 - Treating the initial PostgreSQL starter path as proof that Ashiba is PostgreSQL-only.
 
 ### Related Concepts
@@ -1010,6 +1013,8 @@ Runtime zero does not mean safety-free. Safety moves from runtime abstraction to
 - Test plan generation.
 - Query-boundary test entrypoints.
 - Persistent case files that are not overwritten.
+- Library-owned generated mapping cases for DB/PG type mapping, nullable output mapping when nullable columns are observable, boundary value mapping, and generated/default value mapping when the query contract can observe it.
+- Missing, stale, or drifted generated mapping test assets should be detectable and repairable by an explicit command.
 - Zero Table Dependency and traditional DB-backed lanes where appropriate.
 - Mapper tests that prove SQL result rows map to DTOs correctly.
 - Performance tests that verify execution behavior against an actual database.
@@ -1018,6 +1023,7 @@ Runtime zero does not mean safety-free. Safety moves from runtime abstraction to
 
 - Hiding failing tests.
 - Overwriting human-authored cases.
+- Inventing business logic expectations for SQL without user intent and fixtures.
 
 ### Related Concepts
 
@@ -1414,16 +1420,25 @@ RFBA means Review-First Boundary Architecture. Ashiba separates files by review 
 
 The primary boundary is VSA-style: a feature owns the public surface for one vertical slice, and query boundaries live under that feature. SQL, mapper contracts, execution contracts, and tests should stay close enough that a reviewer can inspect one behavior without jumping across repository-wide technical layers.
 
+The exact target of a review is partly subjective. Ashiba does not try to solve that with an abstract rulebook. It fixes the practical review grain through scaffolding: feature files, query files, contracts, and tests are placed where a reviewer can repeatedly inspect the same kind of boundary.
+
 ### Why It Exists
 
 Ashiba is a scaffolder for visible SQL and editable generated code. Reviewers usually ask which feature behavior is changing and which SQL that behavior runs. RFBA keeps the files arranged around that review question.
 
 VSA-style boundaries also reduce the need for ORM concepts such as relation loading, lazy loading, and unit-of-work tracking. A feature can explicitly fetch the data it needs and decide its own transaction shape in application-owned code.
 
+Features are not limited to one query. Adding another query boundary to an existing feature is a supported flow, because generated code is meant to be edited, extended, tested, and reviewed after the initial scaffold.
+
+Feature boundaries may be subgrouped under the feature root when that matches the review responsibility, such as a write-side subgroup under a larger feature area. Imports that cross canonical roots or shared seams should use root-stable aliases instead of depth-sensitive relative paths, so moving a boundary deeper does not rewrite unrelated import depth.
+
 ### Included Responsibilities
 
 - Feature-owned review boundaries.
 - Query-local review boundaries under the feature.
+- Multiple query boundaries inside one feature when the behavior needs them.
+- Subgrouped feature boundaries under the feature root.
+- Root-stable import aliases for cross-root or shared-seam references.
 - Co-location of SQL, mapper contracts, execution contracts, and query-local verification.
 - RFBA inspection commands that report discovered feature/query review boundaries.
 - VSA-style separation by behavior or feature.
@@ -1513,16 +1528,26 @@ Queries also need stable names or IDs so debugging, drift checks, log traces, pe
 
 A feature boundary is the feature-owned boundary for SQL, QuerySpec, orchestration entrypoint, and feature-local verification.
 
+A feature may contain one or more query boundaries. The feature is the reviewable behavior unit; each query boundary is a named SQL access point inside that behavior.
+
+Feature boundaries can be nested below the feature root when the review unit needs a subgroup. The subgroup still owns a `boundary.ts` entrypoint and should not depend on fragile relative import depth for shared support.
+
 ### Why It Exists
 
 Review responsibility and public surface should stay visible as features grow.
 
 Feature boundaries follow RFBA and VSA-style organization: files are separated by reviewable behavior rather than by technical layer. A feature may contain DTOs, SQL, mapper contracts, execution contracts, and tests together when that keeps the review boundary coherent.
 
+The scaffold fixes a consistent review grain for code review and AI review. It should support adding query boundaries to an existing feature instead of forcing a new feature for every SQL statement.
+
+Stable root aliases are a scaffold support mechanism, not a replacement for RFBA. They are used where relative imports would make boundary movement expensive, especially shared feature seams and app-level test support.
+
 ### Included Responsibilities
 
 - Feature public boundary.
 - Feature-local query boundaries.
+- Query additions to an existing feature boundary.
+- Subgrouped boundaries with stable root-based shared imports.
 - Feature-level tests.
 - Documentation for the feature.
 - VSA-style organization by behavior.

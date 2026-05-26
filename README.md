@@ -26,25 +26,27 @@ The ConceptSpec is the source of truth for the product philosophy: [docs/concept
 
 Install Docker with PostgreSQL support available first. The starter is meant to prove the DB-backed unit-test lane, so it includes a small Compose-managed PostgreSQL service.
 
-Create the starter with the CLI:
+Create a project, install the Postgres runtime pieces and development tools, then create the starter:
 
 ```bash
-npm exec --package @ashiba/cli -- ashiba init --with-demo-ddl --with-migration-demo-ddl
+npm install @ashiba/driver-adapter-pg pg
+npm install -D @ashiba/cli
+npm install -D @ashiba/testkit-adapter-pg @types/pg typescript vitest dotenv
+
+npx ashiba init --db postgres --with-demo-ddl --with-migration-demo-ddl
 ```
 
-Copy the starter environment file, start PostgreSQL, install the starter dependencies, and run the tests:
+Copy the starter environment file and start PostgreSQL:
 
 ```bash
 cp .env.example .env
 docker compose up -d
-npm install
-npm test
 ```
 
-If port `5432` is already in use, change `ASHIBA_TEST_DATABASE_PORT` in `.env` before running Compose. The generated Vitest setup derives `ASHIBA_TEST_DATABASE_URL` from that port unless you provide an explicit `ASHIBA_TEST_DATABASE_URL`.
-The starter `package.json` includes `@ashiba/cli`, `@ashiba/driver-adapter-pg`, `pg`, `@types/pg`, Vitest, and the tiny dotenv setup used by the test lane.
+If port `5432` is already in use, change `ASHIBA_TEST_DB_PORT` in `.env` before running Compose. The generated Vitest setup derives `ASHIBA_TEST_DATABASE_URL` from `ASHIBA_TEST_DB_HOST`, `ASHIBA_TEST_DB_PORT`, `ASHIBA_TEST_DB_NAME`, `ASHIBA_TEST_DB_USER`, and `ASHIBA_TEST_DB_PASSWORD`. If an explicit `ASHIBA_TEST_DATABASE_URL` conflicts with those values, the setup fails fast instead of silently choosing one source.
+Ashiba does not create or manage `package.json` during `init`: package ownership and DB driver choice belong to the application. `--db postgres` selects the Postgres starter files after the matching dependencies are installed.
 
-Add a feature from the demo DDL, run tests again, and finish by generating reviewable migration SQL from the temporary old DDL snapshot:
+Add a feature from the demo DDL, run tests, and finish by generating reviewable migration SQL from the temporary old DDL snapshot:
 
 ```bash
 npx ashiba feature scaffold --table users --action list --dry-run
@@ -68,8 +70,9 @@ Run `ashiba --help`, `ashiba <command> --help`, or `ashiba describe command --fo
 | `ashiba config` / `ashiba-config` | Prints an Ashiba config starter. |
 | `ashiba describe command` | Describes one command or lists the command catalog for humans and AI agents. |
 | `ashiba feature scaffold` | Scaffolds a feature-local boundary from DDL metadata. |
-| `ashiba feature query scaffold` | Adds a query boundary under an existing feature. |
+| `ashiba feature query scaffold` | Adds another query boundary under an existing feature. |
 | `ashiba feature tests scaffold` | Adds mapper/traditional test lane files. |
+| `ashiba feature tests check` | Detects and optionally fixes generated mapping-test drift. |
 | `ashiba feature generated-mapper check` | Checks named-parameter drift between SQL and editable query contracts. |
 | `ashiba model-gen` | Generates editable query contract scaffolds from visible SQL. |
 | `ashiba check-contract` | Checks visible SQL contracts against mapper boundaries. |
@@ -105,9 +108,12 @@ Run `ashiba --help`, `ashiba <command> --help`, or `ashiba describe command --fo
 
 Use `ashiba feature scaffold` to create a reviewable feature boundary from DDL metadata. Keep SQL and query contracts close to the behavior being reviewed.
 
+Ashiba fixes the review grain through scaffolding: feature boundary, query boundary, contracts, and tests stay together instead of being split by technical layer.
+Feature boundaries may be subgrouped when the review responsibility needs it; shared feature seams and app-level test support use root aliases such as `#features/*` and `#tests/*` so boundary depth does not make imports fragile.
+
 ### Add a query to an existing feature
 
-Use `ashiba feature query scaffold`, then use `ashiba model-gen` to create the editable query contract for the SQL.
+Use `ashiba feature query scaffold`, then use `ashiba model-gen` to create the editable query contract for the SQL. A feature can grow by adding more query boundaries; the scaffold is not a create-and-hide generator.
 
 ### Change DDL
 
@@ -190,7 +196,7 @@ Run only the customer tutorial smoke:
 pnpm verify:customer-tutorial
 ```
 
-That check packs local `@ashiba/*` packages, installs the packed CLI into a clean pseudo-user project, runs `ashiba init`, injects local tarball overrides into the generated starter, installs starter dependencies, and runs the starter tests. To also exercise the generated Compose path:
+That check packs local `@ashiba/*` packages, creates a clean pseudo-user project with explicit Postgres dependencies, installs through local tarball overrides, runs `ashiba init --db postgres`, and runs the starter tests. To also exercise the generated Compose path:
 
 ```bash
 pnpm verify:customer-tutorial:docker

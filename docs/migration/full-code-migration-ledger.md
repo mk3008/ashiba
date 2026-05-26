@@ -29,7 +29,7 @@ Migrate the useful implementation surface from `rawsql-ts/packages/ztd-cli` into
 
 | Source family | Ashiba target | Status | Notes |
 | --- | --- | --- | --- |
-| `init` | `@ashiba/cli init` | done | Ashiba starter implemented with visible SQL, config, feature/query boundary sample, executable mapper/traditional smoke checks, and no AI behavior-file distribution. |
+| `init` | `@ashiba/cli init` | done | Ashiba starter implemented with config, explicit DB test support, optional demo DDL, optional migration demo DDL, explicit feature scaffold flow, and no AI behavior-file distribution. |
 | `ztd config` | `ashiba config`, `ashiba-config` | done | Renamed to Ashiba config. |
 | PostgreSQL DDL pull | `@ashiba/ddl-pull-pg-dump` | done | `pg_dump` helper package, not a generic DDL pull package and not a driver adapter. |
 | DDL risk / diff contracts | `@ashiba/cli` internal modules | done | Pure DDL comparison and risk contracts migrated on top of `rawsql-ts` DDL AST APIs and `DDLDiffGenerator`. Kept inside the CLI because migration query generation is a CLI responsibility in the current slice. |

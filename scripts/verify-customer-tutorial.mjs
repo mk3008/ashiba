@@ -10,16 +10,15 @@ const workRoot = process.env.ASHIBA_CUSTOMER_TUTORIAL_DIR
   ? path.resolve(process.env.ASHIBA_CUSTOMER_TUTORIAL_DIR)
   : path.join(process.platform === 'win32' ? 'C:\\tmp' : '/tmp', 'ashiba-customer-tutorial-smoke');
 const tarballRoot = path.join(workRoot, 'tarballs');
-const bootstrapRoot = path.join(workRoot, 'bootstrap');
 const starterRoot = path.join(workRoot, 'starter');
 const corepack = process.platform === 'win32' ? 'corepack.cmd' : 'corepack';
 const docker = process.platform === 'win32' ? 'docker.exe' : 'docker';
 const withDocker = process.argv.includes('--with-docker');
 const dockerPort = withDocker ? await findFreePort() : null;
 
-rmSync(workRoot, { recursive: true, force: true });
+resetDirectory(workRoot);
 mkdirSync(tarballRoot, { recursive: true });
-mkdirSync(bootstrapRoot, { recursive: true });
+mkdirSync(starterRoot, { recursive: true });
 
 const packageDirs = readdirSync(packagesRoot, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
@@ -36,81 +35,127 @@ for (const packageDir of packageDirs) {
   tarballs.set(packageJson.name, `file:${normalizePath(path.join(tarballRoot, tarballName))}`);
 }
 
-const cliTarball = tarballs.get('@ashiba/cli');
-if (!cliTarball) {
+if (!tarballs.has('@ashiba/cli')) {
   throw new Error('Missing @ashiba/cli tarball.');
 }
 
-writePackageJson(bootstrapRoot, {
-  name: 'ashiba-customer-tutorial-bootstrap',
+if (!tarballs.has('@ashiba/driver-adapter-pg')) {
+  throw new Error('Missing @ashiba/driver-adapter-pg tarball.');
+}
+
+writePackageJson(starterRoot, {
+  name: 'ashiba-starter',
   private: true,
   type: 'module',
   packageManager: 'pnpm@10.19.0',
+  scripts: {
+    typecheck: 'tsc --noEmit -p tsconfig.json',
+    test: 'vitest run',
+    'test:mapper': 'vitest run "src/features/**/*.ztd.test.ts"',
+    'test:evidence': 'ashiba test-evidence collect --out .ashiba/test-evidence.json',
+  },
+  dependencies: {
+    '@ashiba/driver-adapter-pg': '^0.0.0',
+    pg: '^8.16.3',
+  },
   devDependencies: {
-    '@ashiba/cli': cliTarball,
+    '@ashiba/cli': '^0.0.0',
+    '@ashiba/testkit-adapter-pg': '^0.0.0',
+    '@types/pg': '^8.15.5',
+    dotenv: '^16.6.1',
+    typescript: '^5.9.3',
+    vitest: '^4.1.7',
   },
   pnpm: {
     overrides: sortedObject(tarballs),
   },
 });
 
-run(corepack, ['pnpm', 'install'], bootstrapRoot);
+run(corepack, ['pnpm', 'install'], starterRoot);
 run(corepack, [
   'pnpm',
   'exec',
   'ashiba',
   'init',
-  '--dir',
-  starterRoot,
+  '--db',
+  'postgres',
   '--with-demo-ddl',
   '--with-migration-demo-ddl',
-], bootstrapRoot);
+], starterRoot);
 
-const generatedPackageJson = readPackageJson(starterRoot);
-generatedPackageJson.packageManager = 'pnpm@10.19.0';
-generatedPackageJson.pnpm = {
-  ...(typeof generatedPackageJson.pnpm === 'object' && generatedPackageJson.pnpm !== null
-    ? generatedPackageJson.pnpm
-    : {}),
-  overrides: sortedObject(tarballs),
-};
-writePackageJson(starterRoot, generatedPackageJson);
-
-assertFileContains(path.join(starterRoot, 'compose.yaml'), '${ASHIBA_TEST_DATABASE_PORT:-5432}:5432');
+assertFileContains(path.join(starterRoot, 'compose.yaml'), '${ASHIBA_TEST_DB_PORT:-5432}:5432');
 assertFileContains(path.join(starterRoot, 'compose.yaml'), 'network_mode: bridge');
-assertFileContains(path.join(starterRoot, '.env.example'), 'ASHIBA_TEST_DATABASE_PORT=5432');
+assertFileContains(path.join(starterRoot, 'compose.yaml'), 'POSTGRES_DB: ${ASHIBA_TEST_DB_NAME:-ashiba}');
+assertFileContains(path.join(starterRoot, '.env.example'), 'ASHIBA_TEST_DB_PORT=5432');
+assertFileContains(path.join(starterRoot, '.env.example'), 'ASHIBA_TEST_DB_USER=ashiba');
+assertFileContains(path.join(starterRoot, '.env.example'), 'ASHIBA_TEST_DB_PASSWORD=ashiba');
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'setup-env.ts'), 'ASHIBA_TEST_DATABASE_URL');
+assertFileContains(path.join(starterRoot, 'tests', 'support', 'setup-env.ts'), 'ASHIBA_TEST_DATABASE_URL conflicts');
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'harness.ts'), 'runQuerySpecZtdCases');
-assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'verifier.ts'), '@rawsql-ts/testkit-postgres');
+assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'verifier.ts'), '@ashiba/testkit-adapter-pg');
+assertFileContains(path.join(starterRoot, 'vitest.config.ts'), "'#features'");
+assertFileContains(path.join(starterRoot, 'vitest.config.ts'), "'#tests'");
+assertFileContains(path.join(starterRoot, 'tsconfig.json'), '"#features/*"');
+assertFileContains(path.join(starterRoot, 'tsconfig.json'), '"#tests/*"');
+assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'user_id bigserial primary key');
 assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'email text not null');
+assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'display_name text');
+assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'login_count integer not null default 0');
+assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'external_account_id bigint not null');
 assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'production.sql'), 'create table public.users');
-assertFileContains(path.join(starterRoot, 'src', 'features', 'smoke', 'queries', 'smoke', 'tests', 'cases', 'basic.case.ts'), 'alice@example.com');
+assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'production.sql'), 'user_id bigserial primary key');
+assertPathMissing(path.join(starterRoot, 'src', 'features', 'smoke'));
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/driver-adapter-pg');
-assertFileContains(path.join(starterRoot, 'package.json'), '@rawsql-ts/testkit-postgres');
+assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/testkit-adapter-pg');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/cli');
 assertFileContains(path.join(starterRoot, 'README.md'), 'docker compose up -d');
 
 copyFileSync(path.join(starterRoot, '.env.example'), path.join(starterRoot, '.env'));
 if (dockerPort) {
-  writeFileSync(path.join(starterRoot, '.env'), `ASHIBA_TEST_DATABASE_PORT=${dockerPort}\n`, 'utf8');
+  writeFileSync(
+    path.join(starterRoot, '.env'),
+    [
+      'ASHIBA_TEST_DB_HOST=localhost',
+      `ASHIBA_TEST_DB_PORT=${dockerPort}`,
+      'ASHIBA_TEST_DB_NAME=ashiba',
+      'ASHIBA_TEST_DB_USER=ashiba',
+      'ASHIBA_TEST_DB_PASSWORD=ashiba',
+      '',
+    ].join('\n'),
+    'utf8',
+  );
 }
-
-run(corepack, ['pnpm', 'install'], starterRoot);
 
 try {
   if (withDocker) {
     run(docker, ['compose', 'up', '-d'], starterRoot);
     waitForPostgres(starterRoot, dockerPort);
   }
-  run(corepack, ['pnpm', 'test'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
   run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--table', 'users', '--action', 'list', '--dry-run'], starterRoot);
   run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--table', 'users', '--action', 'list'], starterRoot);
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'list.sql'), 'from "public"."users"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'boundary.ts'), "from '#features/_shared/featureQueryExecutor.js'");
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'tests', 'list.boundary.ztd.test.ts'), "from '#tests/support/ztd/harness.js'");
   run(corepack, ['pnpm', 'test'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
+  run(corepack, ['pnpm', 'typecheck'], starterRoot);
   run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--table', 'users', '--action', 'insert', '--dry-run'], starterRoot);
   run(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'scaffold', '--table', 'users', '--action', 'insert'], starterRoot);
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'cases', 'basic.case.ts'), 'inserts insert-users row');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'insert-users.sql'), ':email');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'insert-users.sql'), ':display_name');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'insert-users.sql'), ':external_account_id');
+  assertFileDoesNotContain(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'insert-users.sql'), ':user_id');
+  assertFileDoesNotContain(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'insert-users.sql'), ':login_count');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'default-generated-value-mapping');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'nullable-input-output-mapping');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'boundary-value-mapping');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'negative-boundary-value-mapping');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'login_count: 0');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'display_name: null');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'external_account_id: "9223372036854775807"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'external_account_id: "-9223372036854775808"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'cases', 'logic.case.ts'), 'Human/AI-owned SQL logic cases');
   run(corepack, ['pnpm', 'test'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
+  run(corepack, ['pnpm', 'typecheck'], starterRoot);
   run(corepack, [
     'pnpm',
     'exec',
@@ -185,6 +230,40 @@ function writePackageJson(directory, value) {
   writeFileSync(path.join(directory, 'package.json'), `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
+function resetDirectory(directory) {
+  if (!existsSync(directory)) {
+    mkdirSync(directory, { recursive: true });
+    return;
+  }
+
+  try {
+    rmSync(directory, { recursive: true, force: true });
+    mkdirSync(directory, { recursive: true });
+    return;
+  } catch (error) {
+    if (!isBusyFsError(error)) throw error;
+  }
+
+  for (const entry of readdirSync(directory)) {
+    const entryPath = path.join(directory, entry);
+    try {
+      rmSync(entryPath, { recursive: true, force: true });
+    } catch (error) {
+      if (!isBusyFsError(error)) throw error;
+      resetDirectory(entryPath);
+      try {
+        rmSync(entryPath, { recursive: true, force: true });
+      } catch (innerError) {
+        if (!isBusyFsError(innerError)) throw innerError;
+      }
+    }
+  }
+}
+
+function isBusyFsError(error) {
+  return error instanceof Error && 'code' in error && (error.code === 'EBUSY' || error.code === 'EPERM');
+}
+
 function sortedObject(entries) {
   return Object.fromEntries([...entries.entries()].sort(([left], [right]) => left.localeCompare(right)));
 }
@@ -196,6 +275,22 @@ function assertFileContains(filePath, expected) {
   const contents = readFileSync(filePath, 'utf8');
   if (!contents.includes(expected)) {
     throw new Error(`Expected ${filePath} to contain: ${expected}`);
+  }
+}
+
+function assertFileDoesNotContain(filePath, unexpected) {
+  if (!existsSync(filePath)) {
+    throw new Error(`Expected file does not exist: ${filePath}`);
+  }
+  const contents = readFileSync(filePath, 'utf8');
+  if (contents.includes(unexpected)) {
+    throw new Error(`Expected ${filePath} not to contain: ${unexpected}`);
+  }
+}
+
+function assertPathMissing(filePath) {
+  if (existsSync(filePath)) {
+    throw new Error(`Expected path not to exist: ${filePath}`);
   }
 }
 
@@ -225,7 +320,7 @@ function waitForPostgres(cwd, port) {
     process.exit(1);
   `;
   runDirect(process.execPath, ['-e', script], cwd, {
-    ASHIBA_TEST_DATABASE_URL: `postgres://postgres:postgres@localhost:${port}/ashiba`,
+    ASHIBA_TEST_DATABASE_URL: `postgres://ashiba:ashiba@localhost:${port}/ashiba`,
   });
 }
 

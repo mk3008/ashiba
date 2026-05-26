@@ -77,6 +77,12 @@ importers:
         specifier: ^8.21.0
         version: 8.21.0
 
+  packages/testkit-adapter-pg:
+    dependencies:
+      '@rawsql-ts/testkit-postgres':
+        specifier: ^0.16.0
+        version: 0.16.0
+
 packages:
 
   '@algolia/abtesting@1.18.1':
@@ -451,6 +457,14 @@ packages:
 
   '@oxc-project/types@0.132.0':
     resolution: {integrity: sha512-FESMOxil5Se014ui/Eq8fT5uHJo6nIRwH0PfJrZJXs6Gek3ZVFOrpUv3YIZT20m+extU98Hg1Ym72U58rlsxUQ==}
+
+  '@rawsql-ts/testkit-core@0.17.0':
+    resolution: {integrity: sha512-M2dCkfFyLTGEyRJPFc2LHZCI1avXYJpRZ4sSsQFoNTGQ7OLZ6YwP8/1clpWDqkEY4FHBcjhNXXr5Vr92MGJzlg==}
+    engines: {node: '>=20'}
+
+  '@rawsql-ts/testkit-postgres@0.16.0':
+    resolution: {integrity: sha512-kdGkpQFKEo0ffNA22M4oyHREXT7xCiU/O+EYPrj+y00SQ4B5h95wPiZOpQfhHWmwW1p8A2g90MzTeYiZIP9ecQ==}
+    engines: {node: '>=20'}
 
   '@rolldown/binding-android-arm64@1.0.2':
     resolution: {integrity: sha512-ZS4D1JPGn/MYQN/SYDWftIE/nVsM8j/AFOYEzAoOE2O3NktQOZru+/vYXGbR/qtdLdIfGCP0lcoJiYVzsEz+iQ==}
@@ -2191,6 +2205,15 @@ snapshots:
       fastq: 1.20.1
 
   '@oxc-project/types@0.132.0': {}
+
+  '@rawsql-ts/testkit-core@0.17.0':
+    dependencies:
+      rawsql-ts: 0.21.1
+
+  '@rawsql-ts/testkit-postgres@0.16.0':
+    dependencies:
+      '@rawsql-ts/testkit-core': 0.17.0
+      rawsql-ts: 0.21.1
 
   '@rolldown/binding-android-arm64@1.0.2':
     optional: true

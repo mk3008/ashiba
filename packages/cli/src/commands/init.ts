@@ -5,6 +5,7 @@ import { invalidCliInputError } from '../errors.js';
 
 type InitOptions = {
   dir?: string;
+  db?: string;
   force?: boolean;
   dryRun?: boolean;
   withDemoDdl?: boolean;
@@ -26,6 +27,7 @@ export type InitResult = {
 };
 
 type InitFileAction = 'create' | 'overwrite' | 'skip';
+type InitDatabase = 'postgres';
 
 const forbiddenInitFileNames = new Set([
   'AGENTS.md',
@@ -33,7 +35,7 @@ const forbiddenInitFileNames = new Set([
   'SKILL.md',
 ]);
 
-const starterFiles: InitFile[] = [
+const postgresStarterFiles: InitFile[] = [
   {
     relativePath: 'README.md',
     contents: `# Show me the SQL.
@@ -43,9 +45,12 @@ Ashiba handles the boring parts.
 This starter keeps SQL visible and puts DTO definitions, mappers, query IDs, and generated code where humans and AI agents can read, edit, test, and keep them.
 Generated code is not hidden behind generate; keep it visible and drift-check it as the project grows.
 
+Install the Postgres driver adapter, pg, Ashiba CLI, TypeScript, Vitest, dotenv, @types/pg, and @ashiba/testkit-adapter-pg before running \`ashiba init --db postgres\`.
+Ashiba init does not create or manage package.json because package ownership and database driver choice belong to the application.
+
 Install Docker with PostgreSQL support before running the starter tests. Ashiba treats DB-backed unit tests as the normal path, not an optional afterthought.
-Copy \`.env.example\` to \`.env\`, adjust \`ASHIBA_TEST_DATABASE_PORT\` if 5432 is already in use, then run \`docker compose up -d\`.
-The generated Vitest setup derives \`ASHIBA_TEST_DATABASE_URL\` from that port unless you provide an explicit URL.
+Copy \`.env.example\` to \`.env\`, adjust \`ASHIBA_TEST_DB_PORT\` if 5432 is already in use, then run \`docker compose up -d\`.
+The generated Vitest setup derives \`ASHIBA_TEST_DATABASE_URL\` from the starter-owned DB settings in \`.env\` and fails fast if an explicit URL conflicts with those values.
 
 SQL should stay SQL and be directly runnable in a SQL client for debugging.
 Do not dynamically rewrite SQL at runtime; the DB driver wrapper may use whitelisted sort profiles for sort conditions only.
@@ -60,6 +65,7 @@ Errors should be selectable for human-oriented or AI-oriented output with cause 
 - \`db/ddl\` keeps schema source files.
 - \`src/features\` keeps feature-local SQL and boundaries.
 - \`src/features/<feature>/queries/<query>\` keeps one query boundary.
+- Feature boundaries may be subgrouped under \`src/features\`; cross-root/shared-seam imports use root aliases such as \`#features/*\` and \`#tests/*\` instead of depth-sensitive relative paths.
 - Migration query generation compares two DDL inputs and emits migration DDL plus risk info; DB connection and apply are application/operator responsibilities.
 - Application code owns business SQL intent, connection lifecycle, and transaction policy.
 
@@ -69,31 +75,6 @@ Ashiba Runtime Zero in CLI-generated application code. Thin driver adapter only 
 
 Ashiba Runtime Zero does not mean there is no database driver, driver adapter, or extension runtime. It means the CLI generates native TypeScript code and Ashiba CLI/runtime libraries are not required by CLI-generated application code.
 That avoids forced security updates for an unused Ashiba runtime dependency. If generated code needs a fix, patch the local application code directly.
-`,
-  },
-  {
-    relativePath: 'package.json',
-    contents: `${JSON.stringify({
-      name: 'ashiba-starter',
-      private: true,
-      type: 'module',
-      scripts: {
-        test: 'vitest run',
-        'test:mapper': 'vitest run "src/features/**/*.ztd.test.ts"',
-        'test:evidence': 'ashiba test-evidence collect --out .ashiba/test-evidence.json',
-      },
-      dependencies: {
-        '@ashiba/driver-adapter-pg': '^0.0.0',
-        pg: '^8.16.3',
-      },
-      devDependencies: {
-        '@ashiba/cli': '^0.0.0',
-        '@rawsql-ts/testkit-postgres': '^0.16.0',
-        '@types/pg': '^8.15.5',
-        dotenv: '^16.6.1',
-        vitest: '^4.1.7',
-      },
-    }, null, 2)}
 `,
   },
   {
@@ -110,16 +91,21 @@ coverage/
   },
   {
     relativePath: '.env.example',
-    contents: `# Copy this file to .env and adjust ASHIBA_TEST_DATABASE_PORT if 5432 is already in use.
-# The generated Vitest setup derives ASHIBA_TEST_DATABASE_URL from this port.
-ASHIBA_TEST_DATABASE_PORT=5432
+    contents: `# Copy this file to .env and adjust these values for the starter-owned test database.
+# The generated Vitest setup derives ASHIBA_TEST_DATABASE_URL from these values.
+# Do not rely on DATABASE_URL for Ashiba-owned test workflows.
+ASHIBA_TEST_DB_HOST=localhost
+ASHIBA_TEST_DB_PORT=5432
+ASHIBA_TEST_DB_NAME=ashiba
+ASHIBA_TEST_DB_USER=ashiba
+ASHIBA_TEST_DB_PASSWORD=ashiba
 `,
   },
   {
     relativePath: 'compose.yaml',
     contents: `# Starter Postgres environment for Ashiba tests.
 # Start it with: docker compose up -d
-# Copy .env.example to .env and update ASHIBA_TEST_DATABASE_PORT if 5432 is already in use.
+# Copy .env.example to .env and update ASHIBA_TEST_DB_PORT if 5432 is already in use.
 # docker compose reads .env from the project root for variable substitution.
 
 services:
@@ -127,11 +113,11 @@ services:
     image: postgres:16
     network_mode: bridge
     environment:
-      POSTGRES_DB: ashiba
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
+      POSTGRES_DB: \${ASHIBA_TEST_DB_NAME:-ashiba}
+      POSTGRES_PASSWORD: \${ASHIBA_TEST_DB_PASSWORD:-ashiba}
+      POSTGRES_USER: \${ASHIBA_TEST_DB_USER:-ashiba}
     ports:
-      - "\${ASHIBA_TEST_DATABASE_PORT:-5432}:5432"
+      - "\${ASHIBA_TEST_DB_PORT:-5432}:5432"
 `,
   },
   {
@@ -156,9 +142,18 @@ services:
   },
   {
     relativePath: 'vitest.config.ts',
-    contents: `import { defineConfig } from 'vitest/config';
+    contents: `import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '#features': fileURLToPath(new URL('./src/features', import.meta.url)),
+      '#libraries': fileURLToPath(new URL('./src/libraries', import.meta.url)),
+      '#adapters': fileURLToPath(new URL('./src/adapters', import.meta.url)),
+      '#tests': fileURLToPath(new URL('./tests', import.meta.url)),
+    },
+  },
   test: {
     include: ['src/features/**/*.test.ts'],
     environment: 'node',
@@ -175,176 +170,59 @@ export default defineConfig({
 
 config();
 
-if (!process.env.ASHIBA_TEST_DATABASE_URL) {
-  const port = process.env.ASHIBA_TEST_DATABASE_PORT?.trim() || '5432';
-  process.env.ASHIBA_TEST_DATABASE_URL = \`postgres://postgres:postgres@localhost:\${port}/ashiba\`;
-}
-`,
-  },
-  {
-    relativePath: 'src/features/smoke/README.md',
-    contents: `# smoke
+const host = readDbEnv('ASHIBA_TEST_DB_HOST', 'localhost');
+const port = readDbEnv('ASHIBA_TEST_DB_PORT', '5432');
+const database = readDbEnv('ASHIBA_TEST_DB_NAME', 'ashiba');
+const user = readDbEnv('ASHIBA_TEST_DB_USER', 'ashiba');
+const password = readDbEnv('ASHIBA_TEST_DB_PASSWORD', 'ashiba');
+const derivedUrl = \`postgres://\${encodeURIComponent(user)}:\${encodeURIComponent(password)}@\${host}:\${port}/\${encodeURIComponent(database)}\`;
 
-Small starter feature that demonstrates visible SQL and a query boundary.
-
-## Test Layout
-
-- \`tests/smoke.boundary.test.ts\` is the feature-level traditional lane smoke check.
-- \`queries/smoke/tests/smoke.boundary.ztd.test.ts\` is the query-local mapper lane executable ZTD check.
-- \`queries/smoke/tests/generated/\` is library-owned and refreshable.
-- \`queries/smoke/tests/cases/\` is human-owned and persistent.
-`,
-  },
-  {
-    relativePath: 'src/features/smoke/boundary.ts',
-    contents: `export { smokeQuerySql } from './queries/smoke/boundary.js';
-`,
-  },
-  {
-    relativePath: 'src/features/smoke/queries/smoke/boundary.ts',
-    contents: `import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const currentDir = dirname(fileURLToPath(import.meta.url));
-
-export const smokeQuerySql = readFileSync(join(currentDir, 'smoke.sql'), 'utf8');
-
-export type SmokeQueryParams = {
-  user_id: number;
-};
-
-export type SmokeQueryResult = {
-  user_id: number;
-  email: string;
-};
-
-export type SmokeQuerySource = {
-  id: string;
-  path: string;
-  sql: string;
-};
-
-export const smokeQuery = {
-  id: 'smoke.smoke',
-  path: 'src/features/smoke/queries/smoke/smoke.sql',
-  sql: smokeQuerySql,
-} as const;
-
-export type SmokeQueryExecutor = {
-  query<T = unknown>(query: SmokeQuerySource, params: Record<string, unknown>): Promise<T[]>;
-};
-
-export async function executeSmokeQuery(
-  executor: SmokeQueryExecutor,
-  params: SmokeQueryParams,
-): Promise<SmokeQueryResult> {
-  const rows = await executor.query<SmokeQueryResult>(smokeQuery, params);
-  if (rows.length !== 1) {
-    throw new Error(\`smoke query expected exactly one row, but got \${rows.length}.\`);
+if (process.env.ASHIBA_TEST_DATABASE_URL?.trim()) {
+  const explicitUrl = process.env.ASHIBA_TEST_DATABASE_URL.trim();
+  if (explicitUrl !== derivedUrl) {
+    throw new Error([
+      'ASHIBA_TEST_DATABASE_URL conflicts with the starter-owned DB settings.',
+      'Use .env as the single source of truth for Ashiba test DB settings, or set ASHIBA_TEST_DATABASE_URL to the exact derived value.',
+      \`derived: \${derivedUrl}\`,
+      \`explicit: \${explicitUrl}\`,
+    ].join('\\n'));
   }
-  return rows[0]!;
+} else {
+  process.env.ASHIBA_TEST_DATABASE_URL = derivedUrl;
+}
+
+function readDbEnv(name: string, fallback: string): string {
+  const value = process.env[name]?.trim();
+  if (value) return value;
+  return fallback;
 }
 `,
   },
   {
-    relativePath: 'src/features/smoke/queries/smoke/smoke.sql',
-    contents: `select
-  user_id,
-  email
-from public.users
-where user_id = :user_id;
-`,
-  },
-  {
-    relativePath: 'src/features/smoke/tests/smoke.boundary.test.ts',
-    contents: `import { expect, test } from 'vitest';
-
-import * as boundary from '../boundary.js';
-
-test('smoke boundary exports executable query entry points', () => {
-  expect(Object.keys(boundary).length).toBeGreaterThan(0);
-});
-`,
-  },
-  {
-    relativePath: 'src/features/smoke/queries/smoke/tests/smoke.boundary.ztd.test.ts',
-    contents: `import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { expect, test } from 'vitest';
-
-import { runQuerySpecZtdCases } from '../../../../../../tests/support/ztd/harness.js';
-import { executeSmokeQuery } from '../boundary.js';
-import cases from './cases/basic.case.js';
-
-const shouldSkipZtd =
-  process.env.ASHIBA_SKIP_DB_BACKED_TESTS === '1' ||
-  !existsSync(resolve('db/ddl/public.sql'));
-
-const testZtd = shouldSkipZtd ? test.skip : test;
-
-testZtd('smoke/smoke boundary ZTD cases run through the fixed app-level harness', async () => {
-  expect(cases.length).toBeGreaterThan(0);
-  const evidence = await runQuerySpecZtdCases(cases, executeSmokeQuery);
-  expect(evidence.every((entry) => entry.mode === 'ztd')).toBe(true);
-  expect(evidence.every((entry) => entry.physicalSetupUsed === false)).toBe(true);
-  expect(evidence.every((entry) => entry.executedQueryCount > 0)).toBe(true);
-});
-`,
-  },
-  {
-    relativePath: 'src/features/smoke/queries/smoke/tests/boundary-ztd-types.ts',
-    contents: `import type { QuerySpecZtdCase } from '../../../../../../tests/support/ztd/case-types.js';
-import type { SmokeQueryParams, SmokeQueryResult } from '../boundary.js';
-
-export type SmokeBeforeDb = {
-  public: {
-    users: readonly {
-      user_id?: unknown;
-      email?: unknown;
-    }[];
-  };
-};
-
-export type SmokeQueryBoundaryZtdCase = QuerySpecZtdCase<
-  SmokeBeforeDb,
-  SmokeQueryParams,
-  SmokeQueryResult
->;
-`,
-  },
-  {
-    relativePath: 'src/features/smoke/queries/smoke/tests/cases/basic.case.ts',
-    contents: `import type { SmokeQueryBoundaryZtdCase } from '../boundary-ztd-types.js';
-
-const cases: readonly SmokeQueryBoundaryZtdCase[] = [
-  {
-    name: 'selects the starter users row by id',
-    beforeDb: {
-      public: {
-        users: [
-          {
-            user_id: 1,
-            email: 'alice@example.com',
-          },
-          {
-            user_id: 2,
-            email: 'bob@example.com',
-          },
-        ],
-      },
+    relativePath: 'tsconfig.json',
+    contents: `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "baseUrl": ".",
+    "paths": {
+      "#features/*": ["src/features/*"],
+      "#libraries/*": ["src/libraries/*"],
+      "#adapters/*": ["src/adapters/*"],
+      "#tests/*": ["tests/*"]
     },
-    input: { user_id: 1 },
-    output: { user_id: 1, email: 'alice@example.com' },
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
-];
-
-export default cases;
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
+}
 `,
-  },
-  {
-    relativePath: 'src/features/smoke/queries/smoke/tests/cases/.gitkeep',
-    contents: '',
   },
   {
     relativePath: 'tests/support/ztd/case-types.ts',
@@ -402,10 +280,10 @@ export async function runQuerySpecZtdCases<
 import path from 'node:path';
 import { expect } from 'vitest';
 import { Pool } from 'pg';
-import type { PostgresTestkitClient } from '@rawsql-ts/testkit-postgres';
+import type { PostgresTestkitClient } from '@ashiba/testkit-adapter-pg';
 
 import type { QuerySpecZtdCase } from './case-types.js';
-import type { QuerySpecExecutorClient } from './harness.js';
+import type { QuerySpecExecutorClient, QuerySpecSqlSource } from './harness.js';
 
 type FixtureTree = Record<string, unknown>;
 type FixtureRow = Record<string, unknown>;
@@ -447,7 +325,7 @@ export async function verifyQuerySpecZtdCase<BeforeDb extends FixtureTree, Input
 
   try {
     pool = new Pool({ connectionString });
-    const { createPostgresTestkitClient } = await import('@rawsql-ts/testkit-postgres');
+    const { createPostgresTestkitClient } = await import('@ashiba/testkit-adapter-pg');
     testkitClient = createPostgresTestkitClient({
       queryExecutor: async (sql, params) => {
         const result = await pool!.query(sql, params as unknown[]);
@@ -669,22 +547,6 @@ function consumeIdentifier(sql: string, start: number): number {
 `,
   },
   {
-    relativePath: 'src/features/smoke/queries/smoke/tests/generated/TEST_PLAN.md',
-    contents: `# smoke/smoke Test Plan
-
-This generated file is library-owned and may be refreshed by Ashiba.
-
-- Mapper tests: prefer Zero Table Dependency.
-- Performance tests: prefer traditional DB-backed tests.
-- Keep human-authored cases under \`cases/\`.
-`,
-  },
-  {
-    relativePath: 'src/features/smoke/queries/smoke/tests/generated/analysis.json',
-    contents: `${JSON.stringify({ feature: 'smoke', query: 'smoke', status: 'generated' }, null, 2)}
-`,
-  },
-  {
     relativePath: 'docs/migration/status.md',
     contents: `# Migration Status
 
@@ -693,10 +555,10 @@ This starter was created by \`ashiba init\`.
 ## Current State
 
 - Visible SQL starter exists.
-- Demo DDL is optional. Re-run \`ashiba init --with-demo-ddl --force\` if you want the tutorial DDL files.
-- Feature/query boundary starter exists.
-- Mapper and traditional test lane smoke checks exist.
-- Query-local generated test plan exists and is library-owned.
+- Demo DDL is optional. Re-run \`ashiba init --db postgres --with-demo-ddl --force\` if you want the tutorial DDL files.
+- Feature/query boundaries are created by explicit \`ashiba feature scaffold\` commands.
+- Mapper and traditional test lanes are available for scaffolded features.
+- Query-local generated test plan files are created with scaffolded query boundaries and are library-owned.
 
 ## Next Steps
 
@@ -712,8 +574,11 @@ const demoDdlFiles: InitFile[] = [
   {
     relativePath: 'db/ddl/public.sql',
     contents: `create table public.users (
-  user_id integer primary key,
-  email text not null
+  user_id bigserial primary key,
+  email text not null,
+  display_name text,
+  login_count integer not null default 0,
+  external_account_id bigint not null
 );
 `,
   },
@@ -723,13 +588,13 @@ const migrationDemoDdlFiles: InitFile[] = [
   {
     relativePath: 'tmp/ddl/production.sql',
     contents: `create table public.users (
-  user_id integer primary key
+  user_id bigserial primary key
 );
 `,
   },
 ];
 
-for (const file of [...starterFiles, ...demoDdlFiles, ...migrationDemoDdlFiles]) {
+for (const file of [...postgresStarterFiles, ...demoDdlFiles, ...migrationDemoDdlFiles]) {
   const fileName = path.basename(file.relativePath);
   const normalizedRelativePath = file.relativePath.replace(/\\/g, '/');
   if (
@@ -755,6 +620,7 @@ export function registerInitCommand(program: Command): void {
     .command('init')
     .description('Create a small Ashiba SQL-first starter')
     .option('--dir <path>', 'Target directory for the starter', '.')
+    .option('--db <dbms>', 'Database starter to scaffold. Currently supported: postgres')
     .option('--with-demo-ddl', 'Create demo DDL under db/ddl for the starter feature flow', false)
     .option('--with-migration-demo-ddl', 'Create a temporary old DDL snapshot under tmp/ddl for migration tutorial flow', false)
     .option('--force', 'Overwrite starter-owned files when they already exist', false)
@@ -775,8 +641,9 @@ export function runInit(options: InitOptions = {}): InitResult {
   const rootDir = path.resolve(options.dir ?? '.');
   const force = options.force === true;
   const dryRun = options.dryRun === true;
+  const db = resolveInitDatabase(options.db);
   const filesToWrite = [
-    ...starterFiles,
+    ...(db === 'postgres' ? postgresStarterFiles : []),
     ...(options.withDemoDdl === true ? demoDdlFiles : []),
     ...(options.withMigrationDemoDdl === true ? migrationDemoDdlFiles : []),
   ];
@@ -802,4 +669,24 @@ export function runInit(options: InitOptions = {}): InitResult {
     dryRun,
     files,
   };
+}
+
+function resolveInitDatabase(value: string | undefined): InitDatabase {
+  const db = value?.trim().toLowerCase();
+  if (!db) {
+    throw invalidCliInputError(
+      'ASHIBA_INIT_DB_REQUIRED',
+      'ashiba init requires an explicit database starter.',
+      'Install the matching driver dependencies, then rerun with --db postgres. MySQL and SQL Server starters are planned but not implemented yet.',
+    );
+  }
+  if (db !== 'postgres') {
+    throw invalidCliInputError(
+      'ASHIBA_INIT_DB_UNSUPPORTED',
+      `Unsupported Ashiba init database: ${value}`,
+      'Use --db postgres for the current starter. MySQL and SQL Server starters are planned but not implemented yet.',
+      { db: value },
+    );
+  }
+  return 'postgres';
 }
