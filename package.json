@@ -7,8 +7,9 @@
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "docs:build": "vitepress build docs",
-    "docs:dev": "vitepress dev docs --host 127.0.0.1",
+    "docs:api": "typedoc && node scripts/postprocess-docs.mjs",
+    "docs:build": "pnpm docs:api && vitepress build docs",
+    "docs:dev": "pnpm docs:api && vitepress dev docs --host 127.0.0.1",
     "docs:preview": "vitepress preview docs --host 127.0.0.1",
     "test": "pnpm -r test",
     "project:check": "node packages/cli/dist/index.js project check",
@@ -32,6 +33,9 @@
     "@changesets/cli": "^2.31.0",
     "@types/node": "^22.13.10",
     "husky": "^9.1.7",
+    "typedoc": "^0.28.19",
+    "typedoc-plugin-markdown": "^4.9.0",
+    "typedoc-vitepress-theme": "^1.1.2",
     "typescript": "^5.8.2",
     "vitepress": "^1.6.4",
     "vitest": "^4.0.7"

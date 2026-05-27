@@ -1,0 +1,40 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "packages/cli/src/index.ts",
+    "packages/driver-adapter-core/src/index.ts",
+    "packages/driver-adapter-pg/src/index.ts",
+    "packages/driver-adapter-mysql2/src/index.ts",
+    "packages/driver-adapter-mssql/src/index.ts",
+    "packages/testkit-adapter-pg/src/index.ts",
+    "packages/ddl-pull-pg-dump/src/index.ts"
+  ],
+  "tsconfig": "tsconfig.docs.json",
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "typedoc-vitepress-theme"
+  ],
+  "out": "docs/api",
+  "readme": "none",
+  "sort": [
+    "source-order"
+  ],
+  "categorizeByGroup": false,
+  "navigationLinks": {
+    "Project README": "https://github.com/mk3008/ashiba"
+  },
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/tests/**"
+  ],
+  "hideBreadcrumbs": true,
+  "hideGenerator": true,
+  "sidebar": {
+    "autoConfiguration": {
+      "text": "API Reference",
+      "entryDocument": "api/index"
+    }
+  },
+  "docsRoot": "./docs"
+}

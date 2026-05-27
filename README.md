@@ -4,124 +4,185 @@
 
 # Ashiba
 
-Ashiba is a SQL-first generator for TypeScript applications.
+Show me the SQL. Ashiba handles the boring parts.
 
-Write real SQL. Keep it in your repo. Ashiba generates the TypeScript DTOs, query contracts, mapper code, tests, metadata, and drift checks around it so the boring parts stay boring.
+Ashiba is a SQL-first generator for TypeScript applications. You write the SQL; Ashiba generates DTOs, mapper boundaries, tests, metadata, and drift checks around it.
 
-Ashiba is not an ORM package. It does not hide SQL behind a runtime abstraction. It helps you keep SQL as application-owned source code while making the TypeScript side reviewable, typed, and checked.
+No ORM runtime. No hidden query DSL. No mapper boilerplate.
 
 ## Concept
 
-**SQL is yours.**
-Ashiba starts from plain SQL files your team can read, run in a SQL client, review, tune, and change. No query DSL. No hidden generated SQL language.
+Ashiba is for teams that want SQL to stay visible.
 
-**Generated code is yours.**
-Ashiba writes ordinary TypeScript into your repository. DTOs, query contracts, metadata, mapper boundaries, and tests are visible files. You can read them, edit them, review them, and let checks tell you when they drift.
+Using SQL should not mean hand-writing every DTO, mapper glue file, test scaffold, and drift check. Ashiba handles that boring work around the SQL.
 
-**Boilerplate is generated.**
-You keep the database behavior in SQL. Ashiba fills in the TypeScript connective tissue around it: DTO shapes, query contracts, mapper boundaries, generated metadata, and starter tests.
+The SQL is yours. Edit it freely, keep it as application-owned source code, and let Ashiba generate the TypeScript support around it.
 
-**Safety is checked, not hidden.**
-Ashiba does not depend on a heavy runtime validator to rescue stale code. It leans on generated tests, contract checks, query metadata guards, SQL lint, DDL drift detection, and migration review artifacts.
-
-Keep the SQL. Drop the boilerplate. Test the contract. Grow the code.
+Ashiba is not in your runtime path. Your application stays under your control: explicit SQL, a driver adapter, and ordinary TypeScript.
 
 ## Getting Started
 
-Start inside your TypeScript project and install the PostgreSQL path:
+The first run should prove the idea quickly:
+
+- create a SQL-first project shape
+- start a local PostgreSQL test database
+- scaffold a small feature from DDL
+- run tests
+- see generated TypeScript contracts and mapper-test scaffolds in your repo
+
+### 1. Install the PostgreSQL path
 
 ```bash
 npm install @ashiba/driver-adapter-pg pg
 npm install -D @ashiba/cli @ashiba/testkit-adapter-pg @types/pg typescript vitest dotenv
 ```
 
-Create the starter files:
+### 2. Create the starter files
 
 ```bash
-npx ashiba init --db postgres --driver pg --with-demo-ddl --with-migration-demo-ddl
+npx ashiba init --db postgres --driver pg --with-demo-ddl
 ```
 
-Run the demo path:
+Ashiba creates starter files inside your existing TypeScript project. It does not take over package ownership.
+
+### 3. Start the local test database
 
 ```bash
 cp .env.example .env
 docker compose up -d
+```
 
+If port `5432` is busy, change `ASHIBA_TEST_DB_PORT` in `.env`.
+
+### 4. Scaffold a feature from the demo DDL
+
+```bash
 npx ashiba feature scaffold --feature-name users-list --table users --action list
-npm test
+```
 
+This gives you a small SQL-first feature boundary: visible SQL, editable query contracts, generated metadata, mapper boundaries, and test scaffolds.
+
+### 5. Run the checks
+
+```bash
+npx vitest run
+npx ashiba project check
+```
+
+At this point, you should have the core Ashiba experience:
+
+- SQL remains visible source code.
+- TypeScript DTO and mapper support exists around it.
+- Generated assets are reviewable files.
+- Tests and checks tell you when the contract drifts.
+- Runtime stays ordinary: SQL, driver adapter, and TypeScript application code.
+
+### 6. Try the next change
+
+Edit the generated `.sql` file, then refresh and check it:
+
+```bash
+npx ashiba feature query refresh --feature users-list --query list
+npx ashiba project check
+```
+
+That is the main loop: change SQL, refresh generated metadata, check the contract.
+
+For migration review, initialize with migration demo DDL or use your own DDL inputs:
+
+```bash
 npx ashiba ddl migration generate \
   --from tmp/ddl/production.sql \
   --to db/ddl/public.sql \
   --out tmp/ddl/migration.sql
 ```
 
-That path gives you the shape of Ashiba in a few minutes: visible DDL, visible SQL, generated TypeScript contracts, mapper-test scaffolds, and reviewable migration SQL.
-
-Notes:
-
-- `ashiba init` creates starter files, not `package.json`; package ownership stays with the application.
-- The PostgreSQL starter uses Docker Compose for the DB-backed test lane.
-- If port `5432` is busy, change `ASHIBA_TEST_DB_PORT` in `.env`.
-- Demo DDL is opt-in. Omit `--with-demo-ddl` and `--with-migration-demo-ddl` for a blank project shape.
-
 ## Supported DBMS And Drivers
 
-Ashiba chooses DBMS and wrapped driver explicitly. PostgreSQL is the most complete path today; MySQL and SQL Server already have driver adapters, with starter/testkit coverage still catching up.
+Ashiba chooses DBMS and wrapped driver explicitly. PostgreSQL is the most complete path today. MySQL and SQL Server have driver adapters, with starter and testkit coverage still catching up.
 
-| DBMS | Wrapped driver/tool | Package | Maturity |
+| DBMS | Wrapped driver/tool | Package | Current status |
 |---|---|---|---|
-| PostgreSQL | `pg` | `@ashiba/driver-adapter-pg` | Most complete: starter, generated query metadata, mapper-test lane, named-parameter binding, safe sort, SSSQL metadata, and customer tutorial path. |
+| PostgreSQL | `pg` | `@ashiba/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, mapper-test lane, named-parameter binding, safe sort, SSSQL metadata, and tutorial coverage. |
 | PostgreSQL | `pg` testkit | `@ashiba/testkit-adapter-pg` | ZTD mapper-test adapter used by the PostgreSQL starter. |
 | PostgreSQL | `pg_dump` | `@ashiba/ddl-pull-pg-dump` | Optional helper for comparing production DDL from `pg_dump` with local DDL. |
-| MySQL | `mysql2` | `@ashiba/driver-adapter-mysql2` | Driver adapter exists; full `ashiba init` starter and testkit path are not complete yet. |
-| SQL Server | `mssql` | `@ashiba/driver-adapter-mssql` | Driver adapter exists; full `ashiba init` starter and testkit path are not complete yet. |
+| MySQL | `mysql2` | `@ashiba/driver-adapter-mysql2` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
+| SQL Server | `mssql` | `@ashiba/driver-adapter-mssql` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
 
-## Common Workflows
+## Use Cases
 
-### Add A Feature
+Use this section as the entry point for daily work. The command API page links each workflow to the matching CLI surface; use command help and `ashiba describe command --format json` for exact flags and machine-readable descriptors.
 
-Use `ashiba feature scaffold` when a DDL table already exists and you want a reviewable feature boundary. Ashiba keeps SQL, query contracts, generated metadata, and mapper tests close to the behavior being reviewed.
+| When you want to... | Use this | Details |
+|---|---|---|
+| Start a SQL-first TypeScript project shape | `ashiba init` | [Command API](docs/api/commands.md#ashiba-init) |
+| Generate a feature boundary from an existing DDL table | `ashiba feature scaffold` | [Command API](docs/api/commands.md#ashiba-feature-scaffold) |
+| Add another query to an existing feature | `ashiba feature query scaffold` | [Command API](docs/api/commands.md#ashiba-feature-query-scaffold) |
+| Refresh generated metadata after editing SQL | `ashiba feature query refresh` | [Command API](docs/api/commands.md#ashiba-feature-query-refresh) |
+| Add generated mapper-test cases and human-owned placeholders | `ashiba feature tests scaffold` | [Command API](docs/api/commands.md#ashiba-feature-tests-scaffold) |
+| Detect generated mapping-test drift | `ashiba feature tests check` | [Command API](docs/api/commands.md#ashiba-feature-tests-check) |
+| Check SQL parameters, result columns, and editable query contracts | `ashiba feature generated-mapper check` | [Command API](docs/api/commands.md#ashiba-feature-generated-mapper-check) |
+| Run the project-level passive check gate | `ashiba project check` | [Command API](docs/api/commands.md#ashiba-project-check) |
+| Check visible SQL contracts before commit or release | `ashiba check-contract` | [Command API](docs/api/commands.md#ashiba-check-contract) |
+| Generate reviewable migration SQL from DDL changes | `ashiba ddl migration generate` | [Command API](docs/api/commands.md#ashiba-ddl-migration-generate) |
+| Run SQL lint and DDL-aware checks | `ashiba lint` | [Command API](docs/api/commands.md#ashiba-lint) |
+| Inspect, visualize, or debug complex SQL | `ashiba query outline`, `ashiba query graph`, `ashiba query slice` | [Command API](docs/api/commands.md#ashiba-query) |
+| Find SQL assets that reference a table or column | `ashiba query uses table`, `ashiba query uses column` | [Command API](docs/api/commands.md#ashiba-query-uses) |
+| Maintain SQL-first optional-condition metadata | `ashiba query sssql add`, `refresh`, `remove` | [Command API](docs/api/commands.md#ashiba-query-sssql) |
+| Generate editable query contracts from a SQL file | `ashiba model-gen` | [Command API](docs/api/commands.md#ashiba-model-gen) |
+| Capture DB-backed performance evidence | `ashiba perf scenario init`, `ashiba perf scenario measure` | [Command API](docs/api/commands.md#ashiba-perf-scenario) |
+| Inspect review-first feature and query boundaries | `ashiba rfba inspect` | [Command API](docs/api/commands.md#ashiba-rfba-inspect) |
 
-### Change SQL
+## Typical Loops
 
-Edit the `.sql` file directly. Then run `ashiba feature query refresh` and `ashiba project check` so stale generated metadata or query contracts are caught before the change becomes accepted code.
+### I changed SQL
 
-### Change DDL
+```bash
+npx ashiba feature query refresh --feature users-list --query list
+npx ashiba project check
+npx vitest run
+```
 
-Edit DDL as source code. Then run `ashiba project check` for passive drift signals and `ashiba ddl migration generate --from-dir <old-ddl> --to-dir <new-ddl>` when the DDL is split by table or folder. Ashiba can warn when INSERTs silently rely on defaults or NULLs, and fail when required insert ownership is missing.
+Use this when the SQL changed but the feature boundary should remain the same.
 
-### Deploy A Migration
+### I changed DDL
 
-Ashiba generates migration SQL and risk information. Your application or operator process still owns DB connection, migration apply, rollback policy, and deployment timing.
+```bash
+npx ashiba project check
+npx ashiba ddl migration generate --from-dir <old-ddl> --to-dir <new-ddl> --out tmp/ddl/migration.sql
+```
 
-### Tune A Query
+Use this when schema source changed and you want drift signals plus reviewable migration SQL.
 
-Use query inspection commands to understand the SQL, then use performance scenarios to record representative row counts, timing evidence, timeout policy, and accepted index decisions. Candidate indexes stay sandbox-only until promoted into DDL.
+### I need to know what a table change will touch
 
-## Commands
+```bash
+npx ashiba query uses table users
+npx ashiba query uses column users.email
+```
 
-Run `ashiba --help`, `ashiba <command> --help`, or `ashiba describe command --format json` for details.
+Use this before changing or removing schema objects.
 
-| Command | Role |
-|---|---|
-| `ashiba init` | Create a SQL-first starter after choosing DBMS and driver. |
-| `ashiba feature scaffold` | Generate a feature boundary from DDL: SQL, DTO contracts, query boundary, metadata, and mapper tests. |
-| `ashiba feature query scaffold` | Add another query boundary to an existing feature. |
-| `ashiba feature query refresh` | Refresh generated query metadata after SQL-only edits. |
-| `ashiba feature tests scaffold` | Add generated mapper-test cases and human-owned test placeholders. |
-| `ashiba feature tests check` | Detect generated mapping-test drift. |
-| `ashiba feature generated-mapper check` | Check visible SQL parameters, DDL-backed parameter types, and result columns against editable query contracts. |
-| `ashiba check-contract` | Check visible SQL contracts and generated query metadata before commit or release. |
-| `ashiba project check` | Aggregate passive checks for DDL, SQL lint, contract drift, generated feature assets, and INSERT ownership warnings. |
-| `ashiba ddl migration generate` | Compare DDL files or DDL directories and emit one reviewable migration SQL file plus risk information. |
-| `ashiba lint` | Run SQL lint and DDL-aware checks over files or directories. |
-| `ashiba query outline` / `graph` / `slice` | Inspect, visualize, and debug complex SQL while keeping it runnable. |
-| `ashiba query uses table` / `uses column` | Find SQL assets that reference schema objects. |
-| `ashiba query sssql add` / `refresh` / `remove` | Maintain SQL-first optional-condition metadata. |
-| `ashiba model-gen` | Generate editable query contracts and generated query metadata from a SQL file. |
-| `ashiba perf scenario init` / `measure` | Capture traditional DB-backed performance evidence without letting Ashiba own DB execution. |
-| `ashiba rfba inspect` | Inspect review-first feature/query boundaries. |
+### I need to understand a large SQL file
+
+```bash
+npx ashiba query outline path/to/query.sql
+npx ashiba query graph path/to/query.sql
+npx ashiba query slice path/to/query.sql
+```
+
+Use this when SQL review needs structure, dependencies, or focused slices.
+
+### I want migration SQL, but not migration ownership
+
+```bash
+npx ashiba ddl migration generate \
+  --from tmp/ddl/production.sql \
+  --to db/ddl/public.sql \
+  --out tmp/ddl/migration.sql
+```
+
+Ashiba can generate review artifacts. Your application or operator process still owns DB connection, migration apply, rollback policy, and deployment timing.
 
 ## Configuration
 
@@ -145,13 +206,53 @@ Ashiba reads `ashiba.config.json`:
 }
 ```
 
-`featureRoot` is the generated feature/use case boundary root. `sqlRoots` is the passive SQL check surface; add shared SQL folders there when SQL lives outside features.
+`featureRoot` is the generated feature or use-case boundary root.
+
+`sqlRoots` is the passive SQL check surface. Add shared SQL folders there when SQL lives outside features.
 
 Print a starter config with:
 
 ```bash
-ashiba config
+npx ashiba config
 ```
+
+## Runtime Boundary
+
+Ashiba is a development-time toolchain, not a production-time object layer.
+
+At runtime, your application should not depend on Ashiba to decide what SQL means. It should run explicit SQL through the selected driver adapter and use ordinary generated or edited TypeScript boundaries.
+
+Ashiba belongs to:
+
+- scaffolding
+- code generation
+- query metadata refresh
+- mapper-test scaffolding
+- project checks
+- SQL and DDL drift detection
+- migration review artifacts
+- command API output
+
+Ashiba does not belong to:
+
+- lazy loading
+- dirty checking
+- identity maps
+- long-lived ORM sessions
+- hidden query generation
+- production object graph management
+
+## Command API
+
+Use the command API page, command help, and machine-readable command descriptors for exact CLI usage:
+
+```bash
+npx ashiba --help
+npx ashiba <command> --help
+npx ashiba describe command --format json
+```
+
+The README explains where to start. Command help and `ashiba describe command --format json` are the source of truth for exact flags, JSON output, and command-specific behavior.
 
 ## Further Reading
 
@@ -160,6 +261,7 @@ ashiba config
 - [Concept map](docs/concepts/concept-map.md)
 - [Package naming policy](docs/architecture/package-naming-policy.md)
 - [Migration status](docs/migration/status.md)
+- [Command API](docs/api/commands.md)
 
 ## Development
 

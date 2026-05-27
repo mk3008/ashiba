@@ -1,4 +1,13 @@
 import { defineConfig } from 'vitepress';
+import type { DefaultTheme } from 'vitepress';
+import typedocSidebar from '../api/typedoc-sidebar.json' with { type: 'json' };
+
+const apiSidebar = typedocSidebar as DefaultTheme.SidebarItem[];
+const apiSidebarWithIndex: DefaultTheme.SidebarItem[] = [
+  { text: 'API Overview', link: '/api/index' },
+  { text: 'Commands', link: '/api/commands' },
+  ...apiSidebar,
+];
 
 export default defineConfig({
   title: 'Ashiba',
@@ -15,6 +24,7 @@ export default defineConfig({
   themeConfig: {
     logo: '/brand/ashiba-icon.jpg',
     nav: [
+      { text: 'API', link: '/api/index' },
       { text: 'Review Guide', link: '/guide/conceptspec-review' },
       { text: 'Concepts', link: '/concepts/' },
       { text: 'Architecture', link: '/architecture/package-naming-policy' },
@@ -23,6 +33,9 @@ export default defineConfig({
     sidebar: {
       '/guide/': [
         { text: 'ConceptSpec Review', link: '/guide/conceptspec-review' },
+      ],
+      '/api/': [
+        ...apiSidebarWithIndex,
       ],
       '/concepts/': [
         { text: 'Concept Overview', link: '/concepts/' },

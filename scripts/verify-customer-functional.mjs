@@ -3,6 +3,12 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Customer functional tests are library/customer integration tests, not adapter
+// expert tests. The simulated customer knows the README Getting Started path,
+// the generated starter source, and the comments in that generated source.
+// Do not rely on library internals, hidden docs, or direct adapter wiring when
+// the feature is supposed to be discoverable through scaffolded application code.
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packagesRoot = path.join(repoRoot, 'packages');
 const workRoot = process.env.ASHIBA_CUSTOMER_FUNCTIONAL_DIR
@@ -25,22 +31,68 @@ if (withoutDocker) {
 }
 
 const containerNames = {
+  postgres: `ashiba-postgres-functional-${process.pid}`,
   mysql2: `ashiba-mysql2-functional-${process.pid}`,
   mssql: `ashiba-mssql-functional-${process.pid}`,
 };
 
 try {
+  const postgresPort = startPostgresContainer(containerNames.postgres);
   const mysqlPort = startMysqlContainer(containerNames.mysql2);
   const mssqlPort = startMssqlContainer(containerNames.mssql);
 
+  verifyPostgresCustomer(postgresPort);
   verifyMysql2Customer(mysqlPort);
   verifyMssqlCustomer(mssqlPort);
 } finally {
+  cleanupContainer(containerNames.postgres);
   cleanupContainer(containerNames.mysql2);
   cleanupContainer(containerNames.mssql);
 }
 
 console.log(`customer functional tests passed: ${customerRoot}`);
+
+function verifyPostgresCustomer(port) {
+  const root = path.join(customerRoot, 'postgres');
+  mkdirSync(root, { recursive: true });
+  writeCustomerPackageJson(root, {
+    dependencies: {
+      '@ashiba/driver-adapter-pg': '^0.0.0',
+      pino: '^9.7.0',
+      pg: '^8.21.0',
+    },
+    devDependencies: {
+      '@ashiba/cli': '^0.0.0',
+      '@ashiba/testkit-adapter-pg': '^0.0.0',
+      '@types/pg': '^8.20.0',
+      dotenv: '^17.2.3',
+      typescript: '^5.8.2',
+      vitest: '^4.0.7',
+    },
+    overrides: pickTarballs([
+      '@ashiba/cli',
+      '@ashiba/driver-adapter-core',
+      '@ashiba/driver-adapter-pg',
+      '@ashiba/testkit-adapter-pg',
+    ]),
+  });
+
+  run(corepack, ['pnpm', 'install'], root);
+  run(corepack, ['pnpm', 'exec', 'ashiba', 'init', '--db', 'postgres', '--driver', 'pg', '--force'], root);
+  // This must stay on the init-generated SQL client boundary. A test that calls
+  // createPostgresAdapter directly would prove the library, but not the customer
+  // Getting Started experience.
+  assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), 'createPgSqlClient');
+  assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), 'query -> feature -> sqlClient -> logger');
+  assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), '../logger/sqlLogger.ts');
+  assertFileContains(path.join(root, 'src', 'adapters', 'logger', 'sqlLogger.ts'), 'This is the intended hole for your application logger.');
+  writePostgresPinoSqlLogger(root);
+  writePostgresUsersSqlFiles(root);
+  generatePostgresUsersQueryModels(root);
+  writeFileSync(path.join(root, 'src', 'features', 'users', 'users-pino.test.ts'), renderPostgresPinoVitestTest(port), 'utf8');
+  waitForPostgres(root, port);
+  run(corepack, ['pnpm', 'exec', 'vitest', 'run', 'src/features/users/users-pino.test.ts'], root);
+}
 
 function verifyMysql2Customer(port) {
   const root = path.join(customerRoot, 'mysql2');
@@ -154,21 +206,214 @@ function writeFunctionalSqlFiles(root) {
   ].join('\n'), 'utf8');
 }
 
+function writePostgresPinoSqlLogger(root) {
+  writeFileSync(path.join(root, 'src', 'adapters', 'logger', 'sqlLogger.ts'), [
+    "import pino from 'pino';",
+    '',
+    'type SqlExecutionLogEvent = {',
+    "  phase: 'start' | 'end' | 'error';",
+    '  warnings?: readonly { code: string; message: string; nextAction?: string }[];',
+    '  [key: string]: unknown;',
+    '};',
+    '',
+    'export const sqlLogRecords: unknown[] = [];',
+    'const logger = pino({}, {',
+    '  write(line) {',
+    '    sqlLogRecords.push(JSON.parse(line));',
+    '  },',
+    '});',
+    '',
+    'export function logSqlExecution(event: SqlExecutionLogEvent): void {',
+    "  const fields = { ashiba: event };",
+    "  const message = 'ashiba sql execution';",
+    "  if (event.phase === 'error') {",
+    '    logger.error(fields, message);',
+    '    return;',
+    '  }',
+    '  if (event.warnings && event.warnings.length > 0) {',
+    '    logger.warn(fields, message);',
+    '    return;',
+    '  }',
+    '  logger.info(fields, message);',
+    '}',
+    '',
+  ].join('\n'), 'utf8');
+}
+
+function writePostgresUsersSqlFiles(root) {
+  for (const query of ['insert-user', 'select-user']) {
+    mkdirSync(path.join(root, 'src', 'features', 'users', 'queries', query), { recursive: true });
+  }
+  writeFileSync(path.join(root, 'src', 'features', 'users', 'queries', 'insert-user', 'insert-user.sql'), [
+    'insert into users (email, display_name, external_account_id)',
+    'values (:email, :display_name, :external_account_id)',
+    '',
+  ].join('\n'), 'utf8');
+  writeFileSync(path.join(root, 'src', 'features', 'users', 'queries', 'select-user', 'select-user.sql'), [
+    'select user_id, email, display_name, login_count, external_account_id',
+    'from users',
+    'where email = :email',
+    '',
+  ].join('\n'), 'utf8');
+}
+
 function generateQueryModels(root) {
   for (const query of ['insert-user', 'select-user', 'update-user', 'delete-user', 'insert-type-sample', 'select-type-sample']) {
     const queryDir = `tmp/query-contracts/${query}`;
-    run(corepack, [
-      'pnpm',
-      'exec',
-      'ashiba',
-      'model-gen',
-      `${queryDir}/${query}.sql`,
-      '--out',
-      `${queryDir}/${query}.query.ts`,
-    ], root);
+    generateQueryModel(root, queryDir, query);
     assertFileContains(path.join(root, 'tmp', 'query-contracts', query, 'generated', `${query}.meta.ts`), 'queryModel');
     assertFileContains(path.join(root, 'tmp', 'query-contracts', query, `${query}.query.ts`), `from "./generated/${query}.meta.js"`);
   }
+}
+
+function generatePostgresUsersQueryModels(root) {
+  for (const query of ['insert-user', 'select-user']) {
+    const queryDir = `src/features/users/queries/${query}`;
+    generateQueryModel(root, queryDir, query);
+    assertFileContains(path.join(root, 'src', 'features', 'users', 'queries', query, 'generated', `${query}.meta.ts`), 'queryModel');
+    assertFileContains(path.join(root, 'src', 'features', 'users', 'queries', query, `${query}.query.ts`), `from "./generated/${query}.meta.js"`);
+  }
+}
+
+function generateQueryModel(root, queryDir, query) {
+  run(corepack, [
+    'pnpm',
+    'exec',
+    'ashiba',
+    'model-gen',
+    `${queryDir}/${query}.sql`,
+    '--out',
+    `${queryDir}/${query}.query.ts`,
+  ], root);
+}
+
+function renderPostgresPinoVitestTest(port) {
+  return `
+import { readFileSync } from 'node:fs';
+import { describe, expect, test } from 'vitest';
+
+import { createPgPool, createPgSqlClient } from '#adapters/pg/pool.js';
+import { sqlLogRecords } from '#adapters/logger/sqlLogger.js';
+import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
+
+type UserRow = {
+  user_id: string | number;
+  email: string;
+  display_name: string | null;
+  login_count: number;
+  external_account_id: string | number;
+};
+
+describe('generated pg pool logger integration', () => {
+  test('routes query -> feature -> sqlclient -> pino logger', async () => {
+    const pool = createPgPool({
+      connectionString: 'postgres://postgres:ashiba@127.0.0.1:${port}/ashiba',
+    });
+    const sqlClient = createPgSqlClient(pool);
+
+    try {
+      await pool.query('drop table if exists users');
+      await pool.query(\`
+        create table users (
+          user_id bigint generated always as identity primary key,
+          email varchar(255) not null unique,
+          display_name varchar(255) null,
+          login_count integer not null default 0,
+          external_account_id bigint not null
+        )
+      \`);
+
+      const fileRows = await runFileBackedLoggingFeature(sqlClient);
+      expect(fileRows[0]?.display_name).toBeNull();
+      expect(fileRows[0]?.login_count).toBe(0);
+      expect(String(fileRows[0]?.external_account_id)).toBe('9223372036854775807');
+
+      const stringRows = await runStringSqlLoggingFeature(sqlClient);
+      expect(stringRows[0]?.email).toBe('postgres-default@example.test');
+
+      assertNoWarningsForQuery(sqlLogRecords, 'select-user-file');
+      assertWarningsForQuery(sqlLogRecords, 'select-user-string', 'ASHIBA_STRING_SQL_SOURCE');
+    } finally {
+      await pool.end();
+    }
+  });
+});
+
+async function runFileBackedLoggingFeature(executor: FeatureQueryExecutor): Promise<UserRow[]> {
+  await executor.query(fileBackedQuery('insert-user'), {
+    email: 'postgres-default@example.test',
+    display_name: null,
+    external_account_id: '9223372036854775807',
+  });
+  return executor.query<UserRow>(fileBackedQuery('select-user', 'select-user-file'), {
+    email: 'postgres-default@example.test',
+  });
+}
+
+async function runStringSqlLoggingFeature(executor: FeatureQueryExecutor): Promise<UserRow[]> {
+  return executor.query<UserRow>(stringSqlQuery('select-user', 'select-user-string'), {
+    email: 'postgres-default@example.test',
+  });
+}
+
+function fileBackedQuery(name: string, queryId = name): FeatureQuerySource {
+  const sql = readFileSync(new URL(\`./queries/\${name}/\${name}.sql\`, import.meta.url), 'utf8');
+  const sqlPath = \`src/features/users/queries/\${name}/\${name}.sql\`;
+  const queryModel = loadQueryModel(name);
+  return {
+    id: queryId,
+    path: sqlPath,
+    sql,
+    sqlPath,
+    queryModel,
+    metadata: {
+      queryId,
+      sqlPath,
+      sqlFile: sqlPath,
+    },
+  };
+}
+
+function stringSqlQuery(name: string, queryId: string): FeatureQuerySource {
+  const sql = readFileSync(new URL(\`./queries/\${name}/\${name}.sql\`, import.meta.url), 'utf8');
+  const queryModel = loadQueryModel(name);
+  return {
+    id: queryId,
+    path: '<inline>',
+    sql,
+    queryModel,
+    metadata: {
+      queryId,
+    },
+  } as unknown as FeatureQuerySource;
+}
+
+function eventsForQuery(logRecords: unknown[], queryId: string) {
+  return logRecords
+    .map((record) => (record as { ashiba?: { metadata?: { queryId?: string } } }).ashiba)
+    .filter((event) => event?.metadata?.queryId === queryId);
+}
+
+function assertNoWarningsForQuery(logRecords: unknown[], queryId: string) {
+  const events = eventsForQuery(logRecords, queryId);
+  expect(events.length, \`postgres pino log not emitted for \${queryId}\`).toBeGreaterThan(0);
+  expect(events.filter((event) => Array.isArray(event?.warnings) && event.warnings.length > 0)).toEqual([]);
+}
+
+function assertWarningsForQuery(logRecords: unknown[], queryId: string, code: string) {
+  const events = eventsForQuery(logRecords, queryId);
+  expect(events.length, \`postgres pino log not emitted for \${queryId}\`).toBeGreaterThan(0);
+  const hasWarning = events.some((event) => event.warnings?.some((warning) => warning.code === code));
+  expect(hasWarning, \`\${queryId}: expected warning \${code}, got \${JSON.stringify(events)}\`).toBe(true);
+}
+
+function loadQueryModel(name: string) {
+  const source = readFileSync(new URL(\`./queries/\${name}/generated/\${name}.meta.ts\`, import.meta.url), 'utf8');
+  const json = source.match(/export const queryModel = ([\\s\\S]*) as const;/)?.[1];
+  if (!json) throw new Error(\`query metadata not found for \${name}\`);
+  return JSON.parse(json);
+}
+`;
 }
 
 function renderMysql2FunctionalRunner(port) {
@@ -450,6 +695,24 @@ function assertDateTimeLike(actual, expectedPrefix, label) {
 `;
 }
 
+function startPostgresContainer(name) {
+  cleanupContainer(name);
+  run(docker, [
+    'run',
+    '--name',
+    name,
+    '-e',
+    'POSTGRES_PASSWORD=ashiba',
+    '-e',
+    'POSTGRES_DB=ashiba',
+    '-p',
+    '127.0.0.1::5432',
+    '-d',
+    'postgres:16-alpine',
+  ], repoRoot);
+  return inspectPublishedPort(name, '5432/tcp');
+}
+
 function startMysqlContainer(name) {
   cleanupContainer(name);
   run(docker, [
@@ -484,6 +747,31 @@ function startMssqlContainer(name) {
     'mcr.microsoft.com/mssql/server:2022-latest',
   ], repoRoot);
   return inspectPublishedPort(name, '1433/tcp');
+}
+
+function waitForPostgres(root, port) {
+  run(process.execPath, ['--input-type=module', '-e', `
+    import pg from 'pg';
+    const { Client } = pg;
+    for (let attempt = 0; attempt < 90; attempt += 1) {
+      const client = new Client({
+        host: '127.0.0.1',
+        port: ${port},
+        user: 'postgres',
+        password: 'ashiba',
+        database: 'ashiba',
+      });
+      try {
+        await client.connect();
+        await client.end();
+        process.exit(0);
+      } catch {
+        try { await client.end(); } catch {}
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+    throw new Error('postgres container did not become ready');
+  `], root);
 }
 
 function waitForMysql(root, port) {

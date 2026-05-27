@@ -254,6 +254,7 @@ export interface FeatureQueryExecutor {
     contents: `import { Pool, type PoolConfig } from 'pg';
 import { createPostgresAdapter, type AshibaPostgresAdapterOptions, type AshibaPostgresExecuteOptions } from '@ashiba/driver-adapter-pg';
 
+import { logSqlExecution } from '#adapters/logger/sqlLogger.js';
 import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 
 export type PgConnectionSettings = {
@@ -284,18 +285,25 @@ export function createPgPool(settings: PgConnectionSettings = {}): Pool {
 }
 
 /**
- * Create a feature executor that routes every SQL execution through the pg driver adapter.
+ * Create the SQL client that feature code should receive.
  *
- * This is the generated application execution boundary: feature code receives
- * FeatureQueryExecutor, not a raw pg client, so SQL path, query model metadata,
- * parameter checks, and logger-ready observer events stay on the execution path.
+ * Natural wiring:
+ *   query -> feature -> sqlClient -> logger
+ *
+ * SQL logging is intentionally delegated to ../logger/sqlLogger.ts. Fill that
+ * file with your application logger (pino, winston, console, etc.). Feature code
+ * should receive only FeatureQueryExecutor; it should not import pg, pino,
+ * the Ashiba driver adapter, or logger code directly.
  */
-export function createPgFeatureQueryExecutor(
+export function createPgSqlClient(
   queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },
   options: PgFeatureQueryExecutorOptions = {},
 ): FeatureQueryExecutor {
-  const { executeOptions, ...adapterOptions } = options;
-  const adapter = createPostgresAdapter(queryable, adapterOptions);
+  const { executeOptions, observer, ...adapterOptions } = options;
+  const adapter = createPostgresAdapter(queryable, {
+    ...adapterOptions,
+    observer: observer ?? { emit: logSqlExecution },
+  });
   return {
     async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
       const result = await adapter.execute<T>(
@@ -322,6 +330,17 @@ export function createPgFeatureQueryExecutor(
 }
 
 /**
+ * Low-level compatibility alias. Prefer createPgSqlClient in new application code
+ * so logger wiring stays visibly attached to the SQL client boundary.
+ */
+export function createPgFeatureQueryExecutor(
+  queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },
+  options: PgFeatureQueryExecutorOptions = {},
+): FeatureQueryExecutor {
+  return createPgSqlClient(queryable, options);
+}
+
+/**
  * Borrow a pg client, expose only the guarded FeatureQueryExecutor, and release
  * the client after the callback settles.
  */
@@ -332,7 +351,7 @@ export async function withPgFeatureQueryExecutor<T>(
 ): Promise<T> {
   const client = await pool.connect();
   try {
-    return await callback(createPgFeatureQueryExecutor(client, options));
+    return await callback(createPgSqlClient(client, options));
   } finally {
     client.release();
   }
@@ -353,7 +372,7 @@ export async function withPgTransaction<T>(
   try {
     await client.query('begin');
     try {
-      const result = await callback(createPgFeatureQueryExecutor(client, options));
+      const result = await callback(createPgSqlClient(client, options));
       await client.query('commit');
       return result;
     } catch (error) {
@@ -363,6 +382,35 @@ export async function withPgTransaction<T>(
   } finally {
     client.release();
   }
+}
+`,
+  },
+  {
+    relativePath: 'src/adapters/logger/sqlLogger.ts',
+    contents: `export type SqlExecutionLogEvent = {
+  phase: 'start' | 'end' | 'error';
+  warnings?: readonly { code: string; message: string; nextAction?: string }[];
+  [key: string]: unknown;
+};
+
+/**
+ * SQL execution log hook called by src/adapters/pg/pool.ts.
+ *
+ * This is the intended hole for your application logger.
+ * Wire pino, winston, console, OpenTelemetry, or your logger here.
+ *
+ * Keep feature code on this path:
+ *   query -> feature -> sqlClient -> logger
+ *
+ * Feature code should not import logger packages directly.
+ */
+export function logSqlExecution(event: SqlExecutionLogEvent): void {
+  // TODO: Replace this no-op with your application logger.
+  // Suggested behavior:
+  // - info for normal SQL execution
+  // - warn when event.warnings is not empty, such as string SQL without sqlPath
+  // - error when event.phase === 'error'
+  void event;
 }
 `,
   },

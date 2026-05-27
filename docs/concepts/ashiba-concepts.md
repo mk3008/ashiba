@@ -347,6 +347,7 @@ Runtime zero development still needs safety, but Ashiba should place that safety
 - Generate or scaffold mapper tests that prove SQL result rows map to DTOs correctly.
 - Support DB-backed integration tests where the real database type constraints are exercised.
 - Require customer functional tests for each supported wrapped driver to execute real DB-backed mapping checks, not only package installation or adapter import checks.
+- Treat customer functional tests as library/customer integration tests from a beginner customer's view: assume the customer knows the README Getting Started path, generated source code, and generated comments, but not Ashiba internals or deeper library documentation.
 - Treat mapper tests and drift checks as the type-safety gate.
 - Prefer Zero Table Dependency for mapper tests.
 - Keep generated DTOs and mappers readable and reviewable.
@@ -1247,6 +1248,54 @@ Ashiba scaffolds starting points and review artifacts rather than locking the ap
 ### Implementation Status
 
 `mostly done`
+
+## Scaffold as Guidance
+
+### Definition
+
+Scaffolding is not only the act of producing a working starter. Ashiba scaffolding should shape the code so a beginner customer, or that customer's AI agent, is naturally led toward the intended maintenance and extension path without needing to understand Ashiba internals.
+
+A scaffolded file, folder, function name, import boundary, and comment should all carry intent. The CLI should use the product's preferred wiring in the generated source, so the generated code demonstrates the correct path before the customer has learned the library philosophy.
+
+When a customer-owned decision is required, scaffolding should make the hole obvious and local. For example, if SQL logging belongs to the application, the starter should create an ordinary application file at that boundary with a clear TODO rather than forcing the customer to discover an observer interface in library internals or place logger code inside a feature.
+
+### Why It Exists
+
+Customers do not begin as Ashiba experts. A beginner customer usually knows the README Getting Started path, the files created by the CLI, and comments in those files. They should not need to read library source code or advanced documentation to discover the correct execution boundary.
+
+This matters especially for SQL client wiring. If the intended shape is `query -> feature -> sqlClient -> logger`, the scaffolded code should make that path the obvious one. A test-only clean composition is not enough because Codex is not present in the customer's repository after generation; the scaffold itself must guide future human and AI edits.
+
+### Included Responsibilities
+
+- Generate code that uses Ashiba's intended wiring, not merely code that can be repaired into it.
+- Choose file and folder boundaries as guidance, not neutral storage.
+- Name generated functions after the role customers should use, such as a SQL client boundary rather than a lower-level adapter wrapper.
+- Keep comments short but directional, explaining where customer-owned concerns such as logging belong.
+- Create clear, local holes for customer-owned extension points so humans and AI agents know which file to fill in.
+- Ensure customer functional tests exercise the generated guidance path, not a hand-built expert path.
+
+### Excluded Responsibilities
+
+- Producing a finished application that customers should not edit.
+- Hiding design intent in library internals or advanced docs only.
+- Treating scaffolding as a one-time file dump with no responsibility for future maintenance direction.
+- Forcing every customer to use one logger, framework, or transaction policy.
+
+### Related Concepts
+
+- `Editable Generated Code`
+- `No AI Behavior File Distribution`
+- `Feature Boundary`
+- `Logger-Ready Execution Event`
+
+### Current Source Artifacts
+
+- `packages/cli/src/commands/init.ts`
+- `scripts/verify-customer-functional.mjs`
+
+### Implementation Status
+
+`partial`
 
 ## No AI Behavior File Distribution
 
