@@ -1,11 +1,13 @@
 import type { Command } from 'commander';
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { invalidCliInputError } from '../errors.js';
 
 export type AshibaConfig = {
   $schema: string;
+  featureRoot: string;
+  sqlRoots: string[];
   ddl: {
-    sourceDir: string;
-  };
-  features: {
     sourceDir: string;
   };
   sql: {
@@ -21,14 +23,18 @@ export type ConfigOptions = {
   pretty?: boolean;
 };
 
+export type ProjectPathConfig = {
+  featureRoot: string;
+  sqlRoots: string[];
+};
+
 export function createDefaultConfig(): AshibaConfig {
   return {
     $schema: 'https://ashiba.dev/schema/ashiba-config.json',
+    featureRoot: 'src/features',
+    sqlRoots: ['src/features'],
     ddl: {
       sourceDir: 'db/ddl',
-    },
-    features: {
-      sourceDir: 'src/features',
     },
     sql: {
       parameterStyle: 'both',
@@ -37,6 +43,40 @@ export function createDefaultConfig(): AshibaConfig {
       mapperLane: 'ztd',
       performanceLane: 'traditional',
     },
+  };
+}
+
+export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
+  const configPath = path.join(rootDir, 'ashiba.config.json');
+  if (!existsSync(configPath)) {
+    return { featureRoot: 'src/features', sqlRoots: ['src/features'] };
+  }
+
+  let parsed: {
+    featureRoot?: unknown;
+    sqlRoots?: unknown;
+    features?: { sourceDir?: unknown };
+  };
+  try {
+    parsed = JSON.parse(readFileSync(configPath, 'utf8')) as typeof parsed;
+  } catch (error) {
+    throw invalidCliInputError(
+      'ASHIBA_CONFIG_JSON_PARSE_FAILED',
+      'Failed to parse ashiba.config.json.',
+      'Fix ashiba.config.json so it is valid JSON, or remove it to use the default project paths.',
+      { configPath, reason: error instanceof Error ? error.message : String(error) },
+    );
+  }
+
+  const featureRoot = nonEmptyString(parsed.featureRoot)
+    ?? nonEmptyString(parsed.features?.sourceDir)
+    ?? 'src/features';
+  const sqlRoots = Array.isArray(parsed.sqlRoots)
+    ? parsed.sqlRoots.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+    : [];
+  return {
+    featureRoot,
+    sqlRoots: sqlRoots.length > 0 ? sqlRoots : [featureRoot],
   };
 }
 
@@ -52,4 +92,8 @@ export function registerConfigCommand(program: Command): void {
     .action((options: { compact?: boolean }) => {
       process.stdout.write(formatDefaultConfig({ pretty: options.compact !== true }));
     });
+}
+
+function nonEmptyString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 }

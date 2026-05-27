@@ -29,14 +29,24 @@ import { analyzeMigrationSqlRisks } from './risk.js';
 import { AshibaDdlDiffError } from './errors.js';
 import type {
   ApplyPlanOperation,
+  DestructiveRisk,
   DdlApplyPlan,
   DdlDiffRisks,
   DdlDiffSummaryEntry,
+  OperationalRisk,
 } from './contracts.js';
 
 export interface CompareDdlSqlOptions {
   localSql: string;
   remoteSql: string;
+  safety?: DdlDiffSafetyOptions;
+}
+
+export interface DdlDiffSafetyOptions {
+  dropTables?: boolean;
+  dropColumns?: boolean;
+  dropConstraints?: boolean;
+  dropIndexes?: boolean;
 }
 
 export interface CompareDdlSqlResult {
@@ -75,8 +85,11 @@ export function compareDdlSql(options: CompareDdlSqlOptions): CompareDdlSqlResul
   const summary = buildSummary(localModel, remoteModel);
   const applyPlan = buildApplyPlan(localModel, remoteModel, summary);
   const hasChanges = summary.length > 0;
-  const sql = hasChanges ? renderApplySql(options.remoteSql, options.localSql) : '-- No schema differences detected.\n';
-  const risks = analyzeMigrationSqlRisks(sql);
+  const sql = hasChanges ? renderApplySql(options.remoteSql, options.localSql, options.safety) : '-- No schema differences detected.\n';
+  const risks = mergeDdlRisks(
+    analyzeMigrationSqlRisks(sql),
+    buildSuppressedOperationRisks(summary, options.safety),
+  );
   const text = buildTextSummary(summary, risks, hasChanges);
   const json = `${JSON.stringify({
     kind: 'ddl-diff',
@@ -131,6 +144,64 @@ function formatRiskLines(risks: Array<{ kind: string; target?: string; from?: st
     }
   }
   return lines;
+}
+
+function buildSuppressedOperationRisks(summary: DdlDiffSummaryEntry[], safety: DdlDiffSafetyOptions = {}): DdlDiffRisks {
+  const destructiveRisks: DestructiveRisk[] = [];
+  for (const entry of summary) {
+    const table = `${entry.schema}.${entry.table}`;
+    if (entry.changeKind === 'drop_table' && safety.dropTables === false) {
+      destructiveRisks.push(createGuidedRisk('drop_table', table));
+      destructiveRisks.push(createGuidedRisk('cascade_drop', table));
+    } else if (entry.changeKind === 'drop_column' && safety.dropColumns === false) {
+      destructiveRisks.push(createGuidedRisk('drop_column', `${table}.${String(entry.details.column)}`));
+    }
+  }
+  return { destructiveRisks, operationalRisks: [] };
+}
+
+function mergeDdlRisks(left: DdlDiffRisks, right: DdlDiffRisks): DdlDiffRisks {
+  return {
+    destructiveRisks: dedupeDestructiveRisks([...left.destructiveRisks, ...right.destructiveRisks]),
+    operationalRisks: dedupeOperationalRisks([...left.operationalRisks, ...right.operationalRisks]),
+  };
+}
+
+function createGuidedRisk(kind: 'drop_table' | 'drop_column' | 'cascade_drop', target: string): DestructiveRisk {
+  return {
+    kind,
+    target,
+    avoidable: true,
+    guidance: ['review_if_required', 'avoid_if_possible'],
+  };
+}
+
+function dedupeDestructiveRisks(risks: DestructiveRisk[]): DestructiveRisk[] {
+  const seen = new Map<string, DestructiveRisk>();
+  for (const risk of risks) {
+    const key = JSON.stringify({
+      kind: risk.kind,
+      target: risk.target ?? '',
+      from: risk.from ?? '',
+      to: risk.to ?? '',
+    });
+    if (!seen.has(key)) seen.set(key, risk);
+  }
+  return [...seen.values()].sort((left, right) =>
+    `${left.kind}:${left.target ?? left.from ?? ''}:${left.to ?? ''}`
+      .localeCompare(`${right.kind}:${right.target ?? right.from ?? ''}:${right.to ?? ''}`)
+  );
+}
+
+function dedupeOperationalRisks(risks: OperationalRisk[]): OperationalRisk[] {
+  const seen = new Map<string, OperationalRisk>();
+  for (const risk of risks) {
+    const key = `${risk.kind}:${risk.target}`;
+    if (!seen.has(key)) seen.set(key, risk);
+  }
+  return [...seen.values()].sort((left, right) =>
+    `${left.kind}:${left.target}`.localeCompare(`${right.kind}:${right.target}`)
+  );
 }
 
 function formatSummaryEntry(entry: DdlDiffSummaryEntry): string {
@@ -218,12 +289,12 @@ function buildApplyPlan(
   return { operations };
 }
 
-function renderApplySql(currentSql: string, expectedSql: string): string {
+function renderApplySql(currentSql: string, expectedSql: string, safety: DdlDiffSafetyOptions = {}): string {
   const statements = DDLDiffGenerator.generateDiff(currentSql, expectedSql, {
-    dropTables: true,
-    dropColumns: true,
-    dropConstraints: true,
-    dropIndexes: true,
+    dropTables: safety.dropTables ?? true,
+    dropColumns: safety.dropColumns ?? true,
+    dropConstraints: safety.dropConstraints ?? true,
+    dropIndexes: safety.dropIndexes ?? true,
     checkConstraintNames: false,
   });
   return statements.length > 0 ? `${statements.join('\n\n')}\n` : '-- No schema differences detected.\n';

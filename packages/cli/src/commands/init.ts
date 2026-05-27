@@ -140,11 +140,10 @@ services:
     relativePath: 'ashiba.config.json',
     contents: `${JSON.stringify({
       $schema: 'https://ashiba.dev/schema/ashiba-config.json',
+      featureRoot: 'src/features',
+      sqlRoots: ['src/features'],
       ddl: {
         sourceDir: 'db/ddl',
-      },
-      features: {
-        sourceDir: 'src/features',
       },
       sql: {
         parameterStyle: 'both',

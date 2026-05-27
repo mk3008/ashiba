@@ -33,6 +33,7 @@ Ashiba CLI should cover practical development support often expected from ORMs, 
 Ashiba supports human-oriented and AI-oriented error output modes. Both modes must include the error cause and a next action or repair hint; AI-oriented output should be structured enough for agents, while human-oriented output should stay concise and actionable.
 Ashiba public exported functions must have JSDoc. Ashiba CLI commands must expose help before execution; help may be split into human-oriented and AI-oriented forms when that makes the command contract safer for both readers.
 Ashiba CLI commands that mutate files or external state must provide dry-run or equivalent preview behavior. Read-only inspection commands do not need dry-run because they are already observational.
+When a workflow has discontinuous human or AI steps, Ashiba should not depend on the user remembering every follow-up command. A DDL edit, SQL edit, mapper edit, or generated-contract edit may be legitimate by itself, but any stale schema/model/query/test artifact created by that edit must surface later through ordinary development paths such as tests, build/push/CI gates, runtime metadata guards, or another passive failure surface with a repair action. "Edit DDL, then remember to refresh schema artifacts" is an active safety rule, and active safety is too weak as the only safety mechanism.
 
 ## 2. Core Concepts
 
@@ -48,6 +49,7 @@ Ashiba CLI commands that mutate files or external state must provide dry-run or 
 - `CLI No Hidden SQL Rewrite`: the `@ashiba/cli` Runtime Zero path must not hide dynamic SQL rewriting in generated application code. Driver adapters and SQL-first extension packages may perform bounded SQL handling when their own package concept requires it, but source SQL must not depend on proprietary Ashiba syntax.
 - `Editable Generated Code`: generated code is visible repository code, editable by humans and AI agents, not hidden behind `generate`, and protected by drift checks. Generated-owned metadata and human-editable code must not share one physical file; refreshed metadata belongs in generated metadata files.
 - `Explicit Drift Recovery`: drift should be detected with clear failures, cause, and next action rather than hidden watch-mode regeneration.
+- `Discontinuous Work Detection`: when valid work is split across separate human or AI actions, Ashiba must make stale follow-up artifacts surface through ordinary tests, gates, or metadata guards instead of relying on remembered refresh commands.
 - `RFBA`: Review-First Boundary Architecture; scaffolding fixes a repeatable VSA-style feature/query review grain instead of splitting by technical layers.
 - `Mapper-Tested Type Safety`: DTO and mapper type safety is guaranteed by mapper tests and DB-backed integration tests, not runtime result-row validation.
 - `Test Lanes`: traditional and Zero Table Dependency test lanes; mapper tests prefer ZTD, performance tests prefer traditional DB-backed tests.
@@ -66,6 +68,8 @@ Ashiba owns scaffolding, generated code layout, RFBA/VSA-style feature and query
 
 Review scope is partly subjective, so Ashiba should not depend on prose rules alone. Scaffolding owns the concrete review grain by creating feature boundaries and query boundaries that can be inspected repeatedly. Existing features may receive additional query boundaries when the behavior grows.
 
+RFBA/VSA does not imply a table-centric DAO layer. Different feature boundaries may own different SQL write paths for the same table when those paths express different business behavior, including different update predicates or state transitions. Ashiba should keep those SQL contracts visible and testable, not force CREATE or UPDATE behavior into one shared table accessor.
+
 Feature boundaries may be subgrouped below the feature root when that better matches review responsibility. Scaffolded code should use root-stable aliases for cross-root or shared-seam imports such as feature shared support and test support, rather than making those imports depend on relative path depth.
 
 Ashiba package public surfaces own their own JSDoc. Ashiba CLI commands own their help surface, including human-readable help and AI-oriented help when a structured form is useful. Help must be available before mutating or expensive operations run.
@@ -78,6 +82,8 @@ Customer tests that need disposable SQL files, query contracts, tarballs, or gen
 Ashiba `init` may set up README files and ordinary project documentation, but Ashiba must not distribute `AGENTS.md`, `AGENT.md`, `SKILL.md`, skills, prompts, or other files that directly alter AI-agent behavior. Ashiba should guide AI agents through visible scaffolds, contracts, drift checks, and AI-oriented error messages instead.
 
 Ashiba should not watch DDL files and automatically rewrite schema model or generated artifacts in the background. It should prefer explicit broken-state detection: tests or drift checks fail, explain what is stale, and tell the human or AI agent which explicit command to run. This keeps causality understandable and file diffs reviewable.
+
+Ashiba must also account for discontinuous work. A person may edit DDL today, edit SQL later, and forget a schema refresh, model refresh, generated mapper check, or migration review step between those actions. That mistake should be recoverable through passive detection: an ordinary test, build/push/CI gate, generated metadata guard, or runtime adapter guard should fail with a clear cause and repair command. The concept does not require every possible edit class to have a bespoke checker when a broader SQL mapping test or contract drift check proves the same failure, but it rejects safety designs where the only protection is a manual instruction to remember the next command.
 
 `@ashiba/cli` owns the Ashiba Runtime Zero promise for generated application code. Driver adapters and extension packages may have runtime dependencies when their package responsibility requires them.
 
@@ -126,6 +132,8 @@ They should not expose `execute(sql: string, ...)` style application-facing APIs
 Runtime zero does not mean safety-free.
 
 Safety moves from runtime abstraction to scaffolded tests. DDL, SQL, DTO types, and mappers must be checked during development. Mapper tests prefer Zero Table Dependency because they verify SQL-to-DTO contracts deterministically; their harness may share expensive connection resources within a mapper-test run for fast feedback. Per-case connection open/close can dominate small ZTD mapper checks and weaken the no-migration feedback loop. Performance tests prefer traditional DB-backed tests because they need real database behavior and application-owned physical state lifecycle; connection sharing in traditional tests must be explicit about setup, cleanup, transactions, and mutable state ownership. Runtime result-row type validation is not required by Ashiba when the mapper contract is proven. Generated code must be readable, editable, visible in the repository, and drift-detectable after human or AI edits.
+
+When a change can leave stale follow-up artifacts, the relevant ordinary development gate should fail without requiring the user to know which refresh command was forgotten. For example, a DDL change that invalidates generated schema/model/test metadata should be caught by drift checks or mapper tests that run in the normal verification path and should point to the explicit recovery command.
 
 ## 7. Migration and Impact Policy
 

@@ -7,10 +7,12 @@ import {
   ColumnReferenceCollector,
   DeleteQuery,
   InsertQuery,
+  LiteralValue,
   SimpleSelectQuery,
   SqlParser,
   TableSource,
   UpdateQuery,
+  ValuesQuery,
   type CommonTable,
   type SelectQuery,
   type SourceExpression,
@@ -19,6 +21,7 @@ import {
 } from 'rawsql-ts';
 import { runQueryLint } from './query.js';
 import { loadDdlSchemaModel, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
+import { inferParsedSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, invalidCliInputError } from '../errors.js';
 
 export interface LintOptions {
@@ -42,7 +45,7 @@ export interface LintResult {
 }
 
 interface DdlLintIssue {
-  code: 'ddl-missing-table' | 'ddl-missing-column';
+  code: 'ddl-missing-table' | 'ddl-missing-column' | 'ddl-insert-type-mismatch' | 'ddl-parameter-type-conflict';
   target: string;
   message: string;
 }
@@ -223,6 +226,8 @@ function lintSqlAgainstDdl(sql: string, model: DdlSchemaModel): DdlLintIssue[] {
       }
     }
   }
+  issues.push(...lintInsertValueTypes(parsed, model));
+  issues.push(...lintParameterTypeConflicts(parsed, model));
 
   for (const update of collectUpdateSetColumnReferences(parsed)) {
     const table = resolveTable(model, update.schema, update.table);
@@ -257,6 +262,78 @@ function lintSqlAgainstDdl(sql: string, model: DdlSchemaModel): DdlLintIssue[] {
   }
 
   return dedupeDdlIssues(issues);
+}
+
+function lintParameterTypeConflicts(query: ReturnType<typeof SqlParser.parse>, model: DdlSchemaModel): DdlLintIssue[] {
+  const inference = inferParsedSqlParameterTypes(query, model);
+  return inference.conflicts.filter((conflict) => conflict.bindings.every((binding) => binding.confidence === 'certain')).map((conflict) => ({
+    code: 'ddl-parameter-type-conflict',
+    target: conflict.parameter,
+    message: `SQL parameter ${conflict.parameter} is bound to incompatible DDL-backed types: ${
+      conflict.bindings.map((binding) => `${binding.context} ${binding.table}.${binding.column} (${binding.typeName} -> ${binding.typeScriptType})`).join(', ')
+    }.`,
+  }));
+}
+
+function lintInsertValueTypes(query: ReturnType<typeof SqlParser.parse>, model: DdlSchemaModel): DdlLintIssue[] {
+  if (!(query instanceof InsertQuery) || !(query.selectQuery instanceof ValuesQuery)) {
+    return [];
+  }
+  const target = tableTargetFromSource(query.insertClause.source);
+  const columns = query.insertClause.columns?.map((column) => normalizeIdentifier(column.name)) ?? [];
+  if (!target || columns.length === 0 || query.selectQuery.tuples.length === 0) {
+    return [];
+  }
+  const table = resolveTable(model, target.schema, target.table);
+  if (!table) {
+    return [];
+  }
+  const issues: DdlLintIssue[] = [];
+  for (const tuple of query.selectQuery.tuples) {
+    for (const [index, columnName] of columns.entries()) {
+      const column = table.columns.get(columnName.toLowerCase());
+      const value = tuple.values[index];
+      if (!column || !value) {
+        continue;
+      }
+      const mismatch = obviousLiteralTypeMismatch(column.typeName, value);
+      if (!mismatch) {
+        continue;
+      }
+      issues.push({
+        code: 'ddl-insert-type-mismatch',
+        target: `${table.canonicalName}.${column.name}`,
+        message: `INSERT value for ${table.canonicalName}.${column.name} looks incompatible with DDL type ${column.typeName}: ${mismatch}.`,
+      });
+    }
+  }
+  return issues;
+}
+
+function obviousLiteralTypeMismatch(typeName: string, value: ValueComponent): string | undefined {
+  if (!(value instanceof LiteralValue)) {
+    return undefined;
+  }
+  const normalizedType = typeName.toLowerCase();
+  if (isNumericType(normalizedType)) {
+    if (typeof value.value === 'number') return undefined;
+    if (typeof value.value === 'string' && /^-?\d+(\.\d+)?$/.test(value.value.trim())) return undefined;
+    return 'non-numeric literal';
+  }
+  if (isBooleanType(normalizedType)) {
+    if (typeof value.value === 'boolean') return undefined;
+    if (typeof value.value === 'string' && /^(true|false)$/i.test(value.value.trim())) return undefined;
+    return 'non-boolean literal';
+  }
+  return undefined;
+}
+
+function isNumericType(typeName: string): boolean {
+  return /^(smallint|integer|int|int2|int4|bigint|int8|real|float|float4|float8|double precision|numeric|decimal|serial|serial2|serial4|bigserial|serial8)$/.test(typeName);
+}
+
+function isBooleanType(typeName: string): boolean {
+  return /^(boolean|bool)$/.test(typeName);
 }
 
 function appendDdlIssueOutput(output: string, issues: DdlLintIssue[], notes: string[] = []): string {

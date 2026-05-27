@@ -34,6 +34,7 @@ These concepts apply to the whole repository and constrain all packages.
 | `no-query-dsl-ceremony` | No Query DSL Ceremony | mostly done | SQL remains SQL, directly runnable in a SQL client, and free of Ashiba-only SQL notation. |
 | `editable-generated-code` | Editable Generated Code | mostly done | Generated code remains visible repository code, may be edited by humans and AI agents, and stays under drift checks after generation. Generated-owned metadata and human-editable code must be physically separated. |
 | `explicit-drift-recovery` | Explicit Drift Recovery | mostly done | Prefer clear drift failures with cause and next action over watch-mode automatic regeneration of schema/model artifacts. |
+| `discontinuous-work-detection` | Discontinuous Work Detection | partial | Valid edits may happen separately from their follow-up refresh or review steps, but stale schema/model/query/test artifacts must naturally surface through ordinary tests, gates, or metadata guards with recovery guidance. |
 | `no-ai-behavior-file-distribution` | No AI Behavior File Distribution | mostly done | `ashiba init` may create README/docs, but Ashiba must not distribute `AGENTS.md`, `SKILL.md`, skills, prompts, or other files that alter AI-agent behavior. |
 | `mapper-tested-type-safety` | Mapper-Tested Type Safety | mostly done | DTO and mapper type safety is guaranteed by mapper tests and DB-backed integration tests, not runtime result-row validation. |
 | `error-output-modes` | Error Output Modes | mostly done | Shared formatter and CLI option support human-oriented and AI-oriented modes. Both modes include cause and next action/hint; known production errors in the current package set expose structured cause/action metadata, with formatter fallbacks kept as a safety net for unexpected errors. |
@@ -109,6 +110,7 @@ flowchart TD
   Tests --> MapperType["Mapper-Tested Type Safety"]
   Tests --> Drift["Drift Detection"]
   Drift --> ExplicitDrift["Explicit Drift Recovery"]
+  ExplicitDrift --> DiscontinuousWork["Discontinuous Work Detection"]
   CLI --> Impact["SQL Impact Analysis"]
   Impact --> Sqlgrep["sqlgrep"]
   CLI --> NoHiddenRewrite["CLI No Hidden SQL Rewrite"]
@@ -152,6 +154,7 @@ flowchart TD
 - Repository-wide concepts must apply consistently to every package category.
 - Visible SQL includes editability; scaffolded SQL and adjacent generated code must remain easy for humans and AI agents to change.
 - Watch-mode automatic regeneration should not silently rewrite schema/model artifacts; drift should fail explicitly with cause and next action.
+- Non-continuous human or AI work must have a passive failure surface in the ordinary path. If DDL, SQL, mapper, or query contract edits leave stale follow-up artifacts, normal tests, gates, or metadata guards should detect the breakage and point to recovery rather than relying on remembered refresh commands or careful behavior.
 - `ashiba init` may create ordinary project documentation, but Ashiba must not distribute AI behavior files such as `AGENTS.md`, `SKILL.md`, skills, or prompts; AI guidance should come from visible scaffolds, contracts, and AI-oriented errors.
 - Ashiba Runtime Zero applies to `@ashiba/cli` generated application code, not to every driver or extension package.
 - Tooling AST dependencies, including `rawsql-ts` core, are allowed for Ashiba development packages and must not leak into generated application runtime code.

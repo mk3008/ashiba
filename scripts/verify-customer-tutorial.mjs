@@ -48,6 +48,7 @@ writePackageJson(starterRoot, {
   type: 'module',
   packageManager: 'pnpm@10.19.0',
   scripts: {
+    'check:ashiba': 'ashiba project check',
     typecheck: 'tsc --noEmit -p tsconfig.json',
     test: 'vitest run',
     'test:mapper': 'vitest run src/features -t ZTD',
@@ -120,8 +121,10 @@ assertPathMissing(path.join(starterRoot, 'src', 'features', 'smoke'));
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/driver-adapter-pg');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/testkit-adapter-pg');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/cli');
+assertFileContains(path.join(starterRoot, 'package.json'), '"check:ashiba": "ashiba project check"');
 assertFileContains(path.join(starterRoot, 'README.md'), 'docker compose up -d');
 
+run(corepack, ['pnpm', 'check:ashiba'], starterRoot);
 run(corepack, ['pnpm', 'typecheck'], starterRoot);
 
 copyFileSync(path.join(starterRoot, '.env.example'), path.join(starterRoot, '.env'));
@@ -176,6 +179,7 @@ try {
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'external_account_id: "9223372036854775807"');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'generated', 'mapping.cases.ts'), 'external_account_id: "-9223372036854775808"');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-insert', 'queries', 'insert-users', 'tests', 'cases', 'logic.case.ts'), 'Human/AI-owned SQL logic cases');
+  run(corepack, ['pnpm', 'check:ashiba'], starterRoot);
   run(corepack, ['pnpm', 'test'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
   run(corepack, ['pnpm', 'test:mapper'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
   run(corepack, ['pnpm', 'typecheck'], starterRoot);

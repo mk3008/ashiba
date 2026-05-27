@@ -141,6 +141,16 @@ export function formatCheckContractResult(result: CheckContractResult): string {
         lines.push(`  unused in mapper: ${entry.unusedInMapper.join(', ')}`);
       }
     }
+    if (entry.mismatchedParameterTypes.length === 0 && entry.parameterTypeConflicts.length === 0) {
+      lines.push('  parameter types: ok');
+    } else {
+      if (entry.mismatchedParameterTypes.length > 0) {
+        lines.push(`  mismatched parameter types: ${entry.mismatchedParameterTypes.join(', ')}`);
+      }
+      if (entry.parameterTypeConflicts.length > 0) {
+        lines.push(`  parameter type conflicts: ${entry.parameterTypeConflicts.join(', ')}`);
+      }
+    }
 
     if (entry.missingResultInMapper.length === 0 && entry.unusedResultInMapper.length === 0) {
       lines.push('  result columns: ok');
@@ -250,6 +260,8 @@ function countMapperIssues(mapperCheck: FeatureGeneratedMapperCheckResult): numb
     sum +
     entry.missingInMapper.length +
     entry.unusedInMapper.length +
+    entry.mismatchedParameterTypes.length +
+    entry.parameterTypeConflicts.length +
     entry.missingResultInMapper.length +
     entry.unusedResultInMapper.length,
   0);
@@ -277,6 +289,9 @@ function buildCheckContractNextActions(
   for (const entry of mapperCheck.checked) {
     if (entry.missingInMapper.length > 0 || entry.unusedInMapper.length > 0) {
       actions.add('Update editable query boundary parameter contracts to match visible SQL named parameters.');
+    }
+    if (entry.mismatchedParameterTypes.length > 0 || entry.parameterTypeConflicts.length > 0) {
+      actions.add('Update editable query boundary parameter types to match DDL-backed SQL parameter ownership.');
     }
     if (entry.missingResultInMapper.length > 0 || entry.unusedResultInMapper.length > 0) {
       actions.add('Update editable query boundary row contracts to match visible SQL result columns.');

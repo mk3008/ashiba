@@ -13,6 +13,7 @@ import { runFeatureGeneratedMapperCheck, runFeatureQueryMetadataRefresh, runFeat
 import { runLint } from '../src/commands/lint.js';
 import { runModelGen } from '../src/commands/model-gen.js';
 import { runPerfInit, runPerfReportDiff, runPerfRun, runPerfScenarioInit, runPerfScenarioMeasure } from '../src/commands/perf.js';
+import { formatProjectCheckResult, runProjectCheck } from '../src/commands/project.js';
 import { runQueryLint, runQuerySlice, runQuerySssqlAdd, runQueryStructure, runQueryUses } from '../src/commands/query.js';
 import { runRfbaInspect } from '../src/commands/rfba.js';
 
@@ -59,6 +60,8 @@ describe('@ashiba/cli smoke', () => {
 
     expect(program.commands.some((command) => command.name() === 'config')).toBe(true);
     expect(createDefaultConfig().tests.mapperLane).toBe('ztd');
+    expect(createDefaultConfig().featureRoot).toBe('src/features');
+    expect(createDefaultConfig().sqlRoots).toEqual(['src/features']);
     expect(formatDefaultConfig()).toContain('"parameterStyle": "both"');
     expect(formatDefaultConfig({ pretty: false })).not.toContain('\n  ');
   });
@@ -77,6 +80,7 @@ describe('@ashiba/cli smoke', () => {
       'feature query scaffold',
       'feature tests scaffold',
       'feature tests check',
+      'project check',
       'perf scenario init',
       'perf scenario measure',
       'perf report diff',
@@ -234,6 +238,57 @@ describe('@ashiba/cli smoke', () => {
       expect(generateOutput).toContain('DDL migration generate');
       expect(readFileSync(outPath, 'utf8')).toContain('DROP COLUMN');
       expect(generateOutput).toContain('drop_column');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('can suppress destructive ddl migration operations with safety options', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-migration-safety-'));
+
+    try {
+      const fromPath = path.join(rootDir, 'from.sql');
+      const toPath = path.join(rootDir, 'to.sql');
+      const outPath = path.join(rootDir, 'migration.sql');
+      writeFileSync(fromPath, 'CREATE TABLE public.users (id integer not null, legacy text);', 'utf8');
+      writeFileSync(toPath, 'CREATE TABLE public.users (id integer not null);', 'utf8');
+
+      const output = runDdlMigrationGenerate({
+        from: fromPath,
+        to: toPath,
+        out: outPath,
+        dropColumns: false,
+      });
+
+      expect(output).toContain('suppressed operations: dropColumns');
+      expect(output).toContain('drop column legacy');
+      expect(output).toContain('drop_column');
+      expect(readFileSync(outPath, 'utf8')).not.toContain('DROP COLUMN');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('compares recursive DDL snapshot directories and writes one migration file', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-migration-dir-'));
+
+    try {
+      const fromDir = path.join(rootDir, 'from-ddl');
+      const toDir = path.join(rootDir, 'to-ddl');
+      const outPath = path.join(rootDir, 'migration.sql');
+      mkdirSync(path.join(fromDir, 'accounting'), { recursive: true });
+      mkdirSync(path.join(toDir, 'accounting'), { recursive: true });
+      writeFileSync(path.join(fromDir, 'users.sql'), 'CREATE TABLE public.users (id integer not null);', 'utf8');
+      writeFileSync(path.join(fromDir, 'accounting', 'journals.sql'), 'CREATE TABLE accounting.journals (journal_id integer not null);', 'utf8');
+      writeFileSync(path.join(toDir, 'users.sql'), 'CREATE TABLE public.users (id integer not null, email text);', 'utf8');
+      writeFileSync(path.join(toDir, 'accounting', 'journals.sql'), 'CREATE TABLE accounting.journals (journal_id integer not null);', 'utf8');
+
+      const output = runDdlMigrationGenerate({ fromDir, toDir, out: outPath });
+
+      expect(output).toContain('from files: 2');
+      expect(output).toContain('to files: 2');
+      expect(output).toContain('add column email');
+      expect(readFileSync(outPath, 'utf8')).toContain('ADD COLUMN');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -700,6 +755,298 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
+  test('checks generated mapper drift between DDL-backed SQL parameter types and editable boundary contracts', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-generated-mapper-type-check-'));
+
+    try {
+      const ddlPath = path.join(rootDir, 'db', 'ddl', 'public.sql');
+      mkdirSync(path.dirname(ddlPath), { recursive: true });
+      writeFileSync(ddlPath, 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
+      runFeatureScaffold({ rootDir, table: 'users', action: 'insert' });
+
+      const pass = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-insert' });
+      expect(pass.ok).toBe(true);
+      expect(pass.checked[0]?.sqlParameterTypes).toEqual({ email: 'string', user_id: 'number' });
+
+      writeFileSync(ddlPath, 'create table public.users (user_id integer primary key, email integer not null);', 'utf8');
+      const fail = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-insert', query: 'insert-users' });
+
+      expect(fail.ok).toBe(false);
+      expect(fail.checked[0]?.mismatchedParameterTypes).toEqual(['email: mapper string / SQL number']);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check passes when no project surfaces exist', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-empty-'));
+
+    try {
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.kind).toBe('project-check');
+      expect(result.ok).toBe(true);
+      expect(result.errors).toEqual([]);
+      expect(result.warnings).toEqual([]);
+      expect(result.checks.contract?.ok).toBe(true);
+      expect(result.checks.featureTests).toBeUndefined();
+      expect(result.checks.generatedMapper).toBeUndefined();
+      expect(formatProjectCheckResult(result)).toContain('Ashiba project check: ok');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check fails duplicate table definitions across DDL files', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-duplicate-ddl-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'users-a.sql'), 'create table public.users (user_id integer primary key);', 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'users-b.sql'), 'create table public.users (user_id integer primary key, email text);', 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(false);
+      expect(result.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ASHIBA_DDL_DUPLICATE_TABLE',
+          file: 'db/ddl/users-b.sql',
+          table: 'public.users',
+        }),
+      ]));
+      expect(result.warnings).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: 'ASHIBA_DDL_UNSTABLE_TABLE_OWNERSHIP' }),
+      ]));
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check reports unparsable DDL files as diagnostics', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-bad-ddl-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'broken.sql'), 'create table ;', 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(false);
+      expect(result.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ASHIBA_DDL_PARSE_FAILED',
+          file: 'db/ddl/broken.sql',
+        }),
+      ]));
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check discovers recursive DDL files in stable order', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-recursive-ddl-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl', 'accounting'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'users.sql'), 'create table public.users (user_id integer primary key);', 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'accounting', 'journals.sql'), 'create table accounting.journals (journal_id integer primary key);', 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(true);
+      expect(result.checks.ddlDiagnostics?.files).toEqual([
+        'db/ddl/users.sql',
+        'db/ddl/accounting/journals.sql',
+      ]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check errors when DDL execution order alters a table before create', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-ddl-order-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl', 'patches'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'patches', '01-users-patch.sql'), 'alter table public.users add column email text;', 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'users.sql'), 'create table public.users (user_id integer primary key);', 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(true);
+      expect(result.errors).toEqual([]);
+
+      rmSync(path.join(rootDir, 'db', 'ddl', 'users.sql'));
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'patches', '99-users.sql'), 'create table public.users (user_id integer primary key);', 'utf8');
+      const bad = runProjectCheck({ rootDir });
+
+      expect(bad.ok).toBe(false);
+      expect(bad.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ASHIBA_DDL_ALTER_BEFORE_CREATE',
+          file: 'db/ddl/patches/01-users-patch.sql',
+          table: 'public.users',
+        }),
+      ]));
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check includes existing contract, feature test, and generated mapper checks', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-feature-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
+      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(true);
+      expect(result.checks.contract?.ok).toBe(true);
+      expect(result.checks.featureTests?.ok).toBe(true);
+      expect(result.checks.generatedMapper?.ok).toBe(true);
+      expect(result.checks.lint?.ok).toBe(true);
+      expect(result.checks.featureTests?.checked[0]?.query).toBe('list');
+      expect(result.checks.generatedMapper?.checked[0]?.query).toBe('list');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check uses configured featureRoot and sqlRoots', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-configured-roots-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'src', 'usecases', 'users-search', 'queries', 'search'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'src', 'shared-sql'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: 'src/usecases',
+        sqlRoots: ['src/usecases', 'src/shared-sql'],
+        ddl: { sourceDir: 'db/ddl' },
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
+      writeFileSync(path.join(rootDir, 'src', 'usecases', 'users-search', 'queries', 'search', 'search.sql'), 'select user_id, email from public.users where email = :email;', 'utf8');
+      writeFileSync(path.join(rootDir, 'src', 'shared-sql', 'broken.sql'), 'select missing_id from public.users;', 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(false);
+      expect(result.checks.config).toEqual({
+        featureRoot: 'src/usecases',
+        sqlRoots: ['src/usecases', 'src/shared-sql'],
+      });
+      expect(result.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ASHIBA_PROJECT_SQL_LINT_FAILED',
+          file: 'src/shared-sql/broken.sql',
+        }),
+      ]));
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check warns when INSERT omits defaulted DDL columns', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-insert-warning-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id serial primary key,',
+        '  email text not null,',
+        '  status text not null default \'active\'',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      runFeatureScaffold({ rootDir, table: 'users', action: 'insert' });
+
+      const result = runProjectCheck({ rootDir });
+      const strictResult = runProjectCheck({ rootDir, warningsAsErrors: true });
+
+      expect(result.ok).toBe(true);
+      expect(result.warnings).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ASHIBA_PROJECT_INSERT_DEFAULT_COLUMN_OMITTED',
+          file: 'src/features/users-insert/queries/insert-users/insert-users.sql',
+          column: 'status',
+        }),
+      ]));
+      expect(strictResult.ok).toBe(false);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check errors when INSERT omits a required DDL column without a default', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-insert-error-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      const queryDir = path.join(rootDir, 'src/features/users-create/queries/create-user');
+      mkdirSync(queryDir, { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id serial primary key,',
+        '  email text not null,',
+        '  external_account_id bigint not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(queryDir, 'create-user.sql'), [
+        'insert into public.users (email)',
+        'values (:email)',
+        'returning user_id, email;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(false);
+      expect(result.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ASHIBA_PROJECT_INSERT_REQUIRED_COLUMN_OMITTED',
+          file: 'src/features/users-create/queries/create-user/create-user.sql',
+          column: 'external_account_id',
+        }),
+      ]));
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check warning-only results fail only with warnings-as-errors', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-warning-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        ddl: { sourceDir: 'schema' },
+      }, null, 2), 'utf8');
+
+      const defaultResult = runProjectCheck({ rootDir });
+      const strictResult = runProjectCheck({ rootDir, warningsAsErrors: true });
+
+      expect(defaultResult.ok).toBe(true);
+      expect(defaultResult.errors).toEqual([]);
+      expect(defaultResult.warnings).toEqual([
+        expect.objectContaining({
+          code: 'ASHIBA_DDL_CONFIGURED_DIR_MISSING',
+          severity: 'warning',
+          file: 'ashiba.config.json',
+        }),
+      ]);
+      expect(strictResult.ok).toBe(false);
+      expect(strictResult.errors).toEqual([]);
+      expect(strictResult.warnings).toHaveLength(1);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('checks QuerySpec-like catalog sqlFile and named parameter contracts', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-contract-catalog-'));
 
@@ -1066,6 +1413,77 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 
+  test('runs DDL-aware lint for obvious INSERT literal type mismatch', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-aware-lint-type-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'sql'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db/ddl/public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  age integer not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'sql/insert-user.sql'), [
+        'insert into public.users (user_id, age)',
+        'values',
+        '  (1, 20),',
+        '  (2, \'not-a-number\');',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runLint('sql', { rootDir });
+
+      expect(result.ok).toBe(false);
+      expect(result.files[0]?.ddlIssues).toEqual([
+        expect.objectContaining({
+          code: 'ddl-insert-type-mismatch',
+          target: 'public.users.age',
+        }),
+      ]);
+      expect(result.files[0]?.output).toContain('non-numeric literal');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('runs DDL-aware lint for incompatible reuse of one SQL parameter across DDL column types', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-aware-lint-param-type-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'sql'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db/ddl/public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  age integer not null,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'sql/create-user.sql'), [
+        'insert into public.users (age, email)',
+        'values (:value, :value);',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runLint('sql', { rootDir });
+
+      expect(result.ok).toBe(false);
+      expect(result.files[0]?.ddlIssues).toEqual([
+        expect.objectContaining({
+          code: 'ddl-parameter-type-conflict',
+          target: 'value',
+        }),
+      ]);
+      expect(result.files[0]?.output).toContain('incompatible DDL-backed types');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('runs DDL-aware lint for missing UPDATE SET columns', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-aware-lint-update-'));
 
@@ -1358,6 +1776,50 @@ describe('@ashiba/cli smoke', () => {
       expect(readFileSync(metaPath, 'utf8')).toContain('"bindings"');
       expect(readFileSync(metaPath, 'utf8')).toContain('"mysql2"');
       expect(readFileSync(metaPath, 'utf8')).toContain('"mssql"');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('generates DDL-backed query parameter types when model-gen can resolve parameter ownership', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-param-types-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/list');
+      const sqlPath = path.join(sqlDir, 'list.sql');
+      const ddlPath = path.join(rootDir, 'db', 'ddl', 'public.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      mkdirSync(path.dirname(ddlPath), { recursive: true });
+      writeFileSync(ddlPath, [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  active boolean not null,',
+        '  balance numeric not null,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(sqlPath, [
+        'select user_id, email',
+        'from public.users',
+        'where user_id = :id and active = :active and balance >= :minimum_balance;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/list/list.sql',
+        out: 'src/features/users/queries/list/list.query.ts',
+      });
+
+      expect(result.analysis.parameterTypes).toEqual({
+        active: 'boolean',
+        id: 'number',
+        minimum_balance: 'string',
+      });
+      expect(result.contents).toContain('id: number;');
+      expect(result.contents).toContain('active: boolean;');
+      expect(result.contents).toContain('minimum_balance: string;');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

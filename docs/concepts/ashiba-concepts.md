@@ -1335,6 +1335,68 @@ Ashiba's review model depends on visible changes and understandable drift. A fai
 
 `mostly done`
 
+## Discontinuous Work Detection
+
+### Definition
+
+Discontinuous work detection means Ashiba must not rely on a human or AI agent remembering follow-up commands after a valid edit. When work is split across separate actions, the later broken state should surface passively in the ordinary development path: tests, contract checks wired into normal gates, generated metadata guards, runtime adapter guards, or another repeatable failure surface that the user naturally encounters.
+
+A DDL edit, SQL edit, mapper edit, or query contract edit may be legitimate by itself. The safety requirement is that stale follow-up artifacts, such as generated schema metadata, query model metadata, mapper tests, or migration review artifacts, should fail with cause and recovery guidance before the mismatch becomes an accepted result.
+
+### Why It Exists
+
+Some Ashiba workflows are naturally non-continuous. A developer may change DDL, then forget to refresh generated schema/model artifacts. A later commit can look reasonable because the original edit was allowed, but the repository now contains stale generated evidence. Requiring the user to remember "after DDL, always run refresh" is an active safety rule, and active safety rules are too weak as the only protection.
+
+Ashiba should make missed follow-up work visible without requiring special vigilance. The desired failure is not background auto-repair and not a hidden generator side effect. The desired failure is a passive signal that appears because the user follows a normal path such as test, build, push, CI, or metadata-backed execution, and then tells the human or AI agent which explicit repair command or review step is needed.
+
+INSERT ownership is one concrete passive-check target because new DDL columns can silently change create behavior. Omitting a non-null column without a default is a breakage and should be an error. Omitting a defaulted or nullable column is usually not fatal, but it should be visible as a warning because the feature now relies on an implicit database default or implicit NULL. UPDATE ownership is different: whether an update should touch a column is domain knowledge, so Ashiba should not treat ordinary UPDATE omission as a generic warning.
+
+SQL parameter type ownership is another passive-check target. When a named parameter is certainly owned by a DDL column through INSERT values or UPDATE SET values, generated contracts and checks should carry that DDL-backed type and may fail stale editable query contracts with a critical error. Direct column/parameter predicates are useful evidence, but they can be less certain in complex SQL, so uncertain inference should warn instead of blocking. A later DDL type change should therefore make stale editable query contracts fail ordinary drift checks only when Ashiba has enough evidence to say the contract is definitely wrong.
+
+DDL directories are ordered source, not unordered bags of files. File names and folder names define execution order, shallower folders are read before deeper folders, and statements inside a file run top to bottom. If that order contradicts itself, such as an `ALTER TABLE` appearing before the table's `CREATE TABLE`, Ashiba should say the DDL source is structurally suspicious instead of silently accepting the snapshot.
+
+### Included Responsibilities
+
+- Passive drift or contract checks for stale follow-up artifacts after DDL, SQL, mapper, and query contract edits.
+- INSERT omission diagnostics for required, defaulted, and nullable DDL columns where the SQL shape is clear enough to check.
+- DDL-backed SQL parameter type drift checks where SQL parameter ownership is certain enough to block, plus warnings where inference is useful but not certain.
+- DDL directory order diagnostics for contradictions such as `ALTER TABLE` before the corresponding `CREATE TABLE`.
+- Placement of those checks in ordinary development gates, not only as optional commands that careful users may remember.
+- Clear cause and recovery guidance when a stale artifact is detected.
+- Development gates that naturally catch forgotten refresh/modelgen/test-scaffold steps.
+- Runtime metadata guards where stale generated metadata would otherwise affect execution.
+- Broad mapping or contract tests when they prove the same failure class without needing a bespoke checker.
+
+### Excluded Responsibilities
+
+- Treating every DDL or SQL edit as forbidden unless it is made through Ashiba commands.
+- Silent watch-mode regeneration that hides the missed follow-up action.
+- Relying only on documentation that tells users to remember refresh commands.
+- Treating "careful developers should run this command" as sufficient protection for stale generated artifacts.
+- Requiring separate specialized checks when an existing mapper test, lint, contract check, or runtime metadata guard detects the same breakage.
+- Treating every UPDATE that omits a column as suspicious without customer/domain requirements.
+
+### Related Concepts
+
+- `Explicit Drift Recovery`
+- `Drift Detection`
+- `Editable Generated Code`
+- `Mapper-Tested Type Safety`
+- `Query Model Metadata Contract`
+- `Migration Artifact`
+
+### Current Source Artifacts
+
+- `packages/cli/src/commands/check-contract.ts`
+- `packages/cli/src/commands/feature.ts`
+- `packages/cli/src/commands/lint.ts`
+- `packages/cli/src/commands/model-gen.ts`
+- `packages/driver-adapter-pg/src/index.ts`
+
+### Implementation Status
+
+`partial`
+
 ## Migration Artifact
 
 ### Definition
@@ -1510,6 +1572,8 @@ VSA-style boundaries also reduce the need for ORM concepts such as relation load
 
 Features are not limited to one query. Adding another query boundary to an existing feature is a supported flow, because generated code is meant to be edited, extended, tested, and reviewed after the initial scaffold.
 
+Features are also not required to centralize table writes into DAO-like table accessors. A customer may keep different write rules in different feature boundaries, such as one feature that permits a status transition from X to Y and another feature that permits X to Z. That logic may live in visible SQL when it is the clearest expression of the feature behavior. Ashiba should verify the SQL/mapper/DDL contract around that boundary, not force all CREATE or UPDATE behavior for a table into one shared accessor.
+
 Feature boundaries may be subgrouped under the feature root when that matches the review responsibility, such as a write-side subgroup under a larger feature area. Imports that cross canonical roots or shared seams should use root-stable aliases instead of depth-sensitive relative paths, so moving a boundary deeper does not rewrite unrelated import depth.
 
 ### Included Responsibilities
@@ -1520,6 +1584,7 @@ Feature boundaries may be subgrouped under the feature root when that matches th
 - Subgrouped feature boundaries under the feature root.
 - Root-stable import aliases for cross-root or shared-seam references.
 - Co-location of SQL, mapper contracts, execution contracts, and query-local verification.
+- Feature-local SQL write logic, including feature-specific update predicates and state transitions.
 - RFBA inspection commands that report discovered feature/query review boundaries.
 - VSA-style separation by behavior or feature.
 
@@ -1527,6 +1592,7 @@ Feature boundaries may be subgrouped under the feature root when that matches th
 
 - Splitting generated application code by technical layer such as repository, service, DTO, mapper, and model folders as the primary organization.
 - Making RFBA an ORM runtime architecture.
+- Forcing table writes through a single DAO-like accessor or repository per table.
 - Owning business transaction policy after scaffolding.
 - Hiding SQL behind a layered data access abstraction.
 
@@ -1620,6 +1686,8 @@ Feature boundaries follow RFBA and VSA-style organization: files are separated b
 
 The scaffold fixes a consistent review grain for code review and AI review. It should support adding query boundaries to an existing feature instead of forcing a new feature for every SQL statement.
 
+Feature boundaries may own different SQL write paths for the same table when those paths express different business behavior. Ashiba should not infer that all update logic for one table belongs in one function or one shared module. A project-level diagnostic may report that no discovered update path writes a newly added column, but whether any specific update should write that column is customer/domain knowledge.
+
 Stable root aliases are a scaffold support mechanism, not a replacement for RFBA. They are used where relative imports would make boundary movement expensive, especially shared feature seams and app-level test support.
 
 ### Included Responsibilities
@@ -1628,6 +1696,7 @@ Stable root aliases are a scaffold support mechanism, not a replacement for RFBA
 - Feature-local query boundaries.
 - Query additions to an existing feature boundary.
 - Subgrouped boundaries with stable root-based shared imports.
+- Feature-specific SQL write rules and predicates.
 - Feature-level tests.
 - Documentation for the feature.
 - VSA-style organization by behavior.
@@ -1637,6 +1706,7 @@ Stable root aliases are a scaffold support mechanism, not a replacement for RFBA
 - Cross-feature private imports.
 - Hidden framework-owned routing.
 - Primary organization by technical layer.
+- A requirement to consolidate CREATE/UPDATE functions by table.
 
 ### Related Concepts
 
