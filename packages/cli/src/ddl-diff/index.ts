@@ -88,7 +88,7 @@ export function compareDdlSql(options: CompareDdlSqlOptions): CompareDdlSqlResul
   const sql = hasChanges ? renderApplySql(options.remoteSql, options.localSql, options.safety) : '-- No schema differences detected.\n';
   const risks = mergeDdlRisks(
     analyzeMigrationSqlRisks(sql),
-    buildSuppressedOperationRisks(summary, options.safety),
+    buildSuppressedOperationRisks(summary, options.safety, options.remoteSql, options.localSql),
   );
   const text = buildTextSummary(summary, risks, hasChanges);
   const json = `${JSON.stringify({
@@ -146,7 +146,12 @@ function formatRiskLines(risks: Array<{ kind: string; target?: string; from?: st
   return lines;
 }
 
-function buildSuppressedOperationRisks(summary: DdlDiffSummaryEntry[], safety: DdlDiffSafetyOptions = {}): DdlDiffRisks {
+function buildSuppressedOperationRisks(
+  summary: DdlDiffSummaryEntry[],
+  safety: DdlDiffSafetyOptions = {},
+  currentSql = '',
+  expectedSql = '',
+): DdlDiffRisks {
   const destructiveRisks: DestructiveRisk[] = [];
   for (const entry of summary) {
     const table = `${entry.schema}.${entry.table}`;
@@ -157,7 +162,41 @@ function buildSuppressedOperationRisks(summary: DdlDiffSummaryEntry[], safety: D
       destructiveRisks.push(createGuidedRisk('drop_column', `${table}.${String(entry.details.column)}`));
     }
   }
+  destructiveRisks.push(...detectSuppressedConstraintAndIndexRisks(currentSql, expectedSql, safety));
   return { destructiveRisks, operationalRisks: [] };
+}
+
+function detectSuppressedConstraintAndIndexRisks(
+  currentSql: string,
+  expectedSql: string,
+  safety: DdlDiffSafetyOptions,
+): DestructiveRisk[] {
+  if (safety.dropConstraints !== false && safety.dropIndexes !== false) {
+    return [];
+  }
+  const risks: DestructiveRisk[] = [];
+  const statements = DDLDiffGenerator.generateDiff(currentSql, expectedSql, {
+    dropTables: true,
+    dropColumns: true,
+    dropConstraints: true,
+    dropIndexes: true,
+    checkConstraintNames: false,
+  });
+  for (const statement of statements) {
+    if (safety.dropConstraints === false) {
+      const match = statement.match(/alter\s+table\s+(?:if\s+exists\s+)?(.+?)\s+drop\s+constraint\s+(?:if\s+exists\s+)?("?[\w$-]+"?)/i);
+      if (match) {
+        risks.push(createGuidedRisk('drop_constraint', `${normalizeRiskTarget(match[1] ?? 'unknown')}.${normalizeRiskTarget(match[2] ?? 'unknown')}`));
+      }
+    }
+    if (safety.dropIndexes === false) {
+      const match = statement.match(/drop\s+index\s+(?:if\s+exists\s+)?(.+?)(?:\s+cascade|\s+restrict)?;?$/i);
+      if (match) {
+        risks.push(createGuidedRisk('drop_index', normalizeRiskTarget(match[1] ?? 'unknown')));
+      }
+    }
+  }
+  return risks;
 }
 
 function mergeDdlRisks(left: DdlDiffRisks, right: DdlDiffRisks): DdlDiffRisks {
@@ -167,13 +206,17 @@ function mergeDdlRisks(left: DdlDiffRisks, right: DdlDiffRisks): DdlDiffRisks {
   };
 }
 
-function createGuidedRisk(kind: 'drop_table' | 'drop_column' | 'cascade_drop', target: string): DestructiveRisk {
+function createGuidedRisk(kind: 'drop_table' | 'drop_column' | 'drop_constraint' | 'drop_index' | 'cascade_drop', target: string): DestructiveRisk {
   return {
     kind,
     target,
     avoidable: true,
     guidance: ['review_if_required', 'avoid_if_possible'],
   };
+}
+
+function normalizeRiskTarget(value: string): string {
+  return value.trim().replace(/;$/, '').replace(/"/g, '');
 }
 
 function dedupeDestructiveRisks(risks: DestructiveRisk[]): DestructiveRisk[] {

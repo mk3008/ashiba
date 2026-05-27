@@ -26,6 +26,7 @@ import {
   type QueryModelBindings,
 } from './model-gen.js';
 import { loadDdlSchemaModel } from './ddl-schema-model.js';
+import { loadProjectPathConfig } from './config.js';
 import { areTypeScriptTypesCompatible, inferSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
 
@@ -279,7 +280,7 @@ export function registerFeatureCommand(program: Command): void {
     .option('--fix', 'Rewrite generated mapping test assets and create missing logic-case stubs', false)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((options: FeatureTestsCheckOptions) => {
-      const result = runFeatureTestsCheck(options);
+      const result = runFeatureTestsCheck(withConfiguredFeatureRoot(options));
       if (options.format === 'json') {
         process.stdout.write(`${JSON.stringify({ kind: 'feature-tests-check', ...result }, null, 2)}\n`);
         if (!result.ok) process.exitCode = 1;
@@ -298,7 +299,7 @@ export function registerFeatureCommand(program: Command): void {
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((options: FeatureGeneratedMapperCheckOptions) => {
-      const result = runFeatureGeneratedMapperCheck(options);
+      const result = runFeatureGeneratedMapperCheck(withConfiguredFeatureRoot(options));
       if (options.format === 'json') {
         process.stdout.write(`${JSON.stringify({ kind: 'feature-generated-mapper-check', ...result }, null, 2)}\n`);
         if (!result.ok) process.exitCode = 1;
@@ -307,6 +308,17 @@ export function registerFeatureCommand(program: Command): void {
       process.stdout.write(formatGeneratedMapperCheck(result));
       if (!result.ok) process.exitCode = 1;
     });
+}
+
+function withConfiguredFeatureRoot<T extends { rootDir?: string; featureRoot?: string }>(options: T): T {
+  if (options.featureRoot && options.featureRoot.trim().length > 0) {
+    return options;
+  }
+  const rootDir = path.resolve(options.rootDir ?? '.');
+  return {
+    ...options,
+    featureRoot: loadProjectPathConfig(rootDir).featureRoot,
+  };
 }
 
 /**

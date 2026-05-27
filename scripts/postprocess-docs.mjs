@@ -33,7 +33,7 @@ async function ensureIndexFrontMatter(apiDir) {
   }
 
   const content = await fs.readFile(targetPath, 'utf8');
-  if (!content.startsWith('---')) {
+  if (!content.trimStart().startsWith('---')) {
     const frontMatter = ['---', 'title: API Overview', 'outline: deep', '---', ''].join('\n');
     await fs.writeFile(targetPath, frontMatter + content, 'utf8');
     console.log('[postprocess-docs] Injected front matter into api/index.md');
@@ -233,7 +233,7 @@ async function wrapMarkdownWithVPre(dir) {
     const genericLineRE = /^(\s*[-*>+]?\s*)([^`\n<>]*?\b[A-Za-z0-9_$]+<[^>\n]+>[^`\n]*)$/gm;
     body = body.replace(genericLineRE, (match, prefix, content) => {
       const trimmed = content.trim();
-      if (trimmed.startsWith('`') && trimmed.endsWith('`')) {
+      if (content.includes('`')) {
         return match;
       }
       return `${prefix}\`${trimmed}\``;

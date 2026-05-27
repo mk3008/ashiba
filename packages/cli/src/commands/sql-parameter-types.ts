@@ -363,13 +363,32 @@ function normalizeTypeScriptType(type: string): string {
 }
 
 function splitQualifiedName(value: string): [string | undefined, string] {
-  const segments = value.split('.');
-  if (segments.length === 1) {
-    return [undefined, normalizeIdentifier(segments[0] ?? '')];
+  const segments = splitUnquotedQualifiedSegments(value).map((segment) => normalizeIdentifier(segment));
+  if (segments.length <= 1) {
+    return [undefined, segments[0] ?? ''];
   }
-  return [normalizeIdentifier(segments[0] ?? ''), normalizeIdentifier(segments[1] ?? '')];
+  return [segments[segments.length - 2], segments[segments.length - 1] ?? ''];
 }
 
 function normalizeIdentifier(value: string): string {
   return value.trim().replace(/^"/, '').replace(/"$/, '');
+}
+
+function splitUnquotedQualifiedSegments(value: string): string[] {
+  const parts: string[] = [];
+  let current = '';
+  let quoted = false;
+  for (const char of value) {
+    if (char === '"') {
+      quoted = !quoted;
+    }
+    if (char === '.' && !quoted) {
+      parts.push(current);
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  parts.push(current);
+  return parts;
 }

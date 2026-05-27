@@ -146,6 +146,23 @@ function readDdlInput(filePath: string | undefined, dirPath: string | undefined,
     };
   }
   const resolved = requirePath(filePath, fileLabel);
+  if (!existsSync(resolved)) {
+    throw invalidCliInputError(
+      'ASHIBA_DDL_INPUT_FILE_NOT_FOUND',
+      `DDL input file does not exist: ${resolved}.`,
+      `Check the file path, or pass a DDL directory with ${dirLabel}.`,
+      { file: resolved },
+    );
+  }
+  const stat = statSync(resolved);
+  if (!stat.isFile()) {
+    throw invalidCliInputError(
+      'ASHIBA_DDL_INPUT_FILE_NOT_FILE',
+      `DDL input path is not a file: ${resolved}.`,
+      `Pass a file to ${fileLabel}, or use ${dirLabel} for recursive directory input.`,
+      { file: resolved },
+    );
+  }
   return {
     path: resolved,
     files: [],

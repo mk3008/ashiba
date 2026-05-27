@@ -72,7 +72,9 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
     ?? nonEmptyString(parsed.features?.sourceDir)
     ?? 'src/features';
   const sqlRoots = Array.isArray(parsed.sqlRoots)
-    ? parsed.sqlRoots.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+    ? parsed.sqlRoots
+      .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+      .map((entry) => entry.trim())
     : [];
   return {
     featureRoot,
@@ -95,5 +97,5 @@ export function registerConfigCommand(program: Command): void {
 }
 
 function nonEmptyString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
 }

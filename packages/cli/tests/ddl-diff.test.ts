@@ -74,4 +74,24 @@ describe('compareDdlSql', () => {
       }),
     ]));
   });
+
+  it('keeps suppressed constraint and index drops visible in risks', () => {
+    const result = compareDdlSql({
+      localSql: `
+        CREATE TABLE public.users (id integer not null);
+      `,
+      remoteSql: `
+        CREATE TABLE public.users (id integer not null, CONSTRAINT users_id_check CHECK (id > 0));
+        CREATE INDEX users_id_idx ON public.users (id);
+      `,
+      safety: { dropConstraints: false, dropIndexes: false },
+    });
+
+    expect(result.sql).not.toMatch(/DROP\s+CONSTRAINT/i);
+    expect(result.sql).not.toMatch(/DROP\s+INDEX/i);
+    expect(result.risks.destructiveRisks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'drop_constraint' }),
+      expect.objectContaining({ kind: 'drop_index' }),
+    ]));
+  });
 });

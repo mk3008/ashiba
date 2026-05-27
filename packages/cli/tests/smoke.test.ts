@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { runInit } from '../src/commands/init.js';
 import { runCheckContract, formatCheckContractResult } from '../src/commands/check-contract.js';
-import { createDefaultConfig, formatDefaultConfig } from '../src/commands/config.js';
+import { createDefaultConfig, formatDefaultConfig, loadProjectPathConfig } from '../src/commands/config.js';
 import { runDdlMigrationGenerate } from '../src/commands/ddl.js';
 import { COMMANDS, formatDescribe } from '../src/commands/describe.js';
 import { runFeatureGeneratedMapperCheck, runFeatureQueryMetadataRefresh, runFeatureQueryScaffold, runFeatureScaffold, runFeatureTestsCheck, runFeatureTestsScaffold } from '../src/commands/feature.js';
@@ -64,6 +64,24 @@ describe('@ashiba/cli smoke', () => {
     expect(createDefaultConfig().sqlRoots).toEqual(['src/features']);
     expect(formatDefaultConfig()).toContain('"parameterStyle": "both"');
     expect(formatDefaultConfig({ pretty: false })).not.toContain('\n  ');
+  });
+
+  test('loads trimmed project path config values', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-config-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: ' src/usecases ',
+        sqlRoots: [' src/usecases ', ' ', ' src/repositories '],
+      }), 'utf8');
+
+      expect(loadProjectPathConfig(rootDir)).toEqual({
+        featureRoot: 'src/usecases',
+        sqlRoots: ['src/usecases', 'src/repositories'],
+      });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
   });
 
   test('describes the migrated command surface', () => {
@@ -268,6 +286,24 @@ describe('@ashiba/cli smoke', () => {
       expect(output).toContain('drop column legacy');
       expect(output).toContain('drop_column');
       expect(readFileSync(outPath, 'utf8')).not.toContain('DROP COLUMN');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('rejects DDL single-file inputs before raw file reads fail', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-input-'));
+
+    try {
+      const toPath = path.join(rootDir, 'to.sql');
+      writeFileSync(toPath, 'CREATE TABLE public.users (id integer not null);', 'utf8');
+
+      expect(catchError(() => runDdlMigrationGenerate({ from: rootDir, to: toPath }))).toMatchObject({
+        code: 'ASHIBA_DDL_INPUT_FILE_NOT_FILE',
+      });
+      expect(catchError(() => runDdlMigrationGenerate({ from: path.join(rootDir, 'missing.sql'), to: toPath }))).toMatchObject({
+        code: 'ASHIBA_DDL_INPUT_FILE_NOT_FOUND',
+      });
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -2750,6 +2786,15 @@ describe('@ashiba/cli smoke', () => {
     }
   });
 });
+
+function catchError(callback: () => unknown): unknown {
+  try {
+    callback();
+    return undefined;
+  } catch (error) {
+    return error;
+  }
+}
 
 function writePostgresStarterPackageJson(rootDir: string): void {
   writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({

@@ -377,6 +377,8 @@ function fileBackedQuery(name: string, queryId = name): FeatureQuerySource {
 function stringSqlQuery(name: string, queryId: string): FeatureQuerySource {
   const sql = readFileSync(new URL(\`./queries/\${name}/\${name}.sql\`, import.meta.url), 'utf8');
   const queryModel = loadQueryModel(name);
+  // This fixture intentionally omits FeatureQuerySource.metadata.sqlFile to exercise string-SQL warnings.
+  // Revisit this assertion if FeatureQuerySource gains required runtime fields beyond the logging path.
   return {
     id: queryId,
     path: '<inline>',

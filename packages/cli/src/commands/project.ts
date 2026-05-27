@@ -193,7 +193,7 @@ function runOptionalFeatureTestsCheck(rootDir: string, config: ProjectPathConfig
   try {
     return runFeatureTestsCheck({ rootDir, featureRoot: config.featureRoot });
   } catch (error) {
-    if (isFeatureSurfaceMissing(error)) return undefined;
+    if (isFeatureSurfaceMissing(error, config.featureRoot)) return undefined;
     throw error;
   }
 }
@@ -202,7 +202,7 @@ function runOptionalFeatureGeneratedMapperCheck(rootDir: string, config: Project
   try {
     return runFeatureGeneratedMapperCheck({ rootDir, featureRoot: config.featureRoot });
   } catch (error) {
-    if (isFeatureSurfaceMissing(error)) return undefined;
+    if (isFeatureSurfaceMissing(error, config.featureRoot)) return undefined;
     throw error;
   }
 }
@@ -431,11 +431,11 @@ function tableTargetFromSource(source: SourceExpression | null | undefined): { s
 }
 
 function splitQualifiedName(value: string): [string | undefined, string] {
-  const segments = value.split('.');
-  if (segments.length === 1) {
-    return [undefined, normalizeIdentifier(segments[0] ?? value)];
+  const segments = splitUnquotedQualifiedSegments(value).map((segment) => normalizeIdentifier(segment));
+  if (segments.length <= 1) {
+    return [undefined, segments[0] ?? ''];
   }
-  return [normalizeIdentifier(segments[0] ?? ''), normalizeIdentifier(segments.slice(1).join('.'))];
+  return [segments[segments.length - 2], segments[segments.length - 1] ?? ''];
 }
 
 function isGeneratedInsertColumn(column: DdlSchemaColumn): boolean {
@@ -469,11 +469,11 @@ function collectSqlFiles(dir: string): string[] {
   return files.sort();
 }
 
-function isFeatureSurfaceMissing(error: unknown): boolean {
+function isFeatureSurfaceMissing(error: unknown, featureRoot: string): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return message.includes('No feature query boundaries were discovered')
     || message.includes('No feature query test boundaries were discovered')
-    || message.includes('No src/features directory was discovered')
+    || message.includes(`No ${featureRoot} directory was discovered`)
     || message.includes('No feature boundary directory was discovered');
 }
 
@@ -492,4 +492,23 @@ function normalizePath(value: string): string {
 
 function normalizeIdentifier(value: string): string {
   return value.trim().replace(/^"/, '').replace(/"$/, '');
+}
+
+function splitUnquotedQualifiedSegments(value: string): string[] {
+  const parts: string[] = [];
+  let current = '';
+  let quoted = false;
+  for (const char of value) {
+    if (char === '"') {
+      quoted = !quoted;
+    }
+    if (char === '.' && !quoted) {
+      parts.push(current);
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  parts.push(current);
+  return parts;
 }
