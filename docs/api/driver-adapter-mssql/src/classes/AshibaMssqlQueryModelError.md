@@ -1,7 +1,7 @@
 <div v-pre>
 # Class: AshibaMssqlQueryModelError
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:104](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L104)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:104](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L104)
 
 Error raised when required query model metadata is missing or stale.
 
@@ -15,7 +15,7 @@ Error raised when required query model metadata is missing or stale.
 
 > **new AshibaMssqlQueryModelError**(`code`, `message`): `AshibaMssqlQueryModelError`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:109](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L109)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:109](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L109)
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defined in: [packages/driver-adapter-mssql/src/index.ts:109](https://github.com/
 
 > `readonly` **code**: `"ASHIBA_QUERY_MODEL_STALE"` \| `"ASHIBA_BINDING_METADATA_REQUIRED"`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:105](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L105)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:105](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L105)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [packages/driver-adapter-mssql/src/index.ts:105](https://github.com/
 
 > `readonly` **causeText**: `string`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:106](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L106)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:106](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L106)
 
 ***
 
@@ -57,7 +57,7 @@ Defined in: [packages/driver-adapter-mssql/src/index.ts:106](https://github.com/
 
 > `readonly` **nextAction**: `string`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:107](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L107)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:107](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L107)
 
 ***
 

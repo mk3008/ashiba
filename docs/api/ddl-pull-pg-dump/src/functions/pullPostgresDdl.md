@@ -3,7 +3,7 @@
 
 > **pullPostgresDdl**(`options`): `Promise`&lt;`string`\&gt;
 
-Defined in: [packages/ddl-pull-pg-dump/src/index.ts:113](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/ddl-pull-pg-dump/src/index.ts#L113)
+Defined in: [packages/ddl-pull-pg-dump/src/index.ts:113](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/ddl-pull-pg-dump/src/index.ts#L113)
 
 Run pg_dump and return the pulled PostgreSQL schema DDL.
 

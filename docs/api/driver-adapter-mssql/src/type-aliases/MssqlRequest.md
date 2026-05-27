@@ -3,7 +3,7 @@
 
 > **MssqlRequest**&lt;`Row`\&gt; = `object`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:22](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L22)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:22](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L22)
 
 Minimal mssql-compatible request contract.
 
@@ -19,7 +19,7 @@ Minimal mssql-compatible request contract.
 
 > **input**(`name`, `value`): `MssqlRequest`&lt;`Row`\&gt;
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:23](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L23)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:23](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L23)
 
 #### Parameters
 
@@ -41,7 +41,7 @@ Defined in: [packages/driver-adapter-mssql/src/index.ts:23](https://github.com/m
 
 > **query**(`sql`): `Promise`&lt;[`MssqlQueryResult`](MssqlQueryResult.md)\<`Row`\&gt;\>
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:24](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L24)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:24](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L24)
 
 #### Parameters
 

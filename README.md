@@ -30,6 +30,11 @@ The first run should prove the idea quickly:
 - run tests
 - see generated TypeScript contracts and mapper-test scaffolds in your repo
 
+Prerequisites:
+
+- Node.js and npm
+- Docker with Compose
+
 ### 1. Install the PostgreSQL path
 
 ```bash
@@ -66,8 +71,9 @@ This gives you a small SQL-first feature boundary: visible SQL, editable query c
 
 ```bash
 npx vitest run
-npx ashiba project check
 ```
+
+The generated mapper tests prove the first important contract: this SQL can access the database through a typed TypeScript boundary, and the rows returned by the database can be mapped safely into the generated DTO shape.
 
 At this point, you should have the core Ashiba experience:
 
@@ -77,24 +83,16 @@ At this point, you should have the core Ashiba experience:
 - Tests and checks tell you when the contract drifts.
 - Runtime stays ordinary: SQL, driver adapter, and TypeScript application code.
 
-### 6. Try the next change
+### 6. Change the code
 
-Edit the generated `.sql` file, then refresh and check it:
+From here, the generated code is yours. Change the SQL, DTO boundary, mapper, or feature code as your application needs.
 
 ```bash
-npx ashiba feature query refresh --feature users-list --query list
+# drift check
 npx ashiba project check
-```
 
-That is the main loop: change SQL, refresh generated metadata, check the contract.
-
-For migration review, initialize with migration demo DDL or use your own DDL inputs:
-
-```bash
-npx ashiba ddl migration generate \
-  --from tmp/ddl/production.sql \
-  --to db/ddl/public.sql \
-  --out tmp/ddl/migration.sql
+# mapping check
+npx vitest run
 ```
 
 ## Supported DBMS And Drivers
@@ -125,11 +123,11 @@ Use this section as the entry point for daily work. The command API page links e
 | Run the project-level passive check gate | `ashiba project check` | [Command API](docs/api/commands.md#ashiba-project-check) |
 | Check visible SQL contracts before commit or release | `ashiba check-contract` | [Command API](docs/api/commands.md#ashiba-check-contract) |
 | Generate reviewable migration SQL from DDL changes | `ashiba ddl migration generate` | [Command API](docs/api/commands.md#ashiba-ddl-migration-generate) |
-| Run SQL lint and DDL-aware checks | `ashiba lint` | [Command API](docs/api/commands.md#ashiba-lint) |
-| Inspect, visualize, or debug complex SQL | `ashiba query outline`, `ashiba query graph`, `ashiba query slice` | [Command API](docs/api/commands.md#ashiba-query) |
-| Find SQL assets that reference a table or column | `ashiba query uses table`, `ashiba query uses column` | [Command API](docs/api/commands.md#ashiba-query-uses) |
-| Maintain SQL-first optional-condition metadata | `ashiba query sssql add`, `refresh`, `remove` | [Command API](docs/api/commands.md#ashiba-query-sssql) |
-| Generate editable query contracts from a SQL file | `ashiba model-gen` | [Command API](docs/api/commands.md#ashiba-model-gen) |
+| Run SQL lint and DDL-aware checks | `ashiba lint <path>` | [Command API](docs/api/commands.md#ashiba-lint) |
+| Inspect, visualize, or debug complex SQL | `ashiba query outline <sqlFile>`, `ashiba query graph <sqlFile>`, `ashiba query slice <sqlFile>` | [Command API](docs/api/commands.md#ashiba-query) |
+| Find SQL assets that reference a table or column | `ashiba query uses table <target>`, `ashiba query uses column <target>` | [Command API](docs/api/commands.md#ashiba-query-uses) |
+| Maintain SQL-first optional-condition metadata | `ashiba query sssql add <sqlFile>`, `ashiba query sssql refresh <sqlFile>`, `ashiba query sssql remove <sqlFile>` | [Command API](docs/api/commands.md#ashiba-query-sssql) |
+| Generate editable query contracts from a SQL file | `ashiba model-gen <sqlFile>` | [Command API](docs/api/commands.md#ashiba-model-gen) |
 | Capture DB-backed performance evidence | `ashiba perf scenario init`, `ashiba perf scenario measure` | [Command API](docs/api/commands.md#ashiba-perf-scenario) |
 | Inspect review-first feature and query boundaries | `ashiba rfba inspect` | [Command API](docs/api/commands.md#ashiba-rfba-inspect) |
 
@@ -149,7 +147,7 @@ Use this when the SQL changed but the feature boundary should remain the same.
 
 ```bash
 npx ashiba project check
-npx ashiba ddl migration generate --from-dir <old-ddl> --to-dir <new-ddl> --out tmp/ddl/migration.sql
+npx ashiba ddl migration generate --from-dir path/to/old-ddl --to-dir db/ddl --out tmp/ddl/migration.sql
 ```
 
 Use this when schema source changed and you want drift signals plus reviewable migration SQL.
@@ -177,12 +175,16 @@ Use this when SQL review needs structure, dependencies, or focused slices.
 
 ```bash
 npx ashiba ddl migration generate \
-  --from tmp/ddl/production.sql \
-  --to db/ddl/public.sql \
-  --out tmp/ddl/migration.sql
+  --from-dir path/to/current-db-ddl \
+  --to-dir db/ddl \
+  --out tmp/ddl/migration.sql \
+  --no-drop-tables \
+  --no-drop-columns \
+  --no-drop-constraints \
+  --format json > tmp/ddl/migration-report.json
 ```
 
-Ashiba can generate review artifacts. Your application or operator process still owns DB connection, migration apply, rollback policy, and deployment timing.
+Ashiba writes migration SQL to `--out` and prints a JSON review report with summary, apply plan, and risks. Your application or operator process still owns DB connection, migration apply, rollback policy, and deployment timing.
 
 ## Configuration
 
@@ -218,29 +220,7 @@ npx ashiba config
 
 ## Runtime Boundary
 
-Ashiba is a development-time toolchain, not a production-time object layer.
-
-At runtime, your application should not depend on Ashiba to decide what SQL means. It should run explicit SQL through the selected driver adapter and use ordinary generated or edited TypeScript boundaries.
-
-Ashiba belongs to:
-
-- scaffolding
-- code generation
-- query metadata refresh
-- mapper-test scaffolding
-- project checks
-- SQL and DDL drift detection
-- migration review artifacts
-- command API output
-
-Ashiba does not belong to:
-
-- lazy loading
-- dirty checking
-- identity maps
-- long-lived ORM sessions
-- hidden query generation
-- production object graph management
+Ashiba is a development-time generator, not a production object layer. At runtime, your application runs explicit SQL through the selected driver adapter and ordinary TypeScript boundaries; Ashiba stays in scaffolding, generation, tests, drift checks, and review artifacts.
 
 ## Command API
 
@@ -256,11 +236,6 @@ The README explains where to start. Command help and `ashiba describe command --
 
 ## Further Reading
 
-- [Concept overview](docs/concepts/index.md)
-- [ConceptSpec source](docs/concepts/ashiba-concepts.md)
-- [Concept map](docs/concepts/concept-map.md)
-- [Package naming policy](docs/architecture/package-naming-policy.md)
-- [Migration status](docs/migration/status.md)
 - [Command API](docs/api/commands.md)
 
 ## Development

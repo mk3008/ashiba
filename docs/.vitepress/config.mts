@@ -25,36 +25,14 @@ export default defineConfig({
     logo: '/brand/ashiba-icon.jpg',
     nav: [
       { text: 'API', link: '/api/index' },
-      { text: 'Review Guide', link: '/guide/conceptspec-review' },
-      { text: 'Concepts', link: '/concepts/' },
-      { text: 'Architecture', link: '/architecture/package-naming-policy' },
-      { text: 'Migration', link: '/migration/status' },
+      { text: 'Concepts', link: '/concepts/concept-map' },
     ],
     sidebar: {
-      '/guide/': [
-        { text: 'ConceptSpec Review', link: '/guide/conceptspec-review' },
-      ],
       '/api/': [
         ...apiSidebarWithIndex,
       ],
       '/concepts/': [
-        { text: 'Concept Overview', link: '/concepts/' },
-        { text: 'ConceptSpec Source', link: '/concepts/ashiba-concepts' },
         { text: 'Concept Map', link: '/concepts/concept-map' },
-        { text: 'Concept Inventory', link: '/concepts/ashiba-concept-inventory' },
-      ],
-      '/architecture/': [
-        { text: 'Package Naming', link: '/architecture/package-naming-policy' },
-        { text: 'Driver Adapter Plan', link: '/architecture/driver-adapter-plan' },
-        { text: 'SQL Transform Plan', link: '/architecture/sql-transform-plan' },
-      ],
-      '/migration/': [
-        { text: 'Migration Status', link: '/migration/status' },
-        { text: 'Gap Analysis', link: '/migration/ztd-cli-to-ashiba-gap-analysis' },
-        { text: 'Code Migration Plan', link: '/migration/ztd-cli-to-ashiba-code-migration' },
-      ],
-      '/issues/': [
-        { text: 'Implementation Plan', link: '/issues/implementation-plan' },
       ],
     },
     socialLinks: [

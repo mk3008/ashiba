@@ -41,7 +41,6 @@ Core message:
 Status:
   This CLI includes scaffolding, DDL review, query analysis, contract checks,
   model generation, RFBA inspection, and performance evidence.
-  Command migration from ztd-cli is tracked in docs/migration/status.md.
 
 Common use cases:
   ashiba init                 Create a SQL-first starter after choosing a DBMS/driver.

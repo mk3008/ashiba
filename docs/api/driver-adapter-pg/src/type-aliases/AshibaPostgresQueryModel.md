@@ -3,7 +3,7 @@
 
 > **AshibaPostgresQueryModel** = `object`
 
-Defined in: [packages/driver-adapter-pg/src/index.ts:42](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-pg/src/index.ts#L42)
+Defined in: [packages/driver-adapter-pg/src/index.ts:42](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-pg/src/index.ts#L42)
 
 CLI-generated query model required by the PostgreSQL adapter.
 
@@ -13,7 +13,7 @@ CLI-generated query model required by the PostgreSQL adapter.
 
 > **analysis**: `AshibaQueryModelAnalysis`
 
-Defined in: [packages/driver-adapter-pg/src/index.ts:43](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-pg/src/index.ts#L43)
+Defined in: [packages/driver-adapter-pg/src/index.ts:43](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-pg/src/index.ts#L43)
 
 ***
 
@@ -21,7 +21,7 @@ Defined in: [packages/driver-adapter-pg/src/index.ts:43](https://github.com/mk30
 
 > `optional` **bindings?**: `object`
 
-Defined in: [packages/driver-adapter-pg/src/index.ts:44](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-pg/src/index.ts#L44)
+Defined in: [packages/driver-adapter-pg/src/index.ts:44](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-pg/src/index.ts#L44)
 
 #### postgres?
 

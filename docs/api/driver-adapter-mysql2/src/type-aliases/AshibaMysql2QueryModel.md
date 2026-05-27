@@ -3,7 +3,7 @@
 
 > **AshibaMysql2QueryModel** = `object`
 
-Defined in: [packages/driver-adapter-mysql2/src/index.ts:45](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mysql2/src/index.ts#L45)
+Defined in: [packages/driver-adapter-mysql2/src/index.ts:45](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mysql2/src/index.ts#L45)
 
 CLI-generated query model required by the mysql2 adapter.
 
@@ -13,7 +13,7 @@ CLI-generated query model required by the mysql2 adapter.
 
 > **analysis**: `AshibaQueryModelAnalysis`
 
-Defined in: [packages/driver-adapter-mysql2/src/index.ts:46](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mysql2/src/index.ts#L46)
+Defined in: [packages/driver-adapter-mysql2/src/index.ts:46](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mysql2/src/index.ts#L46)
 
 ***
 
@@ -21,7 +21,7 @@ Defined in: [packages/driver-adapter-mysql2/src/index.ts:46](https://github.com/
 
 > `optional` **bindings?**: `object`
 
-Defined in: [packages/driver-adapter-mysql2/src/index.ts:47](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mysql2/src/index.ts#L47)
+Defined in: [packages/driver-adapter-mysql2/src/index.ts:47](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mysql2/src/index.ts#L47)
 
 #### mysql2?
 

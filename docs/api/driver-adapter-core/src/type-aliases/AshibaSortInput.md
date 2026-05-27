@@ -3,7 +3,7 @@
 
 > **AshibaSortInput** = `object`
 
-Defined in: [packages/driver-adapter-core/src/index.ts:72](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-core/src/index.ts#L72)
+Defined in: [packages/driver-adapter-core/src/index.ts:72](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-core/src/index.ts#L72)
 
 Sort request supplied by application code after user input has been mapped to a sort key.
 
@@ -13,7 +13,7 @@ Sort request supplied by application code after user input has been mapped to a 
 
 > **key**: `string`
 
-Defined in: [packages/driver-adapter-core/src/index.ts:73](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-core/src/index.ts#L73)
+Defined in: [packages/driver-adapter-core/src/index.ts:73](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-core/src/index.ts#L73)
 
 ***
 
@@ -21,5 +21,5 @@ Defined in: [packages/driver-adapter-core/src/index.ts:73](https://github.com/mk
 
 > `optional` **direction?**: [`AshibaSortDirection`](AshibaSortDirection.md)
 
-Defined in: [packages/driver-adapter-core/src/index.ts:74](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-core/src/index.ts#L74)
+Defined in: [packages/driver-adapter-core/src/index.ts:74](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-core/src/index.ts#L74)
 </div>

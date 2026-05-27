@@ -3,7 +3,7 @@
 
 > **AshibaMssqlAdapterOptions** = `object`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:37](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L37)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:37](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L37)
 
 Adapter-level options for execution observation and parameter masking.
 
@@ -13,7 +13,7 @@ Adapter-level options for execution observation and parameter masking.
 
 > `optional` **observer?**: `AshibaSqlExecutionObserver`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:38](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L38)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:38](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L38)
 
 ***
 
@@ -21,7 +21,7 @@ Defined in: [packages/driver-adapter-mssql/src/index.ts:38](https://github.com/m
 
 > `optional` **maskPolicy?**: `AshibaMaskPolicy`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:39](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L39)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:39](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L39)
 
 ***
 
@@ -29,5 +29,5 @@ Defined in: [packages/driver-adapter-mssql/src/index.ts:39](https://github.com/m
 
 > `optional` **includeUnmaskedParamsInEvents?**: `boolean`
 
-Defined in: [packages/driver-adapter-mssql/src/index.ts:40](https://github.com/mk3008/ashiba/blob/fda61f5a4c9bc51bd91b12a35886f4e4f51d7ac1/packages/driver-adapter-mssql/src/index.ts#L40)
+Defined in: [packages/driver-adapter-mssql/src/index.ts:40](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-mssql/src/index.ts#L40)
 </div>
