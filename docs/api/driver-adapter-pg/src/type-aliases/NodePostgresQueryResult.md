@@ -3,7 +3,7 @@
 
 > **NodePostgresQueryResult**&lt;`Row`\&gt; = `object`
 
-Defined in: [packages/driver-adapter-pg/src/index.ts:18](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-pg/src/index.ts#L18)
+Defined in: [packages/driver-adapter-pg/src/index.ts:18](https://github.com/mk3008/ashiba/blob/887798dd82defe2a1a86ca1387fc0647d15ba5d2/packages/driver-adapter-pg/src/index.ts#L18)
 
 Minimal pg-compatible query result consumed by the adapter.
 
@@ -19,7 +19,7 @@ Minimal pg-compatible query result consumed by the adapter.
 
 > **rows**: `Row`[]
 
-Defined in: [packages/driver-adapter-pg/src/index.ts:19](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-pg/src/index.ts#L19)
+Defined in: [packages/driver-adapter-pg/src/index.ts:19](https://github.com/mk3008/ashiba/blob/887798dd82defe2a1a86ca1387fc0647d15ba5d2/packages/driver-adapter-pg/src/index.ts#L19)
 
 ***
 
@@ -27,5 +27,5 @@ Defined in: [packages/driver-adapter-pg/src/index.ts:19](https://github.com/mk30
 
 > `optional` **rowCount?**: `number` \| `null`
 
-Defined in: [packages/driver-adapter-pg/src/index.ts:20](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-pg/src/index.ts#L20)
+Defined in: [packages/driver-adapter-pg/src/index.ts:20](https://github.com/mk3008/ashiba/blob/887798dd82defe2a1a86ca1387fc0647d15ba5d2/packages/driver-adapter-pg/src/index.ts#L20)
 </div>

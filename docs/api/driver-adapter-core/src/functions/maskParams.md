@@ -3,7 +3,7 @@
 
 > **maskParams**(`values`, `policy?`): readonly `unknown`[] \| `undefined`
 
-Defined in: [packages/driver-adapter-core/src/index.ts:146](https://github.com/mk3008/ashiba/blob/b3cc51a9a44af221919513ce768f20a3693ebb59/packages/driver-adapter-core/src/index.ts#L146)
+Defined in: [packages/driver-adapter-core/src/index.ts:146](https://github.com/mk3008/ashiba/blob/887798dd82defe2a1a86ca1387fc0647d15ba5d2/packages/driver-adapter-core/src/index.ts#L146)
 
 Return parameter values according to the requested event masking policy.
 
