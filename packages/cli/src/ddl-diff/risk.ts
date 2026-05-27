@@ -198,7 +198,7 @@ function createGuidedRisk(kind: 'drop_table' | 'drop_column' | 'cascade_drop', t
     kind,
     target,
     avoidable: true,
-    guidance: ['review_if_required', 'avoid_if_possible', 'cli_option_not_exposed']
+    guidance: ['review_if_required', 'avoid_if_possible']
   };
 }
 

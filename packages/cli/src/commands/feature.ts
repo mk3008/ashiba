@@ -25,6 +25,9 @@ import {
   buildQueryResultColumnContracts,
   type QueryModelBindings,
 } from './model-gen.js';
+import { loadDdlSchemaModel } from './ddl-schema-model.js';
+import { loadProjectPathConfig } from './config.js';
+import { areTypeScriptTypesCompatible, inferSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
 
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
@@ -78,6 +81,7 @@ export interface FeatureTestsScaffoldOptions {
 export interface FeatureTestsCheckOptions {
   feature?: string;
   boundaryDir?: string;
+  featureRoot?: string;
   query?: string;
   rootDir?: string;
   fix?: boolean;
@@ -87,6 +91,7 @@ export interface FeatureTestsCheckOptions {
 export interface FeatureGeneratedMapperCheckOptions {
   feature?: string;
   boundaryDir?: string;
+  featureRoot?: string;
   query?: string;
   rootDir?: string;
   format?: 'text' | 'json';
@@ -122,6 +127,12 @@ export interface FeatureGeneratedMapperCheckResult {
     queryFile: string;
     sqlParameters: string[];
     mapperParameters: string[];
+    sqlParameterTypes: Record<string, string>;
+    mapperParameterTypes: Record<string, string>;
+    mismatchedParameterTypes: string[];
+    warningParameterTypeMismatches: string[];
+    parameterTypeConflicts: string[];
+    warningParameterTypeConflicts: string[];
     sqlResultColumns: string[];
     mapperResultColumns: string[];
     missingInMapper: string[];
@@ -269,7 +280,7 @@ export function registerFeatureCommand(program: Command): void {
     .option('--fix', 'Rewrite generated mapping test assets and create missing logic-case stubs', false)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((options: FeatureTestsCheckOptions) => {
-      const result = runFeatureTestsCheck(options);
+      const result = runFeatureTestsCheck(withConfiguredFeatureRoot(options));
       if (options.format === 'json') {
         process.stdout.write(`${JSON.stringify({ kind: 'feature-tests-check', ...result }, null, 2)}\n`);
         if (!result.ok) process.exitCode = 1;
@@ -288,7 +299,7 @@ export function registerFeatureCommand(program: Command): void {
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((options: FeatureGeneratedMapperCheckOptions) => {
-      const result = runFeatureGeneratedMapperCheck(options);
+      const result = runFeatureGeneratedMapperCheck(withConfiguredFeatureRoot(options));
       if (options.format === 'json') {
         process.stdout.write(`${JSON.stringify({ kind: 'feature-generated-mapper-check', ...result }, null, 2)}\n`);
         if (!result.ok) process.exitCode = 1;
@@ -297,6 +308,17 @@ export function registerFeatureCommand(program: Command): void {
       process.stdout.write(formatGeneratedMapperCheck(result));
       if (!result.ok) process.exitCode = 1;
     });
+}
+
+function withConfiguredFeatureRoot<T extends { rootDir?: string; featureRoot?: string }>(options: T): T {
+  if (options.featureRoot && options.featureRoot.trim().length > 0) {
+    return options;
+  }
+  const rootDir = path.resolve(options.rootDir ?? '.');
+  return {
+    ...options,
+    featureRoot: loadProjectPathConfig(rootDir).featureRoot,
+  };
 }
 
 /**
@@ -516,7 +538,7 @@ export function runFeatureTestsScaffold(options: FeatureTestsScaffoldOptions): {
  */
 export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): FeatureTestsCheckResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
-  const featureBoundaries = discoverFeatureBoundaries(rootDir, options.feature, options.boundaryDir);
+  const featureBoundaries = discoverFeatureBoundaries(rootDir, options.feature, options.boundaryDir, options.featureRoot);
   const checked: FeatureTestsCheckResult['checked'] = [];
 
   for (const { name: featureName, dir: featureDir } of featureBoundaries) {
@@ -613,7 +635,8 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
  */
 export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCheckOptions = {}): FeatureGeneratedMapperCheckResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
-  const featureBoundaries = discoverFeatureBoundaries(rootDir, options.feature, options.boundaryDir);
+  const featureBoundaries = discoverFeatureBoundaries(rootDir, options.feature, options.boundaryDir, options.featureRoot);
+  const ddlModel = loadDdlSchemaModel(rootDir);
   const checked: FeatureGeneratedMapperCheckResult['checked'] = [];
 
   for (const { name: featureName, dir: featureDir } of featureBoundaries) {
@@ -633,6 +656,34 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       const sql = readFileSync(sqlFile, 'utf8');
       const querySource = readFileSync(queryFile, 'utf8');
       const mapperParameters = extractMapperParameters(querySource, queryName).sort();
+      const mapperParameterTypes = extractMapperParameterTypes(querySource, queryName);
+      const parameterInference = ddlModel ? inferSqlParameterTypes(sql, ddlModel) : undefined;
+      const sqlParameterTypes = parameterInference?.parameterTypes ?? {};
+      const certainParameters = new Set(
+        (parameterInference?.bindings ?? [])
+          .filter((binding) => binding.confidence === 'certain')
+          .map((binding) => binding.parameter)
+      );
+      const mismatchedParameterTypes = Object.entries(sqlParameterTypes)
+        .filter(([parameter]) => mapperParameters.includes(parameter))
+        .filter(([parameter]) => certainParameters.has(parameter))
+        .filter(([parameter, expectedType]) => !areTypeScriptTypesCompatible(mapperParameterTypes[parameter] ?? 'unknown', expectedType))
+        .map(([parameter, expectedType]) => `${parameter}: mapper ${mapperParameterTypes[parameter] ?? 'unknown'} / SQL ${expectedType}`);
+      const warningParameterTypeMismatches = Object.entries(sqlParameterTypes)
+        .filter(([parameter]) => mapperParameters.includes(parameter))
+        .filter(([parameter]) => !certainParameters.has(parameter))
+        .filter(([parameter, expectedType]) => !areTypeScriptTypesCompatible(mapperParameterTypes[parameter] ?? 'unknown', expectedType))
+        .map(([parameter, expectedType]) => `${parameter}: mapper ${mapperParameterTypes[parameter] ?? 'unknown'} / SQL ${expectedType}`);
+      const parameterTypeConflicts = parameterInference?.conflicts
+        .filter((conflict) => conflict.bindings.every((binding) => binding.confidence === 'certain'))
+        .map((conflict) =>
+        `${conflict.parameter}: ${conflict.bindings.map((binding) => `${binding.table}.${binding.column} ${binding.typeScriptType}`).join(', ')}`
+      ) ?? [];
+      const warningParameterTypeConflicts = parameterInference?.conflicts
+        .filter((conflict) => conflict.bindings.some((binding) => binding.confidence !== 'certain'))
+        .map((conflict) =>
+        `${conflict.parameter}: ${conflict.bindings.map((binding) => `${binding.table}.${binding.column} ${binding.typeScriptType}`).join(', ')}`
+      ) ?? [];
       const sqlResultColumns = extractSqlResultColumns(sql).sort();
       const mapperResultColumns = extractMapperResultColumns(querySource, queryName).sort();
       const missingInMapper = sqlParameters.filter((parameter) => !mapperParameters.includes(parameter));
@@ -646,6 +697,12 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
         queryFile: toProjectPath(rootDir, queryFile),
         sqlParameters,
         mapperParameters,
+        sqlParameterTypes,
+        mapperParameterTypes,
+        mismatchedParameterTypes,
+        warningParameterTypeMismatches,
+        parameterTypeConflicts,
+        warningParameterTypeConflicts,
         sqlResultColumns,
         mapperResultColumns,
         missingInMapper,
@@ -671,6 +728,8 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
     ok: checked.every((entry) =>
       entry.missingInMapper.length === 0
       && entry.unusedInMapper.length === 0
+      && entry.mismatchedParameterTypes.length === 0
+      && entry.parameterTypeConflicts.length === 0
       && entry.missingResultInMapper.length === 0
       && entry.unusedResultInMapper.length === 0
     ),
@@ -726,8 +785,8 @@ function buildFeatureFiles(
   ];
 }
 
-function discoverFeatureBoundaries(rootDir: string, featureName?: string, boundaryDir?: string): Array<{ name: string; dir: string }> {
-  const featuresDir = path.join(rootDir, 'src', 'features');
+function discoverFeatureBoundaries(rootDir: string, featureName?: string, boundaryDir?: string, featureRoot = 'src/features'): Array<{ name: string; dir: string }> {
+  const featuresDir = path.join(rootDir, featureRoot);
   if (featureName && boundaryDir) {
     throw invalidCliInputError(
       'ASHIBA_FEATURE_BOUNDARY_INPUT_CONFLICT',
@@ -747,7 +806,7 @@ function discoverFeatureBoundaries(rootDir: string, featureName?: string, bounda
   if (!existsSync(featuresDir)) {
     throw invalidCliInputError(
       'ASHIBA_FEATURES_DIR_MISSING',
-      'No src/features directory was discovered.',
+      `No ${featureRoot} directory was discovered.`,
       'Run ashiba feature scaffold first, or pass --feature for an existing feature directory.',
       { featuresDir: toProjectPath(rootDir, featuresDir) },
     );
@@ -942,6 +1001,20 @@ function extractMapperParameters(source: string, queryName: string): string[] {
   return [];
 }
 
+function extractMapperParameterTypes(source: string, queryName: string): Record<string, string> {
+  const pascal = toPascal(queryName);
+  const preferred = extractInterfaceFieldTypes(source, `${pascal}QueryParams`);
+  if (Object.keys(preferred).length > 0 || source.includes(`interface ${pascal}QueryParams`)) {
+    return preferred;
+  }
+
+  const matches = [...source.matchAll(/export\s+interface\s+([A-Za-z0-9_]+QueryParams)\s*\{([\s\S]*?)\}/g)];
+  if (matches.length === 1) {
+    return extractFieldTypes(matches[0][2] ?? '');
+  }
+  return {};
+}
+
 function extractMapperResultColumns(source: string, queryName: string): string[] {
   const pascal = toPascal(queryName);
   const preferred = extractInterfaceFields(source, `${pascal}QueryResult`);
@@ -962,6 +1035,12 @@ function extractInterfaceFields(source: string, interfaceName: string): string[]
   return match ? extractFieldNames(match[1] ?? '') : [];
 }
 
+function extractInterfaceFieldTypes(source: string, interfaceName: string): Record<string, string> {
+  const escapedName = interfaceName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = source.match(new RegExp(`export\\s+interface\\s+${escapedName}\\s*\\{([\\s\\S]*?)\\}`));
+  return match ? extractFieldTypes(match[1] ?? '') : {};
+}
+
 function extractFieldNames(body: string): string[] {
   return body
     .split(/\r?\n/)
@@ -969,6 +1048,17 @@ function extractFieldNames(body: string): string[] {
     .map((line) => line.match(/^([A-Za-z_][A-Za-z0-9_]*)\??\s*:/)?.[1])
     .filter((field): field is string => Boolean(field))
     .sort();
+}
+
+function extractFieldTypes(body: string): Record<string, string> {
+  return Object.fromEntries(body
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\/\/.*$/, '').trim())
+    .map((line) => line.match(/^([A-Za-z_][A-Za-z0-9_]*)\??\s*:\s*([^;]+);?$/))
+    .filter((match): match is RegExpMatchArray => Boolean(match))
+    .map((match) => [match[1] ?? '', (match[2] ?? '').trim()])
+    .filter(([field]) => field.length > 0)
+    .sort(([left], [right]) => left.localeCompare(right)));
 }
 
 function formatGeneratedMapperCheck(result: FeatureGeneratedMapperCheckResult): string {
@@ -979,6 +1069,12 @@ function formatGeneratedMapperCheck(result: FeatureGeneratedMapperCheckResult): 
     lines.push(`  mapper: ${entry.queryFile}`);
     lines.push(`  sql parameters: ${entry.sqlParameters.length > 0 ? entry.sqlParameters.join(', ') : '(none)'}`);
     lines.push(`  mapper parameters: ${entry.mapperParameters.length > 0 ? entry.mapperParameters.join(', ') : '(none)'}`);
+    if (Object.keys(entry.sqlParameterTypes).length > 0) {
+      lines.push(`  sql parameter types: ${formatTypeMap(entry.sqlParameterTypes)}`);
+    }
+    if (Object.keys(entry.mapperParameterTypes).length > 0) {
+      lines.push(`  mapper parameter types: ${formatTypeMap(entry.mapperParameterTypes)}`);
+    }
     lines.push(`  sql result columns: ${entry.sqlResultColumns.length > 0 ? entry.sqlResultColumns.join(', ') : '(none)'}`);
     lines.push(`  mapper result columns: ${entry.mapperResultColumns.length > 0 ? entry.mapperResultColumns.join(', ') : '(none)'}`);
     if (entry.missingInMapper.length > 0) {
@@ -986,6 +1082,18 @@ function formatGeneratedMapperCheck(result: FeatureGeneratedMapperCheckResult): 
     }
     if (entry.unusedInMapper.length > 0) {
       lines.push(`  unused in mapper: ${entry.unusedInMapper.join(', ')}`);
+    }
+      if (entry.mismatchedParameterTypes.length > 0) {
+      lines.push(`  mismatched parameter types: ${entry.mismatchedParameterTypes.join(', ')}`);
+    }
+    if (entry.warningParameterTypeMismatches.length > 0) {
+      lines.push(`  warning parameter type mismatches: ${entry.warningParameterTypeMismatches.join(', ')}`);
+    }
+    if (entry.parameterTypeConflicts.length > 0) {
+      lines.push(`  parameter type conflicts: ${entry.parameterTypeConflicts.join(', ')}`);
+    }
+    if (entry.warningParameterTypeConflicts.length > 0) {
+      lines.push(`  warning parameter type conflicts: ${entry.warningParameterTypeConflicts.join(', ')}`);
     }
     if (entry.missingResultInMapper.length > 0) {
       lines.push(`  missing result in mapper: ${entry.missingResultInMapper.join(', ')}`);
@@ -995,6 +1103,10 @@ function formatGeneratedMapperCheck(result: FeatureGeneratedMapperCheckResult): 
     }
   }
   return `${lines.join('\n')}\n`;
+}
+
+function formatTypeMap(types: Record<string, string>): string {
+  return Object.entries(types).map(([name, type]) => `${name}: ${type}`).join(', ');
 }
 
 function formatFeatureTestsCheck(result: FeatureTestsCheckResult): string {
@@ -1100,6 +1212,7 @@ function buildSharedFiles(): GeneratedFile[] {
         "    rootQueryShape?: 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';",
         '    hasTopLevelOrderBy: boolean;',
         '    sourceHash?: string;',
+        '    parameterTypes?: Record<string, string>;',
         '  };',
         '  bindings?: {',
         '    postgres?: { sourceHash?: string; sql: string; orderedNames: readonly string[] };',
@@ -1747,7 +1860,11 @@ function buildFeatureQueryModel(sql: string, rootDir: string): {
   const postgres = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
   const parameters = [...new Set(postgres.orderedNames)];
-  const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, { sssqlCompression: true });
+  const ddlModel = loadDdlSchemaModel(rootDir);
+  const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
+    sssqlCompression: true,
+    parameterTypes: ddlModel ? inferSqlParameterTypes(sql, ddlModel).parameterTypes : undefined,
+  });
   return {
     analysis,
     bindings: {

@@ -7,6 +7,7 @@ describe('analyzeMigrationSqlRisks', () => {
 
     expect(result.destructiveRisks.map((risk) => risk.kind)).toEqual(['cascade_drop', 'drop_table']);
     expect(result.destructiveRisks[0]?.guidance).toContain('review_if_required');
+    expect(result.destructiveRisks[0]?.guidance).not.toContain('cli_option_not_exposed');
   });
 
   it('reports rebuild operational risks', () => {
@@ -55,5 +56,42 @@ describe('compareDdlSql', () => {
     expect(result.summary.some((entry) => entry.changeKind === 'drop_column')).toBe(true);
     expect(result.risks.destructiveRisks.some((risk) => risk.kind === 'drop_column')).toBe(true);
     expect(result.risks.operationalRisks.some((risk) => risk.kind === 'table_rebuild')).toBe(false);
+  });
+
+  it('keeps destructive risks visible when destructive SQL output is suppressed', () => {
+    const result = compareDdlSql({
+      localSql: 'CREATE TABLE public.users (id integer not null);',
+      remoteSql: 'CREATE TABLE public.users (id integer not null, old_name text);',
+      safety: { dropColumns: false },
+    });
+
+    expect(result.sql).not.toContain('DROP COLUMN');
+    expect(result.summary.some((entry) => entry.changeKind === 'drop_column')).toBe(true);
+    expect(result.risks.destructiveRisks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'drop_column',
+        target: 'public.users.old_name',
+      }),
+    ]));
+  });
+
+  it('keeps suppressed constraint and index drops visible in risks', () => {
+    const result = compareDdlSql({
+      localSql: `
+        CREATE TABLE public.users (id integer not null);
+      `,
+      remoteSql: `
+        CREATE TABLE public.users (id integer not null, CONSTRAINT users_id_check CHECK (id > 0));
+        CREATE INDEX users_id_idx ON public.users (id);
+      `,
+      safety: { dropConstraints: false, dropIndexes: false },
+    });
+
+    expect(result.sql).not.toMatch(/DROP\s+CONSTRAINT/i);
+    expect(result.sql).not.toMatch(/DROP\s+INDEX/i);
+    expect(result.risks.destructiveRisks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'drop_constraint' }),
+      expect.objectContaining({ kind: 'drop_index' }),
+    ]));
   });
 });

@@ -14,6 +14,7 @@ import { registerInitCommand } from './commands/init.js';
 import { registerLintCommand } from './commands/lint.js';
 import { registerModelGenCommand } from './commands/model-gen.js';
 import { registerPerfCommand } from './commands/perf.js';
+import { registerProjectCommand } from './commands/project.js';
 import { registerQueryCommand } from './commands/query.js';
 import { registerRfbaCommand } from './commands/rfba.js';
 
@@ -40,7 +41,6 @@ Core message:
 Status:
   This CLI includes scaffolding, DDL review, query analysis, contract checks,
   model generation, RFBA inspection, and performance evidence.
-  Command migration from ztd-cli is tracked in docs/migration/status.md.
 
 Common use cases:
   ashiba init                 Create a SQL-first starter after choosing a DBMS/driver.
@@ -60,6 +60,7 @@ Common use cases:
   registerLintCommand(program);
   registerModelGenCommand(program);
   registerPerfCommand(program);
+  registerProjectCommand(program);
   registerQueryCommand(program);
   registerRfbaCommand(program);
 

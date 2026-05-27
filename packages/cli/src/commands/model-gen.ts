@@ -12,6 +12,7 @@ import {
   type SqlOptionalConditionCompressionMetadata,
 } from './sql-optional-condition-compression-metadata.js';
 import { inferSqlExpressionContractType } from './sql-expression-type.js';
+import { inferSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, requiredCliValueError } from '../errors.js';
 
 export interface ModelGenOptions {
@@ -52,6 +53,7 @@ export interface QueryModelAnalysis {
   resultColumns: string[];
   resultColumnTypes: Record<string, SqlResultColumnContract['type']>;
   namedParameters: string[];
+  parameterTypes?: Record<string, string>;
 }
 
 export interface QueryModelBindings {
@@ -130,10 +132,12 @@ export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const mysql2Binding = compileNamedParameters(sql, { placeholderStyle: 'question' });
   const mssqlBinding = compileNamedParameters(sql, { placeholderStyle: 'named-at' });
   const parameters = [...new Set(postgresBinding.orderedNames)];
+  const ddlModel = loadDdlSchemaModel(rootDir, options.ddlDir);
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, options.ddlDir);
   const resultColumns = resultColumnContracts.map((column) => column.name);
   const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
     sssqlCompression: true,
+    parameterTypes: ddlModel ? inferSqlParameterTypes(sql, ddlModel).parameterTypes : undefined,
   });
   const bindings = {
     postgres: {
@@ -161,7 +165,14 @@ export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const relativeMetadataFile = metadataOut && out
     ? toRelativeImportPath(normalizePath(path.relative(path.dirname(out), metadataOut)).replace(/\.ts$/, '.js'))
     : './generated/query.meta.js';
-  const contents = renderQueryContract({ id, sqlFile: relativeSqlFile, parameters, resultColumnContracts, metadataImport: relativeMetadataFile });
+  const contents = renderQueryContract({
+    id,
+    sqlFile: relativeSqlFile,
+    parameters,
+    parameterTypes: analysis.parameterTypes,
+    resultColumnContracts,
+    metadataImport: relativeMetadataFile,
+  });
   const metadataContents = renderQueryMetadata({ id, sqlFile: relativeSqlFile, analysis, bindings });
 
   if (out && options.dryRun !== true) {
@@ -206,6 +217,7 @@ function renderQueryContract(params: {
   id: string;
   sqlFile: string;
   parameters: string[];
+  parameterTypes?: Record<string, string>;
   resultColumnContracts: SqlResultColumnContract[];
   metadataImport: string;
 }): string {
@@ -219,7 +231,7 @@ function renderQueryContract(params: {
     `export const queryId = ${JSON.stringify(params.id)};`,
     `export const sqlFile = ${JSON.stringify(params.sqlFile)};`,
     '',
-    `export interface ${pascal}QueryParams ${renderParamsInterface(params.parameters)}`,
+    `export interface ${pascal}QueryParams ${renderParamsInterface(params.parameters, params.parameterTypes)}`,
     '',
     `export interface ${pascal}QueryRow ${renderRowInterface(params.resultColumnContracts)}`,
     '',
@@ -319,7 +331,7 @@ export function analyzeQueryModel(
   sql: string,
   namedParameters: string[],
   resultColumnContracts: SqlResultColumnContract[],
-  options: { sssqlCompression?: boolean } = {},
+  options: { sssqlCompression?: boolean; parameterTypes?: Record<string, string> } = {},
 ): QueryModelAnalysis {
   const sourceHash = hashSql(sql);
   const resultColumns = resultColumnContracts.map((column) => column.name);
@@ -349,6 +361,9 @@ export function analyzeQueryModel(
       resultColumns,
       resultColumnTypes,
       namedParameters,
+      ...(options.parameterTypes && Object.keys(options.parameterTypes).length > 0
+        ? { parameterTypes: options.parameterTypes }
+        : {}),
     };
   } catch (error) {
     throw astParseUserError({
@@ -518,11 +533,11 @@ function normalizeIdentifier(value: string): string {
   return value.trim().replace(/^"/, '').replace(/"$/, '');
 }
 
-function renderParamsInterface(parameters: string[]): string {
+function renderParamsInterface(parameters: string[], parameterTypes: Record<string, string> | undefined): string {
   if (parameters.length === 0) {
     return '{ [key: string]: never; }';
   }
-  return `{\n${parameters.map((parameter) => `  ${parameter}: unknown;`).join('\n')}\n}`;
+  return `{\n${parameters.map((parameter) => `  ${parameter}: ${parameterTypes?.[parameter] ?? 'unknown'};`).join('\n')}\n}`;
 }
 
 function renderRowInterface(columns: SqlResultColumnContract[]): string {

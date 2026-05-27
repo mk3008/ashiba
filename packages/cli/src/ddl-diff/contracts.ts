@@ -23,6 +23,8 @@ export type RiskGuidanceKind =
 export type DestructiveRiskKind =
   | 'drop_table'
   | 'drop_column'
+  | 'drop_constraint'
+  | 'drop_index'
   | 'cascade_drop'
   | 'alter_type'
   | 'rename_candidate'

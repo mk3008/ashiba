@@ -9,30 +9,23 @@ hero:
     alt: Ashiba logo
   actions:
     - theme: brand
-      text: Review Concepts
-      link: /guide/conceptspec-review
+      text: API
+      link: /api/commands
     - theme: alt
-      text: Concept Map
+      text: Concepts
       link: /concepts/concept-map
-    - theme: alt
-      text: Migration Status
-      link: /migration/status
 features:
-  - title: Ashiba Runtime Zero
-    details: The CLI generates native TypeScript application code that does not need Ashiba CLI/runtime libraries; driver adapters and extensions may have runtime dependencies.
-  - title: SQL stays visible
-    details: SQL remains readable, reviewable, editable, executable, and searchable.
-  - title: Scaffolds the boring parts
-    details: DTO definitions, mappers, query ID numbering, tests, migrations, sqlgrep, and impact analysis are planned around visible SQL and editable generated code.
-  - title: Review-ready concepts
-    details: ConceptSpec, architecture, and migration documents are organized for human review.
+  - title: "SQL is yours"
+    details: "Keep SQL as application-owned source code. Read it, edit it, review it, and run it in your SQL client."
+  - title: "Generated code is yours"
+    details: "Ashiba writes ordinary TypeScript into your repo, including DTOs, mapper boundaries, query contracts, tests, and metadata."
+  - title: "Safety is checked"
+    details: "Drift checks and mapper tests catch stale SQL, DDL, metadata, and generated contracts before they become accepted code."
+  - title: "No ORM runtime"
+    details: "Your app runs explicit SQL through a driver adapter and ordinary TypeScript boundaries. No hidden query DSL or object layer."
 ---
 
-## Review Entry Points
+## Documentation
 
-- [ConceptSpec review guide](./guide/conceptspec-review.md)
-- [Concept overview](./concepts/index.md)
-- [ConceptSpec source](./concepts/ashiba-concepts.md)
-- [Concept inventory](./concepts/ashiba-concept-inventory.md)
-- [Package naming policy](./architecture/package-naming-policy.md)
-- [Migration status](./migration/status.md)
+- [Command API](./api/commands.md)
+- [Concept map](./concepts/concept-map.md)

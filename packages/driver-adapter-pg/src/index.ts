@@ -68,7 +68,7 @@ export type AshibaPostgresQueryModel = {
  */
 export type AshibaPostgresQuerySource = {
   sql: string;
-  sqlPath: string;
+  sqlPath?: string;
   queryModel: AshibaPostgresQueryModel;
   metadata?: AshibaSqlExecutionMetadata;
 };
@@ -168,6 +168,7 @@ export function createPostgresAdapter(
         sqlPath: executeOptions.metadata?.sqlPath ?? query.metadata?.sqlPath ?? query.sqlPath,
         dialect: executeOptions.metadata?.dialect ?? query.metadata?.dialect ?? 'postgres',
       };
+      const warnings = buildSqlSourceWarnings(query, metadata);
       const startedAt = Date.now();
       let sourceSql = sql;
       let compiledSql = sql;
@@ -196,6 +197,7 @@ export function createPostgresAdapter(
         options.observer?.emit({
           phase: 'start',
           metadata,
+          ...(warnings.length > 0 ? { warnings } : {}),
           sourceSql,
           compiledSql,
           orderedNames: bound.orderedNames,
@@ -207,6 +209,7 @@ export function createPostgresAdapter(
         options.observer?.emit({
           phase: 'end',
           metadata,
+          ...(warnings.length > 0 ? { warnings } : {}),
           sourceSql,
           compiledSql: bound.sql,
           orderedNames: bound.orderedNames,
@@ -220,6 +223,7 @@ export function createPostgresAdapter(
         options.observer?.emit({
           phase: 'error',
           metadata,
+          ...(warnings.length > 0 ? { warnings } : {}),
           sourceSql,
           ...(bound
             ? {
@@ -236,6 +240,21 @@ export function createPostgresAdapter(
       }
     },
   };
+}
+
+function buildSqlSourceWarnings(
+  query: AshibaPostgresQuerySource,
+  metadata: AshibaSqlExecutionMetadata,
+): readonly { code: string; message: string; nextAction?: string }[] {
+  if (query.sqlPath || metadata.sqlPath || metadata.sqlFile) {
+    return [];
+  }
+
+  return [{
+    code: 'ASHIBA_STRING_SQL_SOURCE',
+    message: 'SQL execution did not include a file-backed sqlPath or sqlFile.',
+    nextAction: 'Prefer generated or file-backed query sources so logs can point reviewers to the SQL owner.',
+  }];
 }
 
 function preparePostgresExecution(

@@ -20,6 +20,11 @@ export type AshibaSqlExecutionMetadata = {
 export type AshibaSqlExecutionEvent = {
   phase: 'start' | 'end' | 'error';
   metadata?: AshibaSqlExecutionMetadata;
+  warnings?: readonly {
+    code: string;
+    message: string;
+    nextAction?: string;
+  }[];
   sourceSql?: string;
   compiledSql?: string;
   orderedNames?: readonly string[];
