@@ -14,7 +14,7 @@
     "typedoc-plugin-markdown",
     "typedoc-vitepress-theme"
   ],
-  "out": "docs/api",
+  "out": "docs/generated/api",
   "readme": "none",
   "sort": [
     "source-order"
@@ -33,7 +33,7 @@
   "sidebar": {
     "autoConfiguration": {
       "text": "API Reference",
-      "entryDocument": "api/index"
+      "entryDocument": "generated/api/index"
     }
   },
   "docsRoot": "./docs"

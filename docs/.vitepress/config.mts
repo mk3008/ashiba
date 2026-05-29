@@ -1,11 +1,11 @@
 import { defineConfig } from 'vitepress';
 import type { DefaultTheme } from 'vitepress';
-import typedocSidebar from '../api/typedoc-sidebar.json' with { type: 'json' };
+import typedocSidebar from '../generated/api/typedoc-sidebar.json' with { type: 'json' };
 
 const apiSidebar = typedocSidebar as DefaultTheme.SidebarItem[];
 const apiSidebarWithIndex: DefaultTheme.SidebarItem[] = [
-  { text: 'API Overview', link: '/api/index' },
-  { text: 'Commands', link: '/api/commands' },
+  { text: 'API Overview', link: '/generated/api/index' },
+  { text: 'Commands', link: '/generated/api/commands' },
   ...apiSidebar,
 ];
 
@@ -24,7 +24,7 @@ export default defineConfig({
   themeConfig: {
     logo: '/brand/ashiba-icon.jpg',
     nav: [
-      { text: 'API', link: '/api/index' },
+      { text: 'API', link: '/generated/api/index' },
       { text: 'Concepts', link: '/concepts/concept-map' },
     ],
     sidebar: {
@@ -32,7 +32,7 @@ export default defineConfig({
         { text: 'SSSQL Notation', link: '/guide/sssql' },
         { text: 'Safe Sort', link: '/guide/safe-sort' },
       ],
-      '/api/': [
+      '/generated/api/': [
         ...apiSidebarWithIndex,
       ],
       '/concepts/': [

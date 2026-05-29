@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: API
-      link: /api/commands
+      link: /generated/api/commands
     - theme: alt
       text: Concepts
       link: /concepts/concept-map
@@ -27,7 +27,7 @@ features:
 
 ## Documentation
 
-- [Command API](./api/commands.md)
+- [Command API](./generated/api/commands.md)
 - [SSSQL notation](./guide/sssql.md)
 - [Safe sort](./guide/safe-sort.md)
 - [Concept map](./concepts/concept-map.md)
