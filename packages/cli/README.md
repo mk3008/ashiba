@@ -1,4 +1,4 @@
-# @ashiba/cli
+# @ashiba-ts/cli
 
 Ashiba Runtime Zero SQL scaffolder for TypeScript applications.
 

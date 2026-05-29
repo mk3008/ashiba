@@ -1,4 +1,4 @@
-# @ashiba/ddl-pull-pg-dump
+# @ashiba-ts/ddl-pull-pg-dump
 
 ## 0.1.0
 

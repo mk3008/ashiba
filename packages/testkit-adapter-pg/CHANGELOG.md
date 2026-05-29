@@ -1,4 +1,4 @@
-# @ashiba/testkit-adapter-pg
+# @ashiba-ts/testkit-adapter-pg
 
 ## 0.1.0
 

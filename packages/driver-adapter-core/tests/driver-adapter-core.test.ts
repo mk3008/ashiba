@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { AshibaSortError, maskParams, normalizeError, renderSafeOrderBy } from '../src/index.js';
 
-describe('@ashiba/driver-adapter-core', () => {
+describe('@ashiba-ts/driver-adapter-core', () => {
   test('masks params by default', () => {
     expect(maskParams([1, null, 'secret'])).toEqual(['<masked>', '<nullish>', '<masked>']);
   });

@@ -47,8 +47,8 @@ async function loadCommandApiRuntime() {
   const root = process.cwd();
   const catalogPath = path.join(root, 'packages', 'cli', 'dist', 'commands', 'command-catalog.js');
   const indexPath = path.join(root, 'packages', 'cli', 'dist', 'index.js');
-  await assertFileExists(catalogPath, 'Run `pnpm --filter @ashiba/cli build` before generating docs.');
-  await assertFileExists(indexPath, 'Run `pnpm --filter @ashiba/cli build` before generating docs.');
+  await assertFileExists(catalogPath, 'Run `pnpm --filter @ashiba-ts/cli build` before generating docs.');
+  await assertFileExists(indexPath, 'Run `pnpm --filter @ashiba-ts/cli build` before generating docs.');
   const [catalogModule, cliModule] = await Promise.all([
     import(pathToFileURL(catalogPath).href),
     import(pathToFileURL(indexPath).href),

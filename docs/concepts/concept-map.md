@@ -8,7 +8,7 @@ The current ConceptSpec format is provisional. This page is optimized for human 
 
 - Product: `Ashiba`
 - Baseline: `rawsql-ts/packages/ztd-cli`
-- CLI package target: `@ashiba/cli`
+- CLI package target: `@ashiba-ts/cli`
 - CLI command: `ashiba`
 
 ## Package Responsibility Categories
@@ -16,9 +16,9 @@ The current ConceptSpec format is provisional. This page is optimized for human 
 | Category | Package area | Review purpose |
 |---|---|---|
 | Repository Philosophy | Repository-wide concepts and policies | Defines the product promise, runtime policy, SQL-first posture, and boundaries that every package must preserve. |
-| CLI | `@ashiba/cli` | Owns user-facing commands, scaffolding workflows, generated review artifacts, and migration from `ztd-cli`. |
-| Driver Packages | `@ashiba/sql-*`, `@ashiba/driver-adapter-*`, `@ashiba/testkit-adapter-*`, `@ashiba/dialect-*` | Own thin driver seams, named parameters, sort profiles, dialect details, and testkit/production adapter separation. |
-| Extension Packages | `@ashiba/sql-transform-*`, future `@ashiba/extension-*` | Own future SQL-first transforms without becoming ORM query planning or a query DSL. |
+| CLI | `@ashiba-ts/cli` | Owns user-facing commands, scaffolding workflows, generated review artifacts, and migration from `ztd-cli`. |
+| Driver Packages | `@ashiba-ts/sql-*`, `@ashiba-ts/driver-adapter-*`, `@ashiba-ts/testkit-adapter-*`, `@ashiba-ts/dialect-*` | Own thin driver seams, named parameters, sort profiles, dialect details, and testkit/production adapter separation. |
+| Extension Packages | `@ashiba-ts/sql-transform-*`, future `@ashiba-ts/extension-*` | Own future SQL-first transforms without becoming ORM query planning or a query DSL. |
 
 ## Customer Contact Review Lanes
 
@@ -39,7 +39,7 @@ These concepts apply to the whole repository and constrain all packages.
 | `ashiba` | Ashiba | mostly done | Product identity for the `ztd-cli` rebrand; package and command surfaces now use Ashiba naming. Ashiba is not PostgreSQL-only; product-level vocabulary stays DBMS-neutral while DBMS-specific wrappers name their concrete driver or tool. Setup requires explicit DBMS starter selection and keeps package manager state application-owned. |
 | `visible-sql` | Visible SQL | mostly done | SQL remains readable, reviewable, editable, executable, searchable, and uses named parameters for maintainability. |
 | `boring-parts` | Boring Parts | mostly done | DTO definitions, mappers, query ID numbering, tests, optional migration review, sqlgrep, and impact analysis have initial Ashiba surfaces; richer row typing remains. |
-| `ashiba-runtime-zero` | Ashiba Runtime Zero | mostly done | `@ashiba/cli` generates native TypeScript application code; generated application code does not require Ashiba CLI/runtime libraries, while driver adapters and extensions may have runtime dependencies. |
+| `ashiba-runtime-zero` | Ashiba Runtime Zero | mostly done | `@ashiba-ts/cli` generates native TypeScript application code; generated application code does not require Ashiba CLI/runtime libraries, while driver adapters and extensions may have runtime dependencies. |
 | `no-orm-runtime` | No ORM Runtime | mostly done | Rejects entities, relation loading, lazy loading, unit-of-work tracking, dirty tracking, and runtime model ownership; feature code owns orchestration. |
 | `no-query-dsl-ceremony` | No Query DSL Ceremony | mostly done | SQL remains SQL, directly runnable in a SQL client, and free of Ashiba-only SQL notation. |
 | `editable-generated-code` | Editable Generated Code | mostly done | Generated code remains visible customer-owned repository code, may be edited by humans and AI agents, and stays under drift checks after generation. Generated-owned metadata and human-editable code must be physically separated. |
@@ -47,7 +47,7 @@ These concepts apply to the whole repository and constrain all packages.
 | `no-ai-behavior-file-distribution` | No AI Behavior File Distribution | mostly done | `ashiba init` may create README/docs, but Ashiba must not distribute `AGENTS.md`, `SKILL.md`, skills, prompts, or other files that alter AI-agent behavior. |
 | `mapper-tested-type-safety` | Mapper-Tested Type Safety | mostly done | DTO and mapper type safety is guaranteed by mapping tests and DB-backed integration tests, not runtime result-row validation. Read queries primarily prove DB-to-TypeScript row mapping, with parameterized reads also proving TypeScript-to-DB parameter mapping. Mutation queries primarily prove TypeScript-to-DB parameter/write mapping, and also prove DB-to-TypeScript row mapping when the dialect exposes mutation result rows such as PostgreSQL `RETURNING`. |
 | `error-output-modes` | Error Output Modes | mostly done | Shared formatter and CLI option support human-oriented and AI-oriented modes. Both modes include cause and next action/hint; known production errors in the current package set expose structured cause/action metadata, with formatter fallbacks kept as a safety net for unexpected errors. |
-| `tooling-ast-dependency-policy` | Tooling AST Dependency Policy | partial | Ashiba tooling may depend on `rawsql-ts` core AST APIs through npm; development-only Runtime Zero support capabilities should be folded into `@ashiba/cli` unless a real non-CLI consumer exists. Dev-time SQL structural analysis should prefer tested AST APIs over regex/lexical parsing; remaining non-AST helpers are parser/AST capability debt unless limited to source offsets, generated TypeScript artifact extraction, or explicit diagnostics. Silent fallback is rejected. |
+| `tooling-ast-dependency-policy` | Tooling AST Dependency Policy | partial | Ashiba tooling may depend on `rawsql-ts` core AST APIs through npm; development-only Runtime Zero support capabilities should be folded into `@ashiba-ts/cli` unless a real non-CLI consumer exists. Dev-time SQL structural analysis should prefer tested AST APIs over regex/lexical parsing; remaining non-AST helpers are parser/AST capability debt unless limited to source offsets, generated TypeScript artifact extraction, or explicit diagnostics. Silent fallback is rejected. |
 | `file-backed-runtime-sql` | File-Backed Runtime SQL | partial | Runtime execution boundaries accept reviewed SQL files or generated query source objects with SQL path and query model metadata, not arbitrary SQL string input. This applies to scaffolded/generated SQL clients and executors as well as driver adapter packages. The underlying driver still receives a string internally after metadata checks. |
 | `query-model-metadata-contract` | Query Model Metadata Contract | partial | Runtime Zero SQL handling may use development-time AST analysis metadata only when the metadata is drift-checked against the source SQL by source hashes or equivalent checks. |
 | `public-api-and-help-surface` | Public API and Help Surface | partial | Public exported functions require JSDoc. CLI commands require help surfaces before execution, with AI-oriented help allowed when a structured form is safer. |
@@ -56,7 +56,7 @@ These concepts apply to the whole repository and constrain all packages.
 
 ## CLI Concepts
 
-These concepts primarily belong to `@ashiba/cli`.
+These concepts primarily belong to `@ashiba-ts/cli`.
 
 | ID | Display name | Status | Notes |
 |---|---|---|---|
@@ -68,7 +68,7 @@ These concepts primarily belong to `@ashiba/cli`.
 | `migration-query-generation` | Migration Query Generation | mostly done | Optional CLI support compares two DDL inputs and emits reviewable migration DDL plus risk info; DB connection, apply, rollback, scheduling, and migration-platform ownership are out of scope. |
 | `sql-impact-analysis` | SQL Impact Analysis | mostly done | Table usage, column usage, query outline, dependency graph, CTE slice debugging, and JSON output. |
 | `sqlgrep` | sqlgrep | mostly done | Keep `sqlgrep` as the capability name; expose it through Ashiba query commands where useful. |
-| `cli-no-hidden-sql-rewrite` | CLI No Hidden SQL Rewrite | mostly done | `@ashiba/cli` does not hide dynamic SQL rewriting in generated application code; driver adapters and SQL-first extensions keep their own explicit boundaries. |
+| `cli-no-hidden-sql-rewrite` | CLI No Hidden SQL Rewrite | mostly done | `@ashiba-ts/cli` does not hide dynamic SQL rewriting in generated application code; driver adapters and SQL-first extensions keep their own explicit boundaries. |
 | `rfba` | RFBA | mostly done | Review-First Boundary Architecture: scaffolding fixes repeatable VSA-style feature/query review grain, supports subgrouped boundaries, and avoids technical-layer folders as the primary split. |
 | `scaffold-as-guidance` | Scaffold As Guidance | partial | Scaffolded files are a customer-facing product surface, not only generated output. File placement, directory names, function names, comments, TODOs, and empty extension points should guide beginners and customer-side AI toward the intended maintenance path without requiring deep Ashiba knowledge. CLI scaffolding and generated holes are preferred guardrails when they are faster and more reliable than asking an AI to infer the project shape from prose. |
 | `query-boundary` | Query Boundary | mostly done | Feature-local named SQL access boundary for SQL, query ID, DTO/mapped result contract, parameter contract, execution contract, log trace identity, and verification. |
@@ -89,21 +89,21 @@ These concepts belong to driver-neutral SQL libraries, production driver adapter
 
 ## Transform Package Concepts
 
-These concepts are extension capabilities outside the core `@ashiba/cli` Runtime Zero path. They may have runtime dependencies when needed. They should stay SQL-first and review-oriented, and must not redefine core `@ashiba/cli` as a hidden runtime SQL rewriter.
+These concepts are extension capabilities outside the core `@ashiba-ts/cli` Runtime Zero path. They may have runtime dependencies when needed. They should stay SQL-first and review-oriented, and must not redefine core `@ashiba-ts/cli` as a hidden runtime SQL rewriter.
 
 | ID | Display name | Status | Target package |
 |---|---|---|---|
-| `pipeline-expansion` | Pipeline Expansion | mostly done | Dev-time CTE structure, graph, slice, and plan support is folded into `@ashiba/cli` query commands because it supports Runtime Zero review and has no separate runtime consumer. |
+| `pipeline-expansion` | Pipeline Expansion | mostly done | Dev-time CTE structure, graph, slice, and plan support is folded into `@ashiba-ts/cli` query commands because it supports Runtime Zero review and has no separate runtime consumer. |
 | `scalar-expansion` | Scalar Expansion | deferred | Extension capability planned from `rawsql-ts` / `ztd-cli` optional-condition tooling; deferred for the current pass. |
 
-Future `@ashiba/extension-*` packages are reserved until a plugin mechanism exists.
+Future `@ashiba-ts/extension-*` packages are reserved until a plugin mechanism exists.
 
 ## Category Relationship View
 
 ```mermaid
 flowchart TD
   Repo["Repository Philosophy"]
-  CLI["@ashiba/cli"]
+  CLI["@ashiba-ts/cli"]
   Drivers["Driver Packages"]
   Extensions["Transform Packages"]
 
@@ -193,9 +193,9 @@ flowchart TD
 - Recovery is part of detection. A good error points to the next command or mechanical fix, and a safe mechanical recovery should be available as an explicit refresh/fix command where possible.
 - Gate scaffolding must not generate a CI workflow or hook that fails because Ashiba's own package scripts are missing. The default path should create a complete passive gate surface, and advanced target flags must still preserve a working customer path.
 - `ashiba init` may create ordinary project documentation, but Ashiba must not distribute AI behavior files such as `AGENTS.md`, `SKILL.md`, skills, or prompts; AI guidance should come from visible scaffolds, contracts, and AI-oriented errors.
-- Ashiba Runtime Zero applies to `@ashiba/cli` generated application code, not to every driver or extension package.
+- Ashiba Runtime Zero applies to `@ashiba-ts/cli` generated application code, not to every driver or extension package.
 - Tooling AST dependencies, including `rawsql-ts` core, are allowed for Ashiba development packages and must not leak into generated application runtime code.
-- Development-time capabilities that only support the Runtime Zero workflow should be integrated into `@ashiba/cli`; `sqlgrep` is the representative case.
+- Development-time capabilities that only support the Runtime Zero workflow should be integrated into `@ashiba-ts/cli`; `sqlgrep` is the representative case.
 - CLI concepts must cover practical ORM-like development support through scaffolding and checks, without implying an ORM runtime.
 - Scaffolded unit tests are mapping tests. They verify the contract between TypeScript, visible SQL, DDL-backed DB execution, and DTO/query-result mapping; they are not a database state management or mutation behavior test suite.
 - Scaffolded unit tests guarantee that query inputs can be bound from TypeScript into SQL/DB execution and that returned result rows, when present, can be mapped back into the generated TypeScript result shape.

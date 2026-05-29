@@ -1,4 +1,4 @@
-# @ashiba/driver-adapter-mssql
+# @ashiba-ts/driver-adapter-mssql
 
 Thin Ashiba adapter for `mssql` queryables.
 

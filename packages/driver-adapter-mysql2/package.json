@@ -1,5 +1,5 @@
 {
-  "name": "@ashiba/driver-adapter-mysql2",
+  "name": "@ashiba-ts/driver-adapter-mysql2",
   "version": "0.0.1",
   "description": "Thin Ashiba adapter for mysql2 clients.",
   "type": "module",
@@ -11,12 +11,12 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "pnpm --filter @ashiba/driver-adapter-core build && tsc --noEmit -p tsconfig.json",
+    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@ashiba/driver-adapter-core": "workspace:*"
+    "@ashiba-ts/driver-adapter-core": "workspace:*"
   },
   "peerDependencies": {
     "mysql2": ">=3"

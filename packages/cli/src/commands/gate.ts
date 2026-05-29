@@ -19,7 +19,7 @@ export interface GateScaffoldResult {
   nextActions: string[];
 }
 
-const ASHIBA_CLI_SCRIPT = 'node node_modules/@ashiba/cli/dist/index.js';
+const ASHIBA_CLI_SCRIPT = 'node node_modules/@ashiba-ts/cli/dist/index.js';
 
 /**
  * Register commands that scaffold passive Ashiba gates into customer projects.

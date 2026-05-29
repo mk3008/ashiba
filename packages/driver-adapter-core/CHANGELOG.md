@@ -1,4 +1,4 @@
-# @ashiba/driver-adapter-core
+# @ashiba-ts/driver-adapter-core
 
 ## 0.1.0
 

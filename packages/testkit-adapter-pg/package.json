@@ -1,5 +1,5 @@
 {
-  "name": "@ashiba/testkit-adapter-pg",
+  "name": "@ashiba-ts/testkit-adapter-pg",
   "version": "0.1.0",
   "description": "Ashiba Zero Table Dependency testkit adapter for pg/PostgreSQL query tests.",
   "type": "module",

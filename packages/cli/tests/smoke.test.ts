@@ -19,7 +19,7 @@ import { formatProjectCheckResult, runProjectCheck } from '../src/commands/proje
 import { runQueryLint, runQueryOptionalAdd, runQuerySlice, runQueryStructure, runQueryUses } from '../src/commands/query.js';
 import { runRfbaInspect } from '../src/commands/rfba.js';
 
-describe('@ashiba/cli smoke', () => {
+describe('@ashiba-ts/cli smoke', () => {
   test('builds an ashiba program', () => {
     const program = buildProgram();
 
@@ -219,10 +219,10 @@ describe('@ashiba/cli smoke', () => {
         private: true,
         type: 'module',
         dependencies: { pg: '^8.0.0' },
-        devDependencies: { '@ashiba/cli': '^0.0.0' },
+        devDependencies: { '@ashiba-ts/cli': '^0.0.0' },
       }, null, 2)}\n`);
 
-      expect(() => runInit({ dir: rootDir, db: 'postgres', driver: 'pg' })).toThrow('@ashiba/driver-adapter-pg');
+      expect(() => runInit({ dir: rootDir, db: 'postgres', driver: 'pg' })).toThrow('@ashiba-ts/driver-adapter-pg');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1268,8 +1268,8 @@ describe('@ashiba/cli smoke', () => {
 
       expect(result.files).toEqual([{ relativePath: 'package.json', action: 'update' }]);
       expect(packageJson.scripts.test).toBe('vitest run');
-      expect(packageJson.scripts['ashiba:check']).toBe('node node_modules/@ashiba/cli/dist/index.js check');
-      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(packageJson.scripts['ashiba:check']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check');
+      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command "vitest run"');
       expect(packageJson.devDependencies?.husky).toBeUndefined();
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -1294,7 +1294,7 @@ describe('@ashiba/cli smoke', () => {
         { relativePath: '.github/workflows/ashiba-contract.yml', action: 'create' },
         { relativePath: '.githooks/pre-push', action: 'create' },
       ]);
-      expect(JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).scripts['ashiba:verify']).toBe('node node_modules/@ashiba/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command "vitest run"');
       expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm install');
       expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm run ashiba:verify');
       expect(readFileSync(path.join(rootDir, '.githooks', 'pre-push'), 'utf8')).toContain('npm run ashiba:verify');
@@ -1327,7 +1327,7 @@ describe('@ashiba/cli smoke', () => {
         { relativePath: 'package.json', action: 'update' },
         { relativePath: '.githooks/pre-push', action: 'create' },
       ]);
-      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command "vitest run"');
       expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm run ashiba:verify');
       expect(readFileSync(path.join(rootDir, '.githooks', 'pre-push'), 'utf8')).toContain('npm run ashiba:verify');
     } finally {
@@ -3135,12 +3135,12 @@ function writePostgresStarterPackageJson(rootDir: string): void {
     private: true,
     type: 'module',
     dependencies: {
-      '@ashiba/driver-adapter-pg': '^0.0.0',
+      '@ashiba-ts/driver-adapter-pg': '^0.0.0',
       pg: '^8.0.0',
     },
     devDependencies: {
-      '@ashiba/cli': '^0.0.0',
-      '@ashiba/testkit-adapter-pg': '^0.0.0',
+      '@ashiba-ts/cli': '^0.0.0',
+      '@ashiba-ts/testkit-adapter-pg': '^0.0.0',
       '@types/pg': '^8.0.0',
       dotenv: '^16.0.0',
       typescript: '^5.0.0',

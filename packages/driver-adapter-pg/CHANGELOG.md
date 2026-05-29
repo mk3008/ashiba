@@ -1,4 +1,4 @@
-# @ashiba/driver-adapter-pg
+# @ashiba-ts/driver-adapter-pg
 
 ## 0.1.0
 
@@ -23,4 +23,4 @@
 - [#1](https://github.com/mk3008/ashiba/pull/1) [`6521842`](https://github.com/mk3008/ashiba/commit/6521842760401bffee7cca6b48988a0d47f6e7f1) Thanks [@mk3008](https://github.com/mk3008)! - Add optional SSSQL condition compression metadata to model generation and enable explicit metadata-backed compression in the PostgreSQL adapter.
 
 - Updated dependencies [[`b451b4d`](https://github.com/mk3008/ashiba/commit/b451b4dcf395e71d2e68351880a013e9ba3a4546), [`d8e0689`](https://github.com/mk3008/ashiba/commit/d8e0689dd98d1e26eee6579c94113531307b8c2a), [`1c70b21`](https://github.com/mk3008/ashiba/commit/1c70b21d1ad826f28dc4965e1bfaa81a12771738), [`6521842`](https://github.com/mk3008/ashiba/commit/6521842760401bffee7cca6b48988a0d47f6e7f1)]:
-  - @ashiba/driver-adapter-core@0.1.0
+  - @ashiba-ts/driver-adapter-core@0.1.0

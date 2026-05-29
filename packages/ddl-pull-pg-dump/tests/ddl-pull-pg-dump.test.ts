@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { buildPgDumpArgs, createPgDumpCommand, createPgDumpCommandPreview, pullPostgresDdl } from '../src/index.js';
 
-describe('@ashiba/ddl-pull-pg-dump', () => {
+describe('@ashiba-ts/ddl-pull-pg-dump', () => {
   test('builds schema-only pg_dump args', () => {
     expect(
       buildPgDumpArgs({

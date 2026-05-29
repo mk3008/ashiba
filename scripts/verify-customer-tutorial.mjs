@@ -24,7 +24,7 @@ const packageDirs = readdirSync(packagesRoot, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => path.join(packagesRoot, entry.name))
   .filter((dir) => existsSync(path.join(dir, 'package.json')))
-  .filter((dir) => readPackageJson(dir).name.startsWith('@ashiba/'));
+  .filter((dir) => readPackageJson(dir).name.startsWith('@ashiba-ts/'));
 
 const tarballs = new Map();
 
@@ -35,12 +35,12 @@ for (const packageDir of packageDirs) {
   tarballs.set(packageJson.name, `file:${normalizePath(path.join(tarballRoot, tarballName))}`);
 }
 
-if (!tarballs.has('@ashiba/cli')) {
-  throw new Error('Missing @ashiba/cli tarball.');
+if (!tarballs.has('@ashiba-ts/cli')) {
+  throw new Error('Missing @ashiba-ts/cli tarball.');
 }
 
-if (!tarballs.has('@ashiba/driver-adapter-pg')) {
-  throw new Error('Missing @ashiba/driver-adapter-pg tarball.');
+if (!tarballs.has('@ashiba-ts/driver-adapter-pg')) {
+  throw new Error('Missing @ashiba-ts/driver-adapter-pg tarball.');
 }
 writePackageJson(starterRoot, {
   name: 'ashiba-starter',
@@ -53,12 +53,12 @@ writePackageJson(starterRoot, {
     'test:mapper': 'vitest run src/features -t ZTD',
   },
   dependencies: {
-    '@ashiba/driver-adapter-pg': '^0.0.0',
+    '@ashiba-ts/driver-adapter-pg': '^0.0.0',
     pg: '^8.16.3',
   },
   devDependencies: {
-    '@ashiba/cli': '^0.0.0',
-    '@ashiba/testkit-adapter-pg': '^0.0.0',
+    '@ashiba-ts/cli': '^0.0.0',
+    '@ashiba-ts/testkit-adapter-pg': '^0.0.0',
     '@types/pg': '^8.15.5',
     dotenv: '^16.6.1',
     typescript: '^5.9.3',
@@ -66,10 +66,10 @@ writePackageJson(starterRoot, {
   },
   pnpm: {
     overrides: sortedObject(pickTarballs([
-      '@ashiba/cli',
-      '@ashiba/driver-adapter-core',
-      '@ashiba/driver-adapter-pg',
-      '@ashiba/testkit-adapter-pg',
+      '@ashiba-ts/cli',
+      '@ashiba-ts/driver-adapter-core',
+      '@ashiba-ts/driver-adapter-pg',
+      '@ashiba-ts/testkit-adapter-pg',
     ])),
   },
 });
@@ -99,7 +99,7 @@ assertFileContains(path.join(starterRoot, 'tests', 'support', 'setup-env.ts'), '
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'setup-env.ts'), 'ASHIBA_TEST_DATABASE_URL conflicts');
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'harness.ts'), 'runQuerySpecZtdCases');
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'harness.ts'), 'createQuerySpecZtdVerifier');
-assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'verifier.ts'), '@ashiba/testkit-adapter-pg');
+assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'verifier.ts'), '@ashiba-ts/testkit-adapter-pg');
 assertFileContains(path.join(starterRoot, 'tests', 'support', 'ztd', 'verifier.ts'), 'await pool.end()');
 assertFileContains(path.join(starterRoot, 'src', 'features', '_shared', 'featureQueryExecutor.ts'), 'FeatureQueryExecutor');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'createPgPool');
@@ -123,11 +123,11 @@ assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'external_
 assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'production.sql'), 'create table public.users');
 assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'production.sql'), 'user_id bigserial primary key');
 assertPathMissing(path.join(starterRoot, 'src', 'features', 'smoke'));
-assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/driver-adapter-pg');
-assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/testkit-adapter-pg');
-assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba/cli');
-assertFileContains(path.join(starterRoot, 'package.json'), '"ashiba:check": "node node_modules/@ashiba/cli/dist/index.js check"');
-assertFileContains(path.join(starterRoot, 'package.json'), '"ashiba:verify": "node node_modules/@ashiba/cli/dist/index.js check --full --mapper-test-command \\"vitest run\\""');
+assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba-ts/driver-adapter-pg');
+assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba-ts/testkit-adapter-pg');
+assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba-ts/cli');
+assertFileContains(path.join(starterRoot, 'package.json'), '"ashiba:check": "node node_modules/@ashiba-ts/cli/dist/index.js check"');
+assertFileContains(path.join(starterRoot, 'package.json'), '"ashiba:verify": "node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command \\"vitest run\\""');
 assertFileContains(path.join(starterRoot, '.github', 'workflows', 'ashiba-contract.yml'), 'pnpm ashiba:verify');
 assertFileContains(path.join(starterRoot, 'README.md'), 'docker compose up -d');
 
@@ -199,7 +199,7 @@ try {
     originalDdl.replace('external_account_id bigint not null', 'external_account_id bigint not null,\n  risk_score integer not null'),
     'utf8',
   );
-  const failedCheck = runExpectFailure(process.execPath, ['node_modules/@ashiba/cli/dist/index.js', 'check'], starterRoot);
+  const failedCheck = runExpectFailure(process.execPath, ['node_modules/@ashiba-ts/cli/dist/index.js', 'check'], starterRoot);
   if (!failedCheck.includes('ASHIBA_PROJECT_INSERT_REQUIRED_COLUMN_OMITTED')) {
     throw new Error(`Expected passive gate to catch omitted required INSERT column. Output:\n${failedCheck}`);
   }

@@ -1,5 +1,5 @@
 {
-  "name": "@ashiba/driver-adapter-core",
+  "name": "@ashiba-ts/driver-adapter-core",
   "version": "0.1.0",
   "description": "Core contracts for thin Ashiba driver adapters.",
   "type": "module",

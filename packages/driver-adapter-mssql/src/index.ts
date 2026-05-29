@@ -6,7 +6,7 @@ import {
   type AshibaSqlExecutionObserver,
   maskParams,
   normalizeError,
-} from '@ashiba/driver-adapter-core';
+} from '@ashiba-ts/driver-adapter-core';
 
 /**
  * Minimal mssql-compatible query result consumed by the adapter.

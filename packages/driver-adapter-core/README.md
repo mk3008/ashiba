@@ -1,4 +1,4 @@
-# @ashiba/driver-adapter-core
+# @ashiba-ts/driver-adapter-core
 
 Core contracts for thin Ashiba driver adapters.
 
