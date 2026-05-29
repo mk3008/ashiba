@@ -422,6 +422,8 @@ describe('@ashiba/cli smoke', () => {
       ].join('\n'), 'utf8');
 
       const result = runFeatureScaffold({ rootDir, table: 'users', action: 'insert' });
+      runFeatureScaffold({ rootDir, table: 'users', action: 'update' });
+      runFeatureScaffold({ rootDir, table: 'users', action: 'delete' });
       const query = runFeatureQueryScaffold({
         rootDir,
         feature: 'users-insert',
@@ -435,7 +437,11 @@ describe('@ashiba/cli smoke', () => {
       const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.meta.ts'), 'utf8');
       const queryZtdTest = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/insert-users.boundary.ztd.test.ts'), 'utf8');
       const queryZtdTypes = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/boundary-ztd-types.ts'), 'utf8');
+      const queryTestPlan = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/TEST_PLAN.md'), 'utf8');
+      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/mapping.cases.ts'), 'utf8');
       const querySql = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql'), 'utf8');
+      const updateSql = readFileSync(path.join(rootDir, 'src/features/users-update/queries/update-users/update-users.sql'), 'utf8');
+      const deleteSql = readFileSync(path.join(rootDir, 'src/features/users-delete/queries/delete-users/delete-users.sql'), 'utf8');
 
       expect(result.featureName).toBe('users-insert');
       expect(query.queryName).toBe('get-user');
@@ -462,10 +468,18 @@ describe('@ashiba/cli smoke', () => {
       expect(queryMeta).not.toContain('"mysql2"');
       expect(queryMeta).not.toContain('"mssql"');
       expect(queryZtdTest).toContain("from '#tests/support/ztd/harness.js'");
+      expect(queryZtdTest).not.toContain('db/ddl/public.sql');
+      expect(queryZtdTest).not.toContain('existsSync');
       expect(queryZtdTypes).toContain("from '#tests/support/ztd/case-types.js'");
+      expect(queryTestPlan).toContain('Unit tests are mapping-contract tests');
+      expect(queryTestPlan).toContain('DDL is loaded from the configured DDL source directory');
+      expect(queryMappingCases).toContain('binds insert-users insert params and maps returned columns');
+      expect(queryMappingCases).not.toContain('inserts insert-users row');
       expect(querySql).toContain(':email');
       expect(querySql).not.toContain(':user_id');
       expect(querySql).toContain('returning "user_id", "email", "display_name"');
+      expect(updateSql).toContain('returning "user_id", "email", "display_name"');
+      expect(deleteSql).toContain('returning "user_id", "email", "display_name"');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

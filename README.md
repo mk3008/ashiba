@@ -73,7 +73,7 @@ This gives you a small SQL-first feature boundary: visible SQL, editable query c
 npx vitest run
 ```
 
-The generated mapper tests prove the first important contract: this SQL can access the database through a typed TypeScript boundary, and the rows returned by the database can be mapped safely into the generated DTO shape.
+The generated unit tests are mapping tests. For read queries, they primarily prove DB-to-TypeScript row mapping; when the SQL has parameters, they also prove TypeScript-to-DB parameter mapping. For create/update/delete queries, they primarily prove TypeScript-to-DB mapping, and they also prove DB-to-TypeScript mapping when the dialect returns mutation rows such as PostgreSQL `RETURNING`.
 
 At this point, you should have the core Ashiba experience:
 
