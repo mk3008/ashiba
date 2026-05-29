@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { pathToFileURL } from 'url';
 
 async function main() {
   const root = process.cwd();
@@ -41,6 +42,7 @@ async function ensureIndexFrontMatter(apiDir) {
 }
 
 async function writeCommandApiPage(apiDir) {
+  const { commands, program } = await loadCommandApiRuntime();
   const commandsPath = path.join(apiDir, 'commands.md');
   await fs.writeFile(commandsPath, `${[
     '---',
@@ -52,9 +54,13 @@ async function writeCommandApiPage(apiDir) {
     '',
     '# Command API',
     '',
-    'Ashiba command contracts are exposed by the CLI itself.',
+    'Ashiba command contracts are exposed by the same CLI command catalog used by `ashiba describe command` and command help.',
     '',
-    'Use this page as a stable navigation index, then use command help for exact options and `ashiba describe command --format json` for machine-readable command descriptors.',
+    'This page is for third-party readers who need to understand what commands exist, when to use them, and what their arguments and options mean.',
+    '',
+    'The lower-level TypeScript API reference is also generated, but pages such as `cli/src/functions/main` describe exported implementation functions, not the CLI command contract.',
+    '',
+    'Each command section includes the real Commander help output so the docs do not maintain a separate argument or option explanation.',
     '',
     '```bash',
     'npx ashiba --help',
@@ -62,169 +68,79 @@ async function writeCommandApiPage(apiDir) {
     'npx ashiba describe command --format json',
     '```',
     '',
-    '## ashiba check',
+    '## Command List',
     '',
-    'Run the human-first diagnostic gate. Use the fast check while editing and the full check before push, review, or CI.',
-    '',
-    '```bash',
-    'npx ashiba check',
-    'npx ashiba check --full',
-    '```',
-    '',
-    '## ashiba gate scaffold',
-    '',
-    'Scaffold the standard passive check gates without adding hook libraries.',
-    '',
-    '```bash',
-    'npx ashiba gate scaffold',
-    '```',
-    '',
-    '## ashiba init',
-    '',
-    'Create a SQL-first starter after choosing a DBMS and driver.',
-    '',
-    '```bash',
-    'npx ashiba init --db postgres --driver pg --with-demo-ddl',
-    '```',
-    '',
-    '## ashiba feature scaffold',
-    '',
-    'Create a reviewable feature boundary from DDL metadata.',
-    '',
-    '```bash',
-    'npx ashiba feature scaffold users-list --table users --action list',
-    '```',
-    '',
-    '## ashiba feature query scaffold',
-    '',
-    'Add another query boundary under an existing feature.',
-    '',
-    '```bash',
-    'npx ashiba feature query scaffold users-list get-by-id --action get-by-id --table users',
-    '```',
-    '',
-    '## ashiba feature query refresh',
-    '',
-    'Refresh generated query model metadata after SQL-only edits.',
-    '',
-    '```bash',
-    'npx ashiba feature query refresh users-list list',
-    '```',
-    '',
-    '## ashiba feature tests scaffold',
-    '',
-    'Add generated mapper-test cases and human-owned test placeholders to an existing query boundary.',
-    '',
-    '```bash',
-    'npx ashiba feature tests scaffold users-list',
-    '```',
-    '',
-    '## ashiba feature tests check',
-    '',
-    'Detect missing or stale generated mapping-test assets.',
-    '',
-    '```bash',
-    'npx ashiba feature tests check',
-    '```',
-    '',
-    '## ashiba feature generated-mapper check',
-    '',
-    'Check SQL parameters, DDL-backed parameter types, result columns, and editable query contracts.',
-    '',
-    '```bash',
-    'npx ashiba feature generated-mapper check',
-    '```',
-    '',
-    '## ashiba project check',
-    '',
-    'Run the project-level passive check gate for DDL diagnostics, contract drift, generated feature assets, SQL lint, and INSERT ownership.',
-    '',
-    '```bash',
-    'npx ashiba project check',
-    '```',
-    '',
-    '## ashiba check-contract',
-    '',
-    'Check visible SQL contracts before commit or release.',
-    '',
-    '```bash',
-    'npx ashiba check-contract',
-    '```',
-    '',
-    '## ashiba ddl migration generate',
-    '',
-    'Generate reviewable migration SQL from DDL file snapshots or DDL source directories.',
-    '',
-    '```bash',
-    'npx ashiba ddl migration generate --from-dir old-ddl --to-dir db/ddl --out tmp/ddl/migration.sql',
-    '```',
-    '',
-    '## ashiba lint',
-    '',
-    'Run SQL lint and DDL-aware checks over a SQL file or directory.',
-    '',
-    '```bash',
-    'npx ashiba lint src/features',
-    '```',
-    '',
-    '## ashiba query',
-    '',
-    'Inspect, visualize, or debug complex SQL.',
-    '',
-    '```bash',
-    'npx ashiba query outline path/to/query.sql',
-    'npx ashiba query graph path/to/query.sql',
-    'npx ashiba query slice path/to/query.sql',
-    '```',
-    '',
-    '## ashiba query uses',
-    '',
-    'Find SQL assets that reference a table or column.',
-    '',
-    '```bash',
-    'npx ashiba query uses table users',
-    'npx ashiba query uses column users.email',
-    '```',
-    '',
-    '## ashiba query optional',
-    '',
-    'Maintain SSSQL optional-condition metadata. SSSQL is Ashiba\'s name for optional-search SQL that stays valid SQL, such as `(:email is null or users.email = :email)`.',
-    '',
-    'See [SSSQL notation](../../guide/sssql.md) for the notation, runtime compression behavior, and opt-out guidance.',
-    '',
-    '```bash',
-    'npx ashiba query optional add path/to/query.sql --filter status',
-    'npx ashiba query optional refresh path/to/query.sql',
-    'npx ashiba query optional remove path/to/query.sql --parameter status',
-    '```',
-    '',
-    '## ashiba model-gen',
-    '',
-    'Generate editable query contracts and generated metadata from a SQL file.',
-    '',
-    '```bash',
-    'npx ashiba model-gen path/to/query.sql --out path/to/query.ts',
-    '```',
-    '',
-    '## ashiba perf scenario',
-    '',
-    'Capture DB-backed performance evidence while keeping DB execution and tuning decisions application-owned.',
-    '',
-    '```bash',
-    'npx ashiba perf scenario init --scenario users-list --query src/features/users-list/queries/list/list.sql',
-    'npx ashiba perf scenario measure --scenario users-list --duration-ms 42',
-    '```',
-    '',
-    '## ashiba rfba inspect',
-    '',
-    'Inspect review-first feature and query boundaries.',
-    '',
-    '```bash',
-    'npx ashiba rfba inspect',
-    '```',
-    '',
+    ...commands.flatMap((command) => renderCommandSpec(command, program)),
   ].join('\n')}`, 'utf8');
   console.log('[postprocess-docs] Wrote generated/api/commands.md');
+}
+
+async function loadCommandApiRuntime() {
+  const root = process.cwd();
+  const catalogPath = path.join(root, 'packages', 'cli', 'dist', 'commands', 'command-catalog.js');
+  const indexPath = path.join(root, 'packages', 'cli', 'dist', 'index.js');
+  const [catalogModule, cliModule] = await Promise.all([
+    import(pathToFileURL(catalogPath).href),
+    import(pathToFileURL(indexPath).href),
+  ]);
+  return {
+    commands: catalogModule.COMMANDS,
+    program: cliModule.buildProgram(),
+  };
+}
+
+function renderCommandSpec(command, program) {
+  const help = getCommandHelp(program, command.name);
+  const lines = [
+    `## npx ashiba ${command.name}`,
+    '',
+    command.summary,
+    '',
+    `**Use when:** ${command.useCase}`,
+    '',
+    '**CLI Help**',
+    '',
+    '```text',
+    help.trimEnd(),
+    '```',
+    '',
+  ];
+
+  return lines;
+}
+
+function getCommandHelp(program, name) {
+  const command = findCommand(program, name);
+  if (!command) {
+    throw new Error(`Command registered in catalog but missing from CLI help: ${name}`);
+  }
+  return captureCommandHelp(command);
+}
+
+function findCommand(program, name) {
+  const parts = name.split(' ');
+  let current = program;
+  for (const part of parts) {
+    current = current.commands.find((command) => command.name() === part);
+    if (!current) {
+      return undefined;
+    }
+  }
+  return current;
+}
+
+function captureCommandHelp(command) {
+  let output = '';
+  command.configureOutput({
+    writeOut: (text) => {
+      output += text;
+    },
+    writeErr: (text) => {
+      output += text;
+    },
+  });
+  command.outputHelp();
+  return output;
 }
 
 async function wrapMarkdownWithVPre(dir) {
