@@ -23,6 +23,7 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: npm-publish
     env:
       HUSKY: 0
       NPM_CONFIG_PROVENANCE: "true"
