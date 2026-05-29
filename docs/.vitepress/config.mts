@@ -1,13 +1,4 @@
 import { defineConfig } from 'vitepress';
-import type { DefaultTheme } from 'vitepress';
-import typedocSidebar from '../generated/api/typedoc-sidebar.json' with { type: 'json' };
-
-const apiSidebar = typedocSidebar as DefaultTheme.SidebarItem[];
-const apiSidebarWithIndex: DefaultTheme.SidebarItem[] = [
-  { text: 'Command API', link: '/generated/api/commands' },
-  { text: 'TypeScript API', link: '/generated/api/index' },
-  ...apiSidebar,
-];
 
 export default defineConfig({
   title: 'Ashiba',
@@ -42,7 +33,7 @@ export default defineConfig({
         { text: 'Safe Sort', link: '/guide/safe-sort' },
       ],
       '/generated/api/': [
-        ...apiSidebarWithIndex,
+        { text: 'Command API', link: '/generated/api/commands' },
       ],
       '/concepts/': [
         { text: 'Concept Map', link: '/concepts/concept-map' },

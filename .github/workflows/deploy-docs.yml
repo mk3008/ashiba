@@ -9,8 +9,6 @@ on:
       - 'README.md'
       - 'packages/**'
       - 'scripts/postprocess-docs.mjs'
-      - 'tsconfig.docs.json'
-      - 'typedoc.json'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - '.github/workflows/deploy-docs.yml'
