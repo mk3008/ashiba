@@ -2052,6 +2052,7 @@ function renderGeneratedTestPlan(featureName: string, queryName: string): string
     '- Unit tests are mapping-contract tests, not database state management tests.',
     '- Mapping tests guarantee TypeScript-to-SQL/DB parameter binding and, when result rows exist, DB-to-TypeScript result mapping.',
     '- Mapping tests do not guarantee row cardinality, affected-row counts, business mutation targets, transaction isolation, locking, or final database state.',
+    '- Ashiba does not infer or check single-row cardinality after scaffolding; row handling in `query.ts` is customer-owned code.',
     '- DDL is loaded from the configured DDL source directory; missing DDL should fail mapping verification instead of silently skipping it.',
     '- Read queries primarily prove DB-to-TypeScript row mapping; parameterized reads also prove TypeScript-to-DB parameter mapping.',
     '- Create/update/delete queries primarily prove TypeScript-to-DB mapping; dialect mutation result rows such as PostgreSQL `RETURNING` also prove DB-to-TypeScript mapping.',
