@@ -1212,6 +1212,7 @@ function buildSharedFiles(): GeneratedFile[] {
         "    rootQueryShape?: 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';",
         '    hasTopLevelOrderBy: boolean;',
         '    sourceHash?: string;',
+        '    resultColumnTypes?: Record<string, string>;',
         '    parameterTypes?: Record<string, string>;',
         '  };',
         '  bindings?: {',
@@ -1448,10 +1449,10 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
         { table: table.canonicalName },
       );
     }
-    return { action, params: [primaryKey, ...writeColumns], rows: [primaryKey], writeColumns };
+    return { action, params: [primaryKey, ...writeColumns], rows: table.columns, writeColumns };
   }
   if (action === 'delete') {
-    return { action, params: [primaryKey], rows: [primaryKey], writeColumns: [] };
+    return { action, params: [primaryKey], rows: table.columns, writeColumns: [] };
   }
   if (action === 'get-by-id') {
     return { action, params: [primaryKey], rows: table.columns, writeColumns: [] };
@@ -1484,18 +1485,20 @@ function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTab
     ].join('\n');
   }
   if (plan.action === 'update') {
+    const returningColumns = plan.rows.map((column) => quoteIdentifier(column.name)).join(', ');
     return [
       `update ${tableName}`,
       'set',
       plan.writeColumns.map((column) => `  ${quoteIdentifier(column.name)} = :${column.name}`).join(',\n'),
       'where',
       `  ${pk} = :${primaryKeyColumn}`,
-      `returning ${pk};`,
+      `returning ${returningColumns};`,
       '',
     ].join('\n');
   }
   if (plan.action === 'delete') {
-    return [`delete from ${tableName}`, 'where', `  ${pk} = :${primaryKeyColumn}`, `returning ${pk};`, ''].join('\n');
+    const returningColumns = plan.rows.map((column) => quoteIdentifier(column.name)).join(', ');
+    return [`delete from ${tableName}`, 'where', `  ${pk} = :${primaryKeyColumn}`, `returning ${returningColumns};`, ''].join('\n');
   }
   if (plan.action === 'get-by-id') {
     return [
@@ -1954,8 +1957,6 @@ function renderFeatureBoundaryTest(
 function renderQueryZtdTest(featureName: string, queryName: string): string {
   const pascal = toPascal(queryName);
   return [
-    "import { existsSync } from 'node:fs';",
-    "import { resolve } from 'node:path';",
     "import { expect, test } from 'vitest';",
     '',
     `import { runQuerySpecZtdCases } from '${TEST_ZTD_HARNESS_IMPORT_PATH}';`,
@@ -1967,7 +1968,6 @@ function renderQueryZtdTest(featureName: string, queryName: string): string {
     '',
     'const shouldSkipZtd =',
     "  process.env.ASHIBA_SKIP_DB_BACKED_TESTS === '1' ||",
-    "  !existsSync(resolve('db/ddl/public.sql')) ||",
     '  cases.length === 0;',
     '',
     'const testZtd = shouldSkipZtd ? test.skip : test;',
@@ -2050,7 +2050,14 @@ function renderGeneratedTestPlan(featureName: string, queryName: string): string
     '',
     'This generated file is library-owned and may be refreshed by Ashiba.',
     '',
-    '- Mapper tests: prefer Zero Table Dependency.',
+    '- Unit tests are mapping-contract tests, not database state management tests.',
+    '- Mapping tests guarantee TypeScript-to-SQL/DB parameter binding and, when result rows exist, DB-to-TypeScript result mapping.',
+    '- Mapping tests do not guarantee row cardinality, affected-row counts, business mutation targets, transaction isolation, locking, or final database state.',
+    '- Ashiba does not infer or check single-row cardinality after scaffolding; row handling in `query.ts` is customer-owned code.',
+    '- DDL is loaded from the configured DDL source directory; missing DDL should fail mapping verification instead of silently skipping it.',
+    '- Read queries primarily prove DB-to-TypeScript row mapping; parameterized reads also prove TypeScript-to-DB parameter mapping.',
+    '- Create/update/delete queries primarily prove TypeScript-to-DB mapping; dialect mutation result rows such as PostgreSQL `RETURNING` also prove DB-to-TypeScript mapping.',
+    '- Prefer Zero Table Dependency for mapping tests.',
     '- Performance tests: prefer traditional DB-backed tests.',
     '- Keep human-authored cases under `cases/`.',
     '',
@@ -2111,7 +2118,7 @@ function buildGeneratedMappingZtdCases(
     const input = pickColumns(insertedRow, actionPlan.writeColumns);
     const outputRow = buildInsertOutputRow(table, input, primaryKeyColumn);
     const cases = [{
-      name: `default-generated-value-mapping: inserts ${queryName} row and maps returned columns`,
+      name: `default-generated-value-mapping: binds ${queryName} insert params and maps returned columns`,
       beforeDb: { [table.schema]: { [table.name]: [] } },
       input,
       output: pickColumns(outputRow, actionPlan.rows),
@@ -2122,7 +2129,7 @@ function buildGeneratedMappingZtdCases(
         ...Object.fromEntries(actionPlan.writeColumns.filter((column) => column.nullable).map((column) => [column.name, null])),
       };
       cases.push({
-        name: `nullable-input-output-mapping: inserts ${queryName} nullable columns as null`,
+        name: `nullable-input-output-mapping: binds ${queryName} nullable insert params as null and maps returned columns`,
         beforeDb: { [table.schema]: { [table.name]: [] } },
         input: nullableInput,
         output: pickColumns(buildInsertOutputRow(table, nullableInput, primaryKeyColumn), actionPlan.rows),
@@ -2131,14 +2138,14 @@ function buildGeneratedMappingZtdCases(
     if (actionPlan.writeColumns.some((column) => isBoundaryValueColumn(column))) {
       const boundaryRow = buildBoundaryFixtureRow(table);
       cases.push({
-        name: `boundary-value-mapping: inserts ${queryName} boundary values and maps returned columns`,
+        name: `boundary-value-mapping: binds ${queryName} boundary insert params and maps returned columns`,
         beforeDb: { [table.schema]: { [table.name]: [] } },
         input: pickColumns(boundaryRow, actionPlan.writeColumns),
         output: pickColumns(buildInsertOutputRow(table, pickColumns(boundaryRow, actionPlan.writeColumns), primaryKeyColumn), actionPlan.rows),
       });
       const negativeBoundaryRow = buildNegativeBoundaryFixtureRow(table);
       cases.push({
-        name: `negative-boundary-value-mapping: inserts ${queryName} signed numeric boundary values and maps returned columns`,
+        name: `negative-boundary-value-mapping: binds ${queryName} signed numeric insert params and maps returned columns`,
         beforeDb: { [table.schema]: { [table.name]: [] } },
         input: pickColumns(negativeBoundaryRow, actionPlan.writeColumns),
         output: pickColumns(buildInsertOutputRow(table, pickColumns(negativeBoundaryRow, actionPlan.writeColumns), primaryKeyColumn), actionPlan.rows),
@@ -2150,7 +2157,7 @@ function buildGeneratedMappingZtdCases(
   if (actionPlan.action === 'update') {
     const updatedValues = Object.fromEntries(actionPlan.writeColumns.map((column) => [column.name, sampleColumnValue(column, 3)]));
     return [{
-      name: `db-type-mapping: updates ${queryName} row and maps returned columns`,
+      name: `db-type-mapping: binds ${queryName} update params and maps returned columns`,
       beforeDb,
       input: { [primaryKeyColumn]: firstRow[primaryKeyColumn], ...updatedValues },
       output: pickColumns({ ...firstRow, ...updatedValues }, actionPlan.rows),
@@ -2159,7 +2166,7 @@ function buildGeneratedMappingZtdCases(
 
   if (actionPlan.action === 'delete') {
     return [{
-      name: `db-type-mapping: deletes ${queryName} row and maps returned columns`,
+      name: `db-type-mapping: binds ${queryName} delete params and maps returned columns`,
       beforeDb,
       input: { [primaryKeyColumn]: firstRow[primaryKeyColumn] },
       output: pickColumns(firstRow, actionPlan.rows),

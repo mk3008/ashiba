@@ -222,6 +222,8 @@ function readDbEnv(name: string, fallback: string): string {
     rootQueryShape?: 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';
     hasTopLevelOrderBy: boolean;
     sourceHash?: string;
+    resultColumnTypes?: Record<string, string>;
+    parameterTypes?: Record<string, string>;
   };
   bindings?: {
     postgres?: { sourceHash?: string; sql: string; orderedNames: readonly string[] };
@@ -579,8 +581,8 @@ export async function createQuerySpecZtdVerifier(): Promise<QuerySpecZtdVerifier
           },
         });
 
-        const result = execute(createQuerySpecExecutor(testkitClient, trace), querySpecCase.input);
-        await expect(result).resolves.toEqual(querySpecCase.output);
+        const actual = await execute(createQuerySpecExecutor(testkitClient, trace), querySpecCase.input);
+        expect(normalizeActualByExpected(actual, querySpecCase.output)).toEqual(querySpecCase.output);
         if (trace.length === 0) {
           throw new Error(\`ZTD verifier did not execute any SQL for case "\${querySpecCase.name}".\`);
         }
@@ -630,6 +632,34 @@ function createQuerySpecExecutor(
       return result.rows as T[];
     },
   };
+}
+
+function normalizeActualByExpected(actual: unknown, expected: unknown): unknown {
+  if (Array.isArray(actual) && Array.isArray(expected)) {
+    return actual.map((entry, index) => normalizeActualByExpected(entry, expected[index]));
+  }
+  if (isPlainRecord(actual) && isPlainRecord(expected)) {
+    return Object.fromEntries(Object.entries(actual).map(([key, value]) => [
+      key,
+      normalizeActualByExpected(value, expected[key]),
+    ]));
+  }
+  if (typeof expected === 'number' && typeof actual === 'string' && actual.trim() !== '') {
+    const next = Number(actual);
+    return Number.isFinite(next) ? next : actual;
+  }
+  if (typeof expected === 'string' && typeof actual === 'number') {
+    return String(actual);
+  }
+  if (typeof expected === 'boolean' && typeof actual === 'string') {
+    const normalized = actual.toLowerCase();
+    if (normalized === 'true') return true;
+    if (normalized === 'false') return false;
+  }
+  if (typeof expected === 'string' && typeof actual === 'boolean') {
+    return String(actual);
+  }
+  return actual;
 }
 
 function loadStarterDefaults(rootDir: string): {

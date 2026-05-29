@@ -73,7 +73,7 @@ This gives you a small SQL-first feature boundary: visible SQL, editable query c
 npx vitest run
 ```
 
-The generated mapper tests prove the first important contract: this SQL can access the database through a typed TypeScript boundary, and the rows returned by the database can be mapped safely into the generated DTO shape.
+The generated unit tests are mapping tests. For read queries, they primarily prove DB-to-TypeScript row mapping; when the SQL has parameters, they also prove TypeScript-to-DB parameter mapping. For create/update/delete queries, they primarily prove TypeScript-to-DB mapping, and they also prove DB-to-TypeScript mapping when the dialect returns mutation rows such as PostgreSQL `RETURNING`.
 
 At this point, you should have the core Ashiba experience:
 
@@ -88,11 +88,11 @@ At this point, you should have the core Ashiba experience:
 From here, the generated code is yours. Change the SQL, DTO boundary, mapper, or feature code as your application needs.
 
 ```bash
-# drift check
-npx ashiba project check
+# fast local check while editing
+npx ashiba check
 
-# mapping check
-npx vitest run
+# full check before push, review, or CI
+npx ashiba check --full
 ```
 
 ## Supported DBMS And Drivers
@@ -113,6 +113,9 @@ Use this section as the entry point for daily work. The command API page links e
 
 | When you want to... | Use this | Details |
 |---|---|---|
+| Diagnose ordinary drift while editing | `ashiba check` | [Command API](docs/api/commands.md#ashiba-check) |
+| Run the full local or CI gate | `ashiba check --full` | [Command API](docs/api/commands.md#ashiba-check) |
+| Scaffold passive gates without hook libraries | `ashiba gate scaffold` | [Command API](docs/api/commands.md#ashiba-gate-scaffold) |
 | Start a SQL-first TypeScript project shape | `ashiba init` | [Command API](docs/api/commands.md#ashiba-init) |
 | Generate a feature boundary from an existing DDL table | `ashiba feature scaffold` | [Command API](docs/api/commands.md#ashiba-feature-scaffold) |
 | Add another query to an existing feature | `ashiba feature query scaffold` | [Command API](docs/api/commands.md#ashiba-feature-query-scaffold) |
@@ -137,8 +140,8 @@ Use this section as the entry point for daily work. The command API page links e
 
 ```bash
 npx ashiba feature query refresh --feature users-list --query list
-npx ashiba project check
-npx vitest run
+npx ashiba check
+npx ashiba check --full
 ```
 
 Use this when the SQL changed but the feature boundary should remain the same.
@@ -146,11 +149,19 @@ Use this when the SQL changed but the feature boundary should remain the same.
 ### I changed DDL
 
 ```bash
-npx ashiba project check
+npx ashiba check
 npx ashiba ddl migration generate --from-dir path/to/old-ddl --to-dir db/ddl --out tmp/ddl/migration.sql
 ```
 
 Use this when schema source changed and you want drift signals plus reviewable migration SQL.
+
+### I want passive gates
+
+```bash
+npx ashiba gate scaffold
+```
+
+This creates the shared `ashiba:check` / `ashiba:verify` package scripts, a GitHub Actions workflow, and a native pre-push hook file. Ashiba does not require Husky for this path.
 
 ### I need to know what a table change will touch
 

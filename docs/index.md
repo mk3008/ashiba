@@ -20,7 +20,7 @@ features:
   - title: "Generated code is yours"
     details: "Ashiba writes ordinary TypeScript into your repo, including DTOs, mapper boundaries, query contracts, tests, and metadata."
   - title: "Safety is checked"
-    details: "Drift checks and mapper tests catch stale SQL, DDL, metadata, and generated contracts before they become accepted code."
+    details: "Drift checks and mapping tests catch stale SQL, DDL, metadata, and generated contracts before they become accepted code."
   - title: "No ORM runtime"
     details: "Your app runs explicit SQL through a driver adapter and ordinary TypeScript boundaries. No hidden query DSL or object layer."
 ---

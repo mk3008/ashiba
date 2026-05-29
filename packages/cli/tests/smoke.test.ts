@@ -6,10 +6,12 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { runInit } from '../src/commands/init.js';
 import { runCheckContract, formatCheckContractResult } from '../src/commands/check-contract.js';
+import { formatAshibaCheckResult, runAshibaCheck } from '../src/commands/check.js';
 import { createDefaultConfig, formatDefaultConfig, loadProjectPathConfig } from '../src/commands/config.js';
 import { runDdlMigrationGenerate } from '../src/commands/ddl.js';
 import { COMMANDS, formatDescribe } from '../src/commands/describe.js';
 import { runFeatureGeneratedMapperCheck, runFeatureQueryMetadataRefresh, runFeatureQueryScaffold, runFeatureScaffold, runFeatureTestsCheck, runFeatureTestsScaffold } from '../src/commands/feature.js';
+import { runGateScaffold } from '../src/commands/gate.js';
 import { runLint } from '../src/commands/lint.js';
 import { runModelGen } from '../src/commands/model-gen.js';
 import { runPerfInit, runPerfReportDiff, runPerfRun, runPerfScenarioInit, runPerfScenarioMeasure } from '../src/commands/perf.js';
@@ -90,6 +92,8 @@ describe('@ashiba/cli smoke', () => {
 
     expect(commandNames).toEqual(expect.arrayContaining([
       'ddl migration generate',
+      'check',
+      'gate scaffold',
       'query outline',
       'query graph',
       'query slice',
@@ -418,6 +422,8 @@ describe('@ashiba/cli smoke', () => {
       ].join('\n'), 'utf8');
 
       const result = runFeatureScaffold({ rootDir, table: 'users', action: 'insert' });
+      runFeatureScaffold({ rootDir, table: 'users', action: 'update' });
+      runFeatureScaffold({ rootDir, table: 'users', action: 'delete' });
       const query = runFeatureQueryScaffold({
         rootDir,
         feature: 'users-insert',
@@ -431,7 +437,11 @@ describe('@ashiba/cli smoke', () => {
       const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.meta.ts'), 'utf8');
       const queryZtdTest = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/insert-users.boundary.ztd.test.ts'), 'utf8');
       const queryZtdTypes = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/boundary-ztd-types.ts'), 'utf8');
+      const queryTestPlan = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/TEST_PLAN.md'), 'utf8');
+      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/mapping.cases.ts'), 'utf8');
       const querySql = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql'), 'utf8');
+      const updateSql = readFileSync(path.join(rootDir, 'src/features/users-update/queries/update-users/update-users.sql'), 'utf8');
+      const deleteSql = readFileSync(path.join(rootDir, 'src/features/users-delete/queries/delete-users/delete-users.sql'), 'utf8');
 
       expect(result.featureName).toBe('users-insert');
       expect(query.queryName).toBe('get-user');
@@ -458,10 +468,18 @@ describe('@ashiba/cli smoke', () => {
       expect(queryMeta).not.toContain('"mysql2"');
       expect(queryMeta).not.toContain('"mssql"');
       expect(queryZtdTest).toContain("from '#tests/support/ztd/harness.js'");
+      expect(queryZtdTest).not.toContain('db/ddl/public.sql');
+      expect(queryZtdTest).not.toContain('existsSync');
       expect(queryZtdTypes).toContain("from '#tests/support/ztd/case-types.js'");
+      expect(queryTestPlan).toContain('Unit tests are mapping-contract tests');
+      expect(queryTestPlan).toContain('DDL is loaded from the configured DDL source directory');
+      expect(queryMappingCases).toContain('binds insert-users insert params and maps returned columns');
+      expect(queryMappingCases).not.toContain('inserts insert-users row');
       expect(querySql).toContain(':email');
       expect(querySql).not.toContain(':user_id');
       expect(querySql).toContain('returning "user_id", "email", "display_name"');
+      expect(updateSql).toContain('returning "user_id", "email", "display_name"');
+      expect(deleteSql).toContain('returning "user_id", "email", "display_name"');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -948,9 +966,31 @@ describe('@ashiba/cli smoke', () => {
       expect(result.checks.contract?.ok).toBe(true);
       expect(result.checks.featureTests?.ok).toBe(true);
       expect(result.checks.generatedMapper?.ok).toBe(true);
+      expect(result.checks.generatedMapper).toBe(result.checks.contract?.mapperCheck);
       expect(result.checks.lint?.ok).toBe(true);
       expect(result.checks.featureTests?.checked[0]?.query).toBe('list');
       expect(result.checks.generatedMapper?.checked[0]?.query).toBe('list');
+      expect(result.durationMs).toBeGreaterThanOrEqual(0);
+      expect(result.coverage).toMatchObject({
+        ddlFiles: 1,
+        sqlFiles: 1,
+        mapperQueries: 1,
+        catalogSpecs: 1,
+        featureTestQueries: 1,
+        lintFiles: 1,
+      });
+      expect(result.timings.map((timing) => timing.phase)).toEqual([
+        'config',
+        'ddl-model',
+        'ddl-diagnostics',
+        'contract',
+        'feature-tests',
+        'sql-lint',
+      ]);
+      const text = formatProjectCheckResult(result);
+      expect(text).toContain('duration ms:');
+      expect(text).toContain('coverage: ddlFiles=1, sqlFiles=1, mapperQueries=1, catalogSpecs=1, featureTestQueries=1, lintFiles=1');
+      expect(text).toContain('timings:');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -983,6 +1023,35 @@ describe('@ashiba/cli smoke', () => {
         expect.objectContaining({
           code: 'ASHIBA_PROJECT_SQL_LINT_FAILED',
           file: 'src/shared-sql/broken.sql',
+        }),
+      ]));
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('project check deduplicates lint files across overlapping sqlRoots', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-overlap-roots-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'src', 'features', 'users-search', 'queries', 'search'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: 'src/features',
+        sqlRoots: ['src/features', 'src/features/users-search'],
+        ddl: { sourceDir: 'db/ddl' },
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
+      writeFileSync(path.join(rootDir, 'src', 'features', 'users-search', 'queries', 'search', 'search.sql'), 'select missing_id from public.users;', 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.coverage.lintFiles).toBe(1);
+      expect(result.errors.filter((issue) => issue.code === 'ASHIBA_PROJECT_SQL_LINT_FAILED')).toHaveLength(1);
+      expect(result.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ASHIBA_PROJECT_SQL_LINT_FAILED',
+          file: 'src/features/users-search/queries/search/search.sql',
         }),
       ]));
     } finally {
@@ -1082,6 +1151,202 @@ describe('@ashiba/cli smoke', () => {
       expect(strictResult.ok).toBe(false);
       expect(strictResult.errors).toEqual([]);
       expect(strictResult.warnings).toHaveLength(1);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('ashiba check gives a human-first fast diagnostic entry point', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-fast-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'broken.sql'), 'create table ;', 'utf8');
+
+      const result = runAshibaCheck({ rootDir });
+      const text = formatAshibaCheckResult(result);
+
+      expect(result.kind).toBe('ashiba-check');
+      expect(result.level).toBe('fast');
+      expect(result.ok).toBe(false);
+      expect(result.projectCheck.errors).toEqual(expect.arrayContaining([
+        expect.objectContaining({ code: 'ASHIBA_DDL_PARSE_FAILED' }),
+      ]));
+      expect(text).toContain('Ashiba check: failed');
+      expect(text).toContain('level: fast');
+      expect(text).toContain('Ashiba project check: failed');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('ashiba check --full runs mapper command after the fast check passes', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-full-'));
+
+    try {
+      const result = runAshibaCheck({
+        rootDir,
+        full: true,
+        mapperTestCommand: 'node -e "process.exit(0)"',
+      });
+
+      expect(result.ok).toBe(true);
+      expect(result.level).toBe('full');
+      expect(result.mapperTest).toMatchObject({
+        command: 'node -e "process.exit(0)"',
+        ok: true,
+        status: 0,
+      });
+      expect(formatAshibaCheckResult(result)).toContain('Mapper test: ok');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('ashiba check --full skips mapper command when fast check fails', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-full-skip-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'broken.sql'), 'create table ;', 'utf8');
+
+      const result = runAshibaCheck({
+        rootDir,
+        full: true,
+        mapperTestCommand: 'node -e "process.exit(99)"',
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result.mapperTest).toBeUndefined();
+      expect(formatAshibaCheckResult(result)).toContain('Mapper test: skipped');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('gate scaffold adds passive check package scripts without hook dependencies', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-gate-scripts-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+        name: 'starter',
+        private: true,
+        scripts: { test: 'vitest run' },
+      }, null, 2)}\n`, 'utf8');
+
+      const result = runGateScaffold({ rootDir, target: 'package-scripts' });
+      const packageJson = JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8')) as {
+        scripts: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+
+      expect(result.files).toEqual([{ relativePath: 'package.json', action: 'update' }]);
+      expect(packageJson.scripts.test).toBe('vitest run');
+      expect(packageJson.scripts['ashiba:check']).toBe('node node_modules/@ashiba/cli/dist/index.js check');
+      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(packageJson.devDependencies?.husky).toBeUndefined();
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('gate scaffold creates the standard passive gate surface with one command', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-gate-files-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+        name: 'starter',
+        private: true,
+        scripts: { test: 'vitest run' },
+      }, null, 2)}\n`, 'utf8');
+
+      const result = runGateScaffold({ rootDir });
+
+      expect(result.target).toBe('all');
+      expect(result.files).toEqual([
+        { relativePath: 'package.json', action: 'update' },
+        { relativePath: '.github/workflows/ashiba-contract.yml', action: 'create' },
+        { relativePath: '.githooks/pre-push', action: 'create' },
+      ]);
+      expect(JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).scripts['ashiba:verify']).toBe('node node_modules/@ashiba/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm install');
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm run ashiba:verify');
+      expect(readFileSync(path.join(rootDir, '.githooks', 'pre-push'), 'utf8')).toContain('npm run ashiba:verify');
+      expect(result.nextActions.join('\n')).toContain('git config core.hooksPath .githooks');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('individual passive gates also create the shared verify script', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-gate-single-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+        name: 'starter',
+        private: true,
+      }, null, 2)}\n`, 'utf8');
+
+      const actions = runGateScaffold({ rootDir, target: 'github-actions' });
+      const hooks = runGateScaffold({ rootDir, target: 'git-hooks' });
+      const packageJson = JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8')) as {
+        scripts: Record<string, string>;
+      };
+
+      expect(actions.files).toEqual([
+        { relativePath: 'package.json', action: 'update' },
+        { relativePath: '.github/workflows/ashiba-contract.yml', action: 'create' },
+      ]);
+      expect(hooks.files).toEqual([
+        { relativePath: 'package.json', action: 'update' },
+        { relativePath: '.githooks/pre-push', action: 'create' },
+      ]);
+      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm run ashiba:verify');
+      expect(readFileSync(path.join(rootDir, '.githooks', 'pre-push'), 'utf8')).toContain('npm run ashiba:verify');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('gate scaffold respects pnpm package manager for passive gates', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-gate-pnpm-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+        name: 'starter',
+        private: true,
+        packageManager: 'pnpm@10.19.0',
+      }, null, 2)}\n`, 'utf8');
+      writeFileSync(path.join(rootDir, 'pnpm-lock.yaml'), 'lockfileVersion: 9.0\n', 'utf8');
+
+      runGateScaffold({ rootDir });
+
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('pnpm/action-setup');
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('pnpm install --frozen-lockfile');
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('pnpm ashiba:verify');
+      expect(readFileSync(path.join(rootDir, '.githooks', 'pre-push'), 'utf8')).toContain('pnpm ashiba:verify');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('gate scaffold detects pnpm from lockfile without packageManager metadata', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-gate-pnpm-lock-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+        name: 'starter',
+        private: true,
+      }, null, 2)}\n`, 'utf8');
+      writeFileSync(path.join(rootDir, 'pnpm-lock.yaml'), 'lockfileVersion: 9.0\n', 'utf8');
+
+      runGateScaffold({ rootDir });
+
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('pnpm/action-setup');
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('pnpm install --frozen-lockfile');
+      expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('pnpm ashiba:verify');
+      expect(readFileSync(path.join(rootDir, '.githooks', 'pre-push'), 'utf8')).toContain('pnpm ashiba:verify');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
