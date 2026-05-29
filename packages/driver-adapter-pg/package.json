@@ -1,6 +1,6 @@
 {
   "name": "@ashiba/driver-adapter-pg",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Thin Ashiba adapter for pg clients.",
   "type": "module",
   "main": "dist/index.js",
