@@ -1785,6 +1785,7 @@ function renderQueryBoundary(
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
   const result = plan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
+  const enablesOptionalConditionCompression = plan.action === 'list' || plan.action === 'get-by-id';
   const rowExpr = plan.action === 'list' ? 'rows as QueryRow[]' : '(rows[0] ?? null) as QueryRow | null';
   const returnExpr = plan.action === 'list'
     ? 'return row;'
@@ -1810,7 +1811,7 @@ function renderQueryBoundary(
     `  sqlPath: '${queryName}.sql',`,
     `  sql: ${camel}Sql,`,
     '  queryModel,',
-    '  optionalConditionCompression: true,',
+    ...(enablesOptionalConditionCompression ? ['  optionalConditionCompression: true,'] : []),
     '  metadata: {',
     `    sqlId: '${queryName}',`,
     `    queryId: '${queryName}',`,

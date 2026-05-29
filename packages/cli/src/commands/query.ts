@@ -447,6 +447,14 @@ function buildOptionalConditionFilters(options: QueryOptionalOptions): Record<st
 
 function buildOptionalConditionScaffoldSpec(options: QueryOptionalOptions): OptionalConditionScaffoldSpec | undefined {
   const kind = options.kind?.trim().toLowerCase();
+  if (kind && kind !== 'scalar' && kind !== 'exists' && kind !== 'not-exists') {
+    throw invalidCliInputError(
+      'ASHIBA_QUERY_OPTIONAL_BRANCH_KIND_UNSUPPORTED',
+      `Unsupported optional-condition branch kind: ${options.kind}.`,
+      'Use scalar, exists, or not-exists as the optional-condition branch kind.',
+      { value: options.kind, supported: ['scalar', 'exists', 'not-exists'] },
+    );
+  }
   const query = resolveOptionalConditionSubqueryInput(options.query, options.queryFile);
   if (kind === 'exists' || kind === 'not-exists' || query) {
     return {

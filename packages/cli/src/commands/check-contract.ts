@@ -418,11 +418,12 @@ function runCatalogContractCheck(options: {
         if (metadata.requiresMetadataFile && !metadata.hasQueryModel) {
           issues.push(`${metadata.expectedMetadataFile ?? 'generated/query.meta.ts'} is required for queryModel metadata but was not found.`);
         }
-        const checksOptionalConditionCompression = metadata.analysisOptionalConditionCompressionJson !== undefined
-          || metadata.bindingOptionalConditionCompressionJson !== undefined;
         const currentAnalysis = analyzeQueryModel(sql, orderedUniqueSqlParameters, resultColumnContracts, {
-          optionalConditionCompression: checksOptionalConditionCompression,
+          optionalConditionCompression: true,
         });
+        const checksOptionalConditionCompression = currentAnalysis.optionalConditionCompression !== undefined
+          || metadata.analysisOptionalConditionCompressionJson !== undefined
+          || metadata.bindingOptionalConditionCompressionJson !== undefined;
         queryModelSourceHash = metadata.queryModelSourceHash;
         bindingSourceHash = metadata.bindingSourceHash;
         if (metadata.hasQueryModel) {
