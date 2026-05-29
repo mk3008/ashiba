@@ -30,6 +30,7 @@ export default defineConfig({
     sidebar: {
       '/guide/': [
         { text: 'SSSQL Notation', link: '/guide/sssql' },
+        { text: 'Safe Sort', link: '/guide/safe-sort' },
       ],
       '/api/': [
         ...apiSidebarWithIndex,
