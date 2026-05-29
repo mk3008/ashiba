@@ -1,6 +1,6 @@
 {
   "name": "@ashiba/driver-adapter-mysql2",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Thin Ashiba adapter for mysql2 clients.",
   "type": "module",
   "main": "dist/index.js",

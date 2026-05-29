@@ -1,6 +1,6 @@
 {
   "name": "@ashiba/ddl-pull-pg-dump",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "PostgreSQL DDL pull helpers backed by pg_dump for Ashiba.",
   "type": "module",
   "main": "dist/index.js",
