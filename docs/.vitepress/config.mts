@@ -25,10 +25,19 @@ export default defineConfig({
     logo: '/brand/ashiba-icon.jpg',
     nav: [
       { text: 'API', link: '/generated/api/index' },
+      {
+        text: 'Guides',
+        items: [
+          { text: 'Guide Overview', link: '/guide/' },
+          { text: 'SSSQL Notation', link: '/guide/sssql' },
+          { text: 'Safe Sort', link: '/guide/safe-sort' },
+        ],
+      },
       { text: 'Concepts', link: '/concepts/concept-map' },
     ],
     sidebar: {
       '/guide/': [
+        { text: 'Guide Overview', link: '/guide/' },
         { text: 'SSSQL Notation', link: '/guide/sssql' },
         { text: 'Safe Sort', link: '/guide/safe-sort' },
       ],

@@ -42,7 +42,8 @@
   },
   "pnpm": {
     "overrides": {
-      "vite@5>esbuild": "^0.25.0"
+      "vite@5>esbuild": "^0.25.0",
+      "vitepress>vite": "6.4.2"
     }
   }
 }
