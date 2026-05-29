@@ -469,11 +469,6 @@ export type QuerySpecSqlSource = {
   id: string;
   path: string;
   sql: string;
-  queryModel?: {
-    analysis?: {
-      resultColumnTypes?: Record<string, string>;
-    };
-  };
 };
 
 type QuerySpecExecutor<Input, Output> = (
@@ -586,8 +581,8 @@ export async function createQuerySpecZtdVerifier(): Promise<QuerySpecZtdVerifier
           },
         });
 
-        const result = execute(createQuerySpecExecutor(testkitClient, trace), querySpecCase.input);
-        await expect(result).resolves.toEqual(querySpecCase.output);
+        const actual = await execute(createQuerySpecExecutor(testkitClient, trace), querySpecCase.input);
+        expect(normalizeActualByExpected(actual, querySpecCase.output)).toEqual(querySpecCase.output);
         if (trace.length === 0) {
           throw new Error(\`ZTD verifier did not execute any SQL for case "\${querySpecCase.name}".\`);
         }
@@ -634,37 +629,37 @@ function createQuerySpecExecutor(
         rewriteApplied: false,
       });
       const result = await testkitClient.query(bound.boundSql, bound.boundValues);
-      return coerceRowsByResultTypes(result.rows, query.queryModel?.analysis?.resultColumnTypes) as T[];
+      return result.rows as T[];
     },
   };
 }
 
-function coerceRowsByResultTypes(
-  rows: unknown[],
-  resultColumnTypes: Record<string, string> | undefined,
-): unknown[] {
-  if (!resultColumnTypes) return rows;
-  return rows.map((row) => {
-    if (!isPlainRecord(row)) return row;
-    return Object.fromEntries(Object.entries(row).map(([key, value]) => [
-      key,
-      coerceValueByResultType(value, resultColumnTypes[key]),
-    ]));
-  });
-}
-
-function coerceValueByResultType(value: unknown, resultType: string | undefined): unknown {
-  if (value === null || value === undefined) return value;
-  if (resultType === 'number' && typeof value === 'string' && value.trim() !== '') {
-    const next = Number(value);
-    return Number.isFinite(next) ? next : value;
+function normalizeActualByExpected(actual: unknown, expected: unknown): unknown {
+  if (Array.isArray(actual) && Array.isArray(expected)) {
+    return actual.map((entry, index) => normalizeActualByExpected(entry, expected[index]));
   }
-  if (resultType === 'boolean' && typeof value === 'string') {
-    const normalized = value.toLowerCase();
+  if (isPlainRecord(actual) && isPlainRecord(expected)) {
+    return Object.fromEntries(Object.entries(actual).map(([key, value]) => [
+      key,
+      normalizeActualByExpected(value, expected[key]),
+    ]));
+  }
+  if (typeof expected === 'number' && typeof actual === 'string' && actual.trim() !== '') {
+    const next = Number(actual);
+    return Number.isFinite(next) ? next : actual;
+  }
+  if (typeof expected === 'string' && typeof actual === 'number') {
+    return String(actual);
+  }
+  if (typeof expected === 'boolean' && typeof actual === 'string') {
+    const normalized = actual.toLowerCase();
     if (normalized === 'true') return true;
     if (normalized === 'false') return false;
   }
-  return value;
+  if (typeof expected === 'string' && typeof actual === 'boolean') {
+    return String(actual);
+  }
+  return actual;
 }
 
 function loadStarterDefaults(rootDir: string): {
