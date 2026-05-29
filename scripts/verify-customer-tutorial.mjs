@@ -220,14 +220,16 @@ try {
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), ':display_name');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), ':external_account_id');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), 'returning "user_id"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), '"email"');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'tests', 'update-users.boundary.ztd.test.ts'), "from '#tests/support/ztd/harness.js'");
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'tests', 'generated', 'mapping.cases.ts'), 'updates update-users row and maps returned columns');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'tests', 'generated', 'mapping.cases.ts'), 'binds update-users update params and maps returned columns');
   scaffoldFeature('users-delete', 'delete');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), 'delete from "public"."users"');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), ':user_id');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), 'returning "user_id"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), '"email"');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'tests', 'delete-users.boundary.ztd.test.ts'), "from '#tests/support/ztd/harness.js'");
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'tests', 'generated', 'mapping.cases.ts'), 'deletes delete-users row and maps returned columns');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'tests', 'generated', 'mapping.cases.ts'), 'binds delete-users delete params and maps returned columns');
   run(corepack, ['pnpm', 'test'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
   run(corepack, ['pnpm', 'test:mapper'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });
   run(corepack, ['pnpm', 'typecheck'], starterRoot);
