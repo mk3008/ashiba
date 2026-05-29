@@ -22,7 +22,7 @@ const packageDirs = readdirSync(packagesRoot, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => path.join(packagesRoot, entry.name))
   .filter((dir) => existsSync(path.join(dir, 'package.json')))
-  .filter((dir) => JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8')).name.startsWith('@ashiba/'));
+  .filter((dir) => JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8')).name.startsWith('@ashiba-ts/'));
 
 const tarballs = new Map();
 
@@ -70,7 +70,7 @@ execFileSync(corepack, ['pnpm', 'exec', 'ashiba', 'config', '--compact'], {
   shell: process.platform === 'win32',
 });
 
-const importPackages = [...tarballs.keys()].filter((packageName) => packageName !== '@ashiba/cli');
+const importPackages = [...tarballs.keys()].filter((packageName) => packageName !== '@ashiba-ts/cli');
 execFileSync(process.execPath, ['-e', `await Promise.all(${JSON.stringify(importPackages)}.map((name) => import(name)));`], {
   cwd: consumerRoot,
   stdio: 'inherit',
@@ -87,7 +87,7 @@ function verifyDriverAdapterConsumers() {
   const matrix = [
     {
       id: 'pg',
-      adapterPackage: '@ashiba/driver-adapter-pg',
+      adapterPackage: '@ashiba-ts/driver-adapter-pg',
       rawDriverPackage: 'pg',
       rawDriverVersion: '^8.16.3',
       typePackages: { '@types/pg': '^8.15.5' },
@@ -97,7 +97,7 @@ function verifyDriverAdapterConsumers() {
     },
     {
       id: 'mysql2',
-      adapterPackage: '@ashiba/driver-adapter-mysql2',
+      adapterPackage: '@ashiba-ts/driver-adapter-mysql2',
       rawDriverPackage: 'mysql2',
       rawDriverVersion: '^3.15.3',
       typePackages: {},
@@ -107,7 +107,7 @@ function verifyDriverAdapterConsumers() {
     },
     {
       id: 'mssql',
-      adapterPackage: '@ashiba/driver-adapter-mssql',
+      adapterPackage: '@ashiba-ts/driver-adapter-mssql',
       rawDriverPackage: 'mssql',
       rawDriverVersion: '^11.0.1',
       typePackages: { '@types/mssql': '^9.1.8' },
@@ -141,7 +141,7 @@ function verifySingleDriverAdapterConsumer(root, entry) {
       [entry.rawDriverPackage]: entry.rawDriverVersion,
     },
     devDependencies: {
-      '@ashiba/cli': '^0.0.0',
+      '@ashiba-ts/cli': '^0.0.0',
       ...entry.typePackages,
       typescript: '^5.9.3',
     },
@@ -195,7 +195,7 @@ function verifySingleDriverAdapterConsumer(root, entry) {
 
 function driverAdapterTypeSmokeSource(id) {
   if (id === 'pg') {
-    return `import { createPostgresAdapter } from '@ashiba/driver-adapter-pg';
+    return `import { createPostgresAdapter } from '@ashiba-ts/driver-adapter-pg';
 import { queryModel } from './generated/users.meta.js';
 
 const sourceSql = 'select * from users where id = :id';
@@ -213,7 +213,7 @@ createPostgresAdapter({
   }
 
   if (id === 'mysql2') {
-    return `import { createMysql2Adapter } from '@ashiba/driver-adapter-mysql2';
+    return `import { createMysql2Adapter } from '@ashiba-ts/driver-adapter-mysql2';
 import { queryModel } from './generated/users.meta.js';
 
 const sourceSql = 'select * from users where id = :id';
@@ -230,7 +230,7 @@ createMysql2Adapter({
 `;
   }
 
-  return `import { createMssqlAdapter } from '@ashiba/driver-adapter-mssql';
+  return `import { createMssqlAdapter } from '@ashiba-ts/driver-adapter-mssql';
 import { queryModel } from './generated/users.meta.js';
 
 const sourceSql = 'select * from users where id = :id';
@@ -258,7 +258,7 @@ function driverAdapterRuntimeSmokeScript(id) {
   if (id === 'pg') {
     return `
     const { readFileSync } = await import('node:fs');
-    const { createPostgresAdapter } = await import('@ashiba/driver-adapter-pg');
+    const { createPostgresAdapter } = await import('@ashiba-ts/driver-adapter-pg');
     const metadataSource = readFileSync('./src/generated/users.meta.ts', 'utf8');
     const queryModel = JSON.parse(metadataSource.match(/export const queryModel = ([\\s\\S]*) as const;/)?.[1] ?? 'null');
     if (!queryModel) throw new Error('generated query metadata was not readable');
@@ -283,7 +283,7 @@ function driverAdapterRuntimeSmokeScript(id) {
   if (id === 'mysql2') {
     return `
     const { readFileSync } = await import('node:fs');
-    const { createMysql2Adapter } = await import('@ashiba/driver-adapter-mysql2');
+    const { createMysql2Adapter } = await import('@ashiba-ts/driver-adapter-mysql2');
     const metadataSource = readFileSync('./src/generated/users.meta.ts', 'utf8');
     const queryModel = JSON.parse(metadataSource.match(/export const queryModel = ([\\s\\S]*) as const;/)?.[1] ?? 'null');
     if (!queryModel) throw new Error('generated query metadata was not readable');
@@ -307,7 +307,7 @@ function driverAdapterRuntimeSmokeScript(id) {
 
   return `
     const { readFileSync } = await import('node:fs');
-    const { createMssqlAdapter } = await import('@ashiba/driver-adapter-mssql');
+    const { createMssqlAdapter } = await import('@ashiba-ts/driver-adapter-mssql');
     const metadataSource = readFileSync('./src/generated/users.meta.ts', 'utf8');
     const queryModel = JSON.parse(metadataSource.match(/export const queryModel = ([\\s\\S]*) as const;/)?.[1] ?? 'null');
     if (!queryModel) throw new Error('generated query metadata was not readable');

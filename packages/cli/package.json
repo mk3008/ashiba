@@ -1,5 +1,5 @@
 {
-  "name": "@ashiba/cli",
+  "name": "@ashiba-ts/cli",
   "version": "0.1.0",
   "description": "Ashiba Runtime Zero SQL scaffolder for TypeScript applications.",
   "type": "module",

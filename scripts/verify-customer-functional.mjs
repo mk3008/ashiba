@@ -57,23 +57,23 @@ function verifyPostgresCustomer(port) {
   mkdirSync(root, { recursive: true });
   writeCustomerPackageJson(root, {
     dependencies: {
-      '@ashiba/driver-adapter-pg': '^0.0.0',
+      '@ashiba-ts/driver-adapter-pg': '^0.0.0',
       pino: '^9.7.0',
       pg: '^8.21.0',
     },
     devDependencies: {
-      '@ashiba/cli': '^0.0.0',
-      '@ashiba/testkit-adapter-pg': '^0.0.0',
+      '@ashiba-ts/cli': '^0.0.0',
+      '@ashiba-ts/testkit-adapter-pg': '^0.0.0',
       '@types/pg': '^8.20.0',
       dotenv: '^17.2.3',
       typescript: '^5.8.2',
       vitest: '^4.0.7',
     },
     overrides: pickTarballs([
-      '@ashiba/cli',
-      '@ashiba/driver-adapter-core',
-      '@ashiba/driver-adapter-pg',
-      '@ashiba/testkit-adapter-pg',
+      '@ashiba-ts/cli',
+      '@ashiba-ts/driver-adapter-core',
+      '@ashiba-ts/driver-adapter-pg',
+      '@ashiba-ts/testkit-adapter-pg',
     ]),
   });
 
@@ -99,16 +99,16 @@ function verifyMysql2Customer(port) {
   mkdirSync(root, { recursive: true });
   writeCustomerPackageJson(root, {
     dependencies: {
-      '@ashiba/driver-adapter-mysql2': '^0.0.0',
+      '@ashiba-ts/driver-adapter-mysql2': '^0.0.0',
       mysql2: '^3.15.3',
     },
     devDependencies: {
-      '@ashiba/cli': '^0.0.0',
+      '@ashiba-ts/cli': '^0.0.0',
     },
     overrides: pickTarballs([
-      '@ashiba/cli',
-      '@ashiba/driver-adapter-core',
-      '@ashiba/driver-adapter-mysql2',
+      '@ashiba-ts/cli',
+      '@ashiba-ts/driver-adapter-core',
+      '@ashiba-ts/driver-adapter-mysql2',
     ]),
   });
   writeFunctionalSqlFiles(root);
@@ -125,16 +125,16 @@ function verifyMssqlCustomer(port) {
   mkdirSync(root, { recursive: true });
   writeCustomerPackageJson(root, {
     dependencies: {
-      '@ashiba/driver-adapter-mssql': '^0.0.0',
+      '@ashiba-ts/driver-adapter-mssql': '^0.0.0',
       mssql: '^11.0.1',
     },
     devDependencies: {
-      '@ashiba/cli': '^0.0.0',
+      '@ashiba-ts/cli': '^0.0.0',
     },
     overrides: pickTarballs([
-      '@ashiba/cli',
-      '@ashiba/driver-adapter-core',
-      '@ashiba/driver-adapter-mssql',
+      '@ashiba-ts/cli',
+      '@ashiba-ts/driver-adapter-core',
+      '@ashiba-ts/driver-adapter-mssql',
     ]),
   });
   writeFunctionalSqlFiles(root);
@@ -422,7 +422,7 @@ function renderMysql2FunctionalRunner(port) {
   return `
 import { readFileSync } from 'node:fs';
 import mysql from 'mysql2/promise';
-import { createMysql2Adapter } from '@ashiba/driver-adapter-mysql2';
+import { createMysql2Adapter } from '@ashiba-ts/driver-adapter-mysql2';
 
 const connection = await mysql.createConnection({
   host: '127.0.0.1',
@@ -561,7 +561,7 @@ function renderMssqlFunctionalRunner(port) {
   return `
 import { readFileSync } from 'node:fs';
 import sql from 'mssql';
-import { createMssqlAdapter } from '@ashiba/driver-adapter-mssql';
+import { createMssqlAdapter } from '@ashiba-ts/driver-adapter-mssql';
 
 const pool = await sql.connect({
   server: '127.0.0.1',
@@ -826,7 +826,7 @@ function packAshibaPackages() {
     .filter((entry) => entry.isDirectory())
     .map((entry) => path.join(packagesRoot, entry.name))
     .filter((dir) => existsSync(path.join(dir, 'package.json')))
-    .filter((dir) => readPackageJson(dir).name.startsWith('@ashiba/'));
+    .filter((dir) => readPackageJson(dir).name.startsWith('@ashiba-ts/'));
 
   const packed = new Map();
   for (const packageDir of packageDirs) {

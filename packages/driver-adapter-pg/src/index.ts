@@ -10,7 +10,7 @@ import {
   maskParams,
   normalizeError,
   renderSafeOrderBy,
-} from '@ashiba/driver-adapter-core';
+} from '@ashiba-ts/driver-adapter-core';
 
 /**
  * Minimal pg-compatible query result consumed by the adapter.

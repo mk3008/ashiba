@@ -1,4 +1,4 @@
-# @ashiba/cli
+# @ashiba-ts/cli
 
 ## 0.1.0
 

@@ -1,5 +1,5 @@
 {
-  "name": "@ashiba/driver-adapter-pg",
+  "name": "@ashiba-ts/driver-adapter-pg",
   "version": "0.1.0",
   "description": "Thin Ashiba adapter for pg clients.",
   "type": "module",
@@ -11,13 +11,13 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "pnpm --filter @ashiba/driver-adapter-core build && tsc --noEmit -p tsconfig.json",
+    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:live": "vitest run tests/postgres-live.smoke.test.ts",
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@ashiba/driver-adapter-core": "workspace:*"
+    "@ashiba-ts/driver-adapter-core": "workspace:*"
   },
   "peerDependencies": {
     "pg": ">=8"

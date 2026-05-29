@@ -7,9 +7,9 @@ import {
   type AshibaPostgresQueryModel,
   type NodePostgresQueryable,
 } from '../src/index.js';
-import { AshibaSortError, type AshibaSqlExecutionEvent } from '@ashiba/driver-adapter-core';
+import { AshibaSortError, type AshibaSqlExecutionEvent } from '@ashiba-ts/driver-adapter-core';
 
-describe('@ashiba/driver-adapter-pg', () => {
+describe('@ashiba-ts/driver-adapter-pg', () => {
   test('executes named-parameter SQL through a pg compatible client', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const client: NodePostgresQueryable = {

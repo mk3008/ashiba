@@ -38,8 +38,8 @@ Prerequisites:
 ### 1. Install the PostgreSQL path
 
 ```bash
-npm install @ashiba/driver-adapter-pg pg
-npm install -D @ashiba/cli @ashiba/testkit-adapter-pg @types/pg typescript vitest dotenv
+npm install @ashiba-ts/driver-adapter-pg pg
+npm install -D @ashiba-ts/cli @ashiba-ts/testkit-adapter-pg @types/pg typescript vitest dotenv
 ```
 
 ### 2. Create the starter files
@@ -101,11 +101,11 @@ Ashiba chooses DBMS and wrapped driver explicitly. PostgreSQL is the most comple
 
 | DBMS | Wrapped driver/tool | Package | Current status |
 |---|---|---|---|
-| PostgreSQL | `pg` | `@ashiba/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, mapper-test lane, named-parameter binding, safe sort, optional-condition metadata, and tutorial coverage. |
-| PostgreSQL | `pg` testkit | `@ashiba/testkit-adapter-pg` | ZTD mapper-test adapter used by the PostgreSQL starter. |
-| PostgreSQL | `pg_dump` | `@ashiba/ddl-pull-pg-dump` | Optional helper for comparing production DDL from `pg_dump` with local DDL. |
-| MySQL | `mysql2` | `@ashiba/driver-adapter-mysql2` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
-| SQL Server | `mssql` | `@ashiba/driver-adapter-mssql` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
+| PostgreSQL | `pg` | `@ashiba-ts/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, mapper-test lane, named-parameter binding, safe sort, optional-condition metadata, and tutorial coverage. |
+| PostgreSQL | `pg` testkit | `@ashiba-ts/testkit-adapter-pg` | ZTD mapper-test adapter used by the PostgreSQL starter. |
+| PostgreSQL | `pg_dump` | `@ashiba-ts/ddl-pull-pg-dump` | Optional helper for comparing production DDL from `pg_dump` with local DDL. |
+| MySQL | `mysql2` | `@ashiba-ts/driver-adapter-mysql2` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
+| SQL Server | `mssql` | `@ashiba-ts/driver-adapter-mssql` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
 
 ## Use Cases
 

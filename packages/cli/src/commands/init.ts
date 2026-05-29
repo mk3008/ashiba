@@ -35,10 +35,10 @@ type InitTarget = {
   driver: InitDriver;
 };
 
-const postgresStarterRequiredDependencies = ['@ashiba/driver-adapter-pg', 'pg'] as const;
+const postgresStarterRequiredDependencies = ['@ashiba-ts/driver-adapter-pg', 'pg'] as const;
 const postgresStarterRequiredDevDependencies = [
-  '@ashiba/cli',
-  '@ashiba/testkit-adapter-pg',
+  '@ashiba-ts/cli',
+  '@ashiba-ts/testkit-adapter-pg',
   '@types/pg',
   'dotenv',
   'typescript',
@@ -61,7 +61,7 @@ Ashiba handles the boring parts.
 This starter keeps SQL visible and puts DTO definitions, mappers, query IDs, and generated code where humans and AI agents can read, edit, test, and keep them.
 Generated code is not hidden behind generate; keep it visible and drift-check it as the project grows.
 
-Install the \`pg\` driver, \`@ashiba/driver-adapter-pg\`, Ashiba CLI, TypeScript, Vitest, dotenv, @types/pg, and @ashiba/testkit-adapter-pg before running \`ashiba init --db postgres --driver pg\`.
+Install the \`pg\` driver, \`@ashiba-ts/driver-adapter-pg\`, Ashiba CLI, TypeScript, Vitest, dotenv, @types/pg, and @ashiba-ts/testkit-adapter-pg before running \`ashiba init --db postgres --driver pg\`.
 Ashiba init does not create or manage package.json because package ownership and database driver choice belong to the application. This starter uses the \`pg\` wrapper path; another PostgreSQL driver should get its own wrapper-specific starter seam.
 
 Install Docker with PostgreSQL support before running the starter tests. Ashiba treats DB-backed unit tests as the normal path, not an optional afterthought.
@@ -254,7 +254,7 @@ export interface FeatureQueryExecutor {
   {
     relativePath: 'src/adapters/pg/pool.ts',
     contents: `import { Pool, type PoolConfig } from 'pg';
-import { createPostgresAdapter, type AshibaPostgresAdapterOptions, type AshibaPostgresExecuteOptions } from '@ashiba/driver-adapter-pg';
+import { createPostgresAdapter, type AshibaPostgresAdapterOptions, type AshibaPostgresExecuteOptions } from '@ashiba-ts/driver-adapter-pg';
 
 import { logSqlExecution } from '#adapters/logger/sqlLogger.js';
 import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
@@ -505,7 +505,7 @@ export async function runQuerySpecZtdCases<
 import path from 'node:path';
 import { expect } from 'vitest';
 import { Pool } from 'pg';
-import type { PostgresTestkitClient } from '@ashiba/testkit-adapter-pg';
+import type { PostgresTestkitClient } from '@ashiba-ts/testkit-adapter-pg';
 
 import type { QuerySpecZtdCase } from './case-types.js';
 import type { QuerySpecExecutorClient, QuerySpecSqlSource } from './harness.js';
@@ -549,7 +549,7 @@ export async function createQuerySpecZtdVerifier(): Promise<QuerySpecZtdVerifier
 
   const defaults = loadStarterDefaults(process.cwd());
   const pool = new Pool({ connectionString });
-  const { createPostgresTestkitClient } = await import('@ashiba/testkit-adapter-pg');
+  const { createPostgresTestkitClient } = await import('@ashiba-ts/testkit-adapter-pg');
 
   return {
     async verify<BeforeDb extends FixtureTree, Input, Output>(
@@ -963,8 +963,8 @@ function validateStarterDependencies(rootDir: string, target: InitTarget): void 
       'ashiba init --db postgres --driver pg requires package.json in the target directory.',
       [
         'Create the application package first, then install the pg-wrapper starter dependencies:',
-        'npm install @ashiba/driver-adapter-pg pg',
-        'npm install -D @ashiba/cli @ashiba/testkit-adapter-pg @types/pg dotenv typescript vitest',
+        'npm install @ashiba-ts/driver-adapter-pg pg',
+        'npm install -D @ashiba-ts/cli @ashiba-ts/testkit-adapter-pg @types/pg dotenv typescript vitest',
       ].join('\n'),
     );
   }
@@ -989,8 +989,8 @@ function validateStarterDependencies(rootDir: string, target: InitTarget): void 
     `ashiba init --db postgres --driver pg requires missing package dependencies: ${missing.join(', ')}`,
     [
       'Install the matching pg-wrapper starter dependencies before generating pg-specific starter code:',
-      'npm install @ashiba/driver-adapter-pg pg',
-      'npm install -D @ashiba/cli @ashiba/testkit-adapter-pg @types/pg dotenv typescript vitest',
+      'npm install @ashiba-ts/driver-adapter-pg pg',
+      'npm install -D @ashiba-ts/cli @ashiba-ts/testkit-adapter-pg @types/pg dotenv typescript vitest',
     ].join('\n'),
     { missing },
   );
@@ -1027,7 +1027,7 @@ function resolveInitTarget(dbValue: string | undefined, driverValue: string | un
     throw invalidCliInputError(
       'ASHIBA_INIT_STARTER_UNSUPPORTED',
       'ashiba init does not yet provide a mysql + mysql2 starter.',
-      'The @ashiba/driver-adapter-mysql2 package exists for wrapper validation; add a starter template before using init for this pair.',
+      'The @ashiba-ts/driver-adapter-mysql2 package exists for wrapper validation; add a starter template before using init for this pair.',
       { db, driver },
     );
   }
@@ -1035,7 +1035,7 @@ function resolveInitTarget(dbValue: string | undefined, driverValue: string | un
     throw invalidCliInputError(
       'ASHIBA_INIT_STARTER_UNSUPPORTED',
       'ashiba init does not yet provide a sqlserver + mssql starter.',
-      'The @ashiba/driver-adapter-mssql package exists for wrapper validation; add a starter template before using init for this pair.',
+      'The @ashiba-ts/driver-adapter-mssql package exists for wrapper validation; add a starter template before using init for this pair.',
       { db, driver },
     );
   }

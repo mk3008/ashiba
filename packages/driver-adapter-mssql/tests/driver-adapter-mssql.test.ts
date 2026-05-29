@@ -8,7 +8,7 @@ import {
   type MssqlRequestFactory,
 } from '../src/index.js';
 
-describe('@ashiba/driver-adapter-mssql', () => {
+describe('@ashiba-ts/driver-adapter-mssql', () => {
   test('executes named-parameter SQL through an mssql compatible request factory', async () => {
     const inputs: Array<{ name: string; value: unknown }> = [];
     const queries: string[] = [];

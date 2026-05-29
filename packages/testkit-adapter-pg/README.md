@@ -1,4 +1,4 @@
-# @ashiba/testkit-adapter-pg
+# @ashiba-ts/testkit-adapter-pg
 
 Ashiba Zero Table Dependency testkit adapter for `pg`/PostgreSQL query tests.
 
@@ -7,11 +7,11 @@ This package keeps Ashiba starter projects on Ashiba package names while delegat
 ## Install
 
 ```bash
-npm install -D @ashiba/testkit-adapter-pg
+npm install -D @ashiba-ts/testkit-adapter-pg
 ```
 
 ## Usage
 
 ```ts
-import { createPostgresTestkitClient } from '@ashiba/testkit-adapter-pg';
+import { createPostgresTestkitClient } from '@ashiba-ts/testkit-adapter-pg';
 ```

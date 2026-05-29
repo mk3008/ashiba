@@ -1,4 +1,4 @@
-# @ashiba/driver-adapter-pg
+# @ashiba-ts/driver-adapter-pg
 
 Thin Ashiba adapter for [`pg`](https://www.npmjs.com/package/pg) compatible clients.
 

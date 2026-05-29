@@ -64,7 +64,7 @@ importers:
 
   packages/driver-adapter-mssql:
     dependencies:
-      '@ashiba/driver-adapter-core':
+      '@ashiba-ts/driver-adapter-core':
         specifier: workspace:*
         version: link:../driver-adapter-core
     devDependencies:
@@ -83,7 +83,7 @@ importers:
 
   packages/driver-adapter-mysql2:
     dependencies:
-      '@ashiba/driver-adapter-core':
+      '@ashiba-ts/driver-adapter-core':
         specifier: workspace:*
         version: link:../driver-adapter-core
     devDependencies:
@@ -99,7 +99,7 @@ importers:
 
   packages/driver-adapter-pg:
     dependencies:
-      '@ashiba/driver-adapter-core':
+      '@ashiba-ts/driver-adapter-core':
         specifier: workspace:*
         version: link:../driver-adapter-core
     devDependencies:

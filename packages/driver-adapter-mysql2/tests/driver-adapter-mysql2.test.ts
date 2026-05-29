@@ -7,7 +7,7 @@ import {
   type Mysql2Queryable,
 } from '../src/index.js';
 
-describe('@ashiba/driver-adapter-mysql2', () => {
+describe('@ashiba-ts/driver-adapter-mysql2', () => {
   test('executes named-parameter SQL through a mysql2 compatible client', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const client: Mysql2Queryable = {
