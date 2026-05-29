@@ -4,8 +4,8 @@ import typedocSidebar from '../generated/api/typedoc-sidebar.json' with { type: 
 
 const apiSidebar = typedocSidebar as DefaultTheme.SidebarItem[];
 const apiSidebarWithIndex: DefaultTheme.SidebarItem[] = [
-  { text: 'API Overview', link: '/generated/api/index' },
-  { text: 'Commands', link: '/generated/api/commands' },
+  { text: 'Command API', link: '/generated/api/commands' },
+  { text: 'TypeScript API', link: '/generated/api/index' },
   ...apiSidebar,
 ];
 
@@ -24,7 +24,7 @@ export default defineConfig({
   themeConfig: {
     logo: '/brand/ashiba-icon.jpg',
     nav: [
-      { text: 'API', link: '/generated/api/index' },
+      { text: 'API', link: '/generated/api/commands' },
       {
         text: 'Guides',
         items: [
