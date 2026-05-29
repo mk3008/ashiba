@@ -6,39 +6,9 @@ async function main() {
   const root = process.cwd();
   const apiDir = path.join(root, 'docs', 'generated', 'api');
 
-  await ensureIndexFrontMatter(apiDir);
+  await fs.rm(apiDir, { recursive: true, force: true });
+  await fs.mkdir(apiDir, { recursive: true });
   await writeCommandApiPage(apiDir);
-  await wrapMarkdownWithVPre(apiDir);
-}
-
-async function ensureIndexFrontMatter(apiDir) {
-  const indexPath = path.join(apiDir, 'README.md');
-  const targetPath = path.join(apiDir, 'index.md');
-
-  let source = indexPath;
-  try {
-    await fs.access(indexPath);
-  } catch {
-    source = targetPath;
-  }
-
-  try {
-    await fs.access(source);
-  } catch {
-    console.warn('[postprocess-docs] index markdown not found, skipping front matter injection');
-    return;
-  }
-
-  if (source === indexPath) {
-    await fs.rename(indexPath, targetPath);
-  }
-
-  const content = await fs.readFile(targetPath, 'utf8');
-  if (!content.trimStart().startsWith('---')) {
-    const frontMatter = ['---', 'title: API Overview', 'outline: deep', '---', ''].join('\n');
-    await fs.writeFile(targetPath, frontMatter + content, 'utf8');
-    console.log('[postprocess-docs] Injected front matter into generated/api/index.md');
-  }
 }
 
 async function writeCommandApiPage(apiDir) {
@@ -57,8 +27,6 @@ async function writeCommandApiPage(apiDir) {
     'Ashiba command contracts are exposed by the same CLI command catalog used by `ashiba describe command` and command help.',
     '',
     'This page is for third-party readers who need to understand what commands exist, when to use them, and what their arguments and options mean.',
-    '',
-    'The lower-level TypeScript API reference is also generated, but pages such as `cli/src/functions/main` describe exported implementation functions, not the CLI command contract.',
     '',
     'Each command section includes the real Commander help output so the docs do not maintain a separate argument or option explanation.',
     '',
@@ -79,6 +47,8 @@ async function loadCommandApiRuntime() {
   const root = process.cwd();
   const catalogPath = path.join(root, 'packages', 'cli', 'dist', 'commands', 'command-catalog.js');
   const indexPath = path.join(root, 'packages', 'cli', 'dist', 'index.js');
+  await assertFileExists(catalogPath, 'Run `pnpm --filter @ashiba/cli build` before generating docs.');
+  await assertFileExists(indexPath, 'Run `pnpm --filter @ashiba/cli build` before generating docs.');
   const [catalogModule, cliModule] = await Promise.all([
     import(pathToFileURL(catalogPath).href),
     import(pathToFileURL(indexPath).href),
@@ -89,9 +59,17 @@ async function loadCommandApiRuntime() {
   };
 }
 
+async function assertFileExists(filePath, nextAction) {
+  try {
+    await fs.access(filePath);
+  } catch {
+    throw new Error(`Missing required CLI build artifact: ${path.relative(process.cwd(), filePath)}. ${nextAction}`);
+  }
+}
+
 function renderCommandSpec(command, program) {
   const help = getCommandHelp(program, command.name);
-  const lines = [
+  return [
     `## npx ashiba ${command.name}`,
     '',
     command.summary,
@@ -105,8 +83,6 @@ function renderCommandSpec(command, program) {
     '```',
     '',
   ];
-
-  return lines;
 }
 
 function getCommandHelp(program, name) {
@@ -141,58 +117,6 @@ function captureCommandHelp(command) {
   });
   command.outputHelp();
   return output;
-}
-
-async function wrapMarkdownWithVPre(dir) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      await wrapMarkdownWithVPre(fullPath);
-      continue;
-    }
-    if (!entry.name.endsWith('.md')) {
-      continue;
-    }
-
-    const original = await fs.readFile(fullPath, 'utf8');
-    let frontMatter = '';
-    let body = original;
-
-    if (original.startsWith('---')) {
-      const end = original.indexOf('\n---', 3);
-      if (end !== -1) {
-        frontMatter = original.slice(0, end + 4).trimEnd();
-        body = original.slice(end + 4).replace(/^\s+/, '');
-      }
-    }
-
-    const genericLineRE = /^(\s*[-*>+]?\s*)([^`\n<>]*?\b[A-Za-z0-9_$]+<[^>\n]+>[^`\n]*)$/gm;
-    body = body.replace(genericLineRE, (match, prefix, content) => {
-      const trimmed = content.trim();
-      if (content.includes('`')) {
-        return match;
-      }
-      return `${prefix}\`${trimmed}\``;
-    });
-
-    body = body.replace(/(?<=\b[A-Za-z0-9_$])<([^>\n]+)>/g, (_match, inner) => `&lt;${inner}&gt;`);
-    body = body.replace(/\\<([^>\n]+)>/g, (_match, inner) => `&lt;${inner}&gt;`);
-
-    const trimmedBody = body.trimStart();
-    const hasWrapper = trimmedBody.startsWith('<div v-pre>') && trimmedBody.includes('</div>');
-
-    if (hasWrapper) {
-      const output = frontMatter ? `${frontMatter}\n\n${trimmedBody}\n` : `${trimmedBody}\n`;
-      await fs.writeFile(fullPath, output, 'utf8');
-      continue;
-    }
-
-    const wrappedBody = `<div v-pre>\n${body.trim()}\n</div>\n`;
-    const output = frontMatter ? `${frontMatter}\n\n${wrappedBody}` : wrappedBody;
-    await fs.writeFile(fullPath, output, 'utf8');
-    console.log(`[postprocess-docs] Wrapped ${path.relative(dir, fullPath)} with <div v-pre> block`);
-  }
 }
 
 main().catch((error) => {
