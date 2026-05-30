@@ -1419,7 +1419,8 @@ function getColumnTypeName(dataType: CreateTableQuery['columns'][number]['dataTy
 }
 
 function formatValue(value: ValueComponent): string {
-  return defaultSqlFormatter.format(value).formattedSql.replace(/"([A-Za-z_][A-Za-z0-9_$]*)"/g, '$1');
+  const formatted = defaultSqlFormatter.format(value).formattedSql;
+  return formatted.match(/^"([A-Za-z_][A-Za-z0-9_$]*)"$/)?.[1] ?? formatted;
 }
 
 function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColumn: string): {

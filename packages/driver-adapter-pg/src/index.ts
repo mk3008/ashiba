@@ -416,20 +416,6 @@ function applyOptionalConditionCompression(
   };
 }
 
-function assertNonOverlappingRanges(ranges: readonly TextRange[], label: string): void {
-  const sorted = normalizeRanges(ranges);
-  for (let index = 1; index < sorted.length; index += 1) {
-    const previous = sorted[index - 1];
-    const current = sorted[index];
-    if (current.start < previous.end) {
-      throw new AshibaPostgresQueryModelError(
-        'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_STALE',
-        `Optional condition compression metadata has overlapping ${label} ranges.`,
-      );
-    }
-  }
-}
-
 function assertRangeTextMatches(sql: string, range: TextRange & { text?: string }, label: string): void {
   if (range.text === undefined) {
     return;

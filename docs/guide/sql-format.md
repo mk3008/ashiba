@@ -69,5 +69,4 @@ If these checks fail, `query format --write` skips the write and reports the rea
 
 `query optional add`, `query optional refresh`, and `query optional remove` do not reformat the whole SQL file.
 
-Those commands use the rawsql-ts SSSQL rewrite plan. Ashiba writes only when the plan says the edit is limited to the intended optional branch. If the change would require a full SQL reformat, Ashiba stops and asks you to review or edit the SQL manually.
-
+Those commands use the rawsql-ts SSSQL rewrite plan. Ashiba writes only when the plan says the edit is limited to the intended optional branch. If the change would require a full SQL reformat, Ashiba reports that manual editing is required and aborts the automatic rewrite.
