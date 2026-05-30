@@ -10,6 +10,10 @@ Ashiba is a SQL-first generator for TypeScript applications. You write the SQL; 
 
 No ORM runtime. No hidden query DSL. No mapper boilerplate.
 
+<p align="center">
+  <img src="docs/public/brand/ashiba-getting-started.gif" alt="Ashiba getting started: initialize a project, scaffold visible SQL, and run mapper tests." width="900">
+</p>
+
 ## Concept
 
 Ashiba is for teams that want SQL to stay visible.
