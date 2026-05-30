@@ -30,4 +30,5 @@ features:
 - [Command API](./generated/api/commands.md)
 - [SSSQL notation](./guide/sssql.md)
 - [Safe sort](./guide/safe-sort.md)
+- [SQL format](./guide/sql-format.md)
 - [Concept map](./concepts/concept-map.md)

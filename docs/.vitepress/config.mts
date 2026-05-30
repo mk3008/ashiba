@@ -22,6 +22,7 @@ export default defineConfig({
           { text: 'Guide Overview', link: '/guide/' },
           { text: 'SSSQL Notation', link: '/guide/sssql' },
           { text: 'Safe Sort', link: '/guide/safe-sort' },
+          { text: 'SQL Format', link: '/guide/sql-format' },
         ],
       },
       { text: 'Concepts', link: '/concepts/concept-map' },
@@ -31,6 +32,7 @@ export default defineConfig({
         { text: 'Guide Overview', link: '/guide/' },
         { text: 'SSSQL Notation', link: '/guide/sssql' },
         { text: 'Safe Sort', link: '/guide/safe-sort' },
+        { text: 'SQL Format', link: '/guide/sql-format' },
       ],
       '/generated/api/': [
         { text: 'Command API', link: '/generated/api/commands' },

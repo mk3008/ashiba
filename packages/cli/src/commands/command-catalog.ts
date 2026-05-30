@@ -411,6 +411,25 @@ export const COMMANDS: readonly CommandSpec[] = [
     examples: ['npx ashiba query slice path/to/query.sql --cte filtered_users --limit 50'],
   },
   {
+    name: 'query format',
+    summary: 'Format a SQL file using Ashiba SQL style when the rewrite is loss-safe.',
+    useCase: 'Normalize generated or reviewed SQL while refusing rewrites that would drop comments or fail AST round-trip validation.',
+    usage: 'ashiba query format [options] <sqlFile>',
+    arguments: [{ name: 'sqlFile', required: true, description: 'SQL file to format.' }],
+    options: [
+      commonFormat,
+      { flags: '--root-dir <path>', description: 'Project root for ashiba.config.json.', defaultValue: 'process.cwd()' },
+      { flags: '--write', description: 'Write formatted SQL back to the file when the rewrite is safe.' },
+      { flags: '--check', description: 'Fail when formatting would change the file or the rewrite is unsafe.' },
+      { flags: '--diff', description: 'Emit a unified diff instead of formatted SQL.' },
+    ],
+    notes: [
+      'Ashiba formatting is AST-based, not CST-based. It validates round-trip output and refuses unsafe writes.',
+      'Comments are treated as review context. If formatting would lose comments, Ashiba skips the rewrite.',
+    ],
+    examples: ['npx ashiba query format src/features/users/queries/list/list.sql --diff', 'npx ashiba query format src/features/users/queries/list/list.sql --write'],
+  },
+  {
     name: 'query lint',
     summary: 'Report structural SQL maintainability risks.',
     useCase: 'Catch query shapes that are hard to review, maintain, or analyze before they enter a feature boundary.',
@@ -443,6 +462,7 @@ export const COMMANDS: readonly CommandSpec[] = [
       { flags: '--preview', description: 'Emit a unified diff without writing files.' },
       { flags: '--out <path>', description: 'Write output to file.' },
     ],
+    notes: ['Ashiba writes only when rawsql-ts reports that the edit is limited to the target SSSQL branch.'],
     examples: ['npx ashiba query optional add path/to/query.sql --filter email --operator =', 'npx ashiba query optional add path/to/query.sql --kind exists --filter user_id --query "select 1 from orders where orders.user_id = $c0"'],
   },
   {
@@ -452,6 +472,7 @@ export const COMMANDS: readonly CommandSpec[] = [
     usage: 'ashiba query optional refresh [options] <sqlFile>',
     arguments: [{ name: 'sqlFile', required: true, description: 'SQL file to refresh.' }],
     options: [commonFormat, { flags: '--preview', description: 'Emit a unified diff without writing files.' }, { flags: '--out <path>', description: 'Write output to file.' }],
+    notes: ['Ashiba refuses to write when refreshing SSSQL metadata would require reformatting unrelated SQL.'],
     examples: ['npx ashiba query optional refresh path/to/query.sql'],
   },
   {
@@ -470,6 +491,7 @@ export const COMMANDS: readonly CommandSpec[] = [
       { flags: '--preview', description: 'Emit a unified diff without writing files.' },
       { flags: '--out <path>', description: 'Write output to file.' },
     ],
+    notes: ['Ashiba removes only recognized SSSQL branches and refuses unsafe broad rewrites.'],
     examples: ['npx ashiba query optional remove path/to/query.sql --parameter email', 'npx ashiba query optional remove path/to/query.sql --all'],
   },
   {

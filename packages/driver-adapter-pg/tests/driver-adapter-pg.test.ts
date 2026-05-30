@@ -224,6 +224,278 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('compresses a sole optional where condition without leaving dangling where', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email)';
+    const compiledSql = 'select * from users where ($1 is null or email = $2)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['email', 'email'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', 'where ($1 is null or email = $2)'),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', 'where (:email is null or email = :email)'),
+        })),
+      { email: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users ',
+      values: [],
+    }]);
+  });
+
+  test('compresses all optional where conditions without emitting invalid where SQL', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email) and (:status is null or status = :status)';
+    const compiledSql = 'select * from users where ($1 is null or email = $2) and ($3 is null or status = $4)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['email', 'email', 'status', 'status'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
+              optionalCompressionBinding(compiledSql, 'status', 'and ($3 is null or status = $4)').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)').branches[0],
+            ],
+          },
+        })),
+      { email: null, status: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users ',
+      values: [],
+    }]);
+  });
+
+  test('removes where clause when comments are between where and all optional branches', async () => {
+    const cases = [
+      { sourceComment: '/* optional filters */ ', compiledComment: '/* optional filters */ ' },
+      { sourceComment: '-- optional filters\n', compiledComment: '-- optional filters\n' },
+    ];
+
+    for (const testCase of cases) {
+      const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+      const sourceSql = `select * from users where ${testCase.sourceComment}(:email is null or email = :email) and (:status is null or status = :status)`;
+      const compiledSql = `select * from users where ${testCase.compiledComment}($1 is null or email = $2) and ($3 is null or status = $4)`;
+      const client: NodePostgresQueryable = {
+        async query(sql, values) {
+          calls.push({ sql, values });
+          return { rows: [], rowCount: 0 };
+        },
+      };
+      const adapter = createPostgresAdapter(client);
+
+      await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+            sql: compiledSql,
+            orderedNames: ['email', 'email', 'status', 'status'],
+            optionalConditionCompression: {
+              branches: [
+                optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
+                optionalCompressionBinding(compiledSql, 'status', 'and ($3 is null or status = $4)').branches[0],
+              ],
+            },
+          }, {
+            optionalConditionCompression: {
+              enabled: true,
+              branches: [
+                optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and').branches[0],
+                optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)').branches[0],
+              ],
+            },
+          })),
+        { email: null, status: null }, {
+          optionalConditionCompression: true,
+        },
+      );
+
+      expect(calls).toEqual([{
+        sql: 'select * from users ',
+        values: [],
+      }]);
+    }
+  });
+
+  test('compresses optional conditions in CTE and root query scopes independently', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'with cte as (select * from t where (:p is null or col = :p)) select * from cte where (:id is null or id = :id)';
+    const compiledSql = 'with cte as (select * from t where ($1 is null or col = $2)) select * from cte where ($3 is null or id = $4)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['p', 'p', 'id', 'id'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'p', 'where ($1 is null or col = $2)').branches[0],
+              optionalCompressionBinding(compiledSql, 'id', 'where ($3 is null or id = $4)').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'p', 'where (:p is null or col = :p)').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'id', 'where (:id is null or id = :id)').branches[0],
+            ],
+          },
+        })),
+      { p: null, id: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'with cte as (select * from t ) select * from cte ',
+      values: [],
+    }]);
+  });
+
+  test('compresses optional conditions in derived subquery and root query scopes independently', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from (select * from t where (:p is null or col = :p)) s where (:id is null or id = :id)';
+    const compiledSql = 'select * from (select * from t where ($1 is null or col = $2)) s where ($3 is null or id = $4)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['p', 'p', 'id', 'id'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'p', 'where ($1 is null or col = $2)').branches[0],
+              optionalCompressionBinding(compiledSql, 'id', 'where ($3 is null or id = $4)').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'p', 'where (:p is null or col = :p)').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'id', 'where (:id is null or id = :id)').branches[0],
+            ],
+          },
+        })),
+      { p: null, id: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from (select * from t ) s ',
+      values: [],
+    }]);
+  });
+
+  test('compresses optional condition ranges independent of branch source order', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'with cte as (select * from t where (:p is null or col = :p)) select * from cte where (:id is null or id = :id)';
+    const compiledSql = 'with cte as (select * from t where ($1 is null or col = $2)) select * from cte where ($3 is null or id = $4)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['p', 'p', 'id', 'id'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'id', 'where ($3 is null or id = $4)').branches[0],
+              optionalCompressionBinding(compiledSql, 'p', 'where ($1 is null or col = $2)').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'id', 'where (:id is null or id = :id)').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'p', 'where (:p is null or col = :p)').branches[0],
+            ],
+          },
+        })),
+      { p: null, id: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'with cte as (select * from t ) select * from cte ',
+      values: [],
+    }]);
+  });
+
+  test('keeps non-SSSQL true sentinel when optional branch removal leaves valid SQL', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where 1=1 and (:id is null or id = :id)';
+    const compiledSql = 'select * from users where 1=1 and ($1 is null or id = $2)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['id', 'id'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'id', 'and ($1 is null or id = $2)'),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'id', 'and (:id is null or id = :id)'),
+        })),
+      { id: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users where 1=1 ',
+      values: [],
+    }]);
+  });
+
   test('keeps optional conditions when compression is not enabled', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select * from users where tenant_id = :tenant_id and (:status is null or status = :status)';
