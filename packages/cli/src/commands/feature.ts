@@ -27,6 +27,7 @@ import {
 } from './model-gen.js';
 import { loadDdlSchemaModel } from './ddl-schema-model.js';
 import { loadProjectPathConfig } from './config.js';
+import { DEFAULT_SQL_FORMAT_OPTIONS, resolveGeneratedSqlFormatOptions } from '../sql-format.js';
 import { areTypeScriptTypesCompatible, inferSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
 
@@ -37,7 +38,7 @@ const TEST_ZTD_HARNESS_IMPORT_PATH = '#tests/support/ztd/harness.js';
 
 const FEATURE_ACTIONS = ['insert', 'update', 'delete', 'get-by-id', 'list'] as const;
 type FeatureAction = (typeof FEATURE_ACTIONS)[number];
-const sqlFormatter = new SqlFormatter({ keywordCase: 'lower' });
+const defaultSqlFormatter = new SqlFormatter(DEFAULT_SQL_FORMAT_OPTIONS);
 
 export interface FeatureScaffoldOptions {
   table?: string;
@@ -1126,7 +1127,7 @@ function buildQueryFiles(
 ): GeneratedFile[] {
   const queryDir = `${boundary}/queries/${queryName}`;
   const actionPlan = buildActionPlan(action, table, primaryKeyColumn);
-  const sql = renderActionSql(actionPlan, table, primaryKeyColumn);
+  const sql = renderActionSql(actionPlan, table, primaryKeyColumn, rootDir);
   return [
     ...buildSharedFiles(),
     { relativePath: queryDir, kind: 'directory' },
@@ -1418,7 +1419,7 @@ function getColumnTypeName(dataType: CreateTableQuery['columns'][number]['dataTy
 }
 
 function formatValue(value: ValueComponent): string {
-  return sqlFormatter.format(value).formattedSql.replace(/"([A-Za-z_][A-Za-z0-9_$]*)"/g, '$1');
+  return defaultSqlFormatter.format(value).formattedSql.replace(/"([A-Za-z_][A-Za-z0-9_$]*)"/g, '$1');
 }
 
 function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColumn: string): {
@@ -1460,15 +1461,16 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
   return { action, params: [limitColumn], rows: table.columns, writeColumns: [] };
 }
 
-function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTable, primaryKeyColumn: string): string {
+function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTable, primaryKeyColumn: string, rootDir: string): string {
   const tableName = quoteQualifiedName(table.canonicalName);
   const pk = quoteIdentifier(primaryKeyColumn);
+  let sql: string;
   if (plan.action === 'insert') {
     const returningColumns = plan.rows.map((column) => quoteIdentifier(column.name)).join(', ');
     if (plan.writeColumns.length === 0) {
-      return `insert into ${tableName}\ndefault values\nreturning ${returningColumns};\n`;
+      return formatGeneratedSql(`insert into ${tableName}\ndefault values\nreturning ${returningColumns};\n`, rootDir);
     }
-    return [
+    sql = [
       `insert into ${tableName} (`,
       plan.writeColumns.map((column) => `  ${quoteIdentifier(column.name)}`).join(',\n'),
       ') values (',
@@ -1476,10 +1478,11 @@ function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTab
       `) returning ${returningColumns};`,
       '',
     ].join('\n');
+    return formatGeneratedSql(sql, rootDir);
   }
   if (plan.action === 'update') {
     const returningColumns = plan.rows.map((column) => quoteIdentifier(column.name)).join(', ');
-    return [
+    sql = [
       `update ${tableName}`,
       'set',
       plan.writeColumns.map((column) => `  ${quoteIdentifier(column.name)} = :${column.name}`).join(',\n'),
@@ -1488,13 +1491,14 @@ function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTab
       `returning ${returningColumns};`,
       '',
     ].join('\n');
+    return formatGeneratedSql(sql, rootDir);
   }
   if (plan.action === 'delete') {
     const returningColumns = plan.rows.map((column) => quoteIdentifier(column.name)).join(', ');
-    return [`delete from ${tableName}`, 'where', `  ${pk} = :${primaryKeyColumn}`, `returning ${returningColumns};`, ''].join('\n');
+    return formatGeneratedSql([`delete from ${tableName}`, 'where', `  ${pk} = :${primaryKeyColumn}`, `returning ${returningColumns};`, ''].join('\n'), rootDir);
   }
   if (plan.action === 'get-by-id') {
-    return [
+    sql = [
       'select',
       table.columns.map((column) => `  ${quoteIdentifier(column.name)}`).join(',\n'),
       `from ${tableName}`,
@@ -1502,8 +1506,9 @@ function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTab
       `  ${pk} = :${primaryKeyColumn};`,
       '',
     ].join('\n');
+    return formatGeneratedSql(sql, rootDir);
   }
-  return [
+  sql = [
     'select',
     table.columns.map((column) => `  ${quoteIdentifier(column.name)}`).join(',\n'),
     `from ${tableName}`,
@@ -1512,6 +1517,13 @@ function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTab
     'limit :limit;',
     '',
   ].join('\n');
+  return formatGeneratedSql(sql, rootDir);
+}
+
+function formatGeneratedSql(sql: string, rootDir: string): string {
+  const sqlFormatter = new SqlFormatter(resolveGeneratedSqlFormatOptions(rootDir, sql));
+  const formattedSql = sqlFormatter.format(SqlParser.parse(sql)).formattedSql.trimEnd();
+  return `${formattedSql};\n`;
 }
 
 function renderFeatureBoundary(featureName: string): string {
@@ -1787,14 +1799,14 @@ function renderQueryBoundary(
   const result = plan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
   const enablesOptionalConditionCompression = plan.action === 'list' || plan.action === 'get-by-id';
   const rowExpr = plan.action === 'list' ? 'rows as QueryRow[]' : '(rows[0] ?? null) as QueryRow | null';
-  const returnExpr = plan.action === 'list'
-    ? 'return row;'
+  const returnLines = plan.action === 'list'
+    ? ['  return row;']
     : [
-        'if (row === null) {',
+        '  if (row === null) {',
         `    throw new Error('${queryName} query expected one row, but got 0.');`,
         '  }',
         '  return row;',
-      ].join('\n  ');
+      ];
   return [
     "import { dirname } from 'node:path';",
     "import { fileURLToPath } from 'node:url';",
@@ -1832,7 +1844,7 @@ function renderQueryBoundary(
     `): Promise<${result}> {`,
     `  const rows = await executor.query<QueryRow>(${camel}Query, params as unknown as Record<string, unknown>);`,
     `  const row = ${rowExpr};`,
-    `  ${returnExpr}`,
+    ...returnLines,
     '}',
     '',
   ].join('\n');
@@ -1907,14 +1919,21 @@ function renderFeatureBoundaryTest(
   }
   const pascal = toPascal(featureName);
   const queryPascal = toPascal(queryName);
-  const request = renderTsValue(Object.fromEntries(toFeatureFields(plan.params).map((field) => [field.name, sampleFieldValue(field)])));
+  const request = renderTsExpression(
+    Object.fromEntries(toFeatureFields(plan.params).map((field) => [field.name, sampleFieldValue(field)])),
+    2,
+  );
+  const expectedParams = renderTsExpression(
+    Object.fromEntries(toFeatureFields(plan.params).map((field) => [field.sourceName, sampleFieldValue(field)])),
+    6,
+  );
   const queryResult = plan.action === 'list'
     ? `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`
     : `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`;
-  const queryResultRows = `${queryResult} as unknown[]`;
+  const queryResultRows = indentContinuation(`${queryResult} as unknown[]`, 6);
   const response = plan.action === 'list'
-    ? renderTsValue({ items: [Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)]))] })
-    : renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)])));
+    ? renderTsExpression({ items: [Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)]))] }, 2)
+    : renderTsExpression(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)])), 2);
   return [
     "import { expect, test } from 'vitest';",
     '',
@@ -1935,7 +1954,7 @@ function renderFeatureBoundaryTest(
     '  const executor: FeatureQueryExecutor = {',
     '    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {',
     `      expect(query.id).toBe('${queryName}');`,
-    `      expect(params).toEqual(${renderTsValue(Object.fromEntries(toFeatureFields(plan.params).map((field) => [field.sourceName, sampleFieldValue(field)])))});`,
+    `      expect(params).toEqual(${expectedParams});`,
     `      return ${queryResultRows} as T[];`,
     '    },',
     '  };',
@@ -2343,6 +2362,14 @@ function renderTsValue(value: unknown): string {
   return JSON.stringify(value, null, 2)
     .replace(/\n/g, '\n')
     .replace(/"([^"]+)":/g, (_match, key: string) => `${renderPropertyKey(key)}:`);
+}
+
+function renderTsExpression(value: unknown, continuationIndent: number): string {
+  return indentContinuation(renderTsValue(value), continuationIndent);
+}
+
+function indentContinuation(value: string, continuationIndent: number): string {
+  return value.split('\n').map((line, index) => index === 0 ? line : `${' '.repeat(continuationIndent)}${line}`).join('\n');
 }
 
 function renderPropertyKey(value: string): string {

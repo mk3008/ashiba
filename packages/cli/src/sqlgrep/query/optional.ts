@@ -5,10 +5,10 @@ import {
   collectSupportedOptionalConditionBranches,
   SelectQueryParser,
   SSSQLFilterBuilder as OptionalConditionBuilder,
-  SqlFormatter,
   type SssqlBranchInfo as OptionalConditionBranchInfo,
   type SssqlBranchKind as OptionalConditionBranchKind,
   type SssqlRemoveSpec as OptionalConditionRemoveSpec,
+  type SssqlRewritePlan as OptionalConditionRewritePlan,
   type SssqlScaffoldFilters as OptionalConditionScaffoldFilters,
   type SssqlScaffoldSpec as OptionalConditionScaffoldSpec,
 } from 'rawsql-ts';
@@ -59,9 +59,9 @@ function applyOptionalConditionScaffoldRewrite(
   return applyOptionalConditionRewrite(sqlFile, commandName, options, (sql) => {
     const builder = new OptionalConditionBuilder();
     if (options.spec) {
-      return builder.scaffoldBranch(sql, options.spec);
+      return builder.planScaffoldBranch(sql, options.spec);
     }
-    return builder.scaffold(sql, options.filters ?? {});
+    return builder.planScaffold(sql, options.filters ?? {});
   });
 }
 
@@ -70,7 +70,7 @@ export function refreshOptionalConditions(sqlFile: string, options: OptionalCond
     const parsed = SelectQueryParser.parse(sql);
     const existingBranches = collectSupportedOptionalConditionBranches(parsed);
     const filters = Object.fromEntries(existingBranches.map((branch) => [branch.parameterName, null]));
-    return new OptionalConditionBuilder().refresh(parsed, filters);
+    return new OptionalConditionBuilder().planRefresh(sql, filters);
   });
 }
 
@@ -78,7 +78,7 @@ export function removeOptionalCondition(sqlFile: string, options: OptionalCondit
   return applyOptionalConditionRewrite(sqlFile, 'query optional remove', options, (sql) => {
     const builder = new OptionalConditionBuilder();
     if (options.all) {
-      return builder.removeAll(sql);
+      return builder.planRemoveAll(sql);
     }
     if (!options.spec) {
       throw invalidCliInputError(
@@ -87,7 +87,7 @@ export function removeOptionalCondition(sqlFile: string, options: OptionalCondit
         'Pass --all to remove all supported branches, or pass --parameter for the branch to remove.',
       );
     }
-    return builder.remove(sql, options.spec);
+    return builder.planRemove(sql, options.spec);
   });
 }
 
@@ -107,13 +107,13 @@ function applyOptionalConditionRewrite(
   sqlFile: string,
   commandName: string,
   options: OptionalConditionRewriteOptions,
-  transform: (sql: string) => unknown
+  planRewrite: (sql: string) => OptionalConditionRewritePlan
 ): OptionalConditionRewriteReport {
   const absoluteInputPath = path.resolve(sqlFile);
   const originalSql = readFileSync(absoluteInputPath, 'utf8');
-  const transformed = transform(originalSql);
-  const formatted = new SqlFormatter().format(transformed as never).formattedSql;
-  const updatedSql = `${formatted}\n`;
+  const plan = planRewrite(originalSql);
+  assertSafeOptionalConditionPlan(plan, commandName);
+  const updatedSql = ensureTrailingNewline(plan.sql ?? originalSql);
   assertNoCommentLoss(originalSql, updatedSql, commandName);
 
   SelectQueryParser.parse(updatedSql);
@@ -143,7 +143,7 @@ function applyOptionalConditionRewrite(
     preview,
     changed,
     written: !preview,
-    sql: formatted,
+    sql: updatedSql.trimEnd(),
     diff,
   };
 }
@@ -154,6 +154,43 @@ function normalizeLineEndings(value: string): string {
 
 function normalizePath(value: string): string {
   return value.split(path.sep).join('/');
+}
+
+function ensureTrailingNewline(value: string): string {
+  return value.endsWith('\n') ? value : `${value}\n`;
+}
+
+function assertSafeOptionalConditionPlan(plan: OptionalConditionRewritePlan, commandName: string): void {
+  if (!plan.ok) {
+    throw invalidCliInputError(
+      'ASHIBA_QUERY_OPTIONAL_REWRITE_PLAN_FAILED',
+      `${commandName} could not build a safe SSSQL rewrite plan.`,
+      'Inspect the reported SSSQL rewrite errors, adjust the SQL or command options, then rerun the command.',
+      { commandName, warnings: plan.warnings, errors: plan.errors },
+    );
+  }
+  if (!plan.sql) {
+    throw invalidCliInputError(
+      'ASHIBA_QUERY_OPTIONAL_REWRITE_PLAN_EMPTY',
+      `${commandName} did not return rewritten SQL.`,
+      'Update rawsql-ts or edit the SSSQL branch manually. Ashiba will not write when the rewrite result is unavailable.',
+      { commandName, warnings: plan.warnings, errors: plan.errors },
+    );
+  }
+  if (plan.requiresFullReformat || !plan.safety.changedOnlyTargetBranches) {
+    throw invalidCliInputError(
+      'ASHIBA_QUERY_OPTIONAL_REWRITE_UNSAFE',
+      `${commandName} would rewrite more than the target SSSQL branch.`,
+      'Ashiba writes SSSQL changes only when rawsql-ts reports a target-branch-only rewrite. Use preview/review output or edit the SQL manually.',
+      {
+        commandName,
+        requiresFullReformat: plan.requiresFullReformat,
+        safety: plan.safety,
+        warnings: plan.warnings,
+        errors: plan.errors,
+      },
+    );
+  }
 }
 
 function assertNoCommentLoss(before: string, after: string, commandName: string): void {

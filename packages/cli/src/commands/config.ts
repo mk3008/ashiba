@@ -2,6 +2,7 @@ import type { Command } from 'commander';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { invalidCliInputError } from '../errors.js';
+import { DEFAULT_SQL_FORMAT_OPTIONS } from '../sql-format.js';
 
 export type AshibaConfig = {
   $schema: string;
@@ -12,6 +13,9 @@ export type AshibaConfig = {
   };
   sql: {
     parameterStyle: 'colon' | 'at' | 'both';
+  };
+  format: {
+    sql: typeof DEFAULT_SQL_FORMAT_OPTIONS;
   };
   tests: {
     mapperLane: 'ztd' | 'traditional';
@@ -38,6 +42,9 @@ export function createDefaultConfig(): AshibaConfig {
     },
     sql: {
       parameterStyle: 'both',
+    },
+    format: {
+      sql: DEFAULT_SQL_FORMAT_OPTIONS,
     },
     tests: {
       mapperLane: 'ztd',

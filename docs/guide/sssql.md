@@ -103,6 +103,14 @@ If a generated query source explicitly sets `optionalConditionCompression: true`
 
 Compression depends on generated query metadata. If the SQL changes and metadata becomes stale, Ashiba rejects compression instead of emitting guessed SQL.
 
+The `query optional` commands also use a conservative rewrite plan before writing SQL files. Ashiba writes an SSSQL change only when `rawsql-ts` reports that the edit can be limited to the target optional branch. If the operation would require a full SQL reformat, or if comments and unrelated SQL could be touched, the command stops and asks you to review or edit the SQL manually.
+
+This keeps the rule simple:
+
+- newly scaffolded SQL may be formatted by Ashiba
+- existing SQL is not reformatted by `query optional`
+- SSSQL commands update only the intended optional branch, or they do not write
+
 Refresh metadata after SQL edits:
 
 ```bash
@@ -116,4 +124,3 @@ Then run the passive checks:
 npx ashiba check
 npx ashiba check --full
 ```
-

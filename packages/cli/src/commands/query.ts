@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
+import { createTwoFilesPatch } from 'diff';
 import {
   buildQueryLintReport,
   buildQuerySliceReport,
@@ -19,7 +20,9 @@ import type {
   SssqlRemoveSpec as OptionalConditionRemoveSpec,
   SssqlScaffoldSpec as OptionalConditionScaffoldSpec,
 } from 'rawsql-ts';
+import { LexemeCursor, SqlFormatter, SqlParser, type Lexeme } from 'rawsql-ts';
 import { compileNamedParameters } from '../parameter-metadata.js';
+import { loadSqlFormatOptions } from '../sql-format.js';
 import {
   analyzeQueryModel,
   buildPostgresOptionalConditionCompressionBindingMetadata,
@@ -55,6 +58,28 @@ export interface QueryLintOptions {
   rules?: string;
 }
 
+export interface QueryFormatOptions {
+  format?: 'text' | 'json';
+  rootDir?: string;
+  write?: boolean;
+  check?: boolean;
+  diff?: boolean;
+}
+
+export interface QueryFormatReport {
+  commandName: 'query format';
+  file: string;
+  changed: boolean;
+  written: boolean;
+  safe: boolean;
+  skipped: boolean;
+  tokenCountBefore: number;
+  tokenCountAfter: number;
+  reason?: string;
+  sql: string;
+  diff: string;
+}
+
 export interface QueryOptionalOptions {
   format?: 'text' | 'json';
   out?: string;
@@ -85,6 +110,7 @@ Use cases:
   outline/graph      Understand CTE-heavy SQL before editing it.
   slice              Run a smaller CTE debug query in a SQL client.
   optional add       Add an SSSQL optional search condition and refresh metadata.
+  format             Format SQL explicitly after safety checks pass.
   lint               Catch hard-to-review query shapes before review.
 `);
 
@@ -209,6 +235,22 @@ Use cases:
     });
 
   query
+    .command('format <sqlFile>')
+    .description('Format a SQL query with Ashiba defaults when the rewrite is loss-safe')
+    .option('--format <format>', 'Output format: text or json', 'text')
+    .option('--root-dir <path>', 'Project root for ashiba.config.json', process.cwd())
+    .option('--write', 'Write formatted SQL back to the file when the rewrite is safe')
+    .option('--check', 'Fail when formatting would change the file or the rewrite is unsafe')
+    .option('--diff', 'Emit a unified diff instead of formatted SQL')
+    .action((sqlFile: string, options: QueryFormatOptions) => {
+      const result = runQueryFormat(sqlFile, options);
+      if (options.check && (!result.safe || result.changed)) {
+        process.exitCode = 1;
+      }
+      process.stdout.write(formatQueryFormatReport(result, options.format ?? 'text', Boolean(options.diff)));
+    });
+
+  query
     .command('lint <sqlFile>')
     .description('Report structural maintainability and analysis-safety issues in a SQL query')
     .option('--format <format>', 'Output format: text or json', 'text')
@@ -249,6 +291,48 @@ export function runQueryLint(sqlFile: string, options: QueryLintOptions = {}): s
     rules: normalizeLintRules(options.rules),
   });
   return formatQueryLintReport(report, format);
+}
+
+/**
+ * Formats a SQL file only when the AST rewrite can be validated as loss-safe.
+ */
+export function runQueryFormat(sqlFile: string, options: QueryFormatOptions = {}): QueryFormatReport {
+  const absoluteInputPath = path.resolve(sqlFile);
+  const originalSql = readFileSync(absoluteInputPath, 'utf8');
+  const formatter = new SqlFormatter(loadSqlFormatOptions(options.rootDir ?? process.cwd()));
+  const originalAst = SqlParser.parse(originalSql);
+  const formattedSql = `${formatter.format(originalAst).formattedSql.trimEnd()};\n`;
+  const safety = validateFormattedSql(originalSql, formattedSql, formatter);
+  const changed = normalizeLineEndings(originalSql) !== normalizeLineEndings(formattedSql);
+  const diff = createTwoFilesPatch(
+    normalizePath(absoluteInputPath),
+    normalizePath(absoluteInputPath),
+    normalizeLineEndings(originalSql),
+    normalizeLineEndings(formattedSql),
+    '',
+    '',
+    { context: 3 },
+  );
+
+  const shouldWrite = Boolean(options.write) && safety.safe && changed;
+  if (shouldWrite) {
+    mkdirSync(path.dirname(absoluteInputPath), { recursive: true });
+    writeFileSync(absoluteInputPath, formattedSql, 'utf8');
+  }
+
+  return {
+    commandName: 'query format',
+    file: absoluteInputPath,
+    changed,
+    written: shouldWrite,
+    safe: safety.safe,
+    skipped: Boolean(options.write) && !safety.safe,
+    tokenCountBefore: safety.tokenCountBefore,
+    tokenCountAfter: safety.tokenCountAfter,
+    reason: safety.reason,
+    sql: formattedSql,
+    diff,
+  };
 }
 
 /**
@@ -382,6 +466,108 @@ function normalizeLintRules(value: string | undefined): Array<'join-direction'> 
     }
   }
   return values as Array<'join-direction'>;
+}
+
+function validateFormattedSql(
+  originalSql: string,
+  formattedSql: string,
+  formatter: SqlFormatter,
+): ({ safe: true; reason?: undefined } | { safe: false; reason: string }) & { tokenCountBefore: number; tokenCountAfter: number } {
+  const beforeTokens = tokenizeSqlForSafety(originalSql);
+  const afterTokens = tokenizeSqlForSafety(formattedSql);
+  const tokenCountBefore = beforeTokens.length;
+  const tokenCountAfter = afterTokens.length;
+  if (!sameTokenSequence(beforeTokens, afterTokens)) {
+    return {
+      safe: false,
+      reason: `formatted SQL token sequence changed: before=${tokenCountBefore}, after=${tokenCountAfter}`,
+      tokenCountBefore,
+      tokenCountAfter,
+    };
+  }
+  const missingComments = missingSqlCommentFragments(originalSql, formattedSql);
+  if (missingComments.length > 0) {
+    return { safe: false, reason: `formatting would drop SQL comments: ${missingComments.join(', ')}`, tokenCountBefore, tokenCountAfter };
+  }
+  try {
+    const originalNormalized = formatter.format(SqlParser.parse(originalSql)).formattedSql.trim();
+    const formattedNormalized = formatter.format(SqlParser.parse(formattedSql)).formattedSql.trim();
+    if (originalNormalized !== formattedNormalized) {
+      return { safe: false, reason: 'formatted SQL does not round-trip to the same normalized AST output', tokenCountBefore, tokenCountAfter };
+    }
+  } catch (error) {
+    return { safe: false, reason: error instanceof Error ? error.message : String(error), tokenCountBefore, tokenCountAfter };
+  }
+  return { safe: true, tokenCountBefore, tokenCountAfter };
+}
+
+function tokenizeSqlForSafety(sql: string): Lexeme[] {
+  return LexemeCursor.getAllLexemesWithPosition(sql);
+}
+
+function sameTokenSequence(before: readonly Lexeme[], after: readonly Lexeme[]): boolean {
+  if (before.length !== after.length) {
+    return false;
+  }
+  return before.every((token, index) => {
+    const other = after[index];
+    return Boolean(other)
+      && token.type === other.type
+      && token.value === other.value
+      && JSON.stringify(token.comments ?? null) === JSON.stringify(other.comments ?? null)
+      && JSON.stringify(token.positionedComments ?? null) === JSON.stringify(other.positionedComments ?? null);
+  });
+}
+
+function missingSqlCommentFragments(before: string, after: string): string[] {
+  const beforeComments = extractSqlCommentFragments(before);
+  if (beforeComments.length === 0) {
+    return [];
+  }
+  const normalizedAfter = normalizeLineEndings(after);
+  return beforeComments.filter((comment) => !normalizedAfter.includes(comment));
+}
+
+function extractSqlCommentFragments(sql: string): string[] {
+  const normalized = normalizeLineEndings(sql);
+  const lineMatches = normalized.match(/--.*$/gm) ?? [];
+  const blockMatches = normalized.match(/\/\*[\s\S]*?\*\//g) ?? [];
+  return [...lineMatches, ...blockMatches].map((comment) => comment.trim()).filter(Boolean);
+}
+
+function formatQueryFormatReport(report: QueryFormatReport, formatValue: string, diff: boolean): string {
+  const format = normalizeFormat(formatValue);
+  if (format === 'json') {
+    return `${JSON.stringify(report, null, 2)}\n`;
+  }
+  if (diff) {
+    return report.diff.endsWith('\n') ? report.diff : `${report.diff}\n`;
+  }
+  if (!report.safe) {
+    return [
+      'Query format: skipped',
+      `File: ${report.file}`,
+      `Reason: ${report.reason ?? 'unsafe rewrite'}`,
+      '',
+    ].join('\n');
+  }
+  if (report.written) {
+    return [
+      'Query format: written',
+      `File: ${report.file}`,
+      `Changed: ${report.changed ? 'yes' : 'no'}`,
+      '',
+    ].join('\n');
+  }
+  return report.sql;
+}
+
+function normalizeLineEndings(value: string): string {
+  return value.replace(/\r\n/g, '\n');
+}
+
+function normalizePath(value: string): string {
+  return value.split(path.sep).join('/');
 }
 
 function buildOptionalConditionFilters(options: QueryOptionalOptions): Record<string, null> | undefined {

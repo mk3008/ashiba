@@ -16,15 +16,17 @@ import { runLint } from '../src/commands/lint.js';
 import { runModelGen } from '../src/commands/model-gen.js';
 import { runPerfInit, runPerfReportDiff, runPerfRun, runPerfScenarioInit, runPerfScenarioMeasure } from '../src/commands/perf.js';
 import { formatProjectCheckResult, runProjectCheck } from '../src/commands/project.js';
-import { runQueryLint, runQueryOptionalAdd, runQuerySlice, runQueryStructure, runQueryUses } from '../src/commands/query.js';
+import { runQueryFormat, runQueryLint, runQueryOptionalAdd, runQuerySlice, runQueryStructure, runQueryUses } from '../src/commands/query.js';
 import { runRfbaInspect } from '../src/commands/rfba.js';
 
 describe('@ashiba-ts/cli smoke', () => {
   test('builds an ashiba program', () => {
     const program = buildProgram();
+    const help = captureCommandHelp(program);
 
     expect(program.name()).toBe('ashiba');
     expect(program.description()).toContain('Ashiba Runtime Zero SQL scaffolder');
+    expect(help).toContain('ashiba query format');
   });
 
   test('exposes the initial version', () => {
@@ -65,6 +67,7 @@ describe('@ashiba-ts/cli smoke', () => {
     expect(createDefaultConfig().featureRoot).toBe('src/features');
     expect(createDefaultConfig().sqlRoots).toEqual(['src/features']);
     expect(formatDefaultConfig()).toContain('"parameterStyle": "both"');
+    expect(formatDefaultConfig()).toContain('"commaBreak": "before"');
     expect(formatDefaultConfig({ pretty: false })).not.toContain('\n  ');
   });
 
@@ -97,6 +100,7 @@ describe('@ashiba-ts/cli smoke', () => {
       'query outline',
       'query graph',
       'query slice',
+      'query format',
       'query optional add',
       'query optional refresh',
       'feature query scaffold',
@@ -503,9 +507,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryMappingCases).not.toContain('inserts insert-users row');
       expect(querySql).toContain(':email');
       expect(querySql).not.toContain(':user_id');
-      expect(querySql).toContain('returning "user_id", "email", "display_name"');
-      expect(updateSql).toContain('returning "user_id", "email", "display_name"');
-      expect(deleteSql).toContain('returning "user_id", "email", "display_name"');
+      expect(querySql).toContain('returning\n    user_id\n    , email\n    , display_name');
+      expect(updateSql).toContain('returning\n    user_id\n    , email\n    , display_name');
+      expect(deleteSql).toContain('returning\n    user_id\n    , email\n    , display_name');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -562,7 +566,65 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
 
       expect(result.featureName).toBe('users-list');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/list.sql'), 'utf8')).toContain('from "public"."users"');
+      const listSql = readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/list.sql'), 'utf8');
+      expect(listSql).toContain('from\n    public.users');
+      expect(listSql).toContain('    user_id\n    , email');
+      const boundaryTest = readFileSync(path.join(rootDir, 'src/features/users-list/tests/users-list.boundary.test.ts'), 'utf8');
+      expect(boundaryTest).toMatch(/expect\(params\)\.toEqual\(\{\n {8}limit: 1\n {6}\}\);/);
+      expect(boundaryTest).toMatch(/return \[\{\n {8}user_id: 1,\n {8}email: "email-value"/);
+      expect(boundaryTest).toMatch(/await expect\(execute\(executor, \{\n {4}limit: 1\n {2}\}\)\)\.resolves\.toEqual\(\{/);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('formats newly scaffolded SQL using ashiba.config.json format.sql', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-config-format-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        format: { sql: { indentSize: 2 } },
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+
+      const listSql = readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/list.sql'), 'utf8');
+      expect(listSql).toContain('select\n  user_id\n  , email');
+      expect(listSql).toContain('from\n  public.users');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps required identifier quotes when formatting newly scaffolded SQL', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-format-quotes-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public."order" (',
+        '  id integer primary key,',
+        '  "select" text not null,',
+        '  "current_user" text,',
+        '  "UserName" text',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureScaffold({ rootDir, table: 'order', action: 'list' });
+
+      const listSql = readFileSync(path.join(rootDir, 'src/features/order-list/queries/list/list.sql'), 'utf8');
+      expect(listSql).toContain('    "id"\n    , "select"\n    , "current_user"\n    , "UserName"');
+      expect(listSql).toContain('from\n    "public"."order"');
+      expect(listSql).toContain('order by\n    "id"');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -603,6 +665,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(checkResult.checked[0]?.sqlFile).toBe('src/features/orders/write/users-insert/queries/get-user/get-user.sql');
       expect(queryBoundary).toContain("from '#features/_shared/featureQueryExecutor.js'");
       expect(queryBoundary).toContain("from '#features/_shared/loadSqlResource.js'");
+      expect(queryBoundary).toMatch(/if \(row === null\) \{\n {4}throw new Error\('get-user query expected one row, but got 0\.'\);\n {2}\}\n {2}return row;/);
       expect(ztdTest).toContain("from '#tests/support/ztd/harness.js'");
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -2196,6 +2259,54 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('generates optional condition compression metadata for nested query scopes', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-optional-condition-nested-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'with scoped as (',
+        '  select user_id, email',
+        '  from public.users',
+        '  where (:inner_status is null or status = :inner_status)',
+        ')',
+        'select *',
+        'from (',
+        '  select *',
+        '  from scoped',
+        '  where (:derived_email is null or email = :derived_email)',
+        ') derived',
+        'where (:root_id is null or user_id = :root_id);',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.analysis.optionalConditionCompression?.branches.map((branch) => branch.parameterName)).toEqual([
+        'inner_status',
+        'derived_email',
+        'root_id',
+      ]);
+      expect(result.bindings.postgres.optionalConditionCompression?.branches.map((branch) => branch.parameterName)).toEqual([
+        'inner_status',
+        'derived_email',
+        'root_id',
+      ]);
+      expect(result.analysis.optionalConditionCompression?.branches.map((branch) => branch.removalRange.text)).toEqual([
+        'where (:inner_status is null or status = :inner_status)',
+        'where (:derived_email is null or email = :derived_email)',
+        'where (:root_id is null or user_id = :root_id)',
+      ]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('uses collision-free metadata names when model-gen writes sibling query contracts', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-sibling-contracts-'));
 
@@ -3053,6 +3164,50 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('formats SQL with Ashiba defaults and refuses comment-losing writes', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-format-'));
+
+    try {
+      const sqlPath = path.join(rootDir, 'users.sql');
+      writeFileSync(sqlPath, 'select id, email from public.users where active = :active and email = :email;\n', 'utf8');
+
+      const report = runQueryFormat(sqlPath, { rootDir });
+
+      expect(report.safe).toBe(true);
+      expect(report.changed).toBe(true);
+      expect(report.tokenCountBefore).toBe(report.tokenCountAfter);
+      expect(report.sql).toContain('select\n    id\n    , email');
+      expect(report.sql).toContain('where\n    active = :active\n    and email = :email');
+
+      const commentedPath = path.join(rootDir, 'commented.sql');
+      writeFileSync(commentedPath, 'select id -- keep this review note\nfrom public.users;\n', 'utf8');
+      const commented = runQueryFormat(commentedPath, { rootDir, write: true });
+
+      expect(commented.safe).toBe(false);
+      expect(commented.tokenCountBefore).toBe(commented.tokenCountAfter);
+      expect(commented.written).toBe(false);
+      expect(readFileSync(commentedPath, 'utf8')).toContain('-- keep this review note');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('reports invalid ashiba.config.json while formatting SQL', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-format-config-'));
+
+    try {
+      const sqlPath = path.join(rootDir, 'users.sql');
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), '{ invalid json', 'utf8');
+      writeFileSync(sqlPath, 'select id from public.users;\n', 'utf8');
+
+      expect(catchError(() => runQueryFormat(sqlPath, { rootDir }))).toMatchObject({
+        code: 'ASHIBA_CONFIG_JSON_PARSE_FAILED',
+      });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('adds SQL-first optional filter branches and refreshes metadata', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-optional-add-'));
 
@@ -3061,17 +3216,42 @@ describe('@ashiba-ts/cli smoke', () => {
       const outPath = path.join(rootDir, 'users.optional.sql');
       writeFileSync(sqlPath, `
         SELECT u.id, u.status
-        FROM users u
+        FROM users as u
         WHERE u.active = true
       `, 'utf8');
 
       const add = runQueryOptionalAdd(sqlPath, { filter: 'status', out: outPath });
 
       expect(add).toContain('query optional add');
-      expect(readFileSync(outPath, 'utf8').toLowerCase()).toContain(':status is null');
+      const rewrittenSql = readFileSync(outPath, 'utf8');
+      expect(rewrittenSql.toLowerCase()).toContain(':status is null');
+      expect(rewrittenSql).toContain('SELECT u.id, u.status');
+      expect(rewrittenSql).toContain('FROM users as u');
       const metadata = readFileSync(path.join(rootDir, 'generated', 'query.meta.ts'), 'utf8');
       expect(metadata).toContain('"optionalConditionCompression"');
       expect(metadata).toContain('"parameterName": "status"');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('applies optional filter branches without full SQL reformat', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-optional-minimal-'));
+
+    try {
+      const sqlPath = path.join(rootDir, 'users.sql');
+      writeFileSync(sqlPath, `
+        SELECT u.id, u.status
+        FROM users u
+        WHERE u.active = true
+      `, 'utf8');
+
+      runQueryOptionalAdd(sqlPath, { filter: 'status' });
+
+      const rewrittenSql = readFileSync(sqlPath, 'utf8');
+      expect(rewrittenSql).toContain('FROM users u');
+      expect(rewrittenSql).not.toContain('FROM users as u');
+      expect(rewrittenSql).toContain('and (:status is null or u.status = :status)');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

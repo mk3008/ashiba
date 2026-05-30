@@ -156,7 +156,7 @@ try {
     waitForPostgres(starterRoot, dockerPort);
   }
   scaffoldFeature('users-list', 'list');
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'list.sql'), 'from "public"."users"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'list.sql'), 'from\n    public.users');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'query.ts'), "from '#features/_shared/featureQueryExecutor.js'");
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'query.ts'), 'sqlPath');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-list', 'queries', 'list', 'query.ts'), 'metadata');
@@ -206,7 +206,7 @@ try {
   writeFileSync(ddlPath, originalDdl, 'utf8');
 
   scaffoldFeature('users-get-by-id', 'get-by-id');
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-get-by-id', 'queries', 'get-by-id', 'get-by-id.sql'), 'from "public"."users"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-get-by-id', 'queries', 'get-by-id', 'get-by-id.sql'), 'from\n    public.users');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-get-by-id', 'queries', 'get-by-id', 'get-by-id.sql'), 'where');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-get-by-id', 'queries', 'get-by-id', 'get-by-id.sql'), ':user_id');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-get-by-id', 'queries', 'get-by-id', 'tests', 'get-by-id.boundary.ztd.test.ts'), "from '#tests/support/ztd/harness.js'");
@@ -214,20 +214,20 @@ try {
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-get-by-id', 'queries', 'get-by-id', 'tests', 'generated', 'mapping.cases.ts'), 'boundary-value-mapping');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-get-by-id', 'queries', 'get-by-id', 'tests', 'generated', 'mapping.cases.ts'), 'nullable-output-mapping');
   scaffoldFeature('users-update', 'update');
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), 'update "public"."users"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), 'update public.users');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), ':user_id');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), ':email');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), ':display_name');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), ':external_account_id');
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), 'returning "user_id"');
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), '"email"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), 'returning\n    user_id');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'update-users.sql'), '    , email');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'tests', 'update-users.boundary.ztd.test.ts'), "from '#tests/support/ztd/harness.js'");
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-update', 'queries', 'update-users', 'tests', 'generated', 'mapping.cases.ts'), 'binds update-users update params and maps returned columns');
   scaffoldFeature('users-delete', 'delete');
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), 'delete from "public"."users"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), 'delete from public.users');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), ':user_id');
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), 'returning "user_id"');
-  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), '"email"');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), 'returning\n    user_id');
+  assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'delete-users.sql'), '    , email');
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'tests', 'delete-users.boundary.ztd.test.ts'), "from '#tests/support/ztd/harness.js'");
   assertFileContains(path.join(starterRoot, 'src', 'features', 'users-delete', 'queries', 'delete-users', 'tests', 'generated', 'mapping.cases.ts'), 'binds delete-users delete params and maps returned columns');
   run(corepack, ['pnpm', 'test'], starterRoot, withDocker ? {} : { ASHIBA_SKIP_DB_BACKED_TESTS: '1' });

@@ -37,6 +37,7 @@ export function buildProgram(): Command {
     'feature scaffold',
     'query uses table',
     'query slice',
+    'query format',
     'ddl migration generate',
     'describe command',
   ]);

@@ -395,10 +395,8 @@ function applyOptionalConditionCompression(
     };
   }
 
-  const sourceRemovalRanges = activeBranches.map((branch) => branch.source.removalRange);
-  const compiledRemovalRanges = activeBranches.map((branch) => branch.compiled.removalRange);
-  assertNonOverlappingRanges(sourceRemovalRanges, 'source SQL');
-  assertNonOverlappingRanges(compiledRemovalRanges, 'compiled SQL');
+  const sourceRemovalRanges = normalizeOptionalConditionRemovalRanges(query.sql, activeBranches.map((branch) => branch.source.removalRange));
+  const compiledRemovalRanges = normalizeOptionalConditionRemovalRanges(precomputed.sql, activeBranches.map((branch) => branch.compiled.removalRange));
   for (const branch of activeBranches) {
     assertRangeTextMatches(query.sql, branch.source.sourceRange, 'source SQL source range');
     assertRangeTextMatches(query.sql, branch.source.removalRange, 'source SQL removal range');
@@ -456,6 +454,35 @@ function removeTextRanges(sql: string, ranges: readonly TextRange[]): string {
     output = `${output.slice(0, range.start)}${output.slice(range.end)}`;
   }
   return output;
+}
+
+function normalizeOptionalConditionRemovalRanges(sql: string, ranges: readonly TextRange[]): TextRange[] {
+  return expandWholeWhereClauseRemoval(sql, mergeTextRanges(ranges));
+}
+
+function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
+  const sorted = normalizeRanges(ranges);
+  const merged: TextRange[] = [];
+  for (const range of sorted) {
+    const previous = merged.at(-1);
+    if (!previous || range.start > previous.end) {
+      merged.push({ ...range });
+      continue;
+    }
+    previous.end = Math.max(previous.end, range.end);
+  }
+  return merged;
+}
+
+function expandWholeWhereClauseRemoval(sql: string, ranges: readonly TextRange[]): TextRange[] {
+  return ranges.map((range) => {
+    const before = sql.slice(0, range.start);
+    const whereMatch = before.match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
+    if (!whereMatch || whereMatch.index === undefined) {
+      return range;
+    }
+    return { start: whereMatch.index, end: range.end };
+  });
 }
 
 function normalizeRanges(ranges: readonly TextRange[]): TextRange[] {
