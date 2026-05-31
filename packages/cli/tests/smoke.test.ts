@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { createHash } from 'node:crypto';
 import { formatAshibaError } from '../src/error-format.js';
 import { buildProgram, getErrorMode, VERSION } from '../src/index.js';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -16,7 +17,7 @@ import { runLint } from '../src/commands/lint.js';
 import { runModelGen } from '../src/commands/model-gen.js';
 import { runPerfInit, runPerfReportDiff, runPerfRun, runPerfScenarioInit, runPerfScenarioMeasure } from '../src/commands/perf.js';
 import { formatProjectCheckResult, runProjectCheck } from '../src/commands/project.js';
-import { runQueryFormat, runQueryLint, runQueryOptionalAdd, runQuerySlice, runQueryStructure, runQueryUses } from '../src/commands/query.js';
+import { runQueryFormat, runQueryFormatAll, runQueryLint, runQueryOptionalAdd, runQuerySlice, runQueryStructure, runQueryUses } from '../src/commands/query.js';
 import { runRfbaInspect } from '../src/commands/rfba.js';
 
 describe('@ashiba-ts/cli smoke', () => {
@@ -3265,6 +3266,55 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(commented.tokenCountBefore).toBe(commented.tokenCountAfter);
       expect(commented.written).toBe(false);
       expect(readFileSync(commentedPath, 'utf8')).toContain('-- keep this review note');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('refreshes query metadata after writing formatted SQL', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-format-metadata-'));
+
+    try {
+      writePostgresStarterPackageJson(rootDir);
+      runInit({ dir: rootDir, db: 'postgres', driver: 'pg', withDemoDdl: true });
+      runFeatureScaffold({ rootDir, featureName: 'users-list', table: 'users', action: 'list' });
+      const sqlPath = path.join(rootDir, 'src/features/users-list/queries/list/list.sql');
+      const metadataPath = path.join(rootDir, 'src/features/users-list/queries/list/generated/query.meta.ts');
+      const staleMetadata = readFileSync(metadataPath, 'utf8');
+      writeFileSync(sqlPath, 'select user_id, email, display_name, login_count, external_account_id from public.users;\n', 'utf8');
+
+      const report = runQueryFormat(sqlPath, { rootDir, write: true });
+
+      expect(report.written).toBe(true);
+      expect(report.metadataRefreshed).toBe(true);
+      expect(report.metadataFile).toBe(metadataPath.split(path.sep).join('/'));
+      expect(readFileSync(metadataPath, 'utf8')).not.toBe(staleMetadata);
+      const formattedSql = readFileSync(sqlPath, 'utf8');
+      const formattedHash = `sha256:${createHash('sha256').update(formattedSql).digest('hex')}`;
+      expect(readFileSync(metadataPath, 'utf8')).toContain(`"sourceHash": "${formattedHash}"`);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('formats all configured SQL roots in stable order', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-format-all-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'src/features/a'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'src/features/b'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({ sqlRoots: ['src/features'] }), 'utf8');
+      writeFileSync(path.join(rootDir, 'src/features/b/b.sql'), 'select id, email from public.users;\n', 'utf8');
+      writeFileSync(path.join(rootDir, 'src/features/a/a.sql'), 'select id, email from public.users;\n', 'utf8');
+
+      const report = runQueryFormatAll({ rootDir, write: true });
+
+      expect(report.files.map((entry) => path.relative(rootDir, entry.file).split(path.sep).join('/'))).toEqual([
+        'src/features/a/a.sql',
+        'src/features/b/b.sql',
+      ]);
+      expect(report.written).toBe(2);
+      expect(readFileSync(path.join(rootDir, 'src/features/a/a.sql'), 'utf8')).toContain('select\n    id\n    , email');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
