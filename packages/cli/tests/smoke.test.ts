@@ -68,6 +68,8 @@ describe('@ashiba-ts/cli smoke', () => {
     expect(createDefaultConfig().featureRoot).toBe('src/features');
     expect(createDefaultConfig().sqlRoots).toEqual(['src/features']);
     expect(formatDefaultConfig()).toContain('"parameterStyle": "both"');
+    expect(formatDefaultConfig()).toContain('"identifierEscape": "quote"');
+    expect(formatDefaultConfig()).toContain('"identifierEscapeTarget": "minimal"');
     expect(formatDefaultConfig()).toContain('"commaBreak": "before"');
     expect(formatDefaultConfig({ pretty: false })).not.toContain('\n  ');
   });
@@ -170,6 +172,12 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"./src/features/*"');
       expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"#tests/*"');
       expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"./tests/*"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"format"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"identifierEscape": "quote"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"identifierEscapeTarget": "minimal"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"parameterSymbol": ":"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"commaBreak": "before"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"joinConditionOrderByDeclaration": false');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('${ASHIBA_TEST_DB_PORT:-5432}:5432');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('network_mode: bridge');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('POSTGRES_USER: ${ASHIBA_TEST_DB_USER:-ashiba}');
@@ -672,9 +680,9 @@ describe('@ashiba-ts/cli smoke', () => {
       runFeatureScaffold({ rootDir, table: 'order', action: 'list' });
 
       const listSql = readFileSync(path.join(rootDir, 'src/features/order-list/queries/list/list.sql'), 'utf8');
-      expect(listSql).toContain('    "id"\n    , "select"\n    , "current_user"\n    , "UserName"');
-      expect(listSql).toContain('from\n    "public"."order"');
-      expect(listSql).toContain('order by\n    "id"');
+      expect(listSql).toContain('    id\n    , "select"\n    , "current_user"\n    , "UserName"');
+      expect(listSql).toContain('from\n    public."order"');
+      expect(listSql).toContain('order by\n    id');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

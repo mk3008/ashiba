@@ -2,6 +2,7 @@ import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { invalidCliInputError } from '../errors.js';
+import { createDefaultConfig } from './config.js';
 
 type InitOptions = {
   dir?: string;
@@ -138,21 +139,7 @@ services:
   },
   {
     relativePath: 'ashiba.config.json',
-    contents: `${JSON.stringify({
-      $schema: 'https://ashiba.dev/schema/ashiba-config.json',
-      featureRoot: 'src/features',
-      sqlRoots: ['src/features'],
-      ddl: {
-        sourceDir: 'db/ddl',
-      },
-      sql: {
-        parameterStyle: 'both',
-      },
-      tests: {
-        mapperLane: 'ztd',
-        performanceLane: 'traditional',
-      },
-    }, null, 2)}
+    contents: `${JSON.stringify(createDefaultConfig(), null, 2)}
 `,
   },
   {
