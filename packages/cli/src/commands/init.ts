@@ -469,12 +469,11 @@ export function logSqlExecution(event: SqlExecutionLogEvent): void {
     "lib": ["ES2022"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "baseUrl": ".",
     "paths": {
-      "#features/*": ["src/features/*"],
-      "#libraries/*": ["src/libraries/*"],
-      "#adapters/*": ["src/adapters/*"],
-      "#tests/*": ["tests/*"]
+      "#features/*": ["./src/features/*"],
+      "#libraries/*": ["./src/libraries/*"],
+      "#adapters/*": ["./src/adapters/*"],
+      "#tests/*": ["./tests/*"]
     },
     "strict": true,
     "esModuleInterop": true,

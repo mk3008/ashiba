@@ -165,8 +165,11 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'README.md'), 'utf8')).toContain('#features/*');
       expect(readFileSync(path.join(rootDir, 'vitest.config.ts'), 'utf8')).toContain("'#features'");
       expect(readFileSync(path.join(rootDir, 'vitest.config.ts'), 'utf8')).toContain("'#tests'");
+      expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).not.toContain('"baseUrl"');
       expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"#features/*"');
+      expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"./src/features/*"');
       expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"#tests/*"');
+      expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"./tests/*"');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('${ASHIBA_TEST_DB_PORT:-5432}:5432');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('network_mode: bridge');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('POSTGRES_USER: ${ASHIBA_TEST_DB_USER:-ashiba}');
