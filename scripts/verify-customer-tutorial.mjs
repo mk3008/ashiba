@@ -112,6 +112,8 @@ assertFileContains(path.join(starterRoot, 'src', 'adapters', 'logger', 'sqlLogge
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'withPgFeatureQueryExecutor');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'withPgTransaction');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'PgTransactionOptions');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'PgSqlClientContext');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'Standard path:');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'Use this across feature/usecase boundaries');
 assertFileContains(path.join(starterRoot, 'vitest.config.ts'), "'#features'");
 assertFileContains(path.join(starterRoot, 'vitest.config.ts'), "'#tests'");

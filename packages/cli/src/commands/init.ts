@@ -274,6 +274,11 @@ export type PgTransactionOptions = {
   deferrable?: boolean;
 };
 
+export type PgSqlClientContext = {
+  isClientBorrowed: true;
+  isTransactionStarted: boolean;
+};
+
 /**
  * Create an application-owned pg Pool for production or traditional tests.
  *
@@ -354,12 +359,15 @@ export function createPgFeatureQueryExecutor(
  */
 export async function withPgFeatureQueryExecutor<T>(
   pool: Pool,
-  callback: (executor: FeatureQueryExecutor) => Promise<T>,
+  callback: (executor: FeatureQueryExecutor, context: PgSqlClientContext) => Promise<T>,
   options: PgFeatureQueryExecutorOptions = {},
 ): Promise<T> {
   const client = await pool.connect();
   try {
-    return await callback(createPgSqlClient(client, options));
+    return await callback(createPgSqlClient(client, options), {
+      isClientBorrowed: true,
+      isTransactionStarted: false,
+    });
   } finally {
     client.release();
   }
@@ -367,6 +375,13 @@ export async function withPgFeatureQueryExecutor<T>(
 
 /**
  * Run application-owned work inside a pg transaction.
+ *
+ * Standard path:
+ *   await withPgTransaction(pool, async (executor) => { ... });
+ *
+ * Advanced but frequent pg controls stay grouped under options.transaction.
+ * Keep rare or application-specific policy in this customer-owned file instead
+ * of growing every feature call site.
  *
  * Frequent transaction controls are first-class so customer code can stay
  * boring. For rarer pg controls, edit this starter file near the BEGIN query.
@@ -380,14 +395,17 @@ export async function withPgFeatureQueryExecutor<T>(
  */
 export async function withPgTransaction<T>(
   pool: Pool,
-  callback: (executor: FeatureQueryExecutor) => Promise<T>,
+  callback: (executor: FeatureQueryExecutor, context: PgSqlClientContext) => Promise<T>,
   options: PgFeatureQueryExecutorOptions & { transaction?: PgTransactionOptions } = {},
 ): Promise<T> {
   const client = await pool.connect();
   try {
     await client.query(renderBeginTransactionSql(options.transaction));
     try {
-      const result = await callback(createPgSqlClient(client, options));
+      const result = await callback(createPgSqlClient(client, options), {
+        isClientBorrowed: true,
+        isTransactionStarted: true,
+      });
       await client.query('commit');
       return result;
     } catch (error) {
