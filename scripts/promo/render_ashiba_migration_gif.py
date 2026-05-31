@@ -205,25 +205,7 @@ def main() -> None:
         ("alter table public.users", WHITE, False),
         ("    add column status text not null default 'active';", WHITE, False),
         ("", WHITE, False),
-        ("# Ashiba created reviewable SQL. It did not apply it.", COMMENT, False),
-    ], last_ms=2200)
-
-    type_command(frames, durations, lines, "git status --short")
-    output_lines(frames, durations, lines, [
-        (" M db/ddl/public.sql", WHITE, False),
-        ("?? tmp/ddl/migration.sql", WHITE, False),
-        ("", WHITE, False),
-        ("# Review, commit, and apply through your migration process.", COMMENT, False),
-    ], last_ms=1800)
-
-    type_command(frames, durations, lines, "npx ashiba ddl migration generate --help")
-    output_lines(frames, durations, lines, [
-        ("Usage: ashiba ddl migration generate [options]", WHITE, False),
-        ("  --from-git <ref:path>  Read the old DDL from a git ref", WHITE, False),
-        ("  --to-dir <path>        Read the desired local DDL directory", WHITE, False),
-        ("  --out <path>           Write migration SQL for review", WHITE, False),
-        ("", WHITE, False),
-        ("Migration ownership stays yours.", BLUE, True),
+        ("# Done: reviewable migration SQL is ready.", BLUE, True),
     ], last_ms=2600)
 
     add_pause(frames, durations, lines, 7200)
