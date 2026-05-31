@@ -169,7 +169,7 @@ def main() -> None:
     frames: list[Image.Image] = []
     durations: list[int] = []
 
-    add_pause(frames, durations, lines, 700)
+    add_pause(frames, durations, lines, 1400)
 
     type_command(frames, durations, lines, "git diff -- db/ddl/public.sql")
     output_lines(frames, durations, lines, [
@@ -178,7 +178,7 @@ def main() -> None:
         ("+  , status text not null default 'active'", GREEN, False),
         ("", WHITE, False),
         ("# local db/ddl is the desired next schema", COMMENT, False),
-    ], last_ms=900)
+    ], last_ms=1800)
 
     type_command(
         frames,
@@ -195,7 +195,7 @@ def main() -> None:
         ("Migration summary", PURPLE, True),
         ("- public.users: rename column display_name to nickname", WHITE, False),
         ("- public.users: add column status text not null", WHITE, False),
-    ], last_ms=1000)
+    ], last_ms=2000)
 
     type_command(frames, durations, lines, "type tmp\\ddl\\migration.sql")
     output_lines(frames, durations, lines, [
@@ -206,7 +206,7 @@ def main() -> None:
         ("    add column status text not null default 'active';", WHITE, False),
         ("", WHITE, False),
         ("# Ashiba created reviewable SQL. It did not apply it.", COMMENT, False),
-    ], last_ms=1100)
+    ], last_ms=2200)
 
     type_command(frames, durations, lines, "git status --short")
     output_lines(frames, durations, lines, [
@@ -214,7 +214,7 @@ def main() -> None:
         ("?? tmp/ddl/migration.sql", WHITE, False),
         ("", WHITE, False),
         ("# Review, commit, and apply through your migration process.", COMMENT, False),
-    ], last_ms=900)
+    ], last_ms=1800)
 
     type_command(frames, durations, lines, "npx ashiba ddl migration generate --help")
     output_lines(frames, durations, lines, [
@@ -224,9 +224,9 @@ def main() -> None:
         ("  --out <path>           Write migration SQL for review", WHITE, False),
         ("", WHITE, False),
         ("Migration ownership stays yours.", BLUE, True),
-    ], last_ms=1300)
+    ], last_ms=2600)
 
-    add_pause(frames, durations, lines, 4800)
+    add_pause(frames, durations, lines, 7200)
 
     frames[-1].save(PNG_PATH, optimize=True)
     frames[0].save(
