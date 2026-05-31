@@ -12,6 +12,7 @@ The goal is not to take ownership of every SQL file in your repository. SQL is y
 - existing SQL is not reformatted unless you explicitly ask for it
 - SSSQL commands do not use formatting as a side effect
 - unsafe formatting is skipped instead of written
+- writes refresh generated query metadata when the SQL belongs to a feature query
 
 ## Default Style
 
@@ -46,10 +47,19 @@ npx ashiba query format src/features/users/queries/list/list.sql --diff
 npx ashiba query format src/features/users/queries/list/list.sql --write
 ```
 
+When `--write` changes a feature query SQL file, Ashiba also refreshes `generated/query.meta.ts` in the same query boundary. Formatting should not create metadata drift.
+
+Format every SQL file under the configured `sqlRoots` in `ashiba.config.json`:
+
+```bash
+npx ashiba query format --all --write
+```
+
 Use `--check` in a local gate or CI when formatting drift should fail the command:
 
 ```bash
 npx ashiba query format src/features/users/queries/list/list.sql --check
+npx ashiba query format --all --check
 ```
 
 ## Safety Boundary

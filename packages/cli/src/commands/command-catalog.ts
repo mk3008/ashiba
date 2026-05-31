@@ -417,13 +417,14 @@ export const COMMANDS: readonly CommandSpec[] = [
   },
   {
     name: 'query format',
-    summary: 'Format a SQL file using Ashiba SQL style when the rewrite is loss-safe.',
-    useCase: 'Normalize generated or reviewed SQL while refusing rewrites that would drop comments or fail AST round-trip validation.',
-    usage: 'ashiba query format [options] <sqlFile>',
-    arguments: [{ name: 'sqlFile', required: true, description: 'SQL file to format.' }],
+    summary: 'Format SQL using Ashiba SQL style when the rewrite is loss-safe.',
+    useCase: 'Normalize generated or reviewed SQL while refreshing query metadata after writes and refusing rewrites that would drop comments or fail AST round-trip validation.',
+    usage: 'ashiba query format [options] [sqlFile]',
+    arguments: [{ name: 'sqlFile', required: false, description: 'SQL file to format. Omit when using --all.' }],
     options: [
       commonFormat,
       { flags: '--root-dir <path>', description: 'Project root for ashiba.config.json.', defaultValue: 'process.cwd()' },
+      { flags: '--all', description: 'Format every .sql file under ashiba.config.json sqlRoots.', defaultValue: 'false' },
       { flags: '--write', description: 'Write formatted SQL back to the file when the rewrite is safe.' },
       { flags: '--check', description: 'Fail when formatting would change the file or the rewrite is unsafe.' },
       { flags: '--diff', description: 'Emit a unified diff instead of formatted SQL.' },
@@ -431,8 +432,15 @@ export const COMMANDS: readonly CommandSpec[] = [
     notes: [
       'Ashiba formatting is AST-based, not CST-based. It validates round-trip output and refuses unsafe writes.',
       'Comments are treated as review context. If formatting would lose comments, Ashiba skips the rewrite.',
+      '--write refreshes generated/query.meta.ts for feature query SQL so formatting does not create metadata drift.',
+      '--all uses the configured sqlRoots from ashiba.config.json and processes .sql files in stable order.',
     ],
-    examples: ['npx ashiba query format src/features/users/queries/list/list.sql --diff', 'npx ashiba query format src/features/users/queries/list/list.sql --write'],
+    examples: [
+      'npx ashiba query format src/features/users/queries/list/list.sql --diff',
+      'npx ashiba query format src/features/users/queries/list/list.sql --write',
+      'npx ashiba query format --all --write',
+      'npx ashiba query format --all --check',
+    ],
   },
   {
     name: 'query lint',

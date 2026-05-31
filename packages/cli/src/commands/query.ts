@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { createTwoFilesPatch } from 'diff';
@@ -23,6 +23,7 @@ import type {
 import { LexemeCursor, SqlFormatter, SqlParser, type Lexeme } from 'rawsql-ts';
 import { compileNamedParameters } from '../parameter-metadata.js';
 import { loadSqlFormatOptions } from '../sql-format.js';
+import { loadProjectPathConfig } from './config.js';
 import {
   analyzeQueryModel,
   buildPostgresOptionalConditionCompressionBindingMetadata,
@@ -64,6 +65,7 @@ export interface QueryFormatOptions {
   write?: boolean;
   check?: boolean;
   diff?: boolean;
+  all?: boolean;
 }
 
 export interface QueryFormatReport {
@@ -76,8 +78,21 @@ export interface QueryFormatReport {
   tokenCountBefore: number;
   tokenCountAfter: number;
   reason?: string;
+  metadataFile?: string;
+  metadataRefreshed: boolean;
   sql: string;
   diff: string;
+}
+
+export interface QueryFormatBatchReport {
+  commandName: 'query format';
+  rootDir: string;
+  files: QueryFormatReport[];
+  changed: number;
+  written: number;
+  skipped: number;
+  unsafe: number;
+  metadataRefreshed: number;
 }
 
 export interface QueryOptionalOptions {
@@ -235,16 +250,19 @@ Use cases:
     });
 
   query
-    .command('format <sqlFile>')
-    .description('Format a SQL query with Ashiba defaults when the rewrite is loss-safe')
+    .command('format [sqlFile]')
+    .description('Format SQL queries with Ashiba defaults when the rewrite is loss-safe')
     .option('--format <format>', 'Output format: text or json', 'text')
     .option('--root-dir <path>', 'Project root for ashiba.config.json', process.cwd())
+    .option('--all', 'Format every .sql file under ashiba.config.json sqlRoots')
     .option('--write', 'Write formatted SQL back to the file when the rewrite is safe')
     .option('--check', 'Fail when formatting would change the file or the rewrite is unsafe')
     .option('--diff', 'Emit a unified diff instead of formatted SQL')
-    .action((sqlFile: string, options: QueryFormatOptions) => {
-      const result = runQueryFormat(sqlFile, options);
-      if (options.check && (!result.safe || result.changed)) {
+    .action((sqlFile: string | undefined, options: QueryFormatOptions) => {
+      const result = options.all
+        ? runQueryFormatAll(options)
+        : runQueryFormat(requireQueryFormatFile(sqlFile), options);
+      if (options.check && queryFormatHasCheckFailure(result)) {
         process.exitCode = 1;
       }
       process.stdout.write(formatQueryFormatReport(result, options.format ?? 'text', Boolean(options.diff)));
@@ -299,6 +317,7 @@ export function runQueryLint(sqlFile: string, options: QueryLintOptions = {}): s
 export function runQueryFormat(sqlFile: string, options: QueryFormatOptions = {}): QueryFormatReport {
   const absoluteInputPath = path.resolve(sqlFile);
   const originalSql = readFileSync(absoluteInputPath, 'utf8');
+  const rootDir = path.resolve(options.rootDir ?? process.cwd());
   const formatter = new SqlFormatter(loadSqlFormatOptions(options.rootDir ?? process.cwd()));
   const originalAst = SqlParser.parse(originalSql);
   const formattedSql = `${formatter.format(originalAst).formattedSql.trimEnd()};\n`;
@@ -315,9 +334,14 @@ export function runQueryFormat(sqlFile: string, options: QueryFormatOptions = {}
   );
 
   const shouldWrite = Boolean(options.write) && safety.safe && changed;
+  const metadataRefresh = shouldWrite ? buildQueryMetadataRefresh(absoluteInputPath, formattedSql, rootDir) : undefined;
   if (shouldWrite) {
     mkdirSync(path.dirname(absoluteInputPath), { recursive: true });
     writeFileSync(absoluteInputPath, formattedSql, 'utf8');
+    if (metadataRefresh) {
+      mkdirSync(path.dirname(metadataRefresh.metadataPath), { recursive: true });
+      writeFileSync(metadataRefresh.metadataPath, metadataRefresh.contents, 'utf8');
+    }
   }
 
   return {
@@ -330,8 +354,33 @@ export function runQueryFormat(sqlFile: string, options: QueryFormatOptions = {}
     tokenCountBefore: safety.tokenCountBefore,
     tokenCountAfter: safety.tokenCountAfter,
     reason: safety.reason,
+    metadataFile: metadataRefresh ? normalizePath(metadataRefresh.metadataPath) : undefined,
+    metadataRefreshed: Boolean(metadataRefresh),
     sql: formattedSql,
     diff,
+  };
+}
+
+/**
+ * Formats every configured SQL root in stable order.
+ */
+export function runQueryFormatAll(options: QueryFormatOptions = {}): QueryFormatBatchReport {
+  const rootDir = path.resolve(options.rootDir ?? process.cwd());
+  const config = loadProjectPathConfig(rootDir);
+  const files = uniqueSorted(config.sqlRoots.flatMap((configuredRoot) => {
+    const absoluteRoot = path.join(rootDir, configuredRoot);
+    return existsSync(absoluteRoot) ? collectSqlFiles(absoluteRoot) : [];
+  }));
+  const reports = files.map((file) => runQueryFormat(file, { ...options, rootDir, all: false }));
+  return {
+    commandName: 'query format',
+    rootDir,
+    files: reports,
+    changed: reports.filter((report) => report.changed).length,
+    written: reports.filter((report) => report.written).length,
+    skipped: reports.filter((report) => report.skipped).length,
+    unsafe: reports.filter((report) => !report.safe).length,
+    metadataRefreshed: reports.filter((report) => report.metadataRefreshed).length,
   };
 }
 
@@ -535,10 +584,27 @@ function extractSqlCommentFragments(sql: string): string[] {
   return [...lineMatches, ...blockMatches].map((comment) => comment.trim()).filter(Boolean);
 }
 
-function formatQueryFormatReport(report: QueryFormatReport, formatValue: string, diff: boolean): string {
+function queryFormatHasCheckFailure(report: QueryFormatReport | QueryFormatBatchReport): boolean {
+  if ('files' in report) {
+    return report.files.some((entry) => !entry.safe || entry.changed);
+  }
+  return !report.safe || report.changed;
+}
+
+function requireQueryFormatFile(sqlFile: string | undefined): string {
+  if (sqlFile && sqlFile.trim().length > 0) {
+    return sqlFile;
+  }
+  throw requiredCliValueError('sqlFile or --all');
+}
+
+function formatQueryFormatReport(report: QueryFormatReport | QueryFormatBatchReport, formatValue: string, diff: boolean): string {
   const format = normalizeFormat(formatValue);
   if (format === 'json') {
     return `${JSON.stringify(report, null, 2)}\n`;
+  }
+  if ('files' in report) {
+    return formatQueryFormatBatchReport(report);
   }
   if (diff) {
     return report.diff.endsWith('\n') ? report.diff : `${report.diff}\n`;
@@ -556,10 +622,100 @@ function formatQueryFormatReport(report: QueryFormatReport, formatValue: string,
       'Query format: written',
       `File: ${report.file}`,
       `Changed: ${report.changed ? 'yes' : 'no'}`,
+      report.metadataRefreshed ? `Metadata refreshed: ${report.metadataFile}` : undefined,
       '',
-    ].join('\n');
+    ].filter((line): line is string => line !== undefined).join('\n');
   }
   return report.sql;
+}
+
+function formatQueryFormatBatchReport(report: QueryFormatBatchReport): string {
+  const lines = [
+    'Query format: completed',
+    `Root: ${report.rootDir}`,
+    `Files: ${report.files.length}`,
+    `Changed: ${report.changed}`,
+    `Written: ${report.written}`,
+    `Skipped: ${report.skipped}`,
+    `Unsafe: ${report.unsafe}`,
+    `Metadata refreshed: ${report.metadataRefreshed}`,
+  ];
+  for (const entry of report.files) {
+    const status = !entry.safe ? 'skipped unsafe' : entry.written ? 'written' : entry.changed ? 'changed' : 'ok';
+    lines.push(`- ${status}: ${entry.file}`);
+    if (entry.metadataRefreshed && entry.metadataFile) {
+      lines.push(`  metadata: ${entry.metadataFile}`);
+    }
+    if (!entry.safe && entry.reason) {
+      lines.push(`  reason: ${entry.reason}`);
+    }
+  }
+  lines.push('');
+  return lines.join('\n');
+}
+
+function buildQueryMetadataRefresh(sqlPath: string, sql: string, rootDir: string): { metadataPath: string; contents: string } | undefined {
+  const metadataPath = path.join(path.dirname(sqlPath), 'generated', 'query.meta.ts');
+  if (!existsSync(metadataPath) && !looksLikeFeatureQuerySql(sqlPath)) {
+    return undefined;
+  }
+  return {
+    metadataPath,
+    contents: renderQueryMetadataForSql(sql, rootDir),
+  };
+}
+
+function looksLikeFeatureQuerySql(sqlPath: string): boolean {
+  const fileName = path.basename(sqlPath, '.sql');
+  const queryDirName = path.basename(path.dirname(sqlPath));
+  const parentDirName = path.basename(path.dirname(path.dirname(sqlPath)));
+  return fileName === queryDirName && parentDirName === 'queries';
+}
+
+function renderQueryMetadataForSql(sql: string, rootDir: string, ddlDir?: string): string {
+  const postgres = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
+  const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, ddlDir);
+  const parameters = [...new Set(postgres.orderedNames)];
+  const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, { optionalConditionCompression: true });
+  const queryModel = {
+    analysis,
+    bindings: {
+      postgres: {
+        sourceHash: analysis.sourceHash,
+        ...postgres,
+        ...buildPostgresSafeSortBindingMetadata(sql, analysis.safeSort),
+        ...buildPostgresOptionalConditionCompressionBindingMetadata(sql, analysis.optionalConditionCompression),
+      },
+    },
+  };
+  return [
+    '// Generated by Ashiba. Do not edit by hand.',
+    '// Refresh with `ashiba query optional add|refresh|remove`, `ashiba query format --write`, or `ashiba feature query refresh` after SQL-only edits.',
+    `export const queryModel = ${JSON.stringify(queryModel, null, 2)} as const;`,
+    '',
+  ].join('\n');
+}
+
+function collectSqlFiles(rootDir: string): string[] {
+  const files: string[] = [];
+  const entries = readdirSync(rootDir, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name));
+  for (const entry of entries) {
+    const absolute = path.join(rootDir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === 'node_modules' || entry.name === '.git') {
+        continue;
+      }
+      files.push(...collectSqlFiles(absolute));
+    } else if (entry.isFile() && entry.name.endsWith('.sql')) {
+      files.push(absolute);
+    }
+  }
+  return files;
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return [...new Set(values)].sort((left, right) => normalizePath(left).localeCompare(normalizePath(right)));
 }
 
 function normalizeLineEndings(value: string): string {
@@ -625,29 +781,9 @@ function refreshOptionalConditionQueryMetadata(
   const rootDir = path.resolve(options.rootDir ?? process.cwd());
   const sqlPath = path.resolve(report.output_file);
   const sql = readFileSync(sqlPath, 'utf8');
-  const postgres = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
-  const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, options.ddlDir);
-  const parameters = [...new Set(postgres.orderedNames)];
-  const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, { optionalConditionCompression: true });
-  const queryModel = {
-    analysis,
-    bindings: {
-      postgres: {
-        sourceHash: analysis.sourceHash,
-        ...postgres,
-        ...buildPostgresSafeSortBindingMetadata(sql, analysis.safeSort),
-        ...buildPostgresOptionalConditionCompressionBindingMetadata(sql, analysis.optionalConditionCompression),
-      },
-    },
-  };
   const metadataPath = path.join(path.dirname(sqlPath), 'generated', 'query.meta.ts');
   mkdirSync(path.dirname(metadataPath), { recursive: true });
-  writeFileSync(metadataPath, [
-    '// Generated by Ashiba. Do not edit by hand.',
-    '// Refresh with `ashiba query optional add|refresh|remove` or `ashiba feature query refresh` after SQL-only edits.',
-    `export const queryModel = ${JSON.stringify(queryModel, null, 2)} as const;`,
-    '',
-  ].join('\n'), 'utf8');
+  writeFileSync(metadataPath, renderQueryMetadataForSql(sql, rootDir, options.ddlDir), 'utf8');
 }
 
 function resolveOptionalConditionSubqueryInput(sqlText: string | undefined, sqlFile: string | undefined): string | undefined {
