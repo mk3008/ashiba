@@ -268,6 +268,12 @@ export type PgFeatureQueryExecutorOptions = AshibaPostgresAdapterOptions & {
   executeOptions?: AshibaPostgresExecuteOptions;
 };
 
+export type PgTransactionOptions = {
+  isolationLevel?: 'read committed' | 'repeatable read' | 'serializable';
+  accessMode?: 'read write' | 'read only';
+  deferrable?: boolean;
+};
+
 /**
  * Create an application-owned pg Pool for production or traditional tests.
  *
@@ -362,17 +368,24 @@ export async function withPgFeatureQueryExecutor<T>(
 /**
  * Run application-owned work inside a pg transaction.
  *
+ * Frequent transaction controls are first-class so customer code can stay
+ * boring. For rarer pg controls, edit this starter file near the BEGIN query.
+ *
+ * Use this across feature/usecase boundaries by passing the same executor into
+ * each feature call inside the callback. That keeps all feature SQL on the same
+ * borrowed pg client and transaction.
+ *
  * This helper is starter code, not an Ashiba runtime requirement. Edit or
  * replace it when your application needs a different transaction policy.
  */
 export async function withPgTransaction<T>(
   pool: Pool,
   callback: (executor: FeatureQueryExecutor) => Promise<T>,
-  options: PgFeatureQueryExecutorOptions = {},
+  options: PgFeatureQueryExecutorOptions & { transaction?: PgTransactionOptions } = {},
 ): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query('begin');
+    await client.query(renderBeginTransactionSql(options.transaction));
     try {
       const result = await callback(createPgSqlClient(client, options));
       await client.query('commit');
@@ -384,6 +397,20 @@ export async function withPgTransaction<T>(
   } finally {
     client.release();
   }
+}
+
+function renderBeginTransactionSql(options: PgTransactionOptions = {}): string {
+  const parts = ['begin'];
+  if (options.isolationLevel) {
+    parts.push('isolation level', options.isolationLevel);
+  }
+  if (options.accessMode) {
+    parts.push(options.accessMode);
+  }
+  if (options.deferrable !== undefined) {
+    parts.push(options.deferrable ? 'deferrable' : 'not deferrable');
+  }
+  return parts.join(' ');
 }
 `,
   },
