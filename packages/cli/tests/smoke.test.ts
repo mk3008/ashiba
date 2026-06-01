@@ -298,6 +298,25 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('creates the output parent directory for generated migration SQL', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-diff-out-dir-'));
+
+    try {
+      const fromPath = path.join(rootDir, 'from.sql');
+      const toPath = path.join(rootDir, 'to.sql');
+      const outPath = path.join(rootDir, 'tmp', 'ddl', 'migration.sql');
+      writeFileSync(fromPath, '', 'utf8');
+      writeFileSync(toPath, 'CREATE TABLE public.users (id integer not null);', 'utf8');
+
+      const output = runDdlMigrationGenerate({ from: fromPath, to: toPath, out: outPath });
+
+      expect(output).toContain(path.normalize(outPath));
+      expect(readFileSync(outPath, 'utf8').toLowerCase()).toContain('create table');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('exposes concept-aligned ddl migration generate with risk info', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-migration-'));
 

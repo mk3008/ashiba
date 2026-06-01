@@ -193,18 +193,21 @@ def main() -> None:
         ("- sql: tmp\\ddl\\migration.sql", WHITE, False),
         ("", WHITE, False),
         ("Migration summary", PURPLE, True),
-        ("- public.users: rename column display_name to nickname", WHITE, False),
+        ("- public.users: add column nickname text null", WHITE, False),
         ("- public.users: add column status text not null", WHITE, False),
+        ("- public.users: drop column display_name", WHITE, False),
+        ("- suppressed operations: dropTables, dropColumns, dropConstraints", YELLOW, False),
     ], last_ms=2000)
 
     type_command(frames, durations, lines, "type tmp\\ddl\\migration.sql")
     output_lines(frames, durations, lines, [
-        ("alter table public.users", WHITE, False),
-        ("    rename column display_name to nickname;", WHITE, False),
+        ('ALTER TABLE "public"."users"', WHITE, False),
+        ('    ADD COLUMN "nickname" text;', WHITE, False),
         ("", WHITE, False),
-        ("alter table public.users", WHITE, False),
-        ("    add column status text not null default 'active';", WHITE, False),
+        ('ALTER TABLE "public"."users"', WHITE, False),
+        ('    ADD COLUMN "status" text NOT NULL DEFAULT \'active\';', WHITE, False),
         ("", WHITE, False),
+        ("# display_name drop was detected but not emitted.", YELLOW, False),
         ("# Done: reviewable migration SQL is ready.", BLUE, True),
     ], last_ms=2600)
 

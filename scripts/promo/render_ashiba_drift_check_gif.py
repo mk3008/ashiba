@@ -8,8 +8,10 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = ROOT / "docs" / "public" / "brand"
 PREVIEW_DIR = ROOT / "tmp" / "promo"
-GIF_PATH = OUT_DIR / "ashiba-drift-check.gif"
-PNG_PATH = PREVIEW_DIR / "ashiba-drift-check-final.png"
+DETECT_GIF_PATH = OUT_DIR / "ashiba-drift-detect.gif"
+DETECT_PNG_PATH = PREVIEW_DIR / "ashiba-drift-detect-final.png"
+REPAIR_GIF_PATH = OUT_DIR / "ashiba-drift-repair.gif"
+REPAIR_PNG_PATH = PREVIEW_DIR / "ashiba-drift-repair-final.png"
 
 WIDTH = 1200
 HEIGHT = 675
@@ -23,6 +25,7 @@ PADDING_X = 28
 PADDING_Y = 22
 LINE_H = 26
 MAX_LINES = 16
+STEP_WAIT_SCALE = 4
 
 BG = (9, 14, 26)
 TERM_BG = (17, 24, 39)
@@ -93,7 +96,13 @@ def visible_lines(lines: list[tuple[str, tuple[int, int, int], bool]]) -> list[t
     return expanded[-MAX_LINES:]
 
 
-def draw_frame(lines: list[tuple[str, tuple[int, int, int], bool]], cursor: bool = False) -> Image.Image:
+def draw_frame(
+    lines: list[tuple[str, tuple[int, int, int], bool]],
+    cursor: bool = False,
+    subtitle: str = "Drift check scenario",
+    terminal_title: str = "ashiba-drift-check",
+    footer: str = "DDL drift  ->  test fails  ->  check explains  ->  human/AI repairs  ->  green again",
+) -> Image.Image:
     img = Image.new("RGB", (WIDTH, HEIGHT), BG)
     draw = ImageDraw.Draw(img)
 
@@ -102,7 +111,7 @@ def draw_frame(lines: list[tuple[str, tuple[int, int, int], bool]], cursor: bool
         draw.line((0, i, WIDTH, i), fill=(shade, shade + 4, shade + 13))
 
     draw.text((MARGIN, 24), "Ashiba", font=UI_FONT, fill=BLUE)
-    draw.text((MARGIN + 178, 38), "Drift check scenario", font=SUB_FONT, fill=TITLE)
+    draw.text((MARGIN + 178, 38), subtitle, font=SUB_FONT, fill=TITLE)
     x = WIDTH - 450
     x = draw_badge(draw, x, 35, "DDL changed", YELLOW)
     x = draw_badge(draw, x, 35, "Passive detection", GREEN)
@@ -116,7 +125,7 @@ def draw_frame(lines: list[tuple[str, tuple[int, int, int], bool]], cursor: bool
     dot_y = TERM_Y + 18
     for idx, color in enumerate([(248, 113, 113), (251, 191, 36), (52, 211, 153)]):
         draw.ellipse((TERM_X + 22 + idx * 24, dot_y, TERM_X + 36 + idx * 24, dot_y + 14), fill=color)
-    draw.text((TERM_X + 112, TERM_Y + 14), "ashiba-drift-check", font=MONO_BOLD, fill=COMMENT)
+    draw.text((TERM_X + 112, TERM_Y + 14), terminal_title, font=MONO_BOLD, fill=COMMENT)
 
     y = TERM_Y + HEADER_H + PADDING_Y
     for text, color, bold in visible_lines(lines):
@@ -125,128 +134,164 @@ def draw_frame(lines: list[tuple[str, tuple[int, int, int], bool]], cursor: bool
     if cursor:
         draw.rectangle((TERM_X + PADDING_X, y + 4, TERM_X + PADDING_X + 12, y + 24), fill=GREEN)
 
-    draw.text((MARGIN, HEIGHT - 36), "DDL drift  ->  test fails  ->  check explains  ->  human/AI repairs  ->  green again", font=SUB_FONT, fill=MUTED)
+    draw.text((MARGIN, HEIGHT - 36), footer, font=SUB_FONT, fill=MUTED)
     return img
 
 
-def add_pause(frames: list[Image.Image], durations: list[int], lines, ms: int):
-    frames.append(draw_frame(lines, cursor=True))
-    durations.append(ms)
+def add_pause(frames: list[Image.Image], durations: list[int], lines, ms: int, **frame_options):
+    frames.append(draw_frame(lines, cursor=True, **frame_options))
+    durations.append(ms * STEP_WAIT_SCALE)
 
 
-def type_command(frames: list[Image.Image], durations: list[int], lines, command: str):
+def type_command(frames: list[Image.Image], durations: list[int], lines, command: str, **frame_options):
     prefix = "$ "
     for end in range(0, len(command) + 1, 3):
-        frames.append(draw_frame(lines + [(prefix + command[:end], GREEN, True)], cursor=True))
+        frames.append(draw_frame(lines + [(prefix + command[:end], GREEN, True)], cursor=True, **frame_options))
         durations.append(45)
     lines.append((prefix + command, GREEN, True))
-    frames.append(draw_frame(lines, cursor=False))
+    frames.append(draw_frame(lines, cursor=False, **frame_options))
     durations.append(260)
 
 
-def output_lines(frames: list[Image.Image], durations: list[int], lines, output: list[tuple[str, tuple[int, int, int], bool]], last_ms: int = 700):
+def output_lines(frames: list[Image.Image], durations: list[int], lines, output: list[tuple[str, tuple[int, int, int], bool]], last_ms: int = 700, **frame_options):
     for line in output:
         lines.append(line)
-        frames.append(draw_frame(lines, cursor=False))
+        frames.append(draw_frame(lines, cursor=False, **frame_options))
         durations.append(250)
-    durations[-1] = last_ms
+    durations[-1] = last_ms * STEP_WAIT_SCALE
 
 
-def main() -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    lines: list[tuple[str, tuple[int, int, int], bool]] = [
-        ("# Starter is already created. Now change the DDL.", COMMENT, False),
-    ]
-    frames: list[Image.Image] = []
-    durations: list[int] = []
-
-    add_pause(frames, durations, lines, 700)
-
-    type_command(frames, durations, lines, "type db\\ddl\\public.sql")
-    output_lines(frames, durations, lines, [
-        ("create table public.users (", WHITE, False),
-        ("    user_id bigserial primary key,", WHITE, False),
-        ("    email text not null,", WHITE, False),
-        ("    display_name text", WHITE, False),
-        (");", WHITE, False),
-    ])
-
-    type_command(frames, durations, lines, "code db\\ddl\\public.sql")
-    output_lines(frames, durations, lines, [
-        ("# Human/AI edits the DDL source:", COMMENT, False),
-        ("- rename display_name -> nickname", YELLOW, False),
-        ("- add status text not null default 'active'", YELLOW, False),
-    ])
-
-    type_command(frames, durations, lines, "npx vitest run")
-    output_lines(frames, durations, lines, [
-        ("FAIL  src/features/users-list/queries/list/tests/list.boundary.ztd.test.ts", RED, True),
-        ("Mapping drift: SQL/DDL no longer matches generated mapper expectations.", RED, False),
-        ("Expected column: display_name", COMMENT, False),
-        ("Actual DDL column: nickname", COMMENT, False),
-    ], last_ms=950)
-
-    type_command(frames, durations, lines, "npx ashiba check")
-    output_lines(frames, durations, lines, [
-        ("Ashiba check: failed", RED, True),
-        ("[error] ASHIBA_PROJECT_FEATURE_TESTS_FAILED", RED, True),
-        ("file: src/features/users-list/queries/list", WHITE, False),
-        ("detail: visible SQL: .../list.sql", WHITE, False),
-        ("detail: editable mapper boundary: .../query.ts", WHITE, False),
-        ("next: human/AI updates SQL and boundary first; then refresh generated tests.", BLUE, False),
-    ], last_ms=1100)
-
-    type_command(frames, durations, lines, "code src\\features\\users-list\\queries\\list\\list.sql")
-    output_lines(frames, durations, lines, [
-        ("# Human/AI repairs visible SQL:", COMMENT, False),
-        ("select user_id, email, nickname, status", YELLOW, False),
-        ("from public.users", YELLOW, False),
-    ], last_ms=650)
-
-    type_command(frames, durations, lines, "code src\\features\\users-list\\queries\\list\\query.ts")
-    output_lines(frames, durations, lines, [
-        ("# Human/AI repairs editable mapper boundary:", COMMENT, False),
-        ("UserListRow { user_id, email, nickname, status }", YELLOW, False),
-    ], last_ms=650)
-
-    type_command(frames, durations, lines, "npx ashiba feature tests check users-list --query list --fix")
-    output_lines(frames, durations, lines, [
-        ("Feature tests check passed", GREEN, True),
-        ("fixed: .../tests/generated/mapping.cases.ts", GREEN, False),
-        ("fixed: .../tests/generated/analysis.json", GREEN, False),
-    ], last_ms=950)
-
-    type_command(frames, durations, lines, "npx ashiba check")
-    output_lines(frames, durations, lines, [
-        ("Ashiba check: ok", GREEN, True),
-        ("- contract: ok", GREEN, False),
-        ("- generated mapper: ok", GREEN, False),
-        ("- DDL diagnostics: ok", GREEN, False),
-    ], last_ms=850)
-
-    type_command(frames, durations, lines, "npx vitest run")
-    output_lines(frames, durations, lines, [
-        ("RUN  v4.1.7  ./ashiba-demo", PURPLE, False),
-        ("✓ ZTD mapper test: SQL row -> TypeScript DTO", GREEN, True),
-        ("Test Files  2 passed (2)", GREEN, True),
-        ("Tests       3 passed (3)", GREEN, True),
-        ("Drift was detected, repaired, and proven by tests.", BLUE, True),
-    ], last_ms=1200)
-
-    add_pause(frames, durations, lines, 4800)
-
-    frames[-1].save(PNG_PATH, optimize=True)
+def save_gif(frames: list[Image.Image], durations: list[int], gif_path: Path, png_path: Path) -> None:
+    frames[-1].save(png_path, optimize=True)
     frames[0].save(
-        GIF_PATH,
+        gif_path,
         save_all=True,
         append_images=frames[1:],
         duration=durations,
         optimize=True,
         disposal=2,
     )
-    print(GIF_PATH.resolve())
-    print(PNG_PATH.resolve())
+    print(gif_path.resolve())
+    print(png_path.resolve())
+
+
+def render_detect() -> None:
+    lines: list[tuple[str, tuple[int, int, int], bool]] = [
+        ("# Starter is already created. Now change the DDL.", COMMENT, False),
+    ]
+    frames: list[Image.Image] = []
+    durations: list[int] = []
+    frame_options = {
+        "subtitle": "Drift detection",
+        "terminal_title": "ashiba-drift-detect",
+        "footer": "DDL changed  ->  mapper test fails  ->  ashiba check explains repair targets",
+    }
+
+    add_pause(frames, durations, lines, 700, **frame_options)
+
+    type_command(frames, durations, lines, "type db\\ddl\\public.sql", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("create table public.users (", WHITE, False),
+        ("    user_id bigserial primary key,", WHITE, False),
+        ("    email text not null,", WHITE, False),
+        ("    display_name text", WHITE, False),
+        (");", WHITE, False),
+    ], **frame_options)
+
+    type_command(frames, durations, lines, "code db\\ddl\\public.sql", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("# Human/AI edits the DDL source:", COMMENT, False),
+        ("- rename display_name -> nickname", YELLOW, False),
+        ("- add status text not null default 'active'", YELLOW, False),
+    ], **frame_options)
+
+    type_command(frames, durations, lines, "npx vitest run", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("FAIL  src/features/users-list/queries/list/tests/list.boundary.ztd.test.ts", RED, True),
+    ], last_ms=950, **frame_options)
+
+    type_command(frames, durations, lines, "npx ashiba check", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("Ashiba check: failed", RED, True),
+        ("[error] ASHIBA_PROJECT_FEATURE_TESTS_FAILED", RED, True),
+        ("file: src/features/users-list/queries/list", WHITE, False),
+        ("detail: visible SQL: .../list.sql", WHITE, False),
+        ("detail: editable mapper boundary: .../query.ts", WHITE, False),
+        ("[error] ddl-missing-column: public.users.display_name", RED, False),
+        ("next: human/AI updates SQL and boundary first; then refresh generated tests.", BLUE, False),
+    ], last_ms=1100, **frame_options)
+
+    add_pause(frames, durations, lines, 4800, **frame_options)
+    save_gif(frames, durations, DETECT_GIF_PATH, DETECT_PNG_PATH)
+
+
+def render_repair() -> None:
+    lines: list[tuple[str, tuple[int, int, int], bool]] = [
+        ("# Ashiba has shown the repair targets. Human/AI edits owned code.", COMMENT, False),
+    ]
+    frames: list[Image.Image] = []
+    durations: list[int] = []
+    frame_options = {
+        "subtitle": "Drift repair",
+        "terminal_title": "ashiba-drift-repair",
+        "footer": "human/AI repairs owned files  ->  metadata/tests refresh  ->  green again",
+    }
+
+    add_pause(frames, durations, lines, 700, **frame_options)
+
+    type_command(frames, durations, lines, "code src\\features\\users-list\\queries\\list\\list.sql", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("# Human/AI repairs visible SQL:", COMMENT, False),
+        ("select user_id, email, nickname, status", YELLOW, False),
+        ("from public.users", YELLOW, False),
+    ], last_ms=650, **frame_options)
+
+    type_command(frames, durations, lines, "code src\\features\\users-list\\queries\\list\\query.ts", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("# Human/AI repairs editable mapper boundary:", COMMENT, False),
+        ("UserListRow { user_id, email, nickname, status }", YELLOW, False),
+    ], last_ms=650, **frame_options)
+
+    type_command(frames, durations, lines, "npx ashiba feature query refresh users-list list", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("Feature query refresh completed: users-list/list", GREEN, True),
+        ("- metadata: .../generated/query.meta.ts", GREEN, False),
+        ("- changed: yes", GREEN, False),
+    ], last_ms=850, **frame_options)
+
+    type_command(frames, durations, lines, "npx ashiba feature tests check users-list --query list --fix", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("Feature tests check passed", GREEN, True),
+        ("fixed: .../tests/generated/mapping.cases.ts", GREEN, False),
+        ("fixed: .../tests/generated/analysis.json", GREEN, False),
+    ], last_ms=950, **frame_options)
+
+    type_command(frames, durations, lines, "npx ashiba check", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("Ashiba check: ok", GREEN, True),
+        ("- contract: ok", GREEN, False),
+        ("- generated mapper: ok", GREEN, False),
+        ("- DDL diagnostics: ok", GREEN, False),
+    ], last_ms=850, **frame_options)
+
+    type_command(frames, durations, lines, "npx vitest run", **frame_options)
+    output_lines(frames, durations, lines, [
+        ("RUN  v4.1.7  ./ashiba-demo", PURPLE, False),
+        ("✓ ZTD mapper test: SQL row -> TypeScript DTO", GREEN, True),
+        ("Test Files  2 passed (2)", GREEN, True),
+        ("Tests       3 passed (3)", GREEN, True),
+        ("Drift was detected, repaired, and proven by tests.", BLUE, True),
+    ], last_ms=1200, **frame_options)
+
+    add_pause(frames, durations, lines, 4800, **frame_options)
+    save_gif(frames, durations, REPAIR_GIF_PATH, REPAIR_PNG_PATH)
+
+
+def main() -> None:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    render_detect()
+    render_repair()
 
 
 if __name__ == "__main__":

@@ -11,7 +11,11 @@ Ashiba is a SQL-first generator for TypeScript applications. You write the SQL; 
 No ORM runtime. No hidden query DSL. No mapper boilerplate.
 
 <p align="center">
-  <img src="docs/public/brand/ashiba-getting-started.gif" alt="Ashiba getting started: initialize a project, scaffold visible SQL, and run mapper tests." width="900">
+  <img src="docs/public/brand/ashiba-getting-started-init.gif" alt="Ashiba getting started: initialize the SQL-first starter files in an existing TypeScript project." width="900">
+</p>
+
+<p align="center">
+  <img src="docs/public/brand/ashiba-getting-started-scaffold.gif" alt="Ashiba getting started: scaffold visible SQL and run mapper tests." width="900">
 </p>
 
 ## Concept
@@ -102,7 +106,11 @@ npx ashiba check --full
 When DDL and generated contracts drift apart, Ashiba should make the repair path visible: which SQL file changed, which editable TypeScript boundary needs attention, and which generated mapping-test assets can be refreshed.
 
 <p align="center">
-  <img src="docs/public/brand/ashiba-drift-check.gif" alt="Ashiba drift check: edit DDL, see mapper tests fail, inspect check output, repair SQL and query boundary, then pass checks again." width="900">
+  <img src="docs/public/brand/ashiba-drift-detect.gif" alt="Ashiba drift detection: edit DDL, see mapper tests fail, and inspect check output that points to repair targets." width="900">
+</p>
+
+<p align="center">
+  <img src="docs/public/brand/ashiba-drift-repair.gif" alt="Ashiba drift repair: human or AI repairs owned SQL and TypeScript boundaries, refreshes generated mapping tests, and passes checks again." width="900">
 </p>
 
 ## Supported DBMS And Drivers
