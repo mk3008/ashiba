@@ -168,6 +168,7 @@ def save_gif(frames: list[Image.Image], durations: list[int], gif_path: Path, pn
         save_all=True,
         append_images=frames[1:],
         duration=durations,
+        loop=0,
         optimize=True,
         disposal=2,
     )
