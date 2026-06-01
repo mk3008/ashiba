@@ -68,6 +68,8 @@ describe('@ashiba-ts/cli smoke', () => {
     expect(createDefaultConfig().featureRoot).toBe('src/features');
     expect(createDefaultConfig().sqlRoots).toEqual(['src/features']);
     expect(formatDefaultConfig()).toContain('"parameterStyle": "both"');
+    expect(formatDefaultConfig()).toContain('"identifierEscape": "quote"');
+    expect(formatDefaultConfig()).toContain('"identifierEscapeTarget": "minimal"');
     expect(formatDefaultConfig()).toContain('"commaBreak": "before"');
     expect(formatDefaultConfig({ pretty: false })).not.toContain('\n  ');
   });
@@ -165,8 +167,17 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'README.md'), 'utf8')).toContain('#features/*');
       expect(readFileSync(path.join(rootDir, 'vitest.config.ts'), 'utf8')).toContain("'#features'");
       expect(readFileSync(path.join(rootDir, 'vitest.config.ts'), 'utf8')).toContain("'#tests'");
+      expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).not.toContain('"baseUrl"');
       expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"#features/*"');
+      expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"./src/features/*"');
       expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"#tests/*"');
+      expect(readFileSync(path.join(rootDir, 'tsconfig.json'), 'utf8')).toContain('"./tests/*"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"format"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"identifierEscape": "quote"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"identifierEscapeTarget": "minimal"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"parameterSymbol": ":"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"commaBreak": "before"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"joinConditionOrderByDeclaration": false');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('${ASHIBA_TEST_DB_PORT:-5432}:5432');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('network_mode: bridge');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('POSTGRES_USER: ${ASHIBA_TEST_DB_USER:-ashiba}');
@@ -185,6 +196,15 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'src/adapters/logger/sqlLogger.ts'), 'utf8')).toContain('This is the intended hole for your application logger.');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgFeatureQueryExecutor');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgTransaction');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('PgTransactionOptions');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('PgSqlClientContext');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('isClientBorrowed: true');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('isTransactionStarted: true');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain("isolationLevel?: 'read committed' | 'repeatable read' | 'serializable'");
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain("accessMode?: 'read write' | 'read only'");
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('renderBeginTransactionSql');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Standard path:');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Use this across feature/usecase boundaries');
       expect(existsSync(path.join(rootDir, 'src/features/smoke'))).toBe(false);
       expect(result.files.some((file) => file.relativePath === 'package.json')).toBe(false);
       expect(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).toContain('"name": "starter"');
@@ -272,6 +292,25 @@ describe('@ashiba-ts/cli smoke', () => {
       const output = runDdlMigrationGenerate({ from: fromPath, to: toPath, out: outPath });
 
       expect(output).toContain('create table');
+      expect(readFileSync(outPath, 'utf8').toLowerCase()).toContain('create table');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('creates the output parent directory for generated migration SQL', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-diff-out-dir-'));
+
+    try {
+      const fromPath = path.join(rootDir, 'from.sql');
+      const toPath = path.join(rootDir, 'to.sql');
+      const outPath = path.join(rootDir, 'tmp', 'ddl', 'migration.sql');
+      writeFileSync(fromPath, '', 'utf8');
+      writeFileSync(toPath, 'CREATE TABLE public.users (id integer not null);', 'utf8');
+
+      const output = runDdlMigrationGenerate({ from: fromPath, to: toPath, out: outPath });
+
+      expect(output).toContain(path.normalize(outPath));
       expect(readFileSync(outPath, 'utf8').toLowerCase()).toContain('create table');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -660,9 +699,9 @@ describe('@ashiba-ts/cli smoke', () => {
       runFeatureScaffold({ rootDir, table: 'order', action: 'list' });
 
       const listSql = readFileSync(path.join(rootDir, 'src/features/order-list/queries/list/list.sql'), 'utf8');
-      expect(listSql).toContain('    "id"\n    , "select"\n    , "current_user"\n    , "UserName"');
-      expect(listSql).toContain('from\n    "public"."order"');
-      expect(listSql).toContain('order by\n    "id"');
+      expect(listSql).toContain('    id\n    , "select"\n    , "current_user"\n    , "UserName"');
+      expect(listSql).toContain('from\n    public."order"');
+      expect(listSql).toContain('order by\n    id');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

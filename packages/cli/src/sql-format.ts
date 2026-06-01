@@ -447,7 +447,8 @@ const SQL_KEYWORDS_REQUIRING_IDENTIFIER_QUOTES = new Set([
 ]);
 
 export const DEFAULT_SQL_FORMAT_OPTIONS = {
-  identifierEscape: 'none',
+  identifierEscape: 'quote',
+  identifierEscapeTarget: 'minimal',
   parameterSymbol: ':',
   parameterStyle: 'named',
   indentSize: 4,

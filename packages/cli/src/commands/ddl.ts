@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import type { Command } from 'commander';
@@ -95,6 +95,7 @@ export function runDdlMigrationGenerate(
   const title = renderOptions.title ?? 'DDL migration generate';
 
   if (options.out && options.dryRun !== true) {
+    mkdirSync(path.dirname(path.resolve(options.out)), { recursive: true });
     writeFileSync(options.out, result.sql, 'utf8');
   }
 

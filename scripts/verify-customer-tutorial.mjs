@@ -111,10 +111,18 @@ assertFileContains(path.join(starterRoot, 'src', 'adapters', 'logger', 'sqlLogge
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'logger', 'sqlLogger.ts'), 'TODO: Replace this no-op with your application logger.');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'withPgFeatureQueryExecutor');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'withPgTransaction');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'PgTransactionOptions');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'PgSqlClientContext');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'Standard path:');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'Use this across feature/usecase boundaries');
 assertFileContains(path.join(starterRoot, 'vitest.config.ts'), "'#features'");
 assertFileContains(path.join(starterRoot, 'vitest.config.ts'), "'#tests'");
 assertFileContains(path.join(starterRoot, 'tsconfig.json'), '"#features/*"');
 assertFileContains(path.join(starterRoot, 'tsconfig.json'), '"#tests/*"');
+assertFileContains(path.join(starterRoot, 'ashiba.config.json'), '"format"');
+assertFileContains(path.join(starterRoot, 'ashiba.config.json'), '"identifierEscape": "quote"');
+assertFileContains(path.join(starterRoot, 'ashiba.config.json'), '"identifierEscapeTarget": "minimal"');
+assertFileContains(path.join(starterRoot, 'ashiba.config.json'), '"commaBreak": "before"');
 assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'user_id bigserial primary key');
 assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'email text not null');
 assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'display_name text');

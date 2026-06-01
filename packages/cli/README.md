@@ -2,13 +2,29 @@
 
 Ashiba Runtime Zero SQL scaffolder for TypeScript applications.
 
+This is the development-time CLI for Ashiba. It is normally used together with
+an Ashiba driver adapter and testkit package, not as a standalone library.
+
+Start with the repository README for the full SQL-first workflow:
+
+- [Ashiba README](https://github.com/mk3008/ashiba#readme)
+- [Command API](https://mk3008.github.io/ashiba/generated/api/commands)
+
+## Quick Commands
+
 ```bash
 ashiba --help
 ashiba --version
-ashiba config
+ashiba init --db postgres --driver pg --with-demo-ddl
+ashiba feature scaffold users-list --table users --action list
+ashiba check
 ```
 
-This package is the Ashiba rebrand target for the existing `rawsql-ts/packages/ztd-cli` foundation. It owns development-time scaffolding, query analysis, DDL review, model generation, contract checks, RFBA inspection, sqlgrep-style query tools, and performance evidence.
+## What This Package Owns
+
+The CLI owns development-time scaffolding, query analysis, DDL review, model
+generation, contract checks, RFBA inspection, sqlgrep-style query tools, and
+performance evidence.
 
 Generated application code is expected to be editable and runtime-zero except for the application-selected DB driver. The CLI may generate query model metadata such as source hashes, statement shape, named-parameter binding metadata, result contracts, safe-sort insertion positions, and sortable dictionaries so driver adapters can avoid runtime AST parsing.
 

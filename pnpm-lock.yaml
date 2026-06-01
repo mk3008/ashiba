@@ -43,8 +43,8 @@ importers:
         specifier: ^8.0.2
         version: 8.0.4
       rawsql-ts:
-        specifier: ^0.22.0
-        version: 0.22.0
+        specifier: ^0.23.0
+        version: 0.23.0
     devDependencies:
       '@types/node':
         specifier: ^22.13.10
@@ -1627,8 +1627,8 @@ packages:
   rawsql-ts@0.21.1:
     resolution: {integrity: sha512-dCUMNdcCn0AlBmeGNbC3c+t0ApqzV4v4/HeT4sbQQqAd+pRdPfYIJXXcLwPe41tk+0uvBMmOOptfm6UYPHy3Bg==}
 
-  rawsql-ts@0.22.0:
-    resolution: {integrity: sha512-XZM08vDE59Yd61IG8SF3VdpiEhJkgt1lhgl/1eUo/O0cAqsYtNQLpAja4aR3bReJZpxGcoLBDN2bnRESjAsTSw==}
+  rawsql-ts@0.23.0:
+    resolution: {integrity: sha512-+WNbnDUOofT1Zw9Hie9IsRALr91qFlbnhFbT0zK215h80MLFDl6iPRyyiuDR0aqgV6h+i2inNms80B2BbF3D1Q==}
 
   read-yaml-file@1.1.0:
     resolution: {integrity: sha512-VIMnQi/Z4HT2Fxuwg5KrY174U1VdUIASQVWXXyqtNRtxSr9IYkn1rsI6Tb6HsrHCmB7gVpNwX6JxPTHcH6IoTA==}
@@ -3555,7 +3555,7 @@ snapshots:
 
   rawsql-ts@0.21.1: {}
 
-  rawsql-ts@0.22.0: {}
+  rawsql-ts@0.23.0: {}
 
   read-yaml-file@1.1.0:
     dependencies:

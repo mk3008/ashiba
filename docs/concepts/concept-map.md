@@ -80,7 +80,7 @@ These concepts belong to driver-neutral SQL libraries, production driver adapter
 
 | ID | Display name | Status | Notes |
 |---|---|---|---|
-| `thin-driver-adapter` | Thin Driver Adapter | mostly done | `pg` adapter owns named binding, parameter checks, query-model-gated safe sort, stale metadata rejection, and observer events while avoiding ORM and transaction ownership. Wrapper package names include the wrapped driver or tool name. |
+| `thin-driver-adapter` | Thin Driver Adapter | mostly done | `pg` adapter owns named binding, parameter checks, query-model-gated safe sort, stale metadata rejection, and observer events while avoiding ORM and transaction ownership. Starter code should keep the standard path option-light, expose frequent connection and transaction controls nearby, and leave rare driver policy to customer-owned code. Wrapper package names include the wrapped driver or tool name. |
 | `named-parameter-binding` | Named Parameter Binding | mostly done | Source SQL uses named parameters such as `:name` or `@name`; DB driver wrappers compile them to driver placeholders. |
 | `parameter-contract-check` | Parameter Contract Check | mostly done | Missing and unused parameters fail before execution in binder and PostgreSQL adapter paths. |
 | `safe-sort-profile` | Safe Sort Profile | mostly done | DB driver wrapper-owned safe sort surface based on whitelisted profiles and CLI-generated query model metadata: source hash, root query shape, insertion position, order-by/comma mode, and sortable dictionary. Sort keys must exactly match the query model whitelist. |

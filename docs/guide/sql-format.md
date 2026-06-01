@@ -22,7 +22,8 @@ Generated SQL uses the formatter options stored in `ashiba.config.json`:
 {
   "format": {
     "sql": {
-      "identifierEscape": "none",
+      "identifierEscape": "quote",
+      "identifierEscapeTarget": "minimal",
       "parameterSymbol": ":",
       "parameterStyle": "named",
       "indentSize": 4,
