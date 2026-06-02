@@ -12,12 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HUSKY: 0
+      CHANGESETS_TOKEN: ${{ secrets.CHANGESETS_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          token: ${{ secrets.CHANGESETS_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -34,16 +32,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Report release PR token source
+      - name: Require release PR token
         shell: bash
-        env:
-          RELEASE_PR_TOKEN_SOURCE: ${{ secrets.CHANGESETS_TOKEN != '' && 'CHANGESETS_TOKEN' || 'GITHUB_TOKEN' }}
         run: |
-          if [ "${RELEASE_PR_TOKEN_SOURCE}" = "CHANGESETS_TOKEN" ]; then
-            echo "Release PR will use CHANGESETS_TOKEN."
-          else
-            echo "Release PR will use GITHUB_TOKEN."
-            echo "If required pull_request checks must run automatically on the release PR branch, configure CHANGESETS_TOKEN as a PAT."
+          if [ -z "${CHANGESETS_TOKEN}" ]; then
+            echo "Release PR requires the CHANGESETS_TOKEN secret."
+            echo "A workflow-created PR must use a PAT so pull_request checks can run on the release PR branch."
+            exit 1
           fi
 
       - name: Create or update release PR
@@ -54,4 +49,5 @@ jobs:
           title: "chore(release): version packages"
           commitMode: git-cli
         env:
-          GITHUB_TOKEN: ${{ secrets.CHANGESETS_TOKEN || secrets.GITHUB_TOKEN }}
+          # Release PRs must use a PAT so downstream pull_request checks attach to the bot-created PR.
+          GITHUB_TOKEN: ${{ secrets.CHANGESETS_TOKEN }}
