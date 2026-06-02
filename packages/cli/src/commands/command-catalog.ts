@@ -204,6 +204,28 @@ export const COMMANDS: readonly CommandSpec[] = [
     examples: ['npx ashiba feature scaffold users-list --table users --action list'],
   },
   {
+    name: 'feature import',
+    summary: 'Import an existing SQL file into a feature query boundary.',
+    useCase: 'Start from SQL that already exists, then generate the feature shell, DTO contracts, mapper metadata, and ZTD mapper tests around that visible SQL.',
+    usage: 'ashiba feature import [options] <feature> <query>',
+    arguments: [
+      { name: 'feature', required: true, description: 'Feature name to create under the configured feature root.' },
+      { name: 'query', required: true, description: 'Query boundary name to create under the feature.' },
+    ],
+    options: [
+      { flags: '--sql <path>', description: 'Existing SQL file to copy into the feature query boundary. Required.' },
+      commonRoot,
+      commonDryRun,
+      commonForce,
+    ],
+    notes: [
+      'The source SQL file is copied, not moved.',
+      'Ashiba formats the copied SQL only when the formatter safety check proves the token/comment/AST output is stable.',
+      'Generated mapper cases cover inferable DB/TypeScript mapping; business boundary-value cases remain human/AI-owned under tests/cases/.',
+    ],
+    examples: ['npx ashiba feature import users-search search --sql tmp/search-users.sql'],
+  },
+  {
     name: 'feature query scaffold',
     summary: 'Add another editable query boundary under an existing feature.',
     useCase: 'Grow a feature by adding a second SQL behavior without regenerating or hiding existing code.',

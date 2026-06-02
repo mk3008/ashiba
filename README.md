@@ -81,7 +81,7 @@ This gives you a small SQL-first feature boundary: visible SQL, editable query c
 npx vitest run
 ```
 
-The generated unit tests are mapping tests. For read queries, they primarily prove DB-to-TypeScript row mapping; when the SQL has parameters, they also prove TypeScript-to-DB parameter mapping. For create/update/delete queries, they primarily prove TypeScript-to-DB mapping, and they also prove DB-to-TypeScript mapping when the dialect returns mutation rows such as PostgreSQL `RETURNING`.
+The generated unit tests are mapper tests. They run lightweight DB-backed probes that return representative SQL values and prove those values can map into the TypeScript DTO shape. They do not prove business SQL logic, row counts, final database state, transaction behavior, or which rows should be changed. Put those expectations in customer-owned SQL logic tests when the feature needs them.
 
 At this point, you should have the core Ashiba experience:
 
@@ -136,6 +136,7 @@ Use this section as the entry point for daily work. The command API page links e
 | Scaffold passive gates without hook libraries | `ashiba gate scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-gate-scaffold) |
 | Start a SQL-first TypeScript project shape | `ashiba init` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-init) |
 | Generate a feature boundary from an existing DDL table | `ashiba feature scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-scaffold) |
+| Generate a feature boundary from existing SQL | `ashiba feature import <feature> <query> --sql <path>` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-import) |
 | Add another query to an existing feature | `ashiba feature query scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-scaffold) |
 | Refresh generated metadata after editing SQL | `ashiba feature query refresh` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-refresh) |
 | Add generated mapper-test cases and human-owned placeholders | `ashiba feature tests scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-scaffold) |
