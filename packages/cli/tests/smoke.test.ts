@@ -31,7 +31,9 @@ describe('@ashiba-ts/cli smoke', () => {
   });
 
   test('exposes the initial version', () => {
-    expect(VERSION).toBe('0.0.0');
+    const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string };
+
+    expect(VERSION).toBe(packageJson.version);
   });
 
   test('supports human and AI error output modes', async () => {
@@ -217,6 +219,65 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.files.some((file) => /(^|\/)(\.agent|\.agents|\.codex|skills|prompts|hooks)(\/|$)/i.test(file.relativePath))).toBe(false);
       expect(existsSync(path.join(rootDir, 'AGENTS.md'))).toBe(false);
       expect(existsSync(path.join(rootDir, 'SKILL.md'))).toBe(false);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('updates npm-init package.json to the ESM module type required by generated starter code', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-init-esm-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+        name: 'starter',
+        private: true,
+        dependencies: {
+          '@ashiba-ts/driver-adapter-pg': '^0.0.0',
+          pg: '^8.0.0',
+        },
+        devDependencies: {
+          '@ashiba-ts/cli': '^0.0.0',
+          '@ashiba-ts/testkit-adapter-pg': '^0.0.0',
+          '@types/pg': '^8.0.0',
+          dotenv: '^16.0.0',
+          typescript: '^5.0.0',
+          vitest: '^4.0.0',
+        },
+      }, null, 2)}\n`, 'utf8');
+
+      const result = runInit({ dir: rootDir, db: 'postgres', driver: 'pg' });
+      const packageJson = JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8')) as { type?: string };
+
+      expect(result.files[0]).toEqual({ relativePath: 'package.json', action: 'update' });
+      expect(packageJson.type).toBe('module');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not silently rewrite an explicit CommonJS package into the ESM starter', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-init-commonjs-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+        name: 'starter',
+        private: true,
+        type: 'commonjs',
+        dependencies: {
+          '@ashiba-ts/driver-adapter-pg': '^0.0.0',
+          pg: '^8.0.0',
+        },
+        devDependencies: {
+          '@ashiba-ts/cli': '^0.0.0',
+          '@ashiba-ts/testkit-adapter-pg': '^0.0.0',
+          '@types/pg': '^8.0.0',
+          dotenv: '^16.0.0',
+          typescript: '^5.0.0',
+          vitest: '^4.0.0',
+        },
+      }, null, 2)}\n`, 'utf8');
+
+      expect(() => runInit({ dir: rootDir, db: 'postgres', driver: 'pg' })).toThrow('requires package.json type to be "module"');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

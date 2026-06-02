@@ -28,7 +28,7 @@ export type InitResult = {
   }>;
 };
 
-type InitFileAction = 'create' | 'overwrite' | 'skip';
+type InitFileAction = 'create' | 'overwrite' | 'skip' | 'update';
 type InitDatabase = 'postgres' | 'mysql' | 'sqlserver';
 type InitDriver = 'pg' | 'mysql2' | 'mssql';
 type InitTarget = {
@@ -956,27 +956,31 @@ export function runInit(options: InitOptions = {}): InitResult {
   const dryRun = options.dryRun === true;
   const target = resolveInitTarget(options.db, options.driver);
   validateStarterDependencies(rootDir, target);
+  const packageJsonUpdate = updatePackageJsonForStarter(rootDir, dryRun);
   const filesToWrite = [
     ...(target.db === 'postgres' && target.driver === 'pg' ? postgresStarterFiles : []),
     ...(options.withDemoDdl === true ? demoDdlFiles : []),
     ...(options.withMigrationDemoDdl === true ? migrationDemoDdlFiles : []),
   ];
 
-  const files = filesToWrite.map((file) => {
-    const destination = path.join(rootDir, file.relativePath);
-    const exists = existsSync(destination);
-    const action: InitFileAction = exists ? (force ? 'overwrite' : 'skip') : 'create';
+  const files = [
+    ...(packageJsonUpdate ? [packageJsonUpdate] : []),
+    ...filesToWrite.map((file) => {
+      const destination = path.join(rootDir, file.relativePath);
+      const exists = existsSync(destination);
+      const action: InitFileAction = exists ? (force ? 'overwrite' : 'skip') : 'create';
 
-    if (!dryRun && action !== 'skip') {
-      mkdirSync(path.dirname(destination), { recursive: true });
-      writeFileSync(destination, file.contents, 'utf8');
-    }
+      if (!dryRun && action !== 'skip') {
+        mkdirSync(path.dirname(destination), { recursive: true });
+        writeFileSync(destination, file.contents, 'utf8');
+      }
 
-    return {
-      relativePath: file.relativePath,
-      action,
-    };
-  });
+      return {
+        relativePath: file.relativePath,
+        action,
+      };
+    }),
+  ];
 
   return {
     rootDir,
@@ -1003,7 +1007,16 @@ function validateStarterDependencies(rootDir: string, target: InitTarget): void 
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
     dependencies?: Record<string, unknown>;
     devDependencies?: Record<string, unknown>;
+    type?: unknown;
   };
+  if (typeof packageJson.type === 'string' && packageJson.type !== 'module') {
+    throw invalidCliInputError(
+      'ASHIBA_INIT_ESM_PACKAGE_REQUIRED',
+      `ashiba init --db postgres --driver pg requires package.json type to be "module"; found "${packageJson.type}".`,
+      'Use an ES module application package for this starter, or remove the explicit package.json type so Ashiba can add "type": "module" during init.',
+      { type: packageJson.type },
+    );
+  }
   const dependencies = packageJson.dependencies ?? {};
   const devDependencies = packageJson.devDependencies ?? {};
   const missingDependencies = postgresStarterRequiredDependencies.filter(
@@ -1025,6 +1038,25 @@ function validateStarterDependencies(rootDir: string, target: InitTarget): void 
     ].join('\n'),
     { missing },
   );
+}
+
+function updatePackageJsonForStarter(rootDir: string, dryRun: boolean): { relativePath: string; action: InitFileAction } | undefined {
+  const packageJsonPath = path.join(rootDir, 'package.json');
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
+    type?: unknown;
+    [key: string]: unknown;
+  };
+  if (packageJson.type === 'module') return undefined;
+  packageJson.type = 'module';
+
+  if (!dryRun) {
+    writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf8');
+  }
+
+  return {
+    relativePath: 'package.json',
+    action: 'update',
+  };
 }
 
 function resolveInitTarget(dbValue: string | undefined, driverValue: string | undefined): InitTarget {
