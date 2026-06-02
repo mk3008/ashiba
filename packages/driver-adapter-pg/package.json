@@ -2,6 +2,10 @@
   "name": "@ashiba-ts/driver-adapter-pg",
   "version": "0.1.1",
   "description": "Thin Ashiba adapter for pg clients.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mk3008/ashiba"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

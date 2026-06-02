@@ -2,6 +2,10 @@
   "name": "@ashiba-ts/driver-adapter-core",
   "version": "0.1.0",
   "description": "Core contracts for thin Ashiba driver adapters.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mk3008/ashiba"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
