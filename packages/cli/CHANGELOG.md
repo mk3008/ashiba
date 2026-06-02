@@ -1,5 +1,11 @@
 # @ashiba-ts/cli
 
+## 0.2.1
+
+### Patch Changes
+
+- [#23](https://github.com/mk3008/ashiba/pull/23) [`d103fe0`](https://github.com/mk3008/ashiba/commit/d103fe0f86f8751da8a04020f8d82f437585fa95) Thanks [@mk3008](https://github.com/mk3008)! - Fix the CLI version output and make `ashiba init --db postgres --driver pg` add `"type": "module"` when an npm-initialized package does not declare a module type, so generated `import.meta` based starter code typechecks without manual package metadata edits.
+
 ## 0.2.0
 
 ### Minor Changes
