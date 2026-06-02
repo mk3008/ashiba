@@ -1,5 +1,27 @@
 # @ashiba-ts/cli
 
+## 0.2.0
+
+### Minor Changes
+
+- [#16](https://github.com/mk3008/ashiba/pull/16) [`55e096e`](https://github.com/mk3008/ashiba/commit/55e096ebc447f75bf11ba81c0b948bd3e303bd16) Thanks [@mk3008](https://github.com/mk3008)! - Add git ref DDL inputs to `ashiba ddl migration generate`. Use `--from-git <ref:path>` or `--to-git <ref:path>` to compare committed DDL snapshots with local files or directories and write reviewable migration SQL.
+
+  Improve drift repair guidance in project checks so failed generated mapping-test diagnostics point to the visible SQL, editable query boundary, and generated assets that should be refreshed.
+
+  Refresh generated query metadata when `ashiba query format --write` changes feature SQL, and add `ashiba query format --all` for formatting every configured SQL root in stable order.
+
+- [#14](https://github.com/mk3008/ashiba/pull/14) [`3bd705c`](https://github.com/mk3008/ashiba/commit/3bd705c22e21c93850646c771b34b4b3e1bd54e6) Thanks [@mk3008](https://github.com/mk3008)! - Add safe SQL formatting support:
+
+  - Newly scaffolded SQL is formatted with configurable defaults.
+  - `ashiba query format` formats existing SQL only after safety checks.
+  - SSSQL optional rewrites avoid whole-file reformatting unless rawsql-ts reports a targeted safe rewrite.
+
+  Fix PostgreSQL optional-condition compression when every WHERE predicate is an SSSQL branch so the adapter removes the whole WHERE clause instead of producing dangling SQL or rejecting overlapping branch ranges.
+
+### Patch Changes
+
+- [#18](https://github.com/mk3008/ashiba/pull/18) [`e21a9f3`](https://github.com/mk3008/ashiba/commit/e21a9f3485ac2b96561c842152ca65c571a42907) Thanks [@mk3008](https://github.com/mk3008)! - Add common PostgreSQL transaction options to the generated pg starter. `withPgTransaction` now supports isolation level, read/write access mode, and deferrable flags while keeping rare transaction policy in customer-owned starter code.
+
 ## 0.1.0
 
 ### Minor Changes

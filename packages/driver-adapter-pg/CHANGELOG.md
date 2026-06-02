@@ -1,5 +1,17 @@
 # @ashiba-ts/driver-adapter-pg
 
+## 0.1.1
+
+### Patch Changes
+
+- [#14](https://github.com/mk3008/ashiba/pull/14) [`3bd705c`](https://github.com/mk3008/ashiba/commit/3bd705c22e21c93850646c771b34b4b3e1bd54e6) Thanks [@mk3008](https://github.com/mk3008)! - Add safe SQL formatting support:
+
+  - Newly scaffolded SQL is formatted with configurable defaults.
+  - `ashiba query format` formats existing SQL only after safety checks.
+  - SSSQL optional rewrites avoid whole-file reformatting unless rawsql-ts reports a targeted safe rewrite.
+
+  Fix PostgreSQL optional-condition compression when every WHERE predicate is an SSSQL branch so the adapter removes the whole WHERE clause instead of producing dangling SQL or rejecting overlapping branch ranges.
+
 ## 0.1.0
 
 ### Minor Changes
