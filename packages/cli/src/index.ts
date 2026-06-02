@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 import { formatAshibaError, parseAshibaErrorMode, type AshibaErrorMode } from './error-format.js';
-import { realpathSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerCheckCommand } from './commands/check.js';
@@ -21,10 +21,13 @@ import { registerProjectCommand } from './commands/project.js';
 import { registerQueryCommand } from './commands/query.js';
 import { registerRfbaCommand } from './commands/rfba.js';
 
+const currentFile = fileURLToPath(import.meta.url);
+const invokedFile = process.argv[1] ? path.resolve(process.argv[1]) : undefined;
+
 /**
  * Current CLI package version exposed by the Ashiba command.
  */
-export const VERSION = '0.0.0';
+export const VERSION = readCliPackageVersion();
 
 /**
  * Build the Ashiba Commander program with all registered command surfaces.
@@ -98,9 +101,6 @@ export function getErrorMode(program: Command): AshibaErrorMode {
   return parseAshibaErrorMode(options.errorFormat);
 }
 
-const currentFile = fileURLToPath(import.meta.url);
-const invokedFile = process.argv[1] ? path.resolve(process.argv[1]) : undefined;
-
 if (isCliEntrypoint(invokedFile, currentFile, 'ashiba')) {
   const program = buildProgram();
   void program.parseAsync(process.argv).catch((error) => {
@@ -133,5 +133,15 @@ function safeGetErrorMode(program: Command): AshibaErrorMode {
     return getErrorMode(program);
   } catch {
     return 'human';
+  }
+}
+
+function readCliPackageVersion(): string {
+  try {
+    const packageJsonPath = path.resolve(path.dirname(currentFile), '..', 'package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version?: unknown };
+    return typeof packageJson.version === 'string' && packageJson.version ? packageJson.version : '0.0.0';
+  } catch {
+    return '0.0.0';
   }
 }
