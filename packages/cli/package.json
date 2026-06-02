@@ -2,6 +2,10 @@
   "name": "@ashiba-ts/cli",
   "version": "0.2.0",
   "description": "Ashiba Runtime Zero SQL scaffolder for TypeScript applications.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mk3008/ashiba"
+  },
   "type": "module",
   "bin": {
     "ashiba": "dist/index.js"

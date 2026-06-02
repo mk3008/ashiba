@@ -2,6 +2,10 @@
   "name": "@ashiba-ts/testkit-adapter-pg",
   "version": "0.1.0",
   "description": "Ashiba Zero Table Dependency testkit adapter for pg/PostgreSQL query tests.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mk3008/ashiba"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
