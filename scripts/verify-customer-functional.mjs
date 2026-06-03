@@ -90,6 +90,7 @@ function verifyPostgresCustomer(port) {
   writePostgresUsersSqlFiles(root);
   generatePostgresUsersQueryModels(root);
   writeFileSync(path.join(root, 'src', 'features', 'users', 'users-pino.test.ts'), renderPostgresPinoVitestTest(port), 'utf8');
+  verifyPostgresCodeIsYoursMapperDrift(root);
   waitForPostgres(root, port);
   run(corepack, ['pnpm', 'exec', 'vitest', 'run', 'src/features/users/users-pino.test.ts'], root);
 }
@@ -285,6 +286,69 @@ function generateQueryModel(root, queryDir, query) {
     '--out',
     `${queryDir}/${query}.query.ts`,
   ], root);
+}
+
+function verifyPostgresCodeIsYoursMapperDrift(root) {
+  mkdirSync(path.join(root, 'db', 'ddl'), { recursive: true });
+  writeFileSync(path.join(root, 'db', 'ddl', 'public.sql'), [
+    'create table public.users (',
+    '  user_id bigint generated always as identity primary key,',
+    '  email varchar(255) not null unique,',
+    '  display_name varchar(255) null,',
+    '  login_count integer not null default 0,',
+    '  external_account_id bigint not null',
+    ');',
+    '',
+  ].join('\n'), 'utf8');
+  mkdirSync(path.join(root, 'tmp'), { recursive: true });
+  writeFileSync(path.join(root, 'tmp', 'status.sql'), [
+    "select upper('ready') as status_text, cast(null as text) as message;",
+    '',
+  ].join('\n'), 'utf8');
+
+  run(corepack, [
+    'pnpm',
+    'exec',
+    'ashiba',
+    'feature',
+    'import',
+    'status-read',
+    'status',
+    '--sql',
+    'tmp/status.sql',
+  ], root);
+
+  const queryPath = path.join(root, 'src', 'features', 'status-read', 'queries', 'status', 'query.ts');
+  const mappingPath = path.join(root, 'src', 'features', 'status-read', 'queries', 'status', 'tests', 'generated', 'mapping.cases.ts');
+  assertFileContains(queryPath, 'status_text: string | null;');
+  assertFileContains(queryPath, 'message: string | null;');
+  assertFileContains(mappingPath, 'nullable-output-mapping');
+
+  writeFileSync(
+    queryPath,
+    readFileSync(queryPath, 'utf8').replace('status_text: string | null;', 'status_text: string;'),
+    'utf8',
+  );
+  const warningOnly = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'generated-mapper', 'check', 'status-read', '--query', 'status'], root);
+  if (warningOnly.status !== 0) {
+    throw new Error(`customer-owned unknown-nullability DTO narrowing should not fail generated mapper check:\n${warningOnly.output}`);
+  }
+  if (!warningOnly.output.includes('warning result type mismatches')) {
+    throw new Error(`generated mapper check did not warn about customer-owned unknown nullability narrowing:\n${warningOnly.output}`);
+  }
+
+  writeFileSync(
+    queryPath,
+    readFileSync(queryPath, 'utf8').replace('message: string | null;', 'message: string;'),
+    'utf8',
+  );
+  const critical = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'generated-mapper', 'check', 'status-read', '--query', 'status'], root);
+  if (critical.status === 0) {
+    throw new Error(`confirmed nullable DTO narrowing should fail generated mapper check:\n${critical.output}`);
+  }
+  if (!critical.output.includes('mismatched result types')) {
+    throw new Error(`generated mapper check did not report critical mapper drift for confirmed nullable result:\n${critical.output}`);
+  }
 }
 
 function renderPostgresPinoVitestTest(port) {
@@ -859,6 +923,19 @@ function run(command, args, cwd, env = {}) {
     shell: process.platform === 'win32' && /\.cmd$/i.test(command),
     env: { ...process.env, ...env },
   });
+}
+
+function runCapture(command, args, cwd, env = {}) {
+  const result = spawnSync(command, args, {
+    cwd,
+    encoding: 'utf8',
+    shell: process.platform === 'win32' && /\.cmd$/i.test(command),
+    env: { ...process.env, ...env },
+  });
+  return {
+    status: result.status ?? 1,
+    output: `${result.stdout ?? ''}${result.stderr ?? ''}`,
+  };
 }
 
 function assertFileContains(filePath, expected) {

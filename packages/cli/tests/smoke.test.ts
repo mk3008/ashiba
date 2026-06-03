@@ -11,7 +11,7 @@ import { formatAshibaCheckResult, runAshibaCheck } from '../src/commands/check.j
 import { createDefaultConfig, formatDefaultConfig, loadProjectPathConfig } from '../src/commands/config.js';
 import { runDdlMigrationGenerate } from '../src/commands/ddl.js';
 import { COMMANDS, formatDescribe } from '../src/commands/describe.js';
-import { runFeatureGeneratedMapperCheck, runFeatureQueryMetadataRefresh, runFeatureQueryScaffold, runFeatureScaffold, runFeatureTestsCheck, runFeatureTestsScaffold } from '../src/commands/feature.js';
+import { runFeatureGeneratedMapperCheck, runFeatureImport, runFeatureQueryMetadataRefresh, runFeatureQueryScaffold, runFeatureScaffold, runFeatureTestsCheck, runFeatureTestsScaffold } from '../src/commands/feature.js';
 import { runGateScaffold } from '../src/commands/gate.js';
 import { runLint } from '../src/commands/lint.js';
 import { runModelGen } from '../src/commands/model-gen.js';
@@ -108,6 +108,7 @@ describe('@ashiba-ts/cli smoke', () => {
       'query format',
       'query optional add',
       'query optional refresh',
+      'feature import',
       'feature query scaffold',
       'feature tests scaffold',
       'feature tests check',
@@ -641,13 +642,267 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryZtdTypes).toContain("from '#tests/support/ztd/case-types.js'");
       expect(queryTestPlan).toContain('Unit tests are mapping-contract tests');
       expect(queryTestPlan).toContain('DDL is loaded from the configured DDL source directory');
-      expect(queryMappingCases).toContain('binds insert-users insert params and maps returned columns');
+      expect(queryMappingCases).toContain('mapperProbe');
+      expect(queryMappingCases).toContain('maps insert-users DB result values into the DTO');
+      expect(queryMappingCases).toContain('select\\n    cast(');
+      expect(queryMappingCases).not.toContain('binds insert-users insert params');
       expect(queryMappingCases).not.toContain('inserts insert-users row');
       expect(querySql).toContain(':email');
       expect(querySql).not.toContain(':user_id');
       expect(querySql).toContain('returning\n    user_id\n    , email\n    , display_name');
       expect(updateSql).toContain('returning\n    user_id\n    , email\n    , display_name');
       expect(deleteSql).toContain('returning\n    user_id\n    , email\n    , display_name');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('imports an existing SQL file into a feature with DTO mapper metadata and ZTD cases', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-sql-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null,',
+        '  display_name text,',
+        '  login_count integer not null default 0',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'search-users.sql'), [
+        'select user_id, email, display_name',
+        'from public.users',
+        'where email = :email',
+        'order by user_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'users-search',
+        queryName: 'search',
+        sql: 'tmp/search-users.sql',
+      });
+
+      const importedSql = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/search.sql'), 'utf8');
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/query.ts'), 'utf8');
+      const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/generated/query.meta.ts'), 'utf8');
+      const mappingCases = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/tests/generated/mapping.cases.ts'), 'utf8');
+      const ztdTypes = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/tests/boundary-ztd-types.ts'), 'utf8');
+      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/tests/generated/analysis.json'), 'utf8')) as {
+        status: string;
+        table: string;
+        action: string;
+      };
+      const mapperCheck = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-search', query: 'search' });
+
+      expect(result.featureName).toBe('users-search');
+      expect(result.queryName).toBe('search');
+      expect(result.sourceSqlFile).toBe('tmp/search-users.sql');
+      expect(result.importedSqlFile).toBe('src/features/users-search/queries/search/search.sql');
+      expect(result.formatted).toBe(true);
+      expect(importedSql).toContain('select\n    user_id\n    , email\n    , display_name');
+      expect(importedSql).toContain('where\n    email = :email');
+      expect(readFileSync(path.join(rootDir, 'tmp', 'search-users.sql'), 'utf8')).toContain('select user_id, email, display_name');
+      expect(queryBoundary).toContain('export interface SearchQueryParams');
+      expect(queryBoundary).toContain('email: string;');
+      expect(queryBoundary).toContain('export interface SearchQueryResult');
+      expect(queryBoundary).toContain('user_id: number | null;');
+      expect(queryBoundary).toContain('display_name: string | null;');
+      expect(queryBoundary).toContain('Promise<SearchQueryResult[]>');
+      expect(queryBoundary).toContain("from './generated/query.meta.js'");
+      expect(queryMeta).toContain('"namedParameters"');
+      expect(queryMeta).toContain('"email"');
+      expect(queryMeta).toContain('"resultColumns"');
+      expect(mappingCases).toContain('mapperProbe');
+      expect(mappingCases).toContain('maps search imported result columns into the DTO');
+      expect(mappingCases).toContain('nullable-output-mapping');
+      expect(mappingCases).toContain('alice@example.com');
+      expect(ztdTypes).toContain('SearchQueryResult[]');
+      expect(analysis).toMatchObject({
+        status: 'generated-from-imported-sql',
+        table: 'public.users',
+        action: 'list',
+      });
+      expect(mapperCheck.ok).toBe(true);
+      expect(mapperCheck.checked[0]?.sqlParameters).toEqual(['email']);
+      expect(mapperCheck.checked[0]?.sqlResultColumns).toEqual(['display_name', 'email', 'user_id']);
+
+      const queryPath = path.join(rootDir, 'src/features/users-search/queries/search/query.ts');
+      writeFileSync(
+        queryPath,
+        readFileSync(queryPath, 'utf8')
+          .replace('user_id: number | null;', 'user_id: string | null;')
+          .replace('display_name: string | null;', 'display_name: string;'),
+        'utf8',
+      );
+      const typeDrift = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-search', query: 'search' });
+
+      expect(typeDrift.ok).toBe(false);
+      expect(typeDrift.checked[0]?.mismatchedResultTypes).toEqual([
+        'display_name: mapper string / SQL string | null',
+        'user_id: mapper string | null / SQL number | null',
+      ]);
+      expect(typeDrift.checked[0]?.warningResultTypeMismatches).toEqual([]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('imports an existing SQL file under configured featureRoot', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-config-root-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: 'src/usecases',
+        sqlRoots: ['src/usecases'],
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'readiness.sql'), "select true as ready;\n", 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'health-check',
+        queryName: 'readiness',
+        sql: 'tmp/readiness.sql',
+      });
+
+      expect(result.importedSqlFile).toBe('src/usecases/health-check/queries/readiness/readiness.sql');
+      expect(existsSync(path.join(rootDir, 'src/usecases/health-check/boundary.ts'))).toBe(true);
+      expect(existsSync(path.join(rootDir, 'src/usecases/_shared/featureQueryExecutor.ts'))).toBe(true);
+      expect(existsSync(path.join(rootDir, 'src/features/health-check'))).toBe(false);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('respects customer-owned DTO nullability when imported SQL nullability is uncertain', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-code-is-yours-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'tmp', 'status.sql'), [
+        "select upper('ready') as status_text, cast(null as text) as message;",
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureImport({
+        rootDir,
+        feature: 'status-read',
+        queryName: 'status',
+        sql: 'tmp/status.sql',
+      });
+
+      const queryPath = path.join(rootDir, 'src/features/status-read/queries/status/query.ts');
+      const mappingPath = path.join(rootDir, 'src/features/status-read/queries/status/tests/generated/mapping.cases.ts');
+
+      expect(readFileSync(queryPath, 'utf8')).toContain('status_text: string | null;');
+      expect(readFileSync(queryPath, 'utf8')).toContain('message: string | null;');
+      expect(readFileSync(mappingPath, 'utf8')).toContain('nullable-output-mapping');
+
+      writeFileSync(
+        queryPath,
+        readFileSync(queryPath, 'utf8').replace('status_text: string | null;', 'status_text: string;'),
+        'utf8',
+      );
+
+      const result = runFeatureGeneratedMapperCheck({ rootDir, feature: 'status-read', query: 'status' });
+
+      expect(result.ok).toBe(true);
+      expect(result.checked[0]?.mismatchedResultTypes).toEqual([]);
+      expect(result.checked[0]?.warningResultTypeMismatches).toEqual([
+        "status_text: mapper string / SQL string | null (nullability unknown; customer-owned DTO is narrower than Ashiba's conservative import contract)",
+      ]);
+
+      const warningOnlyProject = runProjectCheck({ rootDir });
+      expect(warningOnlyProject.ok).toBe(true);
+      expect(warningOnlyProject.warnings.map((issue) => issue.code)).toContain('ASHIBA_PROJECT_GENERATED_MAPPER_RESULT_INFERENCE_WARNING');
+
+      writeFileSync(
+        queryPath,
+        readFileSync(queryPath, 'utf8').replace('message: string | null;', 'message: string;'),
+        'utf8',
+      );
+
+      const criticalResult = runFeatureGeneratedMapperCheck({ rootDir, feature: 'status-read', query: 'status' });
+      const criticalProject = runProjectCheck({ rootDir });
+
+      expect(criticalResult.ok).toBe(false);
+      expect(criticalResult.checked[0]?.mismatchedResultTypes).toEqual([
+        'message: mapper string / SQL string | null',
+      ]);
+      expect(criticalProject.ok).toBe(false);
+      expect(criticalProject.errors.map((issue) => issue.code)).toContain('ASHIBA_PROJECT_GENERATED_MAPPER_DRIFT');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('imports expression SQL and still generates FROM-less mapper probes without a root table', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-expression-sql-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'tmp', 'health.sql'), [
+        "select cast(1 as bigint) as status_code, cast(2.5 as numeric(10, 2)) as ratio, cast(null as text) as message;",
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureImport({
+        rootDir,
+        feature: 'health-check',
+        queryName: 'readiness',
+        sql: 'tmp/health.sql',
+      });
+
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/health-check/queries/readiness/query.ts'), 'utf8');
+      const ztdTypesPath = path.join(rootDir, 'src/features/health-check/queries/readiness/tests/boundary-ztd-types.ts');
+      const mappingPath = path.join(rootDir, 'src/features/health-check/queries/readiness/tests/generated/mapping.cases.ts');
+      const analysisPath = path.join(rootDir, 'src/features/health-check/queries/readiness/tests/generated/analysis.json');
+      const ztdTypes = readFileSync(ztdTypesPath, 'utf8');
+      const mappingCases = readFileSync(mappingPath, 'utf8');
+
+      expect(queryBoundary).toContain('status_code: number;');
+      expect(queryBoundary).toContain('ratio: number | null;');
+      expect(queryBoundary).toContain('message: string | null;');
+      expect(ztdTypes).toContain('Record<string, unknown>');
+      expect(mappingCases).toContain('mapperProbe');
+      expect(mappingCases).toContain('beforeDb: {}');
+      expect(mappingCases).toContain('cast(1 as bigint) as \\"status_code\\"');
+      expect(mappingCases).toContain('cast(1 as numeric(10, 2)) as \\"ratio\\"');
+      expect(mappingCases).toContain('cast(null as text) as \\"message\\"');
+
+      rmSync(mappingPath, { force: true });
+      rmSync(analysisPath, { force: true });
+      const missing = runFeatureTestsCheck({ rootDir, feature: 'health-check', query: 'readiness' });
+      const fixed = runFeatureTestsCheck({ rootDir, feature: 'health-check', query: 'readiness', fix: true });
+
+      expect(missing.ok).toBe(false);
+      expect(missing.checked[0]?.issues.length).toBeGreaterThan(0);
+      expect(fixed.ok).toBe(true);
+      expect(readFileSync(mappingPath, 'utf8')).toContain('mapperProbe');
+      expect(JSON.parse(readFileSync(analysisPath, 'utf8'))).toMatchObject({
+        importSource: 'existing-sql',
+        status: 'generated-from-imported-sql-without-root-table',
+      });
+
+      rmSync(mappingPath, { force: true });
+      rmSync(analysisPath, { force: true });
+      const scaffold = runFeatureTestsScaffold({ rootDir, feature: 'health-check', query: 'readiness', force: true });
+
+      expect(scaffold.outputs.map((file) => file.path)).toEqual(expect.arrayContaining([
+        'src/features/health-check/queries/readiness/tests/generated/mapping.cases.ts',
+        'src/features/health-check/queries/readiness/tests/generated/analysis.json',
+      ]));
+      expect(readFileSync(mappingPath, 'utf8')).toContain('mapperProbe');
+      expect(JSON.parse(readFileSync(analysisPath, 'utf8'))).toMatchObject({
+        importSource: 'existing-sql',
+        status: 'generated-from-imported-sql-without-root-table',
+      });
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -932,7 +1187,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(failed.checked[0]?.issues.some((issue) => issue.includes('Missing or unreadable generated mapping test analysis'))).toBe(true);
       expect(failed.checked[0]?.issues.some((issue) => issue.includes('Missing generated mapping test asset'))).toBe(true);
       expect(fixed.ok).toBe(true);
-      expect(readFileSync(mappingPath, 'utf8')).toContain('default-generated-value-mapping');
+      expect(readFileSync(mappingPath, 'utf8')).toContain('mapperProbe');
+      expect(readFileSync(mappingPath, 'utf8')).toContain('maps insert-users DB result values into the DTO');
       expect(JSON.parse(readFileSync(analysisPath, 'utf8')).action).toBe('insert');
       expect(readFileSync(logicPath, 'utf8')).toBe('human logic stays\n');
     } finally {

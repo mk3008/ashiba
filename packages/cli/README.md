@@ -17,6 +17,7 @@ ashiba --help
 ashiba --version
 ashiba init --db postgres --driver pg --with-demo-ddl
 ashiba feature scaffold users-list --table users --action list
+ashiba feature import users-search search --sql tmp/search-users.sql
 ashiba check
 ```
 
