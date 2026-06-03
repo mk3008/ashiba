@@ -746,6 +746,70 @@ describe('@ashiba-ts/cli smoke', () => {
         'display_name: mapper string / SQL string | null',
         'user_id: mapper string | null / SQL number | null',
       ]);
+      expect(typeDrift.checked[0]?.warningResultTypeMismatches).toEqual([]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('respects customer-owned DTO nullability when imported SQL nullability is uncertain', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-code-is-yours-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'tmp', 'status.sql'), [
+        "select upper('ready') as status_text, cast(null as text) as message;",
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureImport({
+        rootDir,
+        feature: 'status-read',
+        queryName: 'status',
+        sql: 'tmp/status.sql',
+      });
+
+      const queryPath = path.join(rootDir, 'src/features/status-read/queries/status/query.ts');
+      const mappingPath = path.join(rootDir, 'src/features/status-read/queries/status/tests/generated/mapping.cases.ts');
+
+      expect(readFileSync(queryPath, 'utf8')).toContain('status_text: string | null;');
+      expect(readFileSync(queryPath, 'utf8')).toContain('message: string | null;');
+      expect(readFileSync(mappingPath, 'utf8')).toContain('nullable-output-mapping');
+
+      writeFileSync(
+        queryPath,
+        readFileSync(queryPath, 'utf8').replace('status_text: string | null;', 'status_text: string;'),
+        'utf8',
+      );
+
+      const result = runFeatureGeneratedMapperCheck({ rootDir, feature: 'status-read', query: 'status' });
+
+      expect(result.ok).toBe(true);
+      expect(result.checked[0]?.mismatchedResultTypes).toEqual([]);
+      expect(result.checked[0]?.warningResultTypeMismatches).toEqual([
+        "status_text: mapper string / SQL string | null (nullability unknown; customer-owned DTO is narrower than Ashiba's conservative import contract)",
+      ]);
+
+      const warningOnlyProject = runProjectCheck({ rootDir });
+      expect(warningOnlyProject.ok).toBe(true);
+      expect(warningOnlyProject.warnings.map((issue) => issue.code)).toContain('ASHIBA_PROJECT_GENERATED_MAPPER_RESULT_INFERENCE_WARNING');
+
+      writeFileSync(
+        queryPath,
+        readFileSync(queryPath, 'utf8').replace('message: string | null;', 'message: string;'),
+        'utf8',
+      );
+
+      const criticalResult = runFeatureGeneratedMapperCheck({ rootDir, feature: 'status-read', query: 'status' });
+      const criticalProject = runProjectCheck({ rootDir });
+
+      expect(criticalResult.ok).toBe(false);
+      expect(criticalResult.checked[0]?.mismatchedResultTypes).toEqual([
+        'message: mapper string / SQL string | null',
+      ]);
+      expect(criticalProject.ok).toBe(false);
+      expect(criticalProject.errors.map((issue) => issue.code)).toContain('ASHIBA_PROJECT_GENERATED_MAPPER_DRIFT');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -775,7 +839,7 @@ describe('@ashiba-ts/cli smoke', () => {
       const ztdTypes = readFileSync(ztdTypesPath, 'utf8');
       const mappingCases = readFileSync(mappingPath, 'utf8');
 
-      expect(queryBoundary).toContain('status_code: number | null;');
+      expect(queryBoundary).toContain('status_code: number;');
       expect(queryBoundary).toContain('message: string | null;');
       expect(ztdTypes).toContain('Record<string, unknown>');
       expect(mappingCases).toContain('mapperProbe');

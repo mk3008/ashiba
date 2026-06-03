@@ -453,13 +453,23 @@ function generatedMapperIssues(result: FeatureGeneratedMapperCheckResult): Proje
         ].join('; '),
       });
     }
+    if (entry.warningResultTypeMismatches.length > 0) {
+      issues.push({
+        code: 'ASHIBA_PROJECT_GENERATED_MAPPER_RESULT_INFERENCE_WARNING',
+        severity: 'warning',
+        message: `SQL result nullability inference is not certain in ${entry.feature}/${entry.query}.`,
+        file: entry.queryFile,
+        nextAction: entry.warningResultTypeMismatches.join('; '),
+      });
+    }
     if (
       entry.missingInMapper.length === 0 &&
       entry.unusedInMapper.length === 0 &&
       entry.mismatchedParameterTypes.length === 0 &&
       entry.parameterTypeConflicts.length === 0 &&
       entry.missingResultInMapper.length === 0 &&
-      entry.unusedResultInMapper.length === 0
+      entry.unusedResultInMapper.length === 0 &&
+      entry.mismatchedResultTypes.length === 0
     ) {
       continue;
     }

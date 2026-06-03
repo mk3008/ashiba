@@ -165,6 +165,7 @@ export interface FeatureGeneratedMapperCheckResult {
     missingResultInMapper: string[];
     unusedResultInMapper: string[];
     mismatchedResultTypes: string[];
+    warningResultTypeMismatches: string[];
   }>;
   ok: boolean;
 }
@@ -210,7 +211,10 @@ interface RenderField {
 interface RenderContractField {
   name: string;
   typeScriptType: string;
+  nullability: ResultNullabilityLevel;
 }
+
+type ResultNullabilityLevel = 'nullable' | 'unknown' | 'non-null';
 
 interface GeneratedFile {
   relativePath: string;
@@ -805,13 +809,22 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       const mapperResultColumns = extractMapperResultColumns(querySource, queryName).sort();
       const queryTestMetadata = readQueryTestMetadata(queryDir);
       const resultTypesShouldBeConservative = queryTestMetadata?.importSource === 'existing-sql';
+      const importedDdlTable = queryTestMetadata?.importSource === 'existing-sql' && queryTestMetadata.table
+        ? loadOptionalDdlTable(rootDir, queryTestMetadata.table)
+        : undefined;
+      const resultNullabilityByColumn = resultTypesShouldBeConservative
+        ? inferImportedResultNullabilityByColumn(buildQueryResultColumnContracts(sql, rootDir), importedDdlTable)
+        : {};
       const metadataResultTypeOverrides = queryTestMetadata
         ? buildMetadataBackedResultTypeOverrides(rootDir, queryTestMetadata)
         : undefined;
       const sqlResultTypes: Record<string, string> = Object.fromEntries(
         buildQueryResultColumnContracts(sql, rootDir)
           .map((column): [string, string] => {
-            const contractType = resultTypesShouldBeConservative ? makeConservativeNullableType(column.type) : column.type;
+            const nullability = resultNullabilityByColumn[column.name] ?? 'unknown';
+            const contractType = resultTypesShouldBeConservative && nullability !== 'non-null'
+              ? makeConservativeNullableType(column.type)
+              : column.type;
             const metadataType = metadataResultTypeOverrides?.[column.name];
             return [
               column.name,
@@ -825,10 +838,21 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       const unusedInMapper = mapperParameters.filter((parameter) => !sqlParameters.includes(parameter));
       const missingResultInMapper = sqlResultColumns.filter((column) => !mapperResultColumns.includes(column));
       const unusedResultInMapper = mapperResultColumns.filter((column) => !sqlResultColumns.includes(column));
-      const mismatchedResultTypes = Object.entries(sqlResultTypes)
+      const resultTypeDrifts = Object.entries(sqlResultTypes)
         .filter(([column]) => mapperResultColumns.includes(column))
-        .filter(([column, expectedType]) => !areResultTypesCompatible(mapperResultTypes[column] ?? 'unknown', expectedType))
-        .map(([column, expectedType]) => `${column}: mapper ${mapperResultTypes[column] ?? 'unknown'} / SQL ${expectedType}`);
+        .map(([column, expectedType]) => classifyResultTypeDrift({
+          column,
+          mapperType: mapperResultTypes[column] ?? 'unknown',
+          expectedSqlType: expectedType,
+          nullability: resultNullabilityByColumn[column] ?? 'non-null',
+        }))
+        .filter((drift): drift is ResultTypeDrift => Boolean(drift));
+      const mismatchedResultTypes = resultTypeDrifts
+        .filter((drift) => drift.severity === 'error')
+        .map((drift) => drift.message);
+      const warningResultTypeMismatches = resultTypeDrifts
+        .filter((drift) => drift.severity === 'warning')
+        .map((drift) => drift.message);
       checked.push({
         feature: featureName,
         query: queryName,
@@ -851,6 +875,7 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
         missingResultInMapper,
         unusedResultInMapper,
         mismatchedResultTypes,
+        warningResultTypeMismatches,
       });
     }
   }
@@ -1231,6 +1256,56 @@ function areResultTypesCompatible(mapperType: string, expectedSqlType: string): 
   return !isNullableType(expected) && isNullableType(mapper);
 }
 
+interface ResultTypeDrift {
+  severity: 'error' | 'warning';
+  message: string;
+}
+
+function classifyResultTypeDrift(options: {
+  column: string;
+  mapperType: string;
+  expectedSqlType: string;
+  nullability: ResultNullabilityLevel;
+}): ResultTypeDrift | undefined {
+  const mapper = normalizeTypeScriptTypeForComparison(options.mapperType);
+  const expected = normalizeTypeScriptTypeForComparison(options.expectedSqlType);
+  if (mapper === 'unknown') {
+    return {
+      severity: 'error',
+      message: `${options.column}: mapper ${options.mapperType} / SQL ${options.expectedSqlType}`,
+    };
+  }
+  if (mapper === expected) return undefined;
+
+  const mapperBase = stripNullableType(mapper);
+  const expectedBase = stripNullableType(expected);
+  if (mapperBase !== expectedBase) {
+    return {
+      severity: 'error',
+      message: `${options.column}: mapper ${options.mapperType} / SQL ${options.expectedSqlType}`,
+    };
+  }
+
+  if (!isNullableType(expected) && isNullableType(mapper)) {
+    return undefined;
+  }
+
+  if (isNullableType(expected) && !isNullableType(mapper) && options.nullability === 'unknown') {
+    return {
+      severity: 'warning',
+      message: `${options.column}: mapper ${options.mapperType} / SQL ${options.expectedSqlType} (nullability unknown; customer-owned DTO is narrower than Ashiba's conservative import contract)`,
+    };
+  }
+
+  if (!areResultTypesCompatible(mapper, expected)) {
+    return {
+      severity: 'error',
+      message: `${options.column}: mapper ${options.mapperType} / SQL ${options.expectedSqlType}`,
+    };
+  }
+  return undefined;
+}
+
 function normalizeTypeScriptTypeForComparison(type: string): string {
   return type.replace(/\s+/g, ' ').trim();
 }
@@ -1319,6 +1394,9 @@ function formatGeneratedMapperCheck(result: FeatureGeneratedMapperCheckResult): 
     }
     if (entry.mismatchedResultTypes.length > 0) {
       lines.push(`  mismatched result types: ${entry.mismatchedResultTypes.join(', ')}`);
+    }
+    if (entry.warningResultTypeMismatches.length > 0) {
+      lines.push(`  warning result type mismatches: ${entry.warningResultTypeMismatches.join(', ')}`);
     }
   }
   return `${lines.join('\n')}\n`;
@@ -1480,7 +1558,7 @@ function buildImportedMappingTestFiles(
 ): GeneratedFile[] {
   const queryDir = `${relativeFeatureDir}/queries/${queryName}`;
   const inferred = inferImportedQueryTestMetadata(rootDir, featureName, queryName, sql);
-  const fields = toContractFields(resultColumnContracts);
+  const fields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts, inferred?.table));
   const cases = buildImportedMappingZtdCases(queryName, inferred?.table, inferred?.primaryKeyColumn, parameters, parameterTypes, fields);
   return [
     {
@@ -2271,7 +2349,7 @@ function renderImportedQueryBoundary(
 ): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
-  const resultFields = toContractFields(resultColumnContracts);
+  const resultFields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   return [
     "import { dirname } from 'node:path';",
     "import { fileURLToPath } from 'node:url';",
@@ -2411,7 +2489,7 @@ function renderImportedFeatureOutput(
 ): string {
   const pascal = toPascal(featureName);
   const queryPascal = toPascal(queryName);
-  const fields = toContractFields(resultColumnContracts);
+  const fields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   return [
     `import type { ${queryPascal}QueryResult } from './queries/${queryName}/query.js';`,
     '',
@@ -2442,9 +2520,10 @@ function renderImportedFeatureBoundaryTest(
   const pascal = toPascal(featureName);
   const queryPascal = toPascal(queryName);
   const request = Object.fromEntries(parameters.map((parameter) => [parameter, sampleValueForType(parameterTypes[parameter] ?? 'unknown')]));
+  const fields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   const response = {
     items: [
-      Object.fromEntries(toContractFields(resultColumnContracts).map((field) => [field.name, sampleValueForType(field.typeScriptType)])),
+      Object.fromEntries(fields.map((field) => [field.name, sampleValueForType(field.typeScriptType)])),
     ],
   };
   return [
@@ -2520,11 +2599,55 @@ function renderContractFieldInterfaceBody(fields: RenderContractField[]): string
   return `{\n${fields.map((field) => `  ${renderPropertyKey(field.name)}: ${field.typeScriptType};`).join('\n')}\n}`;
 }
 
-function toContractFields(columns: SqlResultColumnContract[]): RenderContractField[] {
+function toContractFields(
+  columns: SqlResultColumnContract[],
+  nullabilityByColumn: Record<string, ResultNullabilityLevel> = {},
+): RenderContractField[] {
   return columns.map((column) => ({
     name: column.name,
-    typeScriptType: makeConservativeNullableType(column.type),
+    typeScriptType: nullabilityByColumn[column.name] === 'non-null' ? column.type : makeConservativeNullableType(column.type),
+    nullability: nullabilityByColumn[column.name] ?? 'unknown',
   }));
+}
+
+function inferImportedResultNullabilityByColumn(
+  columns: SqlResultColumnContract[],
+  table?: DdlTable,
+): Record<string, ResultNullabilityLevel> {
+  return Object.fromEntries(columns.map((column) => [column.name, inferImportedResultNullability(column, table)]));
+}
+
+function inferImportedResultNullability(column: SqlResultColumnContract, table?: DdlTable): ResultNullabilityLevel {
+  const expression = normalizeSqlExpressionForNullability(column.expression ?? '');
+  const ddlColumn = table?.columns.find((candidate) => candidate.name.toLowerCase() === column.name.toLowerCase());
+  if (ddlColumn?.nullable) return 'nullable';
+  if (isNullableType(column.type)) return 'nullable';
+  if (!expression) return 'unknown';
+  if (/\bnull\b/i.test(expression)) return 'nullable';
+  if (isObviousNonNullExpression(expression)) return 'non-null';
+  return 'unknown';
+}
+
+function loadOptionalDdlTable(rootDir: string, tableName: string): DdlTable | undefined {
+  try {
+    return loadDdlTable(rootDir, tableName);
+  } catch {
+    return undefined;
+  }
+}
+
+function normalizeSqlExpressionForNullability(expression: string): string {
+  return expression.replace(/\s+/g, ' ').trim();
+}
+
+function isObviousNonNullExpression(expression: string): boolean {
+  const normalized = expression.toLowerCase();
+  if (/^(true|false)$/.test(normalized)) return true;
+  if (/^[-+]?\d+(?:\.\d+)?$/.test(normalized)) return true;
+  if (/^'(?:''|[^'])*'$/.test(expression)) return true;
+  const cast = normalized.match(/^cast\((.*) as [^)]+\)$/);
+  if (!cast) return false;
+  return isObviousNonNullExpression((cast[1] ?? '').trim());
 }
 
 function makeConservativeNullableType(typeScriptType: string): string {
@@ -2924,7 +3047,7 @@ function buildSyntheticContractRow(
 ): Record<string, unknown> {
   return Object.fromEntries(fields.map((field) => {
     const column = findDdlColumnForField(table, field.name);
-    if (mode === 'nullable' && isNullableType(field.typeScriptType)) return [field.name, null];
+    if (mode === 'nullable' && field.nullability === 'nullable') return [field.name, null];
     if (column) return [field.name, coerceSampleToContractType(sampleColumnValueByMode(column, mode), field.typeScriptType)];
     return [field.name, sampleValueForType(field.typeScriptType)];
   }));
@@ -2941,7 +3064,7 @@ function buildSyntheticMapperProbeSql(
       const prefix = index === 0 ? '    ' : '    , ';
       const column = findDdlColumnForField(table, field.name);
       const sqlType = column ? sqlTypeForDdlColumn(column) : sqlTypeForTypeScript(field.typeScriptType);
-      const valueSql = mode === 'nullable' && isNullableType(field.typeScriptType)
+      const valueSql = mode === 'nullable' && field.nullability === 'nullable'
         ? 'null'
         : sqlLiteral(buildSyntheticContractRow(table, [field], mode)[field.name]);
       return `${prefix}cast(${valueSql} as ${sqlType}) as ${quoteIdentifier(field.name)}`;
@@ -3079,6 +3202,7 @@ function toDdlContractFields(columns: DdlColumn[]): RenderContractField[] {
   return columns.map((column) => ({
     name: column.name,
     typeScriptType: toTsType(column),
+    nullability: column.nullable ? 'nullable' : 'non-null',
   }));
 }
 
