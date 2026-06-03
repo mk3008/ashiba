@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { CreateTableQuery, MultiQuerySplitter, RawString, SqlFormatter, SqlParser, TypeValue, type ValueComponent } from 'rawsql-ts';
 import { loadProjectPathConfig } from './config.js';
-import { normalizeIdentifier } from './schema-path.js';
+import { normalizeIdentifier, parseQualifiedTableName } from './schema-path.js';
 import { astParseUserError, invalidCliInputError } from '../errors.js';
 
 const sqlFormatter = new SqlFormatter({ keywordCase: 'lower' });
@@ -340,8 +340,9 @@ function extractAlterTableTarget(sql: string, defaultSchema = 'public'): string 
   const match = /^\s*alter\s+table\s+(?:if\s+exists\s+)?((?:"[^"]+"|[A-Za-z_][A-Za-z0-9_$]*)(?:\s*\.\s*(?:"[^"]+"|[A-Za-z_][A-Za-z0-9_$]*))?)/i.exec(sql);
   const raw = match?.[1];
   if (!raw) return undefined;
-  const parts = raw.split('.').map((part) => normalizeIdentifier(part.trim()));
-  return parts.length === 1 ? `${defaultSchema}.${parts[0]}` : `${parts[0]}.${parts[1]}`;
+  const target = parseQualifiedTableName(raw);
+  if (!target.table) return undefined;
+  return target.schema ? `${target.schema}.${target.table}` : `${defaultSchema}.${target.table}`;
 }
 
 function formatValue(value: ValueComponent): string {

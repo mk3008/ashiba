@@ -10,12 +10,9 @@ import {
   LiteralValue,
   SimpleSelectQuery,
   SqlParser,
-  TableSource,
   UpdateQuery,
   ValuesQuery,
-  type CommonTable,
   type SelectQuery,
-  type SourceExpression,
   type SqlComponent,
   type ValueComponent,
 } from 'rawsql-ts';
@@ -25,10 +22,13 @@ import { inferParsedSqlParameterTypes } from './sql-parameter-types.js';
 import { loadProjectPathConfig } from './config.js';
 import {
   normalizeIdentifier,
-  parseQualifiedTableName,
-  resolveSchemaPathTable,
   type SchemaPathConfig,
 } from './schema-path.js';
+import {
+  collectTableReferences,
+  resolveDdlTable as resolveTable,
+  tableTargetFromSource,
+} from './table-resolution.js';
 import { astParseUserError, invalidCliInputError } from '../errors.js';
 
 export interface LintOptions {
@@ -365,56 +365,6 @@ function appendDdlIssueOutput(output: string, issues: DdlLintIssue[], notes: str
   return `${output.trimEnd()}\n${[...noteLines, ...issueLines].join('\n')}\n`;
 }
 
-function resolveTable(
-  model: DdlSchemaModel,
-  target: { schema?: string; table: string },
-  schemaPath: Partial<SchemaPathConfig>,
-): DdlSchemaTable | undefined {
-  return resolveSchemaPathTable(model, target.schema ? `${target.schema}.${target.table}` : target.table, schemaPath);
-}
-
-function collectTableReferences(query: ReturnType<typeof SqlParser.parse>): Array<{ schema?: string; table: string; alias: string }> {
-  const references: Array<{ schema?: string; table: string; alias: string }> = [];
-  const addSource = (source: SourceExpression | null | undefined) => {
-    if (!source || !(source.datasource instanceof TableSource)) return;
-    const { schema, table } = parseQualifiedTableName(source.datasource.qualifiedName.toString());
-    references.push({ schema, table, alias: normalizeIdentifier(source.getAliasName() ?? table) });
-  };
-  const addCtes = (ctes: CommonTable[] | null | undefined) => {
-    for (const cte of ctes ?? []) collectFromQuery(cte.query);
-  };
-  const collectSelect = (selectQuery: SelectQuery) => {
-    if (selectQuery instanceof SimpleSelectQuery) {
-      addCtes(selectQuery.withClause?.tables);
-      const cteNames = new Set((selectQuery.withClause?.tables ?? []).map((cte) => cte.getSourceAliasName().toLowerCase()));
-      for (const source of selectQuery.fromClause?.getSources() ?? []) {
-        if (source.datasource instanceof TableSource && cteNames.has(source.datasource.table.name.toLowerCase())) continue;
-        addSource(source);
-      }
-    } else if (selectQuery instanceof BinarySelectQuery) {
-      collectSelect(selectQuery.left);
-      collectSelect(selectQuery.right);
-    }
-  };
-  const collectFromQuery = (value: ReturnType<typeof SqlParser.parse> | SelectQuery) => {
-    if (value instanceof SimpleSelectQuery || value instanceof BinarySelectQuery) {
-      collectSelect(value);
-    } else if (value instanceof InsertQuery) {
-      addSource(value.insertClause.source);
-    } else if (value instanceof UpdateQuery) {
-      addCtes(value.withClause?.tables);
-      addSource(value.updateClause.source);
-      for (const source of value.fromClause?.getSources() ?? []) addSource(source);
-    } else if (value instanceof DeleteQuery) {
-      addCtes(value.withClause?.tables);
-      addSource(value.deleteClause.source);
-      for (const source of value.usingClause?.getSources() ?? []) addSource(source);
-    }
-  };
-  collectFromQuery(query);
-  return references;
-}
-
 function collectQualifiedColumnReferences(query: ReturnType<typeof SqlParser.parse>): Array<{ qualifier: string; column: string }> {
   return collectColumnReferences(query)
     .filter((reference) => reference.getNamespace())
@@ -504,11 +454,6 @@ function collectMutationReturningColumnReferences(query: ReturnType<typeof SqlPa
       .filter((column) => column.column.name !== '*')
       .map((column) => normalizeIdentifier(column.column.name)),
   }];
-}
-
-function tableTargetFromSource(source: SourceExpression | null | undefined): { schema?: string; table: string } | undefined {
-  if (!source || !(source.datasource instanceof TableSource)) return undefined;
-  return parseQualifiedTableName(source.datasource.qualifiedName.toString());
 }
 
 function dedupeDdlIssues(issues: DdlLintIssue[]): DdlLintIssue[] {

@@ -1496,6 +1496,28 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('project check keeps quoted dots inside ALTER TABLE identifiers', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-ddl-quoted-dot-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public."orders.v2" (',
+        '  order_id integer primary key',
+        ');',
+        'alter table public."orders.v2" add column status text;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(true);
+      expect(result.errors).toEqual([]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('project check includes existing contract, feature test, and generated mapper checks', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-feature-'));
 

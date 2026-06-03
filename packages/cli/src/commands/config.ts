@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { SqlFormatterOptions } from 'rawsql-ts';
 import { invalidCliInputError } from '../errors.js';
 import { DEFAULT_SQL_FORMAT_OPTIONS } from '../sql-format.js';
+import { normalizeSchemaPathConfig } from './schema-path.js';
 
 export type AshibaConfig = {
   $schema: string;
@@ -97,17 +98,20 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
       .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
       .map((entry) => entry.trim())
     : [];
-  const defaultSchema = nonEmptyString(parsed.defaultSchema) ?? 'public';
-  const searchPath = Array.isArray(parsed.searchPath)
+  const rawSearchPath = Array.isArray(parsed.searchPath)
     ? parsed.searchPath
       .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
       .map((entry) => entry.trim())
-    : [];
+    : undefined;
+  const { defaultSchema, searchPath } = normalizeSchemaPathConfig({
+    defaultSchema: nonEmptyString(parsed.defaultSchema),
+    searchPath: rawSearchPath,
+  });
   return {
     featureRoot,
     sqlRoots: sqlRoots.length > 0 ? sqlRoots : [featureRoot],
     defaultSchema,
-    searchPath: searchPath.length > 0 ? searchPath : [defaultSchema],
+    searchPath,
   };
 }
 

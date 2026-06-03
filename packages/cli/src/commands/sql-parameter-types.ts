@@ -7,22 +7,22 @@ import {
   ParameterExpression,
   SimpleSelectQuery,
   SqlParser,
-  TableSource,
   UpdateQuery,
   ValuesQuery,
-  type CommonTable,
   type SelectQuery,
-  type SourceExpression,
   type SqlComponent,
   type ValueComponent,
 } from 'rawsql-ts';
 import type { DdlSchemaColumn, DdlSchemaModel, DdlSchemaTable } from './ddl-schema-model.js';
 import {
   normalizeIdentifier,
-  parseQualifiedTableName,
-  resolveSchemaPathTable,
   type SchemaPathConfig,
 } from './schema-path.js';
+import {
+  collectTableReferences,
+  resolveDdlTable as resolveTable,
+  tableTargetFromSource,
+} from './table-resolution.js';
 
 export interface SqlParameterTypeBinding {
   parameter: string;
@@ -260,48 +260,6 @@ function buildRelationContext(
   };
 }
 
-function collectTableReferences(parsed: ReturnType<typeof SqlParser.parse>): Array<{ schema?: string; table: string; alias: string }> {
-  const references: Array<{ schema?: string; table: string; alias: string }> = [];
-  const addSource = (source: SourceExpression | null | undefined) => {
-    if (!source || !(source.datasource instanceof TableSource)) return;
-    const { schema, table } = parseQualifiedTableName(source.datasource.qualifiedName.toString());
-    references.push({ schema, table, alias: normalizeIdentifier(source.getAliasName() ?? table) });
-  };
-  const addCtes = (ctes: CommonTable[] | null | undefined) => {
-    for (const cte of ctes ?? []) collectFromQuery(cte.query);
-  };
-  const collectSelect = (selectQuery: SelectQuery) => {
-    if (selectQuery instanceof SimpleSelectQuery) {
-      addCtes(selectQuery.withClause?.tables);
-      const cteNames = new Set((selectQuery.withClause?.tables ?? []).map((cte) => cte.getSourceAliasName().toLowerCase()));
-      for (const source of selectQuery.fromClause?.getSources() ?? []) {
-        if (source.datasource instanceof TableSource && cteNames.has(source.datasource.table.name.toLowerCase())) continue;
-        addSource(source);
-      }
-    } else if (selectQuery instanceof BinarySelectQuery) {
-      collectSelect(selectQuery.left);
-      collectSelect(selectQuery.right);
-    }
-  };
-  const collectFromQuery = (value: ReturnType<typeof SqlParser.parse> | SelectQuery) => {
-    if (value instanceof SimpleSelectQuery || value instanceof BinarySelectQuery) {
-      collectSelect(value);
-    } else if (value instanceof InsertQuery) {
-      addSource(value.insertClause.source);
-    } else if (value instanceof UpdateQuery) {
-      addCtes(value.withClause?.tables);
-      addSource(value.updateClause.source);
-      for (const source of value.fromClause?.getSources() ?? []) addSource(source);
-    } else if (value instanceof DeleteQuery) {
-      addCtes(value.withClause?.tables);
-      addSource(value.deleteClause.source);
-      for (const source of value.usingClause?.getSources() ?? []) addSource(source);
-    }
-  };
-  collectFromQuery(parsed);
-  return references;
-}
-
 function resolveColumnReference(
   context: RelationContext,
   reference: ColumnReference,
@@ -318,19 +276,6 @@ function resolveColumnReference(
     .map((table) => ({ table, column: table.columns.get(columnName) }))
     .filter((entry): entry is { table: DdlSchemaTable; column: DdlSchemaColumn } => Boolean(entry.column));
   return matches.length === 1 ? matches[0] : undefined;
-}
-
-function resolveTable(
-  model: DdlSchemaModel,
-  target: { schema?: string; table: string },
-  schemaPath: Partial<SchemaPathConfig>,
-): DdlSchemaTable | undefined {
-  return resolveSchemaPathTable(model, target.schema ? `${target.schema}.${target.table}` : target.table, schemaPath);
-}
-
-function tableTargetFromSource(source: SourceExpression | null | undefined): { schema?: string; table: string } | undefined {
-  if (!source || !(source.datasource instanceof TableSource)) return undefined;
-  return parseQualifiedTableName(source.datasource.qualifiedName.toString());
 }
 
 function toBinding(

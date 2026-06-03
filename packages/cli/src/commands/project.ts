@@ -2,15 +2,14 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import type { Command } from 'commander';
-import { InsertQuery, MultiQuerySplitter, SqlParser, TableSource, type SourceExpression } from 'rawsql-ts';
+import { InsertQuery, MultiQuerySplitter, SqlParser } from 'rawsql-ts';
 import { runCheckContract, type CheckContractResult } from './check-contract.js';
 import { loadProjectPathConfig, type ProjectPathConfig } from './config.js';
 import { loadDdlSchemaModelWithDiagnostics, type DdlSchemaColumn, type DdlSchemaDiagnosticsResult, type DdlSchemaTable } from './ddl-schema-model.js';
 import {
   normalizeIdentifier,
-  parseQualifiedTableName,
-  resolveSchemaPathTable,
 } from './schema-path.js';
+import { resolveDdlTable as resolveTable, tableTargetFromSource } from './table-resolution.js';
 import {
   runFeatureTestsCheck,
   type FeatureGeneratedMapperCheckResult,
@@ -518,19 +517,6 @@ function checkExecutionIssue(code: string, message: string, error: unknown): Pro
     message,
     nextAction: error instanceof Error ? error.message : String(error),
   };
-}
-
-function resolveTable(
-  model: DdlSchemaDiagnosticsResult,
-  target: { schema?: string; table: string },
-  config: ProjectPathConfig,
-): DdlSchemaTable | undefined {
-  return resolveSchemaPathTable(model, target.schema ? `${target.schema}.${target.table}` : target.table, config);
-}
-
-function tableTargetFromSource(source: SourceExpression | null | undefined): { schema?: string; table: string } | undefined {
-  if (!source || !(source.datasource instanceof TableSource)) return undefined;
-  return parseQualifiedTableName(source.datasource.qualifiedName.toString());
 }
 
 function isGeneratedInsertColumn(column: DdlSchemaColumn): boolean {
