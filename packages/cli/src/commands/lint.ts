@@ -10,18 +10,25 @@ import {
   LiteralValue,
   SimpleSelectQuery,
   SqlParser,
-  TableSource,
   UpdateQuery,
   ValuesQuery,
-  type CommonTable,
   type SelectQuery,
-  type SourceExpression,
   type SqlComponent,
   type ValueComponent,
 } from 'rawsql-ts';
 import { runQueryLint } from './query.js';
 import { loadDdlSchemaModel, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
 import { inferParsedSqlParameterTypes } from './sql-parameter-types.js';
+import { loadProjectPathConfig } from './config.js';
+import {
+  normalizeIdentifier,
+  type SchemaPathConfig,
+} from './schema-path.js';
+import {
+  collectTableReferences,
+  resolveDdlTable as resolveTable,
+  tableTargetFromSource,
+} from './table-resolution.js';
 import { astParseUserError, invalidCliInputError } from '../errors.js';
 
 export interface LintOptions {
@@ -75,10 +82,11 @@ export function runLint(targetPath: string, options: LintOptions = {}): LintResu
   const target = path.resolve(rootDir, targetPath);
   const files = collectTargetSqlFiles(target);
   const ddlModel = loadDdlSchemaModel(rootDir, options.ddlDir);
+  const schemaPath = loadProjectPathConfig(rootDir);
   const results = files.map((file) => {
     try {
       const output = runQueryLint(file, { rootDir, rules: options.rules, format: 'text' });
-      const ddlIssues = ddlModel ? lintSqlAgainstDdl(readFileSync(file, 'utf8'), ddlModel) : [];
+      const ddlIssues = ddlModel ? lintSqlAgainstDdl(readFileSync(file, 'utf8'), ddlModel, schemaPath) : [];
       return {
         file: normalizePath(path.relative(rootDir, file)),
         ok: ddlIssues.length === 0 && !/^\[(error|warn)\]/m.test(output) && !/analysis-risk|unused-cte|join-direction/.test(output),
@@ -147,7 +155,11 @@ function collectTargetSqlFiles(target: string): string[] {
   return files.sort();
 }
 
-function lintSqlAgainstDdl(sql: string, model: DdlSchemaModel): DdlLintIssue[] {
+function lintSqlAgainstDdl(
+  sql: string,
+  model: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+): DdlLintIssue[] {
   let parsed: ReturnType<typeof SqlParser.parse>;
   try {
     parsed = SqlParser.parse(sql);
@@ -167,7 +179,7 @@ function lintSqlAgainstDdl(sql: string, model: DdlSchemaModel): DdlLintIssue[] {
   const aliasToTable = new Map<string, DdlSchemaTable>();
 
   for (const reference of tableRefs) {
-    const table = resolveTable(model, reference.schema, reference.table);
+    const table = resolveTable(model, reference, schemaPath);
     if (!table) {
       issues.push({
         code: 'ddl-missing-table',
@@ -212,7 +224,7 @@ function lintSqlAgainstDdl(sql: string, model: DdlSchemaModel): DdlLintIssue[] {
   }
 
   for (const insert of collectInsertColumnReferences(parsed)) {
-    const table = resolveTable(model, insert.schema, insert.table);
+    const table = resolveTable(model, insert, schemaPath);
     if (!table) {
       continue;
     }
@@ -226,11 +238,11 @@ function lintSqlAgainstDdl(sql: string, model: DdlSchemaModel): DdlLintIssue[] {
       }
     }
   }
-  issues.push(...lintInsertValueTypes(parsed, model));
-  issues.push(...lintParameterTypeConflicts(parsed, model));
+  issues.push(...lintInsertValueTypes(parsed, model, schemaPath));
+  issues.push(...lintParameterTypeConflicts(parsed, model, schemaPath));
 
   for (const update of collectUpdateSetColumnReferences(parsed)) {
-    const table = resolveTable(model, update.schema, update.table);
+    const table = resolveTable(model, update, schemaPath);
     if (!table) {
       continue;
     }
@@ -246,7 +258,7 @@ function lintSqlAgainstDdl(sql: string, model: DdlSchemaModel): DdlLintIssue[] {
   }
 
   for (const returning of collectMutationReturningColumnReferences(parsed)) {
-    const table = resolveTable(model, returning.schema, returning.table);
+    const table = resolveTable(model, returning, schemaPath);
     if (!table) {
       continue;
     }
@@ -264,8 +276,12 @@ function lintSqlAgainstDdl(sql: string, model: DdlSchemaModel): DdlLintIssue[] {
   return dedupeDdlIssues(issues);
 }
 
-function lintParameterTypeConflicts(query: ReturnType<typeof SqlParser.parse>, model: DdlSchemaModel): DdlLintIssue[] {
-  const inference = inferParsedSqlParameterTypes(query, model);
+function lintParameterTypeConflicts(
+  query: ReturnType<typeof SqlParser.parse>,
+  model: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+): DdlLintIssue[] {
+  const inference = inferParsedSqlParameterTypes(query, model, schemaPath);
   return inference.conflicts.filter((conflict) => conflict.bindings.every((binding) => binding.confidence === 'certain')).map((conflict) => ({
     code: 'ddl-parameter-type-conflict',
     target: conflict.parameter,
@@ -275,7 +291,11 @@ function lintParameterTypeConflicts(query: ReturnType<typeof SqlParser.parse>, m
   }));
 }
 
-function lintInsertValueTypes(query: ReturnType<typeof SqlParser.parse>, model: DdlSchemaModel): DdlLintIssue[] {
+function lintInsertValueTypes(
+  query: ReturnType<typeof SqlParser.parse>,
+  model: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+): DdlLintIssue[] {
   if (!(query instanceof InsertQuery) || !(query.selectQuery instanceof ValuesQuery)) {
     return [];
   }
@@ -284,7 +304,7 @@ function lintInsertValueTypes(query: ReturnType<typeof SqlParser.parse>, model: 
   if (!target || columns.length === 0 || query.selectQuery.tuples.length === 0) {
     return [];
   }
-  const table = resolveTable(model, target.schema, target.table);
+  const table = resolveTable(model, target, schemaPath);
   if (!table) {
     return [];
   }
@@ -343,56 +363,6 @@ function appendDdlIssueOutput(output: string, issues: DdlLintIssue[], notes: str
   const noteLines = notes.map((note) => `[info] ${note}`);
   const issueLines = issues.map((issue) => `[error] ${issue.code}: ${issue.message}`);
   return `${output.trimEnd()}\n${[...noteLines, ...issueLines].join('\n')}\n`;
-}
-
-function resolveTable(model: DdlSchemaModel, schema: string | undefined, table: string): DdlSchemaTable | undefined {
-  if (schema) {
-    return model.tables.get(`${schema}.${table}`.toLowerCase());
-  }
-  const matches = [...model.tables.values()].filter((candidate) => candidate.name.toLowerCase() === table.toLowerCase());
-  return matches.length === 1 ? matches[0] : undefined;
-}
-
-function collectTableReferences(query: ReturnType<typeof SqlParser.parse>): Array<{ schema?: string; table: string; alias: string }> {
-  const references: Array<{ schema?: string; table: string; alias: string }> = [];
-  const addSource = (source: SourceExpression | null | undefined) => {
-    if (!source || !(source.datasource instanceof TableSource)) return;
-    const [schema, table] = splitQualifiedName(source.datasource.qualifiedName.toString());
-    references.push({ schema, table, alias: normalizeIdentifier(source.getAliasName() ?? table) });
-  };
-  const addCtes = (ctes: CommonTable[] | null | undefined) => {
-    for (const cte of ctes ?? []) collectFromQuery(cte.query);
-  };
-  const collectSelect = (selectQuery: SelectQuery) => {
-    if (selectQuery instanceof SimpleSelectQuery) {
-      addCtes(selectQuery.withClause?.tables);
-      const cteNames = new Set((selectQuery.withClause?.tables ?? []).map((cte) => cte.getSourceAliasName().toLowerCase()));
-      for (const source of selectQuery.fromClause?.getSources() ?? []) {
-        if (source.datasource instanceof TableSource && cteNames.has(source.datasource.table.name.toLowerCase())) continue;
-        addSource(source);
-      }
-    } else if (selectQuery instanceof BinarySelectQuery) {
-      collectSelect(selectQuery.left);
-      collectSelect(selectQuery.right);
-    }
-  };
-  const collectFromQuery = (value: ReturnType<typeof SqlParser.parse> | SelectQuery) => {
-    if (value instanceof SimpleSelectQuery || value instanceof BinarySelectQuery) {
-      collectSelect(value);
-    } else if (value instanceof InsertQuery) {
-      addSource(value.insertClause.source);
-    } else if (value instanceof UpdateQuery) {
-      addCtes(value.withClause?.tables);
-      addSource(value.updateClause.source);
-      for (const source of value.fromClause?.getSources() ?? []) addSource(source);
-    } else if (value instanceof DeleteQuery) {
-      addCtes(value.withClause?.tables);
-      addSource(value.deleteClause.source);
-      for (const source of value.usingClause?.getSources() ?? []) addSource(source);
-    }
-  };
-  collectFromQuery(query);
-  return references;
 }
 
 function collectQualifiedColumnReferences(query: ReturnType<typeof SqlParser.parse>): Array<{ qualifier: string; column: string }> {
@@ -486,12 +456,6 @@ function collectMutationReturningColumnReferences(query: ReturnType<typeof SqlPa
   }];
 }
 
-function tableTargetFromSource(source: SourceExpression | null | undefined): { schema?: string; table: string } | undefined {
-  if (!source || !(source.datasource instanceof TableSource)) return undefined;
-  const [schema, table] = splitQualifiedName(source.datasource.qualifiedName.toString());
-  return { schema, table };
-}
-
 function dedupeDdlIssues(issues: DdlLintIssue[]): DdlLintIssue[] {
   const seen = new Set<string>();
   return issues.filter((issue) => {
@@ -500,18 +464,6 @@ function dedupeDdlIssues(issues: DdlLintIssue[]): DdlLintIssue[] {
     seen.add(key);
     return true;
   });
-}
-
-function splitQualifiedName(value: string): [string | undefined, string] {
-  const segments = value.split('.');
-  if (segments.length === 1) {
-    return [undefined, normalizeIdentifier(segments[0] ?? '')];
-  }
-  return [normalizeIdentifier(segments[0] ?? ''), normalizeIdentifier(segments[1] ?? '')];
-}
-
-function normalizeIdentifier(value: string): string {
-  return value.trim().replace(/^"/, '').replace(/"$/, '');
 }
 
 function formatLintResult(result: LintResult): string {

@@ -4,11 +4,14 @@ import path from 'node:path';
 import type { SqlFormatterOptions } from 'rawsql-ts';
 import { invalidCliInputError } from '../errors.js';
 import { DEFAULT_SQL_FORMAT_OPTIONS } from '../sql-format.js';
+import { normalizeSchemaPathConfig } from './schema-path.js';
 
 export type AshibaConfig = {
   $schema: string;
   featureRoot: string;
   sqlRoots: string[];
+  defaultSchema: string;
+  searchPath: string[];
   ddl: {
     sourceDir: string;
   };
@@ -31,6 +34,8 @@ export type ConfigOptions = {
 export type ProjectPathConfig = {
   featureRoot: string;
   sqlRoots: string[];
+  defaultSchema: string;
+  searchPath: string[];
 };
 
 export function createDefaultConfig(): AshibaConfig {
@@ -38,6 +43,8 @@ export function createDefaultConfig(): AshibaConfig {
     $schema: 'https://ashiba.dev/schema/ashiba-config.json',
     featureRoot: 'src/features',
     sqlRoots: ['src/features'],
+    defaultSchema: 'public',
+    searchPath: ['public'],
     ddl: {
       sourceDir: 'db/ddl',
     },
@@ -57,13 +64,20 @@ export function createDefaultConfig(): AshibaConfig {
 export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
   const configPath = path.join(rootDir, 'ashiba.config.json');
   if (!existsSync(configPath)) {
-    return { featureRoot: 'src/features', sqlRoots: ['src/features'] };
+    return {
+      featureRoot: 'src/features',
+      sqlRoots: ['src/features'],
+      defaultSchema: 'public',
+      searchPath: ['public'],
+    };
   }
 
   let parsed: {
     featureRoot?: unknown;
     sqlRoots?: unknown;
     features?: { sourceDir?: unknown };
+    defaultSchema?: unknown;
+    searchPath?: unknown;
   };
   try {
     parsed = JSON.parse(readFileSync(configPath, 'utf8')) as typeof parsed;
@@ -84,9 +98,20 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
       .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
       .map((entry) => entry.trim())
     : [];
+  const rawSearchPath = Array.isArray(parsed.searchPath)
+    ? parsed.searchPath
+      .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+      .map((entry) => entry.trim())
+    : undefined;
+  const { defaultSchema, searchPath } = normalizeSchemaPathConfig({
+    defaultSchema: nonEmptyString(parsed.defaultSchema),
+    searchPath: rawSearchPath,
+  });
   return {
     featureRoot,
     sqlRoots: sqlRoots.length > 0 ? sqlRoots : [featureRoot],
+    defaultSchema,
+    searchPath,
   };
 }
 

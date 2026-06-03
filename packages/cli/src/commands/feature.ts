@@ -29,6 +29,7 @@ import {
 } from './model-gen.js';
 import { loadDdlSchemaModel } from './ddl-schema-model.js';
 import { loadProjectPathConfig } from './config.js';
+import { formatSearchPath, resolveSchemaPathTable } from './schema-path.js';
 import { DEFAULT_SQL_FORMAT_OPTIONS, resolveGeneratedSqlFormatOptions } from '../sql-format.js';
 import { areTypeScriptTypesCompatible, inferSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
@@ -448,7 +449,8 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
   const sourceSql = readFileSync(sourceSqlPath, 'utf8');
   const formatted = formatImportedSqlSafely(sourceSql, rootDir);
   const importedSql = formatted.sql;
-  const featureRoot = loadProjectPathConfig(rootDir).featureRoot;
+  const projectConfig = loadProjectPathConfig(rootDir);
+  const featureRoot = projectConfig.featureRoot;
   const relativeFeatureDir = `${featureRoot}/${featureName}`;
   const relativeQueryDir = `${relativeFeatureDir}/queries/${queryName}`;
   const queryModel = buildFeatureQueryModel(importedSql, rootDir);
@@ -760,6 +762,7 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
   const rootDir = path.resolve(options.rootDir ?? '.');
   const featureBoundaries = discoverFeatureBoundaries(rootDir, options.feature, options.boundaryDir, options.featureRoot);
   const ddlModel = loadDdlSchemaModel(rootDir);
+  const schemaPath = loadProjectPathConfig(rootDir);
   const checked: FeatureGeneratedMapperCheckResult['checked'] = [];
 
   for (const { name: featureName, dir: featureDir } of featureBoundaries) {
@@ -780,7 +783,7 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       const querySource = readFileSync(queryFile, 'utf8');
       const mapperParameters = extractMapperParameters(querySource, queryName).sort();
       const mapperParameterTypes = extractMapperParameterTypes(querySource, queryName);
-      const parameterInference = ddlModel ? inferSqlParameterTypes(sql, ddlModel) : undefined;
+      const parameterInference = ddlModel ? inferSqlParameterTypes(sql, ddlModel, schemaPath) : undefined;
       const sqlParameterTypes = parameterInference?.parameterTypes ?? {};
       const certainParameters = new Set(
         (parameterInference?.bindings ?? [])
@@ -1122,9 +1125,9 @@ function extractRootTableName(statement: ReturnType<typeof SqlParser.parse>): st
   if (!(source?.datasource instanceof TableSource)) return undefined;
   const qualifiedName = source.datasource.qualifiedName;
   if (!qualifiedName) return undefined;
-  const schema = normalizeIdentifier(readIdentifierText(qualifiedName.namespaces?.at(-1)) ?? 'public');
+  const schema = readIdentifierText(qualifiedName.namespaces?.at(-1));
   const table = normalizeIdentifier(readIdentifierText(qualifiedName.name) ?? '');
-  return `${schema}.${table}`;
+  return schema ? `${normalizeIdentifier(schema)}.${table}` : table;
 }
 
 function readIdentifierText(value: unknown): string | undefined {
@@ -1786,30 +1789,21 @@ function writeGeneratedFiles(
 }
 
 function loadDdlTable(rootDir: string, rawTableName: string): DdlTable {
+  const pathConfig = loadProjectPathConfig(rootDir);
   const ddlDir = resolveDdlDir(rootDir);
   const files = collectSqlFiles(ddlDir);
-  const tables = files.flatMap((file) => parseDdlTables(readFileSync(file, 'utf8')));
-  const requested = rawTableName.trim().toLowerCase();
-  const matches = tables.filter((table) =>
-    table.canonicalName.toLowerCase() === requested || table.name.toLowerCase() === requested
-  );
-  if (matches.length === 0) {
+  const tables = files.flatMap((file) => parseDdlTables(readFileSync(file, 'utf8'), pathConfig.defaultSchema));
+  const tableMap = new Map(tables.map((table) => [table.canonicalName.toLowerCase(), table]));
+  const resolved = resolveSchemaPathTable({ tables: tableMap }, rawTableName, pathConfig);
+  if (!resolved) {
     throw invalidCliInputError(
       'ASHIBA_FEATURE_TABLE_NOT_FOUND',
       `Table not found for scaffold: ${rawTableName}.`,
-      'Check --table and the configured DDL directory, then rerun the scaffold command.',
-      { table: rawTableName },
+      'Check --table, the configured DDL directory, and ashiba.config.json searchPath, then rerun the scaffold command.',
+      { table: rawTableName, searchPath: formatSearchPath(pathConfig) },
     );
   }
-  if (matches.length > 1 && !requested.includes('.')) {
-    throw invalidCliInputError(
-      'ASHIBA_FEATURE_TABLE_AMBIGUOUS',
-      `Table name is ambiguous: ${rawTableName}. Use a schema-qualified table name.`,
-      'Pass --table as schema.table so Ashiba can choose the intended DDL table.',
-      { table: rawTableName, matches: matches.map((table) => table.canonicalName) },
-    );
-  }
-  return matches[0];
+  return resolved;
 }
 
 function resolveDdlDir(rootDir: string): string {
@@ -1857,11 +1851,11 @@ function collectSqlFiles(dir: string): string[] {
   return found.sort();
 }
 
-function parseDdlTables(sql: string): DdlTable[] {
+function parseDdlTables(sql: string, defaultSchema = 'public'): DdlTable[] {
   return MultiQuerySplitter.split(sql).getNonEmpty().flatMap((statement) => {
     try {
       const parsed = SqlParser.parse(statement.sql);
-      return parsed instanceof CreateTableQuery ? [createDdlTable(parsed)] : [];
+      return parsed instanceof CreateTableQuery ? [createDdlTable(parsed, defaultSchema)] : [];
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       throw astParseUserError({
@@ -1875,8 +1869,8 @@ function parseDdlTables(sql: string): DdlTable[] {
   });
 }
 
-function createDdlTable(parsed: CreateTableQuery): DdlTable {
-  const schema = normalizeIdentifier(parsed.namespaces?.[0] ?? 'public');
+function createDdlTable(parsed: CreateTableQuery, defaultSchema = 'public'): DdlTable {
+  const schema = normalizeIdentifier(parsed.namespaces?.[0] ?? defaultSchema);
   const name = normalizeIdentifier(parsed.tableName.name);
   const tablePrimaryKeys = parsed.tableConstraints
     .filter((constraint) => constraint.kind === 'primary-key')
@@ -2564,9 +2558,10 @@ function buildFeatureQueryModel(sql: string, rootDir: string): {
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
   const parameters = [...new Set(postgres.orderedNames)];
   const ddlModel = loadDdlSchemaModel(rootDir);
+  const schemaPath = loadProjectPathConfig(rootDir);
   const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
     optionalConditionCompression: true,
-    parameterTypes: ddlModel ? inferSqlParameterTypes(sql, ddlModel).parameterTypes : undefined,
+    parameterTypes: ddlModel ? inferSqlParameterTypes(sql, ddlModel, schemaPath).parameterTypes : undefined,
   });
   return {
     analysis,
@@ -2873,6 +2868,12 @@ function renderQueryZtdTypes(
     `  ${outputType}`,
     '>;',
     '',
+    `export type ${pascal}QueryMappingZtdCase = QuerySpecZtdCase<`,
+    `  ${pascal}BeforeDb,`,
+    `  ${pascal}QueryParams,`,
+    '  unknown',
+    '>;',
+    '',
   ].join('\n');
 }
 
@@ -2883,7 +2884,7 @@ function renderGeneratedMappingZtdCases(
   primaryKeyColumn: string
 ): string {
   const pascal = toPascal(queryName);
-  const caseType = `${pascal}QueryBoundaryZtdCase`;
+  const caseType = `${pascal}QueryMappingZtdCase`;
   const cases = buildGeneratedMappingZtdCases(queryName, actionPlan, table, primaryKeyColumn);
   return [
     `import type { ${caseType} } from '../boundary-ztd-types.js';`,
@@ -2981,6 +2982,12 @@ function renderImportedQueryZtdTypes(
     `  ${pascal}QueryResult[]`,
     '>;',
     '',
+    `export type ${pascal}QueryMappingZtdCase = QuerySpecZtdCase<`,
+    `  ${pascal}BeforeDb,`,
+    `  ${pascal}QueryParams,`,
+    '  unknown',
+    '>;',
+    '',
     fields.length === 0
       ? '// This imported SQL has no result columns in query metadata; add human-owned logic cases when behavior must be proved.'
       : '// Result columns are mapped through synthetic DB result probes so mapper tests stay focused on DTO compatibility.',
@@ -2990,7 +2997,7 @@ function renderImportedQueryZtdTypes(
 
 function renderImportedGeneratedMappingZtdCases(queryName: string, cases: unknown[]): string {
   const pascal = toPascal(queryName);
-  const caseType = `${pascal}QueryBoundaryZtdCase`;
+  const caseType = `${pascal}QueryMappingZtdCase`;
   return [
     `import type { ${caseType} } from '../boundary-ztd-types.js';`,
     '',

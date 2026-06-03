@@ -13,6 +13,8 @@ import {
 } from './sql-optional-condition-compression-metadata.js';
 import { inferSqlExpressionContractType } from './sql-expression-type.js';
 import { inferSqlParameterTypes } from './sql-parameter-types.js';
+import { loadProjectPathConfig } from './config.js';
+import { normalizeIdentifier, resolveSchemaPathTable, type SchemaPathConfig } from './schema-path.js';
 import { astParseUserError, requiredCliValueError } from '../errors.js';
 
 export interface ModelGenOptions {
@@ -133,11 +135,12 @@ export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const mssqlBinding = compileNamedParameters(sql, { placeholderStyle: 'named-at' });
   const parameters = [...new Set(postgresBinding.orderedNames)];
   const ddlModel = loadDdlSchemaModel(rootDir, options.ddlDir);
+  const schemaPath = loadProjectPathConfig(rootDir);
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, options.ddlDir);
   const resultColumns = resultColumnContracts.map((column) => column.name);
   const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
     optionalConditionCompression: true,
-    parameterTypes: ddlModel ? inferSqlParameterTypes(sql, ddlModel).parameterTypes : undefined,
+    parameterTypes: ddlModel ? inferSqlParameterTypes(sql, ddlModel, schemaPath).parameterTypes : undefined,
   });
   const bindings = {
     postgres: {
@@ -321,7 +324,8 @@ export function buildPostgresOptionalConditionCompressionBindingMetadata(
  */
 export function buildQueryResultColumnContracts(sql: string, rootDir?: string, ddlDir?: string): SqlResultColumnContract[] {
   const ddlModel = rootDir ? loadDdlSchemaModel(path.resolve(rootDir), ddlDir) : undefined;
-  return applyDdlTypeHints(sql, extractSqlResultColumnContracts(sql), ddlModel);
+  const schemaPath = rootDir ? loadProjectPathConfig(path.resolve(rootDir)) : undefined;
+  return applyDdlTypeHints(sql, extractSqlResultColumnContracts(sql), ddlModel, schemaPath);
 }
 
 /**
@@ -412,9 +416,10 @@ function applyDdlTypeHints(
   sql: string,
   columns: SqlResultColumnContract[],
   ddlModel: DdlSchemaModel | undefined,
+  schemaPath: Partial<SchemaPathConfig> | undefined,
 ): SqlResultColumnContract[] {
   if (!ddlModel || columns.length === 0) return columns;
-  const relations = extractTopLevelRelations(sql, ddlModel);
+  const relations = extractTopLevelRelations(sql, ddlModel, schemaPath ?? ddlModel);
   if (relations.length === 0) return columns;
   const astItemsByName = new Map(extractSqlResultColumnAstItems(sql).map((item) => [item.name, item.value]));
 
@@ -429,11 +434,15 @@ function applyDdlTypeHints(
   });
 }
 
-function extractTopLevelRelations(sql: string, ddlModel: DdlSchemaModel): Array<{ alias?: string; table: DdlSchemaTable }> {
+function extractTopLevelRelations(
+  sql: string,
+  ddlModel: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+): Array<{ alias?: string; table: DdlSchemaTable }> {
   const relations: Array<{ alias?: string; table: DdlSchemaTable }> = [];
   const addRelation = (rawName: string, rawAlias?: string | null) => {
     const alias = normalizeIdentifier(rawAlias ?? '');
-    const table = resolveDdlTable(rawName, ddlModel);
+    const table = resolveDdlTable(rawName, ddlModel, schemaPath);
     if (table) {
       relations.push({ ...(alias ? { alias } : {}), table });
     }
@@ -477,10 +486,12 @@ function extractTopLevelRelations(sql: string, ddlModel: DdlSchemaModel): Array<
   return relations;
 }
 
-function resolveDdlTable(rawName: string, ddlModel: DdlSchemaModel): DdlSchemaTable | undefined {
-  const [schema, name] = splitQualifiedName(rawName);
-  return ddlModel.tables.get(`${schema}.${name}`.toLowerCase())
-    ?? [...ddlModel.tables.values()].find((table) => table.name.toLowerCase() === name.toLowerCase());
+function resolveDdlTable(
+  rawName: string,
+  ddlModel: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+): DdlSchemaTable | undefined {
+  return resolveSchemaPathTable(ddlModel, rawName, schemaPath);
 }
 
 function resolveDdlColumnType(reference: ColumnReference, relations: Array<{ alias?: string; table: DdlSchemaTable }>): string | undefined {
@@ -519,18 +530,6 @@ function hasOrderByClause(value: unknown): value is { orderByClause: unknown } {
 
 function hashSql(sql: string): string {
   return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
-}
-
-function splitQualifiedName(value: string): [string, string] {
-  const segments = value.split('.');
-  if (segments.length === 1) {
-    return ['public', normalizeIdentifier(segments[0] ?? '')];
-  }
-  return [normalizeIdentifier(segments[0] ?? ''), normalizeIdentifier(segments[1] ?? '')];
-}
-
-function normalizeIdentifier(value: string): string {
-  return value.trim().replace(/^"/, '').replace(/"$/, '');
 }
 
 function renderParamsInterface(parameters: string[], parameterTypes: Record<string, string> | undefined): string {

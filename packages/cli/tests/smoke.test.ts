@@ -88,6 +88,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(loadProjectPathConfig(rootDir)).toEqual({
         featureRoot: 'src/usecases',
         sqlRoots: ['src/usecases', 'src/repositories'],
+        defaultSchema: 'public',
+        searchPath: ['public'],
       });
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -779,6 +781,65 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('imports unqualified SQL using configured schema search path', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-schema-path-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        defaultSchema: 'app',
+        searchPath: ['app', 'public'],
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'schema.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        'create table app.users (',
+        '  account_id bigint primary key,',
+        '  email text not null,',
+        '  display_name text',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'users.sql'), [
+        'select account_id, email, display_name',
+        'from users',
+        'where account_id = :account_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'users-read',
+        queryName: 'read',
+        sql: 'tmp/users.sql',
+      });
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-read/queries/read/query.ts'), 'utf8');
+      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/users-read/queries/read/tests/generated/analysis.json'), 'utf8')) as {
+        table?: string;
+        primaryKeyColumn?: string;
+        mappingCaseSignature?: {
+          params?: Array<{ name: string; typeScriptType: string }>;
+        };
+      };
+
+      expect(result.importedSqlFile).toBe('src/features/users-read/queries/read/read.sql');
+      expect(queryBoundary).toContain('account_id: string;');
+      expect(queryBoundary).toContain('display_name: string | null;');
+      expect(analysis).toMatchObject({
+        table: 'app.users',
+        primaryKeyColumn: 'account_id',
+      });
+      expect(analysis.mappingCaseSignature?.params).toEqual([
+        { name: 'account_id', typeScriptType: 'string' },
+      ]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('respects customer-owned DTO nullability when imported SQL nullability is uncertain', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-code-is-yours-'));
 
@@ -1435,6 +1496,28 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('project check keeps quoted dots inside ALTER TABLE identifiers', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-ddl-quoted-dot-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public."orders.v2" (',
+        '  order_id integer primary key',
+        ');',
+        'alter table public."orders.v2" add column status text;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runProjectCheck({ rootDir });
+
+      expect(result.ok).toBe(true);
+      expect(result.errors).toEqual([]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('project check includes existing contract, feature test, and generated mapper checks', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-feature-'));
 
@@ -1542,6 +1625,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.checks.config).toEqual({
         featureRoot: 'src/usecases',
         sqlRoots: ['src/usecases', 'src/shared-sql'],
+        defaultSchema: 'public',
+        searchPath: ['public'],
       });
       expect(result.errors).toEqual(expect.arrayContaining([
         expect.objectContaining({
@@ -2649,6 +2734,57 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.contents).toContain('id: number;');
       expect(result.contents).toContain('active: boolean;');
       expect(result.contents).toContain('minimum_balance: string;');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('uses configured schema search path for unqualified model-gen SQL', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-schema-path-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/read');
+      const sqlPath = path.join(sqlDir, 'read.sql');
+      const ddlPath = path.join(rootDir, 'db', 'ddl', 'schema.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      mkdirSync(path.dirname(ddlPath), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        defaultSchema: 'app',
+        searchPath: ['app', 'public'],
+      }, null, 2), 'utf8');
+      writeFileSync(ddlPath, [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        'create table app.users (',
+        '  account_id bigint primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(sqlPath, [
+        'select account_id, email',
+        'from users',
+        'where account_id = :account_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/read/read.sql',
+        out: 'src/features/users/queries/read/read.query.ts',
+      });
+
+      expect(result.analysis.parameterTypes).toEqual({
+        account_id: 'string',
+      });
+      expect(result.analysis.resultColumnTypes).toEqual({
+        account_id: 'number',
+        email: 'string',
+      });
+      expect(result.contents).toContain('account_id: string;');
+      expect(result.contents).toContain('account_id: number;');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
