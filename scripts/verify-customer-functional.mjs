@@ -92,6 +92,7 @@ function verifyPostgresCustomer(port) {
   writeFileSync(path.join(root, 'src', 'features', 'users', 'users-pino.test.ts'), renderPostgresPinoVitestTest(port), 'utf8');
   verifyPostgresSchemaPathFeatureImport(root);
   verifyPostgresCodeIsYoursMapperDrift(root);
+  run(corepack, ['pnpm', 'exec', 'tsc', '--noEmit', '-p', 'tsconfig.json'], root);
   waitForPostgres(root, port);
   run(corepack, ['pnpm', 'exec', 'vitest', 'run', 'src/features/users/users-pino.test.ts'], root);
 }
@@ -537,10 +538,15 @@ function stringSqlQuery(name: string, queryId: string): FeatureQuerySource {
   } as unknown as FeatureQuerySource;
 }
 
-function eventsForQuery(logRecords: unknown[], queryId: string) {
+type SqlLogEvent = {
+  metadata?: { queryId?: string };
+  warnings?: readonly { code: string; message?: string; nextAction?: string }[];
+};
+
+function eventsForQuery(logRecords: unknown[], queryId: string): SqlLogEvent[] {
   return logRecords
-    .map((record) => (record as { ashiba?: { metadata?: { queryId?: string } } }).ashiba)
-    .filter((event) => event?.metadata?.queryId === queryId);
+    .map((record) => (record as { ashiba?: SqlLogEvent }).ashiba)
+    .filter((event): event is SqlLogEvent => event?.metadata?.queryId === queryId);
 }
 
 function assertNoWarningsForQuery(logRecords: unknown[], queryId: string) {

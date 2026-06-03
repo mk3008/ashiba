@@ -2868,6 +2868,12 @@ function renderQueryZtdTypes(
     `  ${outputType}`,
     '>;',
     '',
+    `export type ${pascal}QueryMappingZtdCase = QuerySpecZtdCase<`,
+    `  ${pascal}BeforeDb,`,
+    `  ${pascal}QueryParams,`,
+    '  unknown',
+    '>;',
+    '',
   ].join('\n');
 }
 
@@ -2878,7 +2884,7 @@ function renderGeneratedMappingZtdCases(
   primaryKeyColumn: string
 ): string {
   const pascal = toPascal(queryName);
-  const caseType = `${pascal}QueryBoundaryZtdCase`;
+  const caseType = `${pascal}QueryMappingZtdCase`;
   const cases = buildGeneratedMappingZtdCases(queryName, actionPlan, table, primaryKeyColumn);
   return [
     `import type { ${caseType} } from '../boundary-ztd-types.js';`,
@@ -2976,6 +2982,12 @@ function renderImportedQueryZtdTypes(
     `  ${pascal}QueryResult[]`,
     '>;',
     '',
+    `export type ${pascal}QueryMappingZtdCase = QuerySpecZtdCase<`,
+    `  ${pascal}BeforeDb,`,
+    `  ${pascal}QueryParams,`,
+    '  unknown',
+    '>;',
+    '',
     fields.length === 0
       ? '// This imported SQL has no result columns in query metadata; add human-owned logic cases when behavior must be proved.'
       : '// Result columns are mapped through synthetic DB result probes so mapper tests stay focused on DTO compatibility.',
@@ -2985,7 +2997,7 @@ function renderImportedQueryZtdTypes(
 
 function renderImportedGeneratedMappingZtdCases(queryName: string, cases: unknown[]): string {
   const pascal = toPascal(queryName);
-  const caseType = `${pascal}QueryBoundaryZtdCase`;
+  const caseType = `${pascal}QueryMappingZtdCase`;
   return [
     `import type { ${caseType} } from '../boundary-ztd-types.js';`,
     '',
