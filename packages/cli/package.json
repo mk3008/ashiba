@@ -1,6 +1,6 @@
 {
   "name": "@ashiba-ts/cli",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Ashiba Runtime Zero SQL scaffolder for TypeScript applications.",
   "repository": {
     "type": "git",
