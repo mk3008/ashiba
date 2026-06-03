@@ -90,6 +90,7 @@ function verifyPostgresCustomer(port) {
   writePostgresUsersSqlFiles(root);
   generatePostgresUsersQueryModels(root);
   writeFileSync(path.join(root, 'src', 'features', 'users', 'users-pino.test.ts'), renderPostgresPinoVitestTest(port), 'utf8');
+  verifyPostgresSchemaPathFeatureImport(root);
   verifyPostgresCodeIsYoursMapperDrift(root);
   waitForPostgres(root, port);
   run(corepack, ['pnpm', 'exec', 'vitest', 'run', 'src/features/users/users-pino.test.ts'], root);
@@ -349,6 +350,88 @@ function verifyPostgresCodeIsYoursMapperDrift(root) {
   if (!critical.output.includes('mismatched result types')) {
     throw new Error(`generated mapper check did not report critical mapper drift for confirmed nullable result:\n${critical.output}`);
   }
+}
+
+function verifyPostgresSchemaPathFeatureImport(root) {
+  updateAshibaConfig(root, {
+    featureRoot: 'src/schema-path-features',
+    sqlRoots: ['src/schema-path-features'],
+    defaultSchema: 'app',
+    searchPath: ['app', 'public'],
+  });
+  mkdirSync(path.join(root, 'db', 'ddl'), { recursive: true });
+  writeFileSync(path.join(root, 'db', 'ddl', 'public.sql'), [
+    'create table public.users (',
+    '  user_id bigint generated always as identity primary key,',
+    '  email varchar(255) not null unique,',
+    '  display_name varchar(255) null,',
+    '  login_count integer not null default 0,',
+    '  external_account_id bigint not null',
+    ');',
+    'create table app.users (',
+    '  account_id bigint primary key,',
+    '  email text not null,',
+    '  display_name text',
+    ');',
+    '',
+  ].join('\n'), 'utf8');
+  mkdirSync(path.join(root, 'tmp'), { recursive: true });
+  writeFileSync(path.join(root, 'tmp', 'schema-path-users.sql'), [
+    'select account_id, email, display_name',
+    'from users',
+    'where account_id = :account_id;',
+    '',
+  ].join('\n'), 'utf8');
+
+  run(corepack, [
+    'pnpm',
+    'exec',
+    'ashiba',
+    'feature',
+    'import',
+    'schema-path-users',
+    'read',
+    '--sql',
+    'tmp/schema-path-users.sql',
+  ], root);
+
+  const queryPath = path.join(root, 'src', 'schema-path-features', 'schema-path-users', 'queries', 'read', 'query.ts');
+  const analysisPath = path.join(root, 'src', 'schema-path-features', 'schema-path-users', 'queries', 'read', 'tests', 'generated', 'analysis.json');
+  assertFileContains(queryPath, 'account_id: string;');
+  assertFileContains(queryPath, 'display_name: string | null;');
+  assertFileContains(analysisPath, '"table": "app.users"');
+  assertFileContains(analysisPath, '"primaryKeyColumn": "account_id"');
+
+  const ok = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'project', 'check'], root);
+  if (ok.status !== 0) {
+    throw new Error(`schema-path project check should pass before searchPath drift:\n${ok.output}`);
+  }
+
+  updateAshibaConfig(root, {
+    featureRoot: 'src/schema-path-features',
+    sqlRoots: ['src/schema-path-features'],
+    defaultSchema: 'app',
+    searchPath: ['public', 'app'],
+  });
+  const drift = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'project', 'check'], root);
+  if (drift.status === 0) {
+    throw new Error(`schema-path drift should fail after changing searchPath order:\n${drift.output}`);
+  }
+  if (!drift.output.includes('Drifted generated mapping test asset')) {
+    throw new Error(`schema-path drift did not report generated mapping test drift:\n${drift.output}`);
+  }
+  updateAshibaConfig(root, {
+    featureRoot: 'src/features',
+    sqlRoots: ['src/features'],
+    defaultSchema: 'app',
+    searchPath: ['app', 'public'],
+  });
+}
+
+function updateAshibaConfig(root, updates) {
+  const configPath = path.join(root, 'ashiba.config.json');
+  const config = JSON.parse(readFileSync(configPath, 'utf8'));
+  writeFileSync(configPath, `${JSON.stringify({ ...config, ...updates }, null, 2)}\n`, 'utf8');
 }
 
 function renderPostgresPinoVitestTest(port) {

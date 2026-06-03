@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { CreateTableQuery, MultiQuerySplitter, RawString, SqlFormatter, SqlParser, TypeValue, type ValueComponent } from 'rawsql-ts';
+import { loadProjectPathConfig } from './config.js';
+import { normalizeIdentifier } from './schema-path.js';
 import { astParseUserError, invalidCliInputError } from '../errors.js';
 
 const sqlFormatter = new SqlFormatter({ keywordCase: 'lower' });
@@ -25,6 +27,8 @@ export interface DdlSchemaTable {
 export interface DdlSchemaModel {
   ddlDir: string;
   tables: Map<string, DdlSchemaTable>;
+  defaultSchema: string;
+  searchPath: string[];
 }
 
 export interface DdlSchemaDiagnostic {
@@ -42,23 +46,27 @@ export interface DdlSchemaDiagnosticsResult {
   files: string[];
   tables: Map<string, DdlSchemaTable>;
   diagnostics: DdlSchemaDiagnostic[];
+  defaultSchema: string;
+  searchPath: string[];
 }
 
 export function loadDdlSchemaModel(rootDir: string, ddlDir?: string): DdlSchemaModel | undefined {
+  const pathConfig = loadProjectPathConfig(rootDir);
   const resolvedDdlDir = ddlDir ? path.resolve(rootDir, ddlDir) : resolveDdlDir(rootDir);
   if (!existsSync(resolvedDdlDir)) {
     return undefined;
   }
   const tables = new Map<string, DdlSchemaTable>();
   for (const file of collectSqlFiles(resolvedDdlDir)) {
-    for (const table of parseDdlTables(readFileSync(file, 'utf8'), file)) {
+    for (const table of parseDdlTables(readFileSync(file, 'utf8'), file, pathConfig.defaultSchema)) {
       tables.set(table.canonicalName.toLowerCase(), table);
     }
   }
-  return { ddlDir: resolvedDdlDir, tables };
+  return { ddlDir: resolvedDdlDir, tables, defaultSchema: pathConfig.defaultSchema, searchPath: pathConfig.searchPath };
 }
 
 export function loadDdlSchemaModelWithDiagnostics(rootDir: string, ddlDir?: string): DdlSchemaDiagnosticsResult {
+  const pathConfig = loadProjectPathConfig(rootDir);
   const resolved = resolveDdlDirWithMetadata(rootDir, ddlDir);
   const diagnostics: DdlSchemaDiagnostic[] = [];
   const tables = new Map<string, DdlSchemaTable>();
@@ -75,7 +83,7 @@ export function loadDdlSchemaModelWithDiagnostics(rootDir: string, ddlDir?: stri
         nextAction: 'Create the configured DDL directory, fix ashiba.config.json, or remove the stale configuration.',
       });
     }
-    return { ddlDir: resolved.ddlDir, files, tables, diagnostics };
+    return { ddlDir: resolved.ddlDir, files, tables, diagnostics, defaultSchema: pathConfig.defaultSchema, searchPath: pathConfig.searchPath };
   }
 
   for (const file of collectSqlFilesWithDiagnostics(rootDir, resolved.ddlDir, diagnostics)) {
@@ -94,7 +102,7 @@ export function loadDdlSchemaModelWithDiagnostics(rootDir: string, ddlDir?: stri
       continue;
     }
 
-    for (const table of parseDdlTablesWithDiagnostics(rootDir, file, sql, diagnostics, createdTables)) {
+    for (const table of parseDdlTablesWithDiagnostics(rootDir, file, sql, diagnostics, createdTables, pathConfig.defaultSchema)) {
       const key = table.canonicalName.toLowerCase();
       const existing = tables.get(key);
       if (existing) {
@@ -120,7 +128,7 @@ export function loadDdlSchemaModelWithDiagnostics(rootDir: string, ddlDir?: stri
     }
   }
 
-  return { ddlDir: resolved.ddlDir, files, tables, diagnostics };
+  return { ddlDir: resolved.ddlDir, files, tables, diagnostics, defaultSchema: pathConfig.defaultSchema, searchPath: pathConfig.searchPath };
 }
 
 function resolveDdlDir(rootDir: string): string {
@@ -214,7 +222,7 @@ function collectSqlFilesWithDiagnostics(rootDir: string, dir: string, diagnostic
   return found;
 }
 
-function parseDdlTables(sql: string, sourceFile?: string): DdlSchemaTable[] {
+function parseDdlTables(sql: string, sourceFile?: string, defaultSchema = 'public'): DdlSchemaTable[] {
   return MultiQuerySplitter.split(sql).getNonEmpty().flatMap((statement) => {
     let parsed: ReturnType<typeof SqlParser.parse>;
     try {
@@ -229,7 +237,7 @@ function parseDdlTables(sql: string, sourceFile?: string): DdlSchemaTable[] {
         operation: 'reading CREATE TABLE schema metadata',
       });
     }
-    return parsed instanceof CreateTableQuery ? [createDdlSchemaTable(parsed, sourceFile)] : [];
+    return parsed instanceof CreateTableQuery ? [createDdlSchemaTable(parsed, sourceFile, defaultSchema)] : [];
   });
 }
 
@@ -239,6 +247,7 @@ function parseDdlTablesWithDiagnostics(
   sql: string,
   diagnostics: DdlSchemaDiagnostic[],
   createdTables: Set<string>,
+  defaultSchema: string,
 ): DdlSchemaTable[] {
   const tables: DdlSchemaTable[] = [];
   for (const statement of MultiQuerySplitter.split(sql).getNonEmpty()) {
@@ -256,7 +265,7 @@ function parseDdlTablesWithDiagnostics(
       continue;
     }
     if (parsed instanceof CreateTableQuery) {
-      const table = createDdlSchemaTable(parsed, normalizePath(path.relative(rootDir, file)));
+      const table = createDdlSchemaTable(parsed, normalizePath(path.relative(rootDir, file)), defaultSchema);
       tables.push(table);
       createdTables.add(table.canonicalName.toLowerCase());
     } else if (/^\s*create\s+table\b/i.test(statement.sql)) {
@@ -268,7 +277,7 @@ function parseDdlTablesWithDiagnostics(
         nextAction: 'Check CREATE TABLE syntax or report a rawsql-ts parser gap if the DDL is valid.',
       });
     } else if (/^\s*alter\s+table\b/i.test(statement.sql)) {
-      const target = extractAlterTableTarget(statement.sql);
+      const target = extractAlterTableTarget(statement.sql, defaultSchema);
       if (target && !createdTables.has(target.toLowerCase())) {
         diagnostics.push({
           code: 'ASHIBA_DDL_ALTER_BEFORE_CREATE',
@@ -284,8 +293,8 @@ function parseDdlTablesWithDiagnostics(
   return tables;
 }
 
-function createDdlSchemaTable(parsed: CreateTableQuery, sourceFile?: string): DdlSchemaTable {
-  const schema = normalizeIdentifier(parsed.namespaces?.[0] ?? 'public');
+function createDdlSchemaTable(parsed: CreateTableQuery, sourceFile?: string, defaultSchema = 'public'): DdlSchemaTable {
+  const schema = normalizeIdentifier(parsed.namespaces?.[0] ?? defaultSchema);
   const name = normalizeIdentifier(parsed.tableName.name);
   const tablePrimaryKeys = new Set(
     parsed.tableConstraints
@@ -327,16 +336,12 @@ function getColumnTypeName(dataType: CreateTableQuery['columns'][number]['dataTy
   return 'unknown';
 }
 
-function normalizeIdentifier(value: string): string {
-  return value.trim().replace(/^"/, '').replace(/"$/, '');
-}
-
-function extractAlterTableTarget(sql: string): string | undefined {
+function extractAlterTableTarget(sql: string, defaultSchema = 'public'): string | undefined {
   const match = /^\s*alter\s+table\s+(?:if\s+exists\s+)?((?:"[^"]+"|[A-Za-z_][A-Za-z0-9_$]*)(?:\s*\.\s*(?:"[^"]+"|[A-Za-z_][A-Za-z0-9_$]*))?)/i.exec(sql);
   const raw = match?.[1];
   if (!raw) return undefined;
   const parts = raw.split('.').map((part) => normalizeIdentifier(part.trim()));
-  return parts.length === 1 ? `public.${parts[0]}` : `${parts[0]}.${parts[1]}`;
+  return parts.length === 1 ? `${defaultSchema}.${parts[0]}` : `${parts[0]}.${parts[1]}`;
 }
 
 function formatValue(value: ValueComponent): string {

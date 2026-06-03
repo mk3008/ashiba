@@ -7,6 +7,11 @@ import { runCheckContract, type CheckContractResult } from './check-contract.js'
 import { loadProjectPathConfig, type ProjectPathConfig } from './config.js';
 import { loadDdlSchemaModelWithDiagnostics, type DdlSchemaColumn, type DdlSchemaDiagnosticsResult, type DdlSchemaTable } from './ddl-schema-model.js';
 import {
+  normalizeIdentifier,
+  parseQualifiedTableName,
+  resolveSchemaPathTable,
+} from './schema-path.js';
+import {
   runFeatureTestsCheck,
   type FeatureGeneratedMapperCheckResult,
   type FeatureTestsCheckResult,
@@ -308,7 +313,7 @@ function insertColumnOwnershipIssues(context: ProjectCheckContext): ProjectCheck
       if (!target) {
         continue;
       }
-      const table = resolveTable(context.ddlSchema, target.schema, target.table);
+      const table = resolveTable(context.ddlSchema, target, context.config);
       const insertColumns = parsed.insertClause.columns?.map((column) => normalizeIdentifier(column.name));
       if (!table || !insertColumns) {
         continue;
@@ -515,27 +520,17 @@ function checkExecutionIssue(code: string, message: string, error: unknown): Pro
   };
 }
 
-function resolveTable(model: DdlSchemaDiagnosticsResult, schema: string | undefined, table: string): DdlSchemaTable | undefined {
-  const normalizedTable = normalizeIdentifier(table).toLowerCase();
-  if (schema) {
-    return model.tables.get(`${normalizeIdentifier(schema).toLowerCase()}.${normalizedTable}`);
-  }
-  return model.tables.get(`public.${normalizedTable}`)
-    ?? [...model.tables.values()].find((candidate) => candidate.name.toLowerCase() === normalizedTable);
+function resolveTable(
+  model: DdlSchemaDiagnosticsResult,
+  target: { schema?: string; table: string },
+  config: ProjectPathConfig,
+): DdlSchemaTable | undefined {
+  return resolveSchemaPathTable(model, target.schema ? `${target.schema}.${target.table}` : target.table, config);
 }
 
 function tableTargetFromSource(source: SourceExpression | null | undefined): { schema?: string; table: string } | undefined {
   if (!source || !(source.datasource instanceof TableSource)) return undefined;
-  const [schema, table] = splitQualifiedName(source.datasource.qualifiedName.toString());
-  return { schema, table };
-}
-
-function splitQualifiedName(value: string): [string | undefined, string] {
-  const segments = splitUnquotedQualifiedSegments(value).map((segment) => normalizeIdentifier(segment));
-  if (segments.length <= 1) {
-    return [undefined, segments[0] ?? ''];
-  }
-  return [segments[segments.length - 2], segments[segments.length - 1] ?? ''];
+  return parseQualifiedTableName(source.datasource.qualifiedName.toString());
 }
 
 function isGeneratedInsertColumn(column: DdlSchemaColumn): boolean {
@@ -593,27 +588,4 @@ function formatIssue(issue: ProjectCheckIssue): string {
 
 function normalizePath(value: string): string {
   return value.replace(/\\/g, '/');
-}
-
-function normalizeIdentifier(value: string): string {
-  return value.trim().replace(/^"/, '').replace(/"$/, '');
-}
-
-function splitUnquotedQualifiedSegments(value: string): string[] {
-  const parts: string[] = [];
-  let current = '';
-  let quoted = false;
-  for (const char of value) {
-    if (char === '"') {
-      quoted = !quoted;
-    }
-    if (char === '.' && !quoted) {
-      parts.push(current);
-      current = '';
-      continue;
-    }
-    current += char;
-  }
-  parts.push(current);
-  return parts;
 }

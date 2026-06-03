@@ -17,6 +17,12 @@ import {
   type ValueComponent,
 } from 'rawsql-ts';
 import type { DdlSchemaColumn, DdlSchemaModel, DdlSchemaTable } from './ddl-schema-model.js';
+import {
+  normalizeIdentifier,
+  parseQualifiedTableName,
+  resolveSchemaPathTable,
+  type SchemaPathConfig,
+} from './schema-path.js';
 
 export interface SqlParameterTypeBinding {
   parameter: string;
@@ -40,19 +46,24 @@ export interface SqlParameterTypeInference {
   conflicts: SqlParameterTypeConflict[];
 }
 
-export function inferSqlParameterTypes(sql: string, model: DdlSchemaModel): SqlParameterTypeInference {
+export function inferSqlParameterTypes(
+  sql: string,
+  model: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig> = model,
+): SqlParameterTypeInference {
   const parsed = SqlParser.parse(sql);
-  return inferParsedSqlParameterTypes(parsed, model);
+  return inferParsedSqlParameterTypes(parsed, model, schemaPath);
 }
 
 export function inferParsedSqlParameterTypes(
   parsed: ReturnType<typeof SqlParser.parse>,
   model: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig> = model,
 ): SqlParameterTypeInference {
-  const context = buildRelationContext(parsed, model);
+  const context = buildRelationContext(parsed, model, schemaPath);
   const bindings: SqlParameterTypeBinding[] = [
-    ...collectInsertParameterBindings(parsed, model),
-    ...collectUpdateSetParameterBindings(parsed, model),
+    ...collectInsertParameterBindings(parsed, model, schemaPath),
+    ...collectUpdateSetParameterBindings(parsed, model, schemaPath),
     ...collectPredicateParameterBindings(parsed, context),
   ];
   return buildInference(bindings);
@@ -79,6 +90,7 @@ export function areTypeScriptTypesCompatible(actual: string, expected: string): 
 function collectInsertParameterBindings(
   parsed: ReturnType<typeof SqlParser.parse>,
   model: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
 ): SqlParameterTypeBinding[] {
   if (!(parsed instanceof InsertQuery) || !(parsed.selectQuery instanceof ValuesQuery)) {
     return [];
@@ -88,7 +100,7 @@ function collectInsertParameterBindings(
   if (!target || columns.length === 0) {
     return [];
   }
-  const table = resolveTable(model, target.schema, target.table);
+  const table = resolveTable(model, target, schemaPath);
   if (!table) {
     return [];
   }
@@ -108,12 +120,13 @@ function collectInsertParameterBindings(
 function collectUpdateSetParameterBindings(
   parsed: ReturnType<typeof SqlParser.parse>,
   model: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
 ): SqlParameterTypeBinding[] {
   if (!(parsed instanceof UpdateQuery)) {
     return [];
   }
   const target = tableTargetFromSource(parsed.updateClause.source);
-  const table = target ? resolveTable(model, target.schema, target.table) : undefined;
+  const table = target ? resolveTable(model, target, schemaPath) : undefined;
   if (!table) {
     return [];
   }
@@ -228,10 +241,14 @@ interface RelationContext {
   unambiguousTables: DdlSchemaTable[];
 }
 
-function buildRelationContext(parsed: ReturnType<typeof SqlParser.parse>, model: DdlSchemaModel): RelationContext {
+function buildRelationContext(
+  parsed: ReturnType<typeof SqlParser.parse>,
+  model: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+): RelationContext {
   const aliasToTable = new Map<string, DdlSchemaTable>();
   for (const reference of collectTableReferences(parsed)) {
-    const table = resolveTable(model, reference.schema, reference.table);
+    const table = resolveTable(model, reference, schemaPath);
     if (!table) continue;
     aliasToTable.set(reference.alias.toLowerCase(), table);
     aliasToTable.set(reference.table.toLowerCase(), table);
@@ -247,7 +264,7 @@ function collectTableReferences(parsed: ReturnType<typeof SqlParser.parse>): Arr
   const references: Array<{ schema?: string; table: string; alias: string }> = [];
   const addSource = (source: SourceExpression | null | undefined) => {
     if (!source || !(source.datasource instanceof TableSource)) return;
-    const [schema, table] = splitQualifiedName(source.datasource.qualifiedName.toString());
+    const { schema, table } = parseQualifiedTableName(source.datasource.qualifiedName.toString());
     references.push({ schema, table, alias: normalizeIdentifier(source.getAliasName() ?? table) });
   };
   const addCtes = (ctes: CommonTable[] | null | undefined) => {
@@ -303,18 +320,17 @@ function resolveColumnReference(
   return matches.length === 1 ? matches[0] : undefined;
 }
 
-function resolveTable(model: DdlSchemaModel, schema: string | undefined, table: string): DdlSchemaTable | undefined {
-  if (schema) {
-    return model.tables.get(`${schema}.${table}`.toLowerCase());
-  }
-  const matches = [...model.tables.values()].filter((candidate) => candidate.name.toLowerCase() === table.toLowerCase());
-  return matches.length === 1 ? matches[0] : undefined;
+function resolveTable(
+  model: DdlSchemaModel,
+  target: { schema?: string; table: string },
+  schemaPath: Partial<SchemaPathConfig>,
+): DdlSchemaTable | undefined {
+  return resolveSchemaPathTable(model, target.schema ? `${target.schema}.${target.table}` : target.table, schemaPath);
 }
 
 function tableTargetFromSource(source: SourceExpression | null | undefined): { schema?: string; table: string } | undefined {
   if (!source || !(source.datasource instanceof TableSource)) return undefined;
-  const [schema, table] = splitQualifiedName(source.datasource.qualifiedName.toString());
-  return { schema, table };
+  return parseQualifiedTableName(source.datasource.qualifiedName.toString());
 }
 
 function toBinding(
@@ -360,35 +376,4 @@ function baseTypeScriptType(type: string): string {
 
 function normalizeTypeScriptType(type: string): string {
   return type.replace(/\s+/g, ' ').trim();
-}
-
-function splitQualifiedName(value: string): [string | undefined, string] {
-  const segments = splitUnquotedQualifiedSegments(value).map((segment) => normalizeIdentifier(segment));
-  if (segments.length <= 1) {
-    return [undefined, segments[0] ?? ''];
-  }
-  return [segments[segments.length - 2], segments[segments.length - 1] ?? ''];
-}
-
-function normalizeIdentifier(value: string): string {
-  return value.trim().replace(/^"/, '').replace(/"$/, '');
-}
-
-function splitUnquotedQualifiedSegments(value: string): string[] {
-  const parts: string[] = [];
-  let current = '';
-  let quoted = false;
-  for (const char of value) {
-    if (char === '"') {
-      quoted = !quoted;
-    }
-    if (char === '.' && !quoted) {
-      parts.push(current);
-      current = '';
-      continue;
-    }
-    current += char;
-  }
-  parts.push(current);
-  return parts;
 }
