@@ -752,6 +752,33 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('imports an existing SQL file under configured featureRoot', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-config-root-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: 'src/usecases',
+        sqlRoots: ['src/usecases'],
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'readiness.sql'), "select true as ready;\n", 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'health-check',
+        queryName: 'readiness',
+        sql: 'tmp/readiness.sql',
+      });
+
+      expect(result.importedSqlFile).toBe('src/usecases/health-check/queries/readiness/readiness.sql');
+      expect(existsSync(path.join(rootDir, 'src/usecases/health-check/boundary.ts'))).toBe(true);
+      expect(existsSync(path.join(rootDir, 'src/usecases/_shared/featureQueryExecutor.ts'))).toBe(true);
+      expect(existsSync(path.join(rootDir, 'src/features/health-check'))).toBe(false);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('respects customer-owned DTO nullability when imported SQL nullability is uncertain', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-code-is-yours-'));
 
@@ -821,7 +848,7 @@ describe('@ashiba-ts/cli smoke', () => {
     try {
       mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
       writeFileSync(path.join(rootDir, 'tmp', 'health.sql'), [
-        "select 1 as status_code, cast(null as text) as message;",
+        "select cast(1 as bigint) as status_code, cast(2.5 as numeric(10, 2)) as ratio, cast(null as text) as message;",
         '',
       ].join('\n'), 'utf8');
 
@@ -840,11 +867,13 @@ describe('@ashiba-ts/cli smoke', () => {
       const mappingCases = readFileSync(mappingPath, 'utf8');
 
       expect(queryBoundary).toContain('status_code: number;');
+      expect(queryBoundary).toContain('ratio: number | null;');
       expect(queryBoundary).toContain('message: string | null;');
       expect(ztdTypes).toContain('Record<string, unknown>');
       expect(mappingCases).toContain('mapperProbe');
       expect(mappingCases).toContain('beforeDb: {}');
-      expect(mappingCases).toContain('cast(1 as integer) as \\"status_code\\"');
+      expect(mappingCases).toContain('cast(1 as bigint) as \\"status_code\\"');
+      expect(mappingCases).toContain('cast(1 as numeric(10, 2)) as \\"ratio\\"');
       expect(mappingCases).toContain('cast(null as text) as \\"message\\"');
 
       rmSync(mappingPath, { force: true });

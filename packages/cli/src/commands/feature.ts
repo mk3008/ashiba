@@ -211,6 +211,7 @@ interface RenderField {
 interface RenderContractField {
   name: string;
   typeScriptType: string;
+  sqlType: string;
   nullability: ResultNullabilityLevel;
 }
 
@@ -447,15 +448,16 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
   const sourceSql = readFileSync(sourceSqlPath, 'utf8');
   const formatted = formatImportedSqlSafely(sourceSql, rootDir);
   const importedSql = formatted.sql;
-  const relativeFeatureDir = `src/features/${featureName}`;
+  const featureRoot = loadProjectPathConfig(rootDir).featureRoot;
+  const relativeFeatureDir = `${featureRoot}/${featureName}`;
   const relativeQueryDir = `${relativeFeatureDir}/queries/${queryName}`;
   const queryModel = buildFeatureQueryModel(importedSql, rootDir);
   const resultColumnContracts = buildQueryResultColumnContracts(importedSql, rootDir);
   const parameterTypes = queryModel.analysis.parameterTypes ?? {};
   const parameters = queryModel.analysis.namedParameters;
   const files: GeneratedFile[] = [
-    ...buildSharedFiles(),
-    ...buildImportedFeatureFiles(featureName, queryName, parameters, parameterTypes, resultColumnContracts),
+    ...buildSharedFiles(featureRoot),
+    ...buildImportedFeatureFiles(relativeFeatureDir, featureName, queryName, parameters, parameterTypes, resultColumnContracts),
     { relativePath: relativeQueryDir, kind: 'directory' },
     {
       relativePath: `${relativeQueryDir}/${queryName}.sql`,
@@ -1495,6 +1497,7 @@ function buildQueryFiles(
 }
 
 function buildImportedFeatureFiles(
+  relativeFeatureDir: string,
   featureName: string,
   queryName: string,
   parameters: string[],
@@ -1502,43 +1505,43 @@ function buildImportedFeatureFiles(
   resultColumnContracts: SqlResultColumnContract[],
 ): GeneratedFile[] {
   return [
-    { relativePath: `src/features/${featureName}`, kind: 'directory' },
+    { relativePath: relativeFeatureDir, kind: 'directory' },
     {
-      relativePath: `src/features/${featureName}/README.md`,
+      relativePath: `${relativeFeatureDir}/README.md`,
       kind: 'file',
       contents: renderImportedFeatureReadme(featureName, queryName),
       overwrite: false,
     },
     {
-      relativePath: `src/features/${featureName}/boundary.ts`,
+      relativePath: `${relativeFeatureDir}/boundary.ts`,
       kind: 'file',
       contents: renderFeatureBoundary(featureName),
       overwrite: false,
     },
     {
-      relativePath: `src/features/${featureName}/input.ts`,
+      relativePath: `${relativeFeatureDir}/input.ts`,
       kind: 'file',
       contents: renderImportedFeatureInput(featureName, queryName, parameters, parameterTypes),
       overwrite: false,
     },
     {
-      relativePath: `src/features/${featureName}/workflow.ts`,
+      relativePath: `${relativeFeatureDir}/workflow.ts`,
       kind: 'file',
       contents: renderImportedFeatureWorkflow(featureName, queryName),
       overwrite: false,
     },
     {
-      relativePath: `src/features/${featureName}/output.ts`,
+      relativePath: `${relativeFeatureDir}/output.ts`,
       kind: 'file',
       contents: renderImportedFeatureOutput(featureName, queryName, resultColumnContracts),
       overwrite: false,
     },
     {
-      relativePath: `src/features/${featureName}/tests`,
+      relativePath: `${relativeFeatureDir}/tests`,
       kind: 'directory',
     },
     {
-      relativePath: `src/features/${featureName}/tests/${featureName}.boundary.test.ts`,
+      relativePath: `${relativeFeatureDir}/tests/${featureName}.boundary.test.ts`,
       kind: 'file',
       contents: renderImportedFeatureBoundaryTest(featureName, queryName, parameters, parameterTypes, resultColumnContracts),
       overwrite: false,
@@ -1681,11 +1684,11 @@ function renderImportedGeneratedTestAnalysis(
   }, null, 2)}\n`;
 }
 
-function buildSharedFiles(): GeneratedFile[] {
+function buildSharedFiles(featureRoot = 'src/features'): GeneratedFile[] {
   return [
-    { relativePath: 'src/features/_shared', kind: 'directory' },
+    { relativePath: `${featureRoot}/_shared`, kind: 'directory' },
     {
-      relativePath: 'src/features/_shared/featureQueryExecutor.ts',
+      relativePath: `${featureRoot}/_shared/featureQueryExecutor.ts`,
       kind: 'file',
       overwrite: false,
       contents: [
@@ -1727,7 +1730,7 @@ function buildSharedFiles(): GeneratedFile[] {
       ].join('\n'),
     },
     {
-      relativePath: 'src/features/_shared/loadSqlResource.ts',
+      relativePath: `${featureRoot}/_shared/loadSqlResource.ts`,
       kind: 'file',
       overwrite: false,
       contents: [
@@ -2603,11 +2606,17 @@ function toContractFields(
   columns: SqlResultColumnContract[],
   nullabilityByColumn: Record<string, ResultNullabilityLevel> = {},
 ): RenderContractField[] {
-  return columns.map((column) => ({
-    name: column.name,
-    typeScriptType: nullabilityByColumn[column.name] === 'non-null' ? column.type : makeConservativeNullableType(column.type),
-    nullability: nullabilityByColumn[column.name] ?? 'unknown',
-  }));
+  return columns.map((column) => {
+    const typeScriptType = nullabilityByColumn[column.name] === 'non-null'
+      ? column.type
+      : makeConservativeNullableType(column.type);
+    return {
+      name: column.name,
+      typeScriptType,
+      sqlType: sqlTypeForContract(inferSqlTypeForResultColumn(column) ?? sqlTypeForTypeScript(typeScriptType)),
+      nullability: nullabilityByColumn[column.name] ?? 'unknown',
+    };
+  });
 }
 
 function inferImportedResultNullabilityByColumn(
@@ -3063,7 +3072,7 @@ function buildSyntheticMapperProbeSql(
     fields.map((field, index) => {
       const prefix = index === 0 ? '    ' : '    , ';
       const column = findDdlColumnForField(table, field.name);
-      const sqlType = column ? sqlTypeForDdlColumn(column) : sqlTypeForTypeScript(field.typeScriptType);
+      const sqlType = column ? sqlTypeForDdlColumn(column) : field.sqlType;
       const valueSql = mode === 'nullable' && field.nullability === 'nullable'
         ? 'null'
         : sqlLiteral(buildSyntheticContractRow(table, [field], mode)[field.name]);
@@ -3086,6 +3095,24 @@ function sqlTypeForTypeScript(typeScriptType: string): string {
   if (normalized === 'number') return 'integer';
   if (normalized === 'boolean') return 'boolean';
   return 'text';
+}
+
+function sqlTypeForContract(typeName: string): string {
+  const normalized = typeName.trim();
+  if (/^(?:unknown|string|number|boolean)(?:\s*\|\s*null)?$/.test(normalized)) {
+    return sqlTypeForTypeScript(normalized);
+  }
+  return normalized;
+}
+
+function inferSqlTypeForResultColumn(column: SqlResultColumnContract): string | undefined {
+  const expression = column.expression?.trim();
+  if (!expression) return undefined;
+  const castMatch = expression.match(/^cast\([\s\S]+?\s+as\s+([A-Za-z_][A-Za-z0-9_\s]*(?:\([^)]*\))?)\)$/i);
+  if (castMatch?.[1]) return castMatch[1].trim();
+  const postgresCastMatch = expression.match(/::\s*([A-Za-z_][A-Za-z0-9_\s]*(?:\([^)]*\))?)\s*$/i);
+  if (postgresCastMatch?.[1]) return postgresCastMatch[1].trim();
+  return undefined;
 }
 
 function sqlTypeForDdlColumn(column: DdlColumn): string {
@@ -3202,6 +3229,7 @@ function toDdlContractFields(columns: DdlColumn[]): RenderContractField[] {
   return columns.map((column) => ({
     name: column.name,
     typeScriptType: toTsType(column),
+    sqlType: sqlTypeForDdlColumn(column),
     nullability: column.nullable ? 'nullable' : 'non-null',
   }));
 }
