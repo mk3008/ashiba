@@ -1,0 +1,48 @@
+{
+  "$schema": "https://ashiba.dev/schema/ashiba-config.json",
+  "featureRoot": "src/features",
+  "sqlRoots": [
+    "src/features"
+  ],
+  "defaultSchema": "public",
+  "searchPath": [
+    "public"
+  ],
+  "ddl": {
+    "sourceDir": "db/ddl"
+  },
+  "sql": {
+    "parameterStyle": "both"
+  },
+  "format": {
+    "sql": {
+      "identifierEscape": "quote",
+      "identifierEscapeTarget": "minimal",
+      "parameterSymbol": ":",
+      "parameterStyle": "named",
+      "indentSize": 4,
+      "indentChar": "space",
+      "newline": "lf",
+      "keywordCase": "lower",
+      "commaBreak": "before",
+      "valuesCommaBreak": "before",
+      "andBreak": "before",
+      "orBreak": "before",
+      "exportComment": true,
+      "commentStyle": "block",
+      "withClauseStyle": "standard",
+      "parenthesesOneLine": true,
+      "indentNestedParentheses": true,
+      "betweenOneLine": true,
+      "valuesOneLine": false,
+      "joinOneLine": true,
+      "caseOneLine": false,
+      "subqueryOneLine": false,
+      "joinConditionOrderByDeclaration": false
+    }
+  },
+  "tests": {
+    "mapperLane": "ztd",
+    "performanceLane": "traditional"
+  }
+}
