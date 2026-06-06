@@ -568,6 +568,47 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('keeps required predicates in CTE and root query scopes when optional filters are removed', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'with cte as (select * from t where (:p is null or col = :p) and tenant_id = :tenant_id) select * from cte where (:id is null or id = :id) and status = :status';
+    const compiledSql = 'with cte as (select * from t where ($1 is null or col = $2) and tenant_id = $3) select * from cte where ($4 is null or id = $5) and status = $6';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['p', 'p', 'tenant_id', 'id', 'id', 'status'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'p', '($1 is null or col = $2) and').branches[0],
+              optionalCompressionBinding(compiledSql, 'id', '($4 is null or id = $5) and').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'p', '(:p is null or col = :p) and').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'id', '(:id is null or id = :id) and').branches[0],
+            ],
+          },
+        })),
+      { p: null, tenant_id: 10, id: null, status: 'active' }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'with cte as (select * from t where tenant_id = $1) select * from cte where status = $2',
+      values: [10, 'active'],
+    }]);
+  });
+
   test('compresses optional conditions in derived subquery and root query scopes independently', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select * from (select * from t where (:p is null or col = :p)) s where (:id is null or id = :id)';
