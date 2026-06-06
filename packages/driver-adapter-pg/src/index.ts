@@ -489,7 +489,7 @@ function normalizeTextEdits(ranges: readonly TextEdit[]): TextEdit[] {
 }
 
 function normalizeOptionalConditionRemovalRanges(sql: string, ranges: readonly TextRange[]): TextRange[] {
-  return expandWholeWhereClauseRemoval(sql, mergeTextRanges(ranges));
+  return normalizeLeadingWhereRemoval(sql, mergeTextRanges(ranges));
 }
 
 function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
@@ -506,15 +506,35 @@ function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
   return merged;
 }
 
-function expandWholeWhereClauseRemoval(sql: string, ranges: readonly TextRange[]): TextRange[] {
+function normalizeLeadingWhereRemoval(sql: string, ranges: readonly TextRange[]): TextRange[] {
   return ranges.map((range) => {
     const before = sql.slice(0, range.start);
     const whereMatch = before.match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
     if (!whereMatch || whereMatch.index === undefined) {
       return range;
     }
+    if (hasRemainingWherePredicateAfter(sql, range.end)) {
+      const danglingConnective = sql.slice(range.end).match(/^\s+(?:and|or)\b\s*/i);
+      if (danglingConnective?.[0]) {
+        return { start: range.start, end: range.end + danglingConnective[0].length };
+      }
+      const trailingWhitespace = sql.slice(range.end).match(/^\s+/)?.[0] ?? '';
+      return { start: range.start, end: range.end + trailingWhitespace.length };
+    }
     return { start: whereMatch.index, end: range.end };
   });
+}
+
+function hasRemainingWherePredicateAfter(sql: string, index: number): boolean {
+  const after = sql.slice(index).trimStart();
+  if (after.length === 0) {
+    return false;
+  }
+  if (/^(?:and|or)\b/i.test(after)) {
+    const withoutDanglingConnective = after.replace(/^(?:and|or)\b\s*/i, '');
+    return hasRemainingWherePredicateAfter(withoutDanglingConnective, 0);
+  }
+  return !/^(?:group\s+by|order\s+by|having|limit|offset|fetch|for|union|intersect|except)\b|^\)/i.test(after);
 }
 
 function normalizeRanges(ranges: readonly TextRange[]): TextRange[] {

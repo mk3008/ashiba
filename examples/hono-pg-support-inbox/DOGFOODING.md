@@ -131,12 +131,13 @@ Resolution:
 
 - Removed binding-side removal text from generated optional-condition metadata.
 - Re-aligned driver-side `order by` insertion to nearby clause boundaries after compression and placeholder renumbering.
-- Added `where true` to the demo SQL so compressed optional branches can be removed without deleting the whole `where` clause while a non-compressed keyword condition remains.
+- Added `where true` to the demo SQL while the issue was being investigated.
+- Fixed the PostgreSQL driver adapter so `where true` is not required for correctness when leading optional branches are removed before required conditions.
 
 Product note:
 
 - Project checks should eventually catch this combination without requiring a browser run.
-- Docs should show `where true` or another stable anchor pattern when optional compression is mixed with non-compressed conditions.
+- Docs may show `where true` as an ordinary SQL style option, but optional-condition compression must preserve valid SQL without requiring that anchor.
 
 ### Filtered search was not covered by E2E at first
 
@@ -170,7 +171,7 @@ Product note:
 | P0 | done | Let `feature import` format harmless SQL normalization. | Fixed by `fix(cli): relax feature import formatting safety`. The import path allows semantic formatter changes while still protecting comments, named parameters, and AST round-trip equality. |
 | P0 | done | Compose optional-condition compression with safe sort. | Fixed by `fix(pg): compose optional compression with safe sort`. The driver adapter has regression coverage for range-only compression metadata and safe sort insertion after compression. |
 | P1 | done | Keep keyword filters in DBMS-natural SSSQL form. | The demo uses `(:keyword is null or column ilike '%' || :keyword || '%')`; runtime compression removes the whole branch when null and prunes only the guard when present. |
-| P1 | open | Document stable optional-filter anchors. | When optional compression is mixed with non-compressed conditions, examples should show `where true` or another stable anchor so branch removal cannot delete the whole `where` context. |
+| P1 | done | Preserve required predicates after leading optional branch removal. | Fixed in the PostgreSQL driver adapter. `where (:email is null or email = :email) and tenant_id = :tenant_id` now compresses to `where tenant_id = $1` when `email` is null, so `where true` is no longer required for correctness. |
 | P1 | open | Provide a user-facing safe sort surface. | The current demo maps public sort choices in application code. A future CLI/helper path could expose reviewed display keys without adding helper rank columns to result DTOs. |
 | P1 | open | Add a SQL inspection panel to the demo. | A small panel could show compiled SQL, bound parameter names, and selected safe sort key so users can see the "visible SQL" story without reading terminal logs. |
 | P1 | open | Add README AI edit exercise. | The planning doc calls for a 5-10 minute edit exercise, but the example README currently focuses on running and verifying the demo. |
