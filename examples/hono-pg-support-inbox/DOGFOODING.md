@@ -156,7 +156,7 @@ Product note:
 ## Current Verification
 
 - `pnpm --dir examples/hono-pg-support-inbox typecheck`: passed
-- `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox test`: passed, including filtered HTTP E2E
+- `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox test`: passed, including HTTP E2E for all public filters and safe sort choices
 - `pnpm --dir examples/hono-pg-support-inbox check:drift`: passed
 - `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox db:seed`: passed
 - Playwright screenshot of `http://localhost:3000/tickets`: passed
@@ -165,7 +165,7 @@ Product note:
 
 | Priority | Status | Task | Notes |
 | --- | --- | --- | --- |
-| P0 | partial | Keep demo verification route-level. | The demo now has PostgreSQL-backed HTTP E2E coverage for the default list, `status=open`, and keyword search. Add coverage when new public filters or sort choices are added. |
+| P0 | done | Keep demo verification route-level. | The demo has PostgreSQL-backed HTTP E2E coverage for the default list, public filters, keyword search, and all safe sort choices. Add coverage when new public filters or sort choices are added. |
 | P0 | done | Support `feature import` for CTE-anchored read queries. | Fixed by `fix(cli): import cte-anchored sql metadata`. Keep the demo SQL or a fixture covering final CTE sources in CLI tests. |
 | P0 | done | Let `feature import` format harmless SQL normalization. | Fixed by `fix(cli): relax feature import formatting safety`. The import path allows semantic formatter changes while still protecting comments, named parameters, and AST round-trip equality. |
 | P0 | done | Compose optional-condition compression with safe sort. | Fixed by `fix(pg): compose optional compression with safe sort`. The driver adapter has regression coverage for range-only compression metadata and safe sort insertion after compression. |
