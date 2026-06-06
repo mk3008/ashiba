@@ -842,6 +842,77 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('imports CTE-anchored SQL without treating the final CTE source as a DDL table', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-cte-anchor-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id integer primary key,',
+        '  customer_id integer not null,',
+        '  subject text not null',
+        ');',
+        'create table public.customers (',
+        '  customer_id integer primary key,',
+        '  display_name text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'list-tickets.sql'), [
+        'with ticket_base as (',
+        '  select',
+        '    t.ticket_id,',
+        '    t.subject,',
+        '    c.display_name as customer_name',
+        '  from public.tickets t',
+        '  inner join public.customers c on c.customer_id = t.customer_id',
+        ')',
+        'select ticket_id, subject, customer_name',
+        'from ticket_base',
+        'order by ticket_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureImport({
+        rootDir,
+        feature: 'support-inbox',
+        queryName: 'list-tickets',
+        sql: 'tmp/list-tickets.sql',
+      });
+
+      const analysisPath = path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json');
+      const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as {
+        anchorSource?: string;
+        anchorTable?: string;
+        table?: string;
+        physicalTables?: string[];
+        status?: string;
+        mappingCaseSignature?: {
+          anchorSource?: string;
+          anchorTable?: string;
+          physicalTables?: string[];
+        };
+      };
+
+      expect(analysis).toMatchObject({
+        anchorSource: 'ticket_base',
+        anchorTable: 'public.tickets',
+        table: 'public.tickets',
+        status: 'generated-from-imported-sql',
+      });
+      expect(analysis.physicalTables).toEqual(['public.customers', 'public.tickets']);
+      expect(analysis.mappingCaseSignature).toMatchObject({
+        anchorSource: 'ticket_base',
+        anchorTable: 'public.tickets',
+        physicalTables: ['public.customers', 'public.tickets'],
+      });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('imports timestamp result columns with valid PostgreSQL mapper probe fixtures', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-timestamp-fixture-'));
 
