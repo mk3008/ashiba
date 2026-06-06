@@ -49,7 +49,8 @@ Resolution in this demo:
 
 Product note:
 
-- Importing existing SQL that ends from a CTE should either work or produce a clearer explanation for imported read queries.
+- Resolved in the CLI after this demo was built.
+- `ashiba feature import` now keeps the final source as an anchor source and records physical DDL tables separately, so CTE-anchored read queries can generate metadata without treating the CTE itself as a table.
 
 ### Formatter safety skipped complex imported SQL
 
@@ -61,7 +62,9 @@ Resolution in this demo:
 
 Product note:
 
-- This is acceptable, but the message should be expected in complex demos and docs should explain why this is a good failure mode.
+- Resolved in the CLI after this demo was built.
+- `ashiba feature import` now accepts formatter output when it preserves comments, named parameters, and AST round-trip output. This allows harmless normalization such as adding explicit `AS` to table aliases.
+- `query format` remains more conservative because it rewrites an existing SQL file directly.
 
 ### SQL lint needed CTE naming and keyword search adjustments
 
@@ -159,8 +162,16 @@ Product note:
 
 ## Remaining Product Questions
 
-- Should `feature import` support imported read queries whose final relation is a CTE?
-- Should docs recommend `position(lower(:keyword) in lower(...))` for analyzable keyword filters?
-- Should safe sort have a first-class way to expose user-facing sort keys without adding helper rank columns to the result DTO?
-- Should the demo add a small SQL logger panel so users can inspect the compiled SQL without opening terminal logs?
-- CUD still needs a separate demo lane.
+| Priority | Status | Task | Notes |
+| --- | --- | --- | --- |
+| P0 | partial | Keep demo verification route-level. | The demo now has PostgreSQL-backed HTTP E2E coverage for the default list, `status=open`, and keyword search. Add coverage when new public filters or sort choices are added. |
+| P0 | done | Support `feature import` for CTE-anchored read queries. | Fixed by `fix(cli): import cte-anchored sql metadata`. Keep the demo SQL or a fixture covering final CTE sources in CLI tests. |
+| P0 | done | Let `feature import` format harmless SQL normalization. | Fixed by `fix(cli): relax feature import formatting safety`. The import path allows semantic formatter changes while still protecting comments, named parameters, and AST round-trip equality. |
+| P0 | done | Compose optional-condition compression with safe sort. | Fixed by `fix(pg): compose optional compression with safe sort`. The driver adapter has regression coverage for range-only compression metadata and safe sort insertion after compression. |
+| P1 | open | Document analyzable keyword filter patterns. | The demo uses `position(lower(:keyword) in lower(...)) > 0` instead of concatenated `ILIKE '%' || :keyword || '%'`. Docs should explain this as a mechanical-analysis-friendly pattern, not as a universal SQL style rule. |
+| P1 | open | Document stable optional-filter anchors. | When optional compression is mixed with non-compressed conditions, examples should show `where true` or another stable anchor so branch removal cannot delete the whole `where` context. |
+| P1 | open | Provide a user-facing safe sort surface. | The current demo maps public sort choices in application code. A future CLI/helper path could expose reviewed display keys without adding helper rank columns to result DTOs. |
+| P1 | open | Add a SQL inspection panel to the demo. | A small panel could show compiled SQL, bound parameter names, and selected safe sort key so users can see the "visible SQL" story without reading terminal logs. |
+| P1 | open | Add README AI edit exercise. | The planning doc calls for a 5-10 minute edit exercise, but the example README currently focuses on running and verifying the demo. |
+| P2 | open | Add a separate CUD demo lane. | The support inbox demo intentionally proves the read-heavy path only. CUD should be a separate adoption demo covering mutation mapper tests, transaction boundaries, affected rows, and business constraints. |
+| P2 | open | Decide whether CUD belongs in the same example app. | Keeping it separate protects the read demo's focus; sharing the same domain may make the adoption story easier to compare. This needs human product judgment. |
