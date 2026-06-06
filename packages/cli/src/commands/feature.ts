@@ -2854,18 +2854,32 @@ function validateImportedFormattedSql(
 ): ({ safe: true; reason?: undefined } | { safe: false; reason: string }) {
   const beforeTokens = LexemeCursor.getAllLexemesWithPosition(originalSql);
   const afterTokens = LexemeCursor.getAllLexemesWithPosition(formattedSql);
-  if (!sameImportedTokenSequence(beforeTokens, afterTokens)) {
-    return { safe: false, reason: `formatting skipped because token sequence changed: before=${beforeTokens.length}, after=${afterTokens.length}` };
-  }
+  const tokenSummary = formatImportedTokenSummary(beforeTokens, afterTokens);
   const missingComments = missingImportedSqlCommentFragments(originalSql, formattedSql);
   if (missingComments.length > 0) {
     return { safe: false, reason: `formatting skipped because SQL comments would be dropped: ${missingComments.join(', ')}` };
+  }
+  const originalParameters = compileNamedParameters(originalSql).orderedNames;
+  const formattedParameters = compileNamedParameters(formattedSql).orderedNames;
+  if (JSON.stringify(originalParameters) !== JSON.stringify(formattedParameters)) {
+    return {
+      safe: false,
+      reason: [
+        'formatting skipped because SQL named parameters changed',
+        `before=${formatImportedParameterList(originalParameters)}`,
+        `after=${formatImportedParameterList(formattedParameters)}`,
+        tokenSummary,
+      ].join('; '),
+    };
   }
   try {
     const originalNormalized = formatter.format(SqlParser.parse(originalSql)).formattedSql.trim();
     const formattedNormalized = formatter.format(SqlParser.parse(formattedSql)).formattedSql.trim();
     if (originalNormalized !== formattedNormalized) {
-      return { safe: false, reason: 'formatting skipped because formatted SQL did not round-trip to the same normalized AST output' };
+      return {
+        safe: false,
+        reason: `formatting skipped because formatted SQL did not round-trip to the same normalized AST output; ${tokenSummary}`,
+      };
     }
   } catch (error) {
     return { safe: false, reason: error instanceof Error ? error.message : String(error) };
@@ -2873,16 +2887,40 @@ function validateImportedFormattedSql(
   return { safe: true };
 }
 
-function sameImportedTokenSequence(before: readonly Lexeme[], after: readonly Lexeme[]): boolean {
-  if (before.length !== after.length) return false;
-  return before.every((token, index) => {
+function formatImportedTokenSummary(before: readonly Lexeme[], after: readonly Lexeme[]): string {
+  const difference = describeImportedTokenDifference(before, after);
+  return [
+    `tokens before=${before.length}`,
+    `after=${after.length}`,
+    ...(difference ? [`first difference=${difference}`] : []),
+  ].join(', ');
+}
+
+function describeImportedTokenDifference(before: readonly Lexeme[], after: readonly Lexeme[]): string | undefined {
+  const max = Math.min(before.length, after.length);
+  for (let index = 0; index < max; index += 1) {
+    const token = before[index];
     const other = after[index];
-    return Boolean(other)
-      && token.type === other.type
-      && token.value === other.value
-      && JSON.stringify(token.comments ?? null) === JSON.stringify(other.comments ?? null)
-      && JSON.stringify(token.positionedComments ?? null) === JSON.stringify(other.positionedComments ?? null);
-  });
+    if (
+      !other
+      || token.type !== other.type
+      || token.value !== other.value
+      || JSON.stringify(token.comments ?? null) !== JSON.stringify(other.comments ?? null)
+      || JSON.stringify(token.positionedComments ?? null) !== JSON.stringify(other.positionedComments ?? null)
+    ) {
+      return `#${index} ${JSON.stringify(token.value)} -> ${JSON.stringify(other?.value ?? null)}`;
+    }
+  }
+  if (before.length !== after.length) {
+    const token = before[max];
+    const other = after[max];
+    return `#${max} ${JSON.stringify(token?.value ?? null)} -> ${JSON.stringify(other?.value ?? null)}`;
+  }
+  return undefined;
+}
+
+function formatImportedParameterList(parameters: readonly string[]): string {
+  return parameters.length > 0 ? parameters.join(',') : '(none)';
 }
 
 function missingImportedSqlCommentFragments(before: string, after: string): string[] {

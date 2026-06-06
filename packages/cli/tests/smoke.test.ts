@@ -875,13 +875,14 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
 
-      runFeatureImport({
+      const result = runFeatureImport({
         rootDir,
         feature: 'support-inbox',
         queryName: 'list-tickets',
         sql: 'tmp/list-tickets.sql',
       });
 
+      const importedSql = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/list-tickets.sql'), 'utf8');
       const analysisPath = path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json');
       const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as {
         anchorSource?: string;
@@ -896,6 +897,10 @@ describe('@ashiba-ts/cli smoke', () => {
         };
       };
 
+      expect(result.formatted).toBe(true);
+      expect(result.formatSkippedReason).toBeUndefined();
+      expect(importedSql).toContain('from\n            public.tickets as t');
+      expect(importedSql).toContain('inner join public.customers as c');
       expect(analysis).toMatchObject({
         anchorSource: 'ticket_base',
         anchorTable: 'public.tickets',
@@ -908,6 +913,83 @@ describe('@ashiba-ts/cli smoke', () => {
         anchorTable: 'public.tickets',
         physicalTables: ['public.customers', 'public.tickets'],
       });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('imports SQL with implicit aliases when formatting preserves AST and named parameters', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-relaxed-format-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'search-users.sql'), [
+        'select u.user_id, u.email',
+        'from public.users u',
+        'where u.email = :email',
+        'order by u.user_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'users-search',
+        queryName: 'search',
+        sql: 'tmp/search-users.sql',
+      });
+
+      const importedSql = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/search.sql'), 'utf8');
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/query.ts'), 'utf8');
+
+      expect(result.formatted).toBe(true);
+      expect(result.formatSkippedReason).toBeUndefined();
+      expect(importedSql).toContain('from\n    public.users as u');
+      expect(importedSql).toContain('u.email = :email');
+      expect(queryBoundary).toContain('email: string;');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps imported SQL unformatted when formatting would drop comments', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-comment-safe-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'users.sql'), [
+        'select user_id -- keep this review note',
+        'from public.users;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'users-list',
+        queryName: 'list',
+        sql: 'tmp/users.sql',
+      });
+
+      const importedSql = readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/list.sql'), 'utf8');
+
+      expect(result.formatted).toBe(false);
+      expect(result.formatSkippedReason).toContain('SQL comments would be dropped');
+      expect(importedSql).toContain('-- keep this review note');
+      expect(importedSql).toContain('select user_id');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
