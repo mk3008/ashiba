@@ -396,6 +396,89 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('compresses optional conditions around a required middle predicate', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email) and tenant_id = :tenant_id and (:x is null or x = :x)';
+    const compiledSql = 'select * from users where ($1 is null or email = $2) and tenant_id = $3 and ($4 is null or x = $5)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+    const source = querySource(sourceSql, queryModelFor(sourceSql, {
+      sql: compiledSql,
+      orderedNames: ['email', 'email', 'tenant_id', 'x', 'x'],
+      optionalConditionCompression: {
+        branches: [
+          optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
+          optionalCompressionBinding(compiledSql, 'x', 'and ($4 is null or x = $5)').branches[0],
+        ],
+      },
+    }, {
+      optionalConditionCompression: {
+        enabled: true,
+        branches: [
+          optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and').branches[0],
+          optionalCompressionAnalysis(sourceSql, 'x', 'and (:x is null or x = :x)').branches[0],
+        ],
+      },
+    }));
+
+    await adapter.execute(source,
+      { email: null, tenant_id: 10, x: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+    await adapter.execute(source,
+      { email: null, tenant_id: 10, x: 20 }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([
+      {
+        sql: 'select * from users where tenant_id = $1 ',
+        values: [10],
+      },
+      {
+        sql: 'select * from users where tenant_id = $1 and x = $2',
+        values: [10, 20],
+      },
+    ]);
+  });
+
+  test('compresses an optional condition between required predicates', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where tenant_id = :tenant_id and (:email is null or email = :email) and x = :x';
+    const compiledSql = 'select * from users where tenant_id = $1 and ($2 is null or email = $3) and x = $4';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'email', 'email', 'x'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', 'and ($2 is null or email = $3)'),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', 'and (:email is null or email = :email)'),
+        })),
+      { tenant_id: 10, email: null, x: 20 }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users where tenant_id = $1  and x = $2',
+      values: [10, 20],
+    }]);
+  });
+
   test('removes where clause when comments are between where and all optional branches', async () => {
     const cases = [
       { sourceComment: '/* optional filters */ ', compiledComment: '/* optional filters */ ' },
