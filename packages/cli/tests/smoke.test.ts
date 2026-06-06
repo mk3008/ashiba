@@ -840,6 +840,42 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('imports timestamp result columns with valid PostgreSQL mapper probe fixtures', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-timestamp-fixture-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id integer primary key,',
+        '  created_at timestamptz not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'list-tickets.sql'), [
+        'select ticket_id, created_at',
+        'from public.tickets',
+        'where ticket_id = :ticket_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureImport({
+        rootDir,
+        feature: 'tickets-list',
+        queryName: 'list',
+        sql: 'tmp/list-tickets.sql',
+      });
+
+      const mappingCases = readFileSync(path.join(rootDir, 'src/features/tickets-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8');
+
+      expect(mappingCases).toContain("cast('2026-01-01T00:00:00.000Z' as timestamptz)");
+      expect(mappingCases).not.toContain("cast('created_at-1' as timestamptz)");
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('respects customer-owned DTO nullability when imported SQL nullability is uncertain', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-code-is-yours-'));
 

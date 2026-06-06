@@ -3263,6 +3263,9 @@ function sampleValueForType(typeScriptType: string): unknown {
 function sampleColumnValue(column: DdlColumn, rowNumber: number): unknown {
   const type = column.typeName.toLowerCase();
   const name = column.name.toLowerCase();
+  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) {
+    return `2026-01-0${rowNumber}T00:00:00.000Z`;
+  }
   if (/^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(type)) {
     return rowNumber;
   }
