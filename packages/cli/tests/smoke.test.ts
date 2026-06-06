@@ -1534,6 +1534,36 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('does not report mapper drift when SQL and mapper result types are both unknown', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-generated-unknown-result-check-'));
+
+    try {
+      const queryDir = path.join(rootDir, 'src/features/status-read/queries/status');
+      mkdirSync(queryDir, { recursive: true });
+      writeFileSync(path.join(queryDir, 'status.sql'), [
+        'select json_build_object(\'ready\', true) as payload;',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(queryDir, 'query.ts'), [
+        'export interface StatusQueryParams {}',
+        '',
+        'export interface StatusQueryResult {',
+        '  payload: unknown;',
+        '}',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureGeneratedMapperCheck({ rootDir, feature: 'status-read', query: 'status' });
+
+      expect(result.ok).toBe(true);
+      expect(result.checked[0]?.sqlResultTypes).toEqual({ payload: 'unknown' });
+      expect(result.checked[0]?.mapperResultTypes).toEqual({ payload: 'unknown' });
+      expect(result.checked[0]?.mismatchedResultTypes).toEqual([]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('project check keeps quoted dots inside ALTER TABLE identifiers', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-project-check-ddl-quoted-dot-'));
 

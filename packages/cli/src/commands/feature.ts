@@ -1274,13 +1274,13 @@ function classifyResultTypeDrift(options: {
 }): ResultTypeDrift | undefined {
   const mapper = normalizeTypeScriptTypeForComparison(options.mapperType);
   const expected = normalizeTypeScriptTypeForComparison(options.expectedSqlType);
+  if (mapper === expected) return undefined;
   if (mapper === 'unknown') {
     return {
       severity: 'error',
       message: `${options.column}: mapper ${options.mapperType} / SQL ${options.expectedSqlType}`,
     };
   }
-  if (mapper === expected) return undefined;
 
   const mapperBase = stripNullableType(mapper);
   const expectedBase = stripNullableType(expected);
