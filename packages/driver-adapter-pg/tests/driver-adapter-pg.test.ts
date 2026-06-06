@@ -608,6 +608,53 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('combines optional compression and safe sort with range-only binding metadata', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a where a.tenant_id = :tenant_id and (:status is null or a.status = :status) limit :limit';
+    const compiledSql = 'select a.user_id as id from users a where a.tenant_id = $1 and ($2 is null or a.status = $3) limit $4';
+    const compression = optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or a.status = $3)');
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status', 'limit'],
+          safeSortInsertion: { index: compiledSql.indexOf('limit $4') },
+          optionalConditionCompression: {
+            branches: compression.branches.map((branch) => ({
+              parameterName: branch.parameterName,
+              removalRange: {
+                start: branch.removalRange.start,
+                end: branch.removalRange.end,
+              },
+            })),
+          },
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.indexOf('limit :limit'), mode: 'order-by' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
+        })),
+      { tenant_id: 7, status: null, limit: 10 }, {
+        optionalConditionCompression: true,
+        sort: [{ key: 'id', direction: 'desc' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1 order by a.user_id desc limit $2',
+      values: [7, 10],
+    }]);
+    expect(calls[0]?.sql).not.toContain('limi order by');
+  });
+
   test('renumbers placeholders above $10 after optional condition compression and safe sort', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const beforeNames = Array.from({ length: 9 }, (_, index) => `p${String(index + 1).padStart(2, '0')}`);

@@ -186,11 +186,11 @@ export function createPostgresAdapter(
             adjustInsertionForRemovedRanges(sortInsertion.insertion, prepared.sourceRemovalRanges),
             sortInsertion.orderBy,
           );
-          compiledSql = spliceOrderBy(
+          const compiledInsertion = realignOrderByInsertion(
             prepared.sql,
             adjustInsertionForRemovedRanges(sortInsertion.compiledInsertion, prepared.compiledRemovalRanges),
-            sortInsertion.orderBy,
           );
+          compiledSql = spliceOrderBy(prepared.sql, compiledInsertion, sortInsertion.orderBy);
           bound = { ...bound, sql: compiledSql };
         }
 
@@ -494,6 +494,26 @@ function adjustInsertionForRemovedRanges<T extends { index: number; mode: 'order
     }
   }
   return { ...insertion, index: adjustedIndex };
+}
+
+function realignOrderByInsertion<T extends { index: number; mode: 'order-by' | 'comma' }>(sql: string, insertion: T): T {
+  if (insertion.mode !== 'order-by') {
+    return insertion;
+  }
+  if (/^\s*(?:limit|offset|fetch|for)\b/i.test(sql.slice(insertion.index))) {
+    return insertion;
+  }
+
+  const windowStart = Math.max(0, insertion.index - 16);
+  const windowEnd = Math.min(sql.length, insertion.index + 16);
+  const nearbyClause = /\b(?:limit|offset|fetch|for)\b/i.exec(sql.slice(windowStart, windowEnd));
+  if (!nearbyClause || nearbyClause.index === undefined) {
+    return insertion;
+  }
+  return {
+    ...insertion,
+    index: windowStart + nearbyClause.index,
+  };
 }
 
 function renumberPostgresPlaceholders(

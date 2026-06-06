@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { buildPostgresOptionalConditionCompressionBindingMetadata } from '../src/commands/model-gen.js';
 import { compileNamedParameters } from '../src/parameter-metadata.js';
 
 describe('CLI parameter metadata generation', () => {
@@ -79,5 +80,36 @@ describe('CLI parameter metadata generation', () => {
 
     expect(result.sql).toBe(String.raw`select E'it\'s :not_param' as body from users where id = $1`);
     expect(result.orderedNames).toEqual(['id']);
+  });
+
+  test('stores full-query placeholder ranges for optional compression binding metadata', () => {
+    const sql = 'select * from users where tenant_id = :tenant_id and (:status is null or status = :status) limit :limit';
+    const removalText = 'and (:status is null or status = :status)';
+    const removalStart = sql.indexOf(removalText);
+    const metadata = buildPostgresOptionalConditionCompressionBindingMetadata(sql, {
+      enabled: true,
+      branches: [{
+        parameterName: 'status',
+        kind: 'expression',
+        sourceRange: {
+          start: sql.indexOf('(:status is null or status = :status)'),
+          end: sql.indexOf('(:status is null or status = :status)') + '(:status is null or status = :status)'.length,
+          text: '(:status is null or status = :status)',
+        },
+        removalRange: {
+          start: removalStart,
+          end: removalStart + removalText.length,
+          text: removalText,
+        },
+      }],
+    });
+
+    expect(metadata.optionalConditionCompression?.branches).toEqual([{
+      parameterName: 'status',
+      removalRange: {
+        start: 'select * from users where tenant_id = $1 '.length,
+        end: 'select * from users where tenant_id = $1 and ($2 is null or status = $3)'.length,
+      },
+    }]);
   });
 });

@@ -310,9 +310,6 @@ export function buildPostgresOptionalConditionCompressionBindingMetadata(
           end: compileNamedParameters(sourceSql.slice(0, branch.removalRange.end), {
             placeholderStyle: 'postgres',
           }).sql.length,
-          text: compileNamedParameters(branch.removalRange.text ?? sourceSql.slice(branch.removalRange.start, branch.removalRange.end), {
-            placeholderStyle: 'postgres',
-          }).sql,
         },
       })),
     },
