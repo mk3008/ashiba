@@ -74,6 +74,11 @@ export interface QueryModelBindings {
           end: number;
           text?: string;
         };
+        presentReplacement: {
+          start: number;
+          end: number;
+          text: string;
+        };
       }>;
     };
   };
@@ -311,8 +316,28 @@ export function buildPostgresOptionalConditionCompressionBindingMetadata(
             placeholderStyle: 'postgres',
           }).sql.length,
         },
+        presentReplacement: buildPostgresPresentReplacement(sourceSql, branch.presentReplacement),
       })),
     },
+  };
+}
+
+function buildPostgresPresentReplacement(
+  sourceSql: string,
+  replacement: { start: number; end: number; text: string },
+): { start: number; end: number; text: string } {
+  const compiledPrefix = compileNamedParameters(sourceSql.slice(0, replacement.start), {
+    placeholderStyle: 'postgres',
+  }).sql;
+  const compiledThroughReplacement = compileNamedParameters(`${sourceSql.slice(0, replacement.start)}${replacement.text}`, {
+    placeholderStyle: 'postgres',
+  }).sql;
+  return {
+    start: compiledPrefix.length,
+    end: compileNamedParameters(sourceSql.slice(0, replacement.end), {
+      placeholderStyle: 'postgres',
+    }).sql.length,
+    text: compiledThroughReplacement.slice(compiledPrefix.length),
   };
 }
 

@@ -94,10 +94,10 @@ where true
   and (cast(:channel as text) is null or t.channel = :channel)
   and (cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))
   and (
-      coalesce(:keyword, '') = ''
-      or position(lower(coalesce(:keyword, '')) in lower(t.subject)) > 0
-      or position(lower(coalesce(:keyword, '')) in lower(c.name)) > 0
-      or position(lower(coalesce(:keyword, '')) in lower(coalesce(lm.latest_message_body, ''))) > 0
+      :keyword is null
+      or t.subject ilike '%' || :keyword || '%'
+      or c.name ilike '%' || :keyword || '%'
+      or lm.latest_message_body ilike '%' || :keyword || '%'
   )
 limit :limit
 offset :offset

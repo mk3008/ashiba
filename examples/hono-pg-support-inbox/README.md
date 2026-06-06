@@ -10,6 +10,7 @@ The goal is not to prove every CRUD path. This demo focuses on the `R` side: a r
 
 - `GET /tickets` renders a practical support inbox list.
 - Filters are passed as SQL parameters and handled by Ashiba optional-condition compression.
+- Keyword search stays in a PostgreSQL-natural SSSQL shape such as `(:keyword is null or subject ilike '%' || :keyword || '%')`; when `keyword` is present, the adapter executes the predicate without the null guard.
 - Sort choices are mapped to reviewed safe sort keys from the generated query model.
 - The main list logic remains in one visible SQL file.
 - DTOs, query metadata, mapper test assets, and ZTD tests live beside the feature query.

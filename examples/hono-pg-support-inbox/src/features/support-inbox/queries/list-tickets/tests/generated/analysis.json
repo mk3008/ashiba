@@ -2,6 +2,15 @@
   "feature": "support-inbox",
   "query": "list-tickets",
   "action": "list",
+  "physicalTables": [
+    "public.customers",
+    "public.ticket_messages",
+    "public.ticket_tag_links",
+    "public.ticket_tags",
+    "public.tickets"
+  ],
+  "anchorSource": "tickets",
+  "anchorTable": "public.tickets",
   "table": "public.tickets",
   "primaryKeyColumn": "ticket_id",
   "importSource": "existing-sql",
@@ -9,7 +18,16 @@
     "query": "list-tickets",
     "action": "list",
     "table": "public.tickets",
+    "anchorSource": "tickets",
+    "anchorTable": "public.tickets",
     "primaryKeyColumn": "ticket_id",
+    "physicalTables": [
+      "public.customers",
+      "public.ticket_messages",
+      "public.ticket_tag_links",
+      "public.ticket_tags",
+      "public.tickets"
+    ],
     "params": [
       {
         "name": "status",

@@ -70,16 +70,17 @@ Product note:
 
 The initial list SQL used a CTE named `ticket_tags`, which overlapped with the physical table name. SQL lint reported a missing column on the wrong relation.
 
-The keyword filter also used string concatenation with `ILIKE '%' || :keyword || '%'`, which triggered an analysis-risk warning.
+The keyword filter originally moved away from `ILIKE '%' || :keyword || '%'` to reduce analysis friction. That was too DBMS-hostile as a long-term recommendation: PostgreSQL substring search is naturally expressed with `ILIKE`/`LIKE`, and production deployments can pair that shape with DBMS-native search/index strategies.
 
 Resolution in this demo:
 
 - Renamed the CTE to `aggregated_tags`.
-- Replaced concatenation with `position(lower(:keyword) in lower(...)) > 0`.
+- Restored the SSSQL shape `(:keyword is null or column ilike '%' || :keyword || '%')`.
+- Updated SSSQL runtime compression so null keyword removes the optional branch, while a present keyword prunes only the null guard and leaves the natural predicate, for example `column ilike '%' || $1 || '%'`.
 
 Product note:
 
-- The final SQL is more mechanically analyzable, but examples should teach this pattern directly.
+- SSSQL should preserve the DBMS-natural predicate shape and make the optional guard disappear safely at runtime.
 
 ### Generated mapper cases used invalid timestamp fixtures
 
@@ -168,7 +169,7 @@ Product note:
 | P0 | done | Support `feature import` for CTE-anchored read queries. | Fixed by `fix(cli): import cte-anchored sql metadata`. Keep the demo SQL or a fixture covering final CTE sources in CLI tests. |
 | P0 | done | Let `feature import` format harmless SQL normalization. | Fixed by `fix(cli): relax feature import formatting safety`. The import path allows semantic formatter changes while still protecting comments, named parameters, and AST round-trip equality. |
 | P0 | done | Compose optional-condition compression with safe sort. | Fixed by `fix(pg): compose optional compression with safe sort`. The driver adapter has regression coverage for range-only compression metadata and safe sort insertion after compression. |
-| P1 | open | Document analyzable keyword filter patterns. | The demo uses `position(lower(:keyword) in lower(...)) > 0` instead of concatenated `ILIKE '%' || :keyword || '%'`. Docs should explain this as a mechanical-analysis-friendly pattern, not as a universal SQL style rule. |
+| P1 | done | Keep keyword filters in DBMS-natural SSSQL form. | The demo uses `(:keyword is null or column ilike '%' || :keyword || '%')`; runtime compression removes the whole branch when null and prunes only the guard when present. |
 | P1 | open | Document stable optional-filter anchors. | When optional compression is mixed with non-compressed conditions, examples should show `where true` or another stable anchor so branch removal cannot delete the whole `where` context. |
 | P1 | open | Provide a user-facing safe sort surface. | The current demo maps public sort choices in application code. A future CLI/helper path could expose reviewed display keys without adding helper rank columns to result DTOs. |
 | P1 | open | Add a SQL inspection panel to the demo. | A small panel could show compiled SQL, bound parameter names, and selected safe sort key so users can see the "visible SQL" story without reading terminal logs. |

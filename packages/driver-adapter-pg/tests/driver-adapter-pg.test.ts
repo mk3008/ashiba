@@ -224,6 +224,36 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('prunes only the null guard when an optional parameter is present', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = "select * from users where tenant_id = :tenant_id and (:keyword is null or users.email ilike '%' || :keyword || '%')";
+    const compiledSql = "select * from users where tenant_id = $1 and ($2 is null or users.email ilike '%' || $3 || '%')";
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'keyword', 'keyword'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'keyword', "and ($2 is null or users.email ilike '%' || $3 || '%')"),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'keyword', "and (:keyword is null or users.email ilike '%' || :keyword || '%')"),
+        })),
+      { tenant_id: 10, keyword: 'alice' }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: "select * from users where tenant_id = $1 and users.email ilike '%' || $2 || '%'",
+      values: [10, 'alice'],
+    }]);
+  });
+
   test('compresses a sole optional where condition without leaving dangling where', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select * from users where (:email is null or email = :email)';
@@ -608,7 +638,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
-  test('combines optional compression and safe sort with range-only binding metadata', async () => {
+  test('combines optional compression and safe sort with generated binding metadata', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select a.user_id as id from users a where a.tenant_id = :tenant_id and (:status is null or a.status = :status) limit :limit';
     const compiledSql = 'select a.user_id as id from users a where a.tenant_id = $1 and ($2 is null or a.status = $3) limit $4';
@@ -632,6 +662,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
                 start: branch.removalRange.start,
                 end: branch.removalRange.end,
               },
+              presentReplacement: branch.presentReplacement,
             })),
           },
         }, {
@@ -745,8 +776,8 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     );
 
     expect(calls).toEqual([{
-      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and ($2 is null or a.email = $3) order by a.user_id desc',
-      values: [7, injectedEmail, injectedEmail],
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and a.email = $2 order by a.user_id desc',
+      values: [7, injectedEmail],
     }]);
     expect(calls[0]?.sql).not.toContain(injectedEmail);
   });
@@ -969,8 +1000,8 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     );
 
     expect(calls).toEqual([{
-      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and ($2 is null or a.email = $3) order by a.created_at, a.user_id asc',
-      values: [7, 'a@example.test', 'a@example.test'],
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and a.email = $2 order by a.created_at, a.user_id asc',
+      values: [7, 'a@example.test'],
     }]);
   });
 
@@ -1567,6 +1598,11 @@ function queryModelFor(
             end: number;
             text?: string;
           };
+          presentReplacement: {
+            start: number;
+            end: number;
+            text: string;
+          };
         }[];
       };
   } = {},
@@ -1597,6 +1633,7 @@ function optionalCompressionAnalysis(sourceSql: string, parameterName: string, r
   if (removalStart < 0) throw new Error(`Missing source removal text: ${removalText}`);
   const sourceText = removalText.replace(/^and\s+/i, '');
   const sourceStart = sourceSql.indexOf(sourceText, removalStart);
+  const presentText = buildPresentReplacementText(sourceText);
   return {
     enabled: true,
     branches: [{
@@ -1612,6 +1649,11 @@ function optionalCompressionAnalysis(sourceSql: string, parameterName: string, r
         end: removalStart + removalText.length,
         text: removalText,
       },
+      presentReplacement: {
+        start: sourceStart,
+        end: sourceStart + sourceText.length,
+        text: presentText,
+      },
     }],
   };
 }
@@ -1619,6 +1661,8 @@ function optionalCompressionAnalysis(sourceSql: string, parameterName: string, r
 function optionalCompressionBinding(compiledSql: string, parameterName: string, removalText: string) {
   const removalStart = compiledSql.indexOf(removalText);
   if (removalStart < 0) throw new Error(`Missing compiled removal text: ${removalText}`);
+  const sourceText = removalText.replace(/^and\s+/i, '');
+  const sourceStart = compiledSql.indexOf(sourceText, removalStart);
   return {
     branches: [{
       parameterName,
@@ -1627,6 +1671,18 @@ function optionalCompressionBinding(compiledSql: string, parameterName: string, 
         end: removalStart + removalText.length,
         text: removalText,
       },
+      presentReplacement: {
+        start: sourceStart,
+        end: sourceStart + sourceText.length,
+        text: buildPresentReplacementText(sourceText),
+      },
     }],
   };
+}
+
+function buildPresentReplacementText(branchText: string): string {
+  const inner = branchText.trim().replace(/^\((.*)\)$/s, '$1');
+  const terms = inner.split(/\s+or\s+/i);
+  const meaningful = terms.filter((term) => !/^\s*(?::[A-Za-z_][A-Za-z0-9_]*|\$\d+)\s+is\s+null\s*$/i.test(term));
+  return meaningful.length === 1 ? meaningful[0]!.trim() : `(${meaningful.map((term) => term.trim()).join(' or ')})`;
 }

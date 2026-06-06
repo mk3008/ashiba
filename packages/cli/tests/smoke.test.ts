@@ -3040,9 +3040,15 @@ describe('@ashiba-ts/cli smoke', () => {
       });
       expect(result.analysis.optionalConditionCompression?.branches[0]?.removalRange.text)
         .toContain('and (:status is null or status = :status)');
+      expect(result.analysis.optionalConditionCompression?.branches[0]?.presentReplacement).toMatchObject({
+        text: 'status = :status',
+      });
       expect(result.bindings.postgres.optionalConditionCompression).toMatchObject({
         branches: [{
           parameterName: 'status',
+          presentReplacement: {
+            text: 'status = $2',
+          },
         }],
       });
       expect(result.metadataContents).toContain('optionalConditionCompression');
@@ -3951,6 +3957,26 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(output).toContain('unused-cte');
       expect(output).toContain('analysis-risk');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('allows DBMS-natural string concatenation inside supported SSSQL keyword branches', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-lint-sssql-keyword-'));
+
+    try {
+      const sqlPath = path.join(rootDir, 'search.sql');
+      writeFileSync(sqlPath, `
+        SELECT id, email
+        FROM public.users
+        WHERE (:keyword is null or email ilike '%' || :keyword || '%');
+      `, 'utf8');
+
+      const output = runQueryLint(sqlPath, { rootDir });
+
+      expect(output).toContain('No query lint issues detected.');
+      expect(output).not.toContain('analysis-risk');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

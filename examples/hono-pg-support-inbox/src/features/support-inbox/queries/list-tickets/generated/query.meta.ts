@@ -6,11 +6,11 @@ export const queryModel = {
     "statementKind": "select",
     "rootQueryShape": "simple-select",
     "hasTopLevelOrderBy": false,
-    "sourceHash": "sha256:46635592493d09b31a57462d93a23480c17b3cb66f774dcc63822e522b7e0f50",
+    "sourceHash": "sha256:5f845de487fb43943d29c4c7c6d191b9a36ef70900c5828dee885172a4f4d211",
     "safeSort": {
       "insertion": {
         "status": "ready",
-        "index": 3435,
+        "index": 3335,
         "mode": "order-by"
       },
       "sortable": {
@@ -81,7 +81,27 @@ export const queryModel = {
     },
     "optionalConditionCompression": {
       "enabled": true,
-      "branches": []
+      "branches": [
+        {
+          "parameterName": "keyword",
+          "kind": "expression",
+          "sourceRange": {
+            "start": 3152,
+            "end": 3334,
+            "text": "(\n      :keyword is null\n      or t.subject ilike '%' || :keyword || '%'\n      or c.name ilike '%' || :keyword || '%'\n      or lm.latest_message_body ilike '%' || :keyword || '%'\n  )"
+          },
+          "removalRange": {
+            "start": 3148,
+            "end": 3334,
+            "text": "and (\n      :keyword is null\n      or t.subject ilike '%' || :keyword || '%'\n      or c.name ilike '%' || :keyword || '%'\n      or lm.latest_message_body ilike '%' || :keyword || '%'\n  )"
+          },
+          "presentReplacement": {
+            "start": 3152,
+            "end": 3334,
+            "text": "(t.subject ilike '%' || :keyword || '%' or c.name ilike '%' || :keyword || '%' or lm.latest_message_body ilike '%' || :keyword || '%')"
+          }
+        }
+      ]
     },
     "resultColumns": [
       "action_required",
@@ -143,8 +163,8 @@ export const queryModel = {
   },
   "bindings": {
     "postgres": {
-      "sourceHash": "sha256:46635592493d09b31a57462d93a23480c17b3cb66f774dcc63822e522b7e0f50",
-      "sql": "with latest_message as (\n    select\n        ranked.ticket_id,\n        ranked.sender_name as latest_sender_name,\n        ranked.sender_role as latest_sender_role,\n        ranked.body as latest_message_body,\n        ranked.created_at as latest_message_at\n    from (\n        select\n            tm.ticket_id,\n            tm.sender_name,\n            tm.sender_role,\n            tm.body,\n            tm.created_at,\n            row_number() over (partition by tm.ticket_id order by tm.created_at desc) as message_rank\n        from public.ticket_messages tm\n    ) ranked\n    where ranked.message_rank = 1\n),\nlast_customer_reply as (\n    select\n        tm.ticket_id,\n        max(tm.created_at) as last_customer_reply_at\n    from public.ticket_messages tm\n    where tm.sender_role = 'customer'\n    group by tm.ticket_id\n),\naggregated_tags as (\n    select\n        ttl.ticket_id,\n        array_agg(tt.slug order by tt.slug) as tag_slugs\n    from public.ticket_tag_links ttl\n    join public.ticket_tags tt on tt.tag_id = ttl.tag_id\n    group by ttl.ticket_id\n)\nselect\n    t.ticket_id,\n    t.subject,\n    c.name as customer_name,\n    c.tier as customer_tier,\n    t.status,\n    t.priority,\n    t.language,\n    t.channel,\n    t.sla_due_at,\n    case\n        when t.sla_due_at is null then 'none'\n        when t.sla_due_at < now() then 'breached'\n        when t.sla_due_at < now() + interval '4 hours' then 'warning'\n        else 'ok'\n    end as sla_state,\n    lm.latest_sender_name,\n    lm.latest_sender_role,\n    lm.latest_message_body,\n    lm.latest_message_at,\n    lcr.last_customer_reply_at,\n    t.created_at,\n    t.updated_at,\n    coalesce(tags.tag_slugs, array[]::text[]) as tag_slugs,\n    case\n        when t.sla_due_at is not null and t.sla_due_at < now() then 1\n        when t.priority = 'high' and t.status in ('open', 'waiting_agent') then 2\n        when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then 3\n        when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then 4\n        else 9\n    end as action_required,\n    case t.priority\n        when 'high' then 1\n        when 'medium' then 2\n        else 3\n    end as priority_rank,\n    case c.tier\n        when 'vip' then 1\n        else 2\n    end as vip_rank\nfrom public.tickets t\njoin public.customers c on c.customer_id = t.customer_id\nleft join latest_message lm on lm.ticket_id = t.ticket_id\nleft join last_customer_reply lcr on lcr.ticket_id = t.ticket_id\nleft join aggregated_tags tags on tags.ticket_id = t.ticket_id\nwhere true\n  and (cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      coalesce($13, '') = ''\n      or position(lower(coalesce($14, '')) in lower(t.subject)) > 0\n      or position(lower(coalesce($15, '')) in lower(c.name)) > 0\n      or position(lower(coalesce($16, '')) in lower(coalesce(lm.latest_message_body, ''))) > 0\n  )\nlimit $17\noffset $18\n",
+      "sourceHash": "sha256:5f845de487fb43943d29c4c7c6d191b9a36ef70900c5828dee885172a4f4d211",
+      "sql": "with latest_message as (\n    select\n        ranked.ticket_id,\n        ranked.sender_name as latest_sender_name,\n        ranked.sender_role as latest_sender_role,\n        ranked.body as latest_message_body,\n        ranked.created_at as latest_message_at\n    from (\n        select\n            tm.ticket_id,\n            tm.sender_name,\n            tm.sender_role,\n            tm.body,\n            tm.created_at,\n            row_number() over (partition by tm.ticket_id order by tm.created_at desc) as message_rank\n        from public.ticket_messages tm\n    ) ranked\n    where ranked.message_rank = 1\n),\nlast_customer_reply as (\n    select\n        tm.ticket_id,\n        max(tm.created_at) as last_customer_reply_at\n    from public.ticket_messages tm\n    where tm.sender_role = 'customer'\n    group by tm.ticket_id\n),\naggregated_tags as (\n    select\n        ttl.ticket_id,\n        array_agg(tt.slug order by tt.slug) as tag_slugs\n    from public.ticket_tag_links ttl\n    join public.ticket_tags tt on tt.tag_id = ttl.tag_id\n    group by ttl.ticket_id\n)\nselect\n    t.ticket_id,\n    t.subject,\n    c.name as customer_name,\n    c.tier as customer_tier,\n    t.status,\n    t.priority,\n    t.language,\n    t.channel,\n    t.sla_due_at,\n    case\n        when t.sla_due_at is null then 'none'\n        when t.sla_due_at < now() then 'breached'\n        when t.sla_due_at < now() + interval '4 hours' then 'warning'\n        else 'ok'\n    end as sla_state,\n    lm.latest_sender_name,\n    lm.latest_sender_role,\n    lm.latest_message_body,\n    lm.latest_message_at,\n    lcr.last_customer_reply_at,\n    t.created_at,\n    t.updated_at,\n    coalesce(tags.tag_slugs, array[]::text[]) as tag_slugs,\n    case\n        when t.sla_due_at is not null and t.sla_due_at < now() then 1\n        when t.priority = 'high' and t.status in ('open', 'waiting_agent') then 2\n        when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then 3\n        when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then 4\n        else 9\n    end as action_required,\n    case t.priority\n        when 'high' then 1\n        when 'medium' then 2\n        else 3\n    end as priority_rank,\n    case c.tier\n        when 'vip' then 1\n        else 2\n    end as vip_rank\nfrom public.tickets t\njoin public.customers c on c.customer_id = t.customer_id\nleft join latest_message lm on lm.ticket_id = t.ticket_id\nleft join last_customer_reply lcr on lcr.ticket_id = t.ticket_id\nleft join aggregated_tags tags on tags.ticket_id = t.ticket_id\nwhere true\n  and (cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      $13 is null\n      or t.subject ilike '%' || $14 || '%'\n      or c.name ilike '%' || $15 || '%'\n      or lm.latest_message_body ilike '%' || $16 || '%'\n  )\nlimit $17\noffset $18\n",
       "orderedNames": [
         "status",
         "status",
@@ -166,10 +186,23 @@ export const queryModel = {
         "offset"
       ],
       "safeSortInsertion": {
-        "index": 3342
+        "index": 3242
       },
       "optionalConditionCompression": {
-        "branches": []
+        "branches": [
+          {
+            "parameterName": "keyword",
+            "removalRange": {
+              "start": 3075,
+              "end": 3241
+            },
+            "presentReplacement": {
+              "start": 3079,
+              "end": 3241,
+              "text": "(t.subject ilike '%' || $13 || '%' or c.name ilike '%' || $14 || '%' or lm.latest_message_body ilike '%' || $15 || '%')"
+            }
+          }
+        ]
       }
     }
   }

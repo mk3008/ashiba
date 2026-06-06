@@ -111,6 +111,11 @@ export type AshibaQueryModelAnalysis = {
         end: number;
         text?: string;
       };
+      presentReplacement: {
+        start: number;
+        end: number;
+        text: string;
+      };
     }[];
   };
 };

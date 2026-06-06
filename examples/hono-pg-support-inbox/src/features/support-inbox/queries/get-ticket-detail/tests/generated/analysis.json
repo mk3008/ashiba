@@ -2,6 +2,13 @@
   "feature": "support-inbox",
   "query": "get-ticket-detail",
   "action": "get-by-id",
+  "physicalTables": [
+    "public.customers",
+    "public.ticket_messages",
+    "public.tickets"
+  ],
+  "anchorSource": "tickets",
+  "anchorTable": "public.tickets",
   "table": "public.tickets",
   "primaryKeyColumn": "ticket_id",
   "importSource": "existing-sql",
@@ -9,7 +16,14 @@
     "query": "get-ticket-detail",
     "action": "get-by-id",
     "table": "public.tickets",
+    "anchorSource": "tickets",
+    "anchorTable": "public.tickets",
     "primaryKeyColumn": "ticket_id",
+    "physicalTables": [
+      "public.customers",
+      "public.ticket_messages",
+      "public.tickets"
+    ],
     "params": [
       {
         "name": "ticketId",

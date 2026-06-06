@@ -101,6 +101,11 @@ describe('CLI parameter metadata generation', () => {
           end: removalStart + removalText.length,
           text: removalText,
         },
+        presentReplacement: {
+          start: sql.indexOf('(:status is null or status = :status)'),
+          end: sql.indexOf('(:status is null or status = :status)') + '(:status is null or status = :status)'.length,
+          text: 'status = :status',
+        },
       }],
     });
 
@@ -109,6 +114,11 @@ describe('CLI parameter metadata generation', () => {
       removalRange: {
         start: 'select * from users where tenant_id = $1 '.length,
         end: 'select * from users where tenant_id = $1 and ($2 is null or status = $3)'.length,
+      },
+      presentReplacement: {
+        start: 'select * from users where tenant_id = $1 and '.length,
+        end: 'select * from users where tenant_id = $1 and ($2 is null or status = $3)'.length,
+        text: 'status = $2',
       },
     }]);
   });
