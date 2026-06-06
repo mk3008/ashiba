@@ -217,6 +217,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/harness.ts'), 'utf8')).toContain('runQuerySpecZtdCases');
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/harness.ts'), 'utf8')).toContain('createQuerySpecZtdVerifier');
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain('createQuerySpecZtdVerifier');
+      expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain('actual instanceof Date');
+      expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain("Object.prototype.toString.call(value) === '[object Object]'");
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain('await pool.end()');
       expect(result.files.some((file) => /(^|\/)(AGENTS|AGENT|SKILL)\.md$/i.test(file.relativePath))).toBe(false);
       expect(result.files.some((file) => /(^|\/)(\.agent|\.agents|\.codex|skills|prompts|hooks)(\/|$)/i.test(file.relativePath))).toBe(false);

@@ -689,6 +689,9 @@ function normalizeActualByExpected(actual: unknown, expected: unknown): unknown 
   if (typeof expected === 'string' && typeof actual === 'number') {
     return String(actual);
   }
+  if (typeof expected === 'string' && actual instanceof Date) {
+    return actual.toISOString();
+  }
   if (typeof expected === 'boolean' && typeof actual === 'string') {
     const normalized = actual.toLowerCase();
     if (normalized === 'true') return true;
@@ -764,7 +767,7 @@ function assertRecordRow(value: unknown, tableName: string): Record<string, unkn
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return Object.prototype.toString.call(value) === '[object Object]';
 }
 
 function normalizeSql(sql: string): string {
