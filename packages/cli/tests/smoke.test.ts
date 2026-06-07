@@ -868,9 +868,16 @@ describe('@ashiba-ts/cli smoke', () => {
         '    c.display_name as customer_name',
         '  from public.tickets t',
         '  inner join public.customers c on c.customer_id = t.customer_id',
+        '),',
+        'ticket_view as (',
+        '  select',
+        '    ticket_id,',
+        '    subject,',
+        '    customer_name',
+        '  from ticket_base',
         ')',
         'select ticket_id, subject, customer_name',
-        'from ticket_base',
+        'from ticket_view',
         'order by ticket_id;',
         '',
       ].join('\n'), 'utf8');
@@ -902,14 +909,14 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(importedSql).toContain('from\n            public.tickets as t');
       expect(importedSql).toContain('inner join public.customers as c');
       expect(analysis).toMatchObject({
-        anchorSource: 'ticket_base',
+        anchorSource: 'ticket_view',
         anchorTable: 'public.tickets',
         table: 'public.tickets',
         status: 'generated-from-imported-sql',
       });
       expect(analysis.physicalTables).toEqual(['public.customers', 'public.tickets']);
       expect(analysis.mappingCaseSignature).toMatchObject({
-        anchorSource: 'ticket_base',
+        anchorSource: 'ticket_view',
         anchorTable: 'public.tickets',
         physicalTables: ['public.customers', 'public.tickets'],
       });
@@ -3135,7 +3142,9 @@ describe('@ashiba-ts/cli smoke', () => {
         '  $tag$(cast(:body_status as text) is null or status = :body_status)$tag$ as note',
         'from public.users',
         'where tenant_id = :tenant_id',
-        '  and (cast(:status as text) is null or status = :status);',
+        '  and (cast(:status as text) is null or status = :status)',
+        '  and (cast(:priority as text) is null or /* :fake_priority or */ priority = :priority)',
+        '  and (:kind is null or kind = :kind || $tag$or :fake_kind$tag$);',
         '',
       ].join('\n'), 'utf8');
 
@@ -3145,9 +3154,9 @@ describe('@ashiba-ts/cli smoke', () => {
       });
 
       expect(result.analysis.optionalConditionCompression?.branches.map((branch) => branch.parameterName))
-        .toEqual(['status']);
+        .toEqual(['status', 'priority', 'kind']);
       expect(result.bindings.postgres.optionalConditionCompression?.branches.map((branch) => branch.parameterName))
-        .toEqual(['status']);
+        .toEqual(['status', 'priority', 'kind']);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

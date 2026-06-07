@@ -280,6 +280,11 @@ function splitTopLevelOrTerms(value: string): Array<{ text: string }> {
       quote = current;
       continue;
     }
+    const inactiveEnd = inactiveSqlFragmentEnd(value, index);
+    if (inactiveEnd !== undefined) {
+      index = inactiveEnd - 1;
+      continue;
+    }
     if (current === '(') {
       depth += 1;
       continue;
@@ -341,6 +346,11 @@ function collectNamedParameters(value: string): string[] {
       quote = current;
       continue;
     }
+    const inactiveEnd = inactiveSqlFragmentEnd(value, index);
+    if (inactiveEnd !== undefined) {
+      index = inactiveEnd - 1;
+      continue;
+    }
     if (current === ':' && next === ':') {
       index += 1;
       continue;
@@ -354,6 +364,26 @@ function collectNamedParameters(value: string): string[] {
     }
   }
   return names;
+}
+
+function inactiveSqlFragmentEnd(sql: string, index: number): number | undefined {
+  const current = sql[index] ?? '';
+  const next = sql[index + 1] ?? '';
+  if (current === '-' && next === '-') {
+    const lineEnd = sql.indexOf('\n', index + 2);
+    return lineEnd < 0 ? sql.length : lineEnd;
+  }
+  if (current === '/' && next === '*') {
+    const blockEnd = sql.indexOf('*/', index + 2);
+    return blockEnd < 0 ? sql.length : blockEnd + 2;
+  }
+  if (current === '$') {
+    const tag = postgresDollarQuoteAt(sql, index);
+    if (!tag) return undefined;
+    const quoteEnd = sql.indexOf(tag, index + tag.length);
+    return quoteEnd < 0 ? sql.length : quoteEnd + tag.length;
+  }
+  return undefined;
 }
 
 function postgresDollarQuoteAt(sql: string, index: number): string | undefined {

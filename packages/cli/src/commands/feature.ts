@@ -1175,15 +1175,16 @@ interface AnchorSource {
 }
 
 function resolveAnchorSource(statement: ReturnType<typeof SqlParser.parse>): AnchorSource | undefined {
-  return resolveAnchorSourceFromStatement(statement, new Set());
+  return resolveAnchorSourceFromStatement(statement, new Set(), []);
 }
 
 function resolveAnchorSourceFromStatement(
   statement: ReturnType<typeof SqlParser.parse> | SelectQuery,
   seenCtes: Set<string>,
+  outerCtes: CommonTable[],
 ): AnchorSource | undefined {
   if (statement instanceof SimpleSelectQuery) {
-    return resolveAnchorSourceFromSelect(statement, seenCtes);
+    return resolveAnchorSourceFromSelect(statement, seenCtes, outerCtes);
   }
   if (statement instanceof BinarySelectQuery) {
     return undefined;
@@ -1200,17 +1201,18 @@ function resolveAnchorSourceFromStatement(
   return undefined;
 }
 
-function resolveAnchorSourceFromSelect(query: SimpleSelectQuery, seenCtes: Set<string>): AnchorSource | undefined {
+function resolveAnchorSourceFromSelect(query: SimpleSelectQuery, seenCtes: Set<string>, outerCtes: CommonTable[]): AnchorSource | undefined {
   const source = query.fromClause?.source;
   const anchor = anchorFromSource(source);
   if (!anchor) return undefined;
-  const cte = findCteByName(query.withClause?.tables, anchor.name);
+  const visibleCtes = [...(query.withClause?.tables ?? []), ...outerCtes];
+  const cte = findCteByName(visibleCtes, anchor.name);
   if (!cte) return anchor;
   const key = anchor.name.toLowerCase();
   if (seenCtes.has(key)) return { name: anchor.name };
   const nextSeen = new Set(seenCtes);
   nextSeen.add(key);
-  const resolved = resolveAnchorSourceFromStatement(cte.query, nextSeen);
+  const resolved = resolveAnchorSourceFromStatement(cte.query, nextSeen, visibleCtes);
   return {
     name: anchor.name,
     ...(resolved?.tableName ? { tableName: resolved.tableName } : {}),

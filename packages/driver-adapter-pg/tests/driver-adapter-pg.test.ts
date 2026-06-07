@@ -284,6 +284,36 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('compresses a sole optional where condition before a statement terminator', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email);';
+    const compiledSql = 'select * from users where ($1 is null or email = $2);';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['email', 'email'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', 'where ($1 is null or email = $2)'),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', 'where (:email is null or email = :email)'),
+        })),
+      { email: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users ;',
+      values: [],
+    }]);
+  });
+
   test('keeps where when a leading optional condition is removed before a required condition', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select * from users where (:email is null or email = :email) and tenant_id = :tenant_id';
@@ -1241,6 +1271,46 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('keeps comma-mode safe sort before LIMIT after optional cleanup shifts insertion left', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a where (:status is null or a.status = :status) order by a.created_at limit :limit';
+    const compiledSql = 'select a.user_id as id from users a where ($1 is null or a.status = $2) order by a.created_at limit $3';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['status', 'status', 'limit'],
+          safeSortInsertion: { index: compiledSql.indexOf(' limit $3') },
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'where ($1 is null or a.status = $2)'),
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.indexOf(' limit :limit'), mode: 'comma' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+          optionalConditionCompression: {
+            enabled: true,
+            branches: optionalCompressionAnalysis(sourceSql, 'status', 'where (:status is null or a.status = :status)').branches,
+          },
+        })),
+      { status: null, limit: 10 }, {
+        optionalConditionCompression: true,
+        sort: [{ key: 'id' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select a.user_id as id from users a  order by a.created_at, a.user_id asc limit $1',
+      values: [10],
+    }]);
+  });
+
   test('does not compress missing optional parameters as absent before parameter validation', async () => {
     let called = false;
     const sourceSql = 'select * from users where tenant_id = :tenant_id and (:status is null or status = :status)';
@@ -2090,7 +2160,8 @@ function optionalCompressionBinding(compiledSql: string, parameterName: string, 
 }
 
 function buildPresentReplacementText(branchText: string): string {
-  const inner = branchText.trim().replace(/^\((.*)\)$/s, '$1');
+  const normalized = branchText.trim().replace(/^(?:where|and|or)\b\s*/i, '');
+  const inner = normalized.replace(/^\((.*)\)$/s, '$1');
   const terms = inner.split(/\s+or\s+/i);
   const meaningful = terms.filter((term) => !/^\s*(?::[A-Za-z_][A-Za-z0-9_]*|\$\d+)\s+is\s+null\s*$/i.test(term));
   return meaningful.length === 1 ? meaningful[0]!.trim() : `(${meaningful.map((term) => term.trim()).join(' or ')})`;

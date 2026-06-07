@@ -12,7 +12,10 @@ with latest_message as (
             tm.sender_role,
             tm.body,
             tm.created_at,
-            row_number() over (partition by tm.ticket_id order by tm.created_at desc) as message_rank
+            row_number() over (
+                partition by tm.ticket_id
+                order by tm.created_at desc, tm.message_id desc
+            ) as message_rank
         from public.ticket_messages tm
     ) ranked
     where ranked.message_rank = 1

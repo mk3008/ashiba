@@ -1,7 +1,6 @@
 import 'dotenv/config';
 
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Pool } from 'pg';
 
@@ -171,7 +170,7 @@ export async function seedSupportInbox(pool: Pool): Promise<void> {
 async function resetSchema(pool: Pool): Promise<void> {
   await pool.query('drop schema if exists public cascade');
   await pool.query('create schema public');
-  const ddl = readFileSync(resolve('db/ddl/public.sql'), 'utf8');
+  const ddl = readFileSync(new URL('../db/ddl/public.sql', import.meta.url), 'utf8');
   await pool.query(ddl);
 }
 

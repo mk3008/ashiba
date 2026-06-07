@@ -19,4 +19,4 @@ from public.tickets t
 join public.customers c on c.customer_id = t.customer_id
 left join public.ticket_messages tm on tm.ticket_id = t.ticket_id
 where t.ticket_id = :ticketId
-order by tm.created_at asc
+order by tm.created_at asc, tm.message_id asc

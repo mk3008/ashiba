@@ -284,6 +284,13 @@ function scanNamedParams(sql: string): NamedToken[] {
       index = skipQuoted(sql, index, current);
       continue;
     }
+    if (current === '$') {
+      const nextIndex = skipDollarQuoted(sql, index);
+      if (nextIndex !== index) {
+        index = nextIndex;
+        continue;
+      }
+    }
     if (current === '-' && next === '-') {
       index = sql.indexOf('\n', index + 2);
       if (index < 0) return tokens;
@@ -304,6 +311,13 @@ function scanNamedParams(sql: string): NamedToken[] {
   }
 
   return tokens;
+}
+
+function skipDollarQuoted(sql: string, start: number): number {
+  const tag = sql.slice(start).match(/^(\$\$|\$[A-Za-z_][A-Za-z0-9_]*\$)/)?.[0];
+  if (!tag) return start;
+  const close = sql.indexOf(tag, start + tag.length);
+  return close < 0 ? sql.length : close + tag.length;
 }
 
 function skipQuoted(sql: string, start: number, quote: string): number {

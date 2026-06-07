@@ -178,15 +178,17 @@ const database = readDbEnv('ASHIBA_TEST_DB_NAME', 'ashiba');
 const user = readDbEnv('ASHIBA_TEST_DB_USER', 'ashiba');
 const password = readDbEnv('ASHIBA_TEST_DB_PASSWORD', 'ashiba');
 const derivedUrl = \`postgres://\${encodeURIComponent(user)}:\${encodeURIComponent(password)}@\${host}:\${port}/\${encodeURIComponent(database)}\`;
+const redactedDerivedUrl = redactPostgresUrl(derivedUrl);
 
 if (process.env.ASHIBA_TEST_DATABASE_URL?.trim()) {
   const explicitUrl = process.env.ASHIBA_TEST_DATABASE_URL.trim();
+  const redactedExplicitUrl = redactPostgresUrl(explicitUrl);
   if (explicitUrl !== derivedUrl) {
     throw new Error([
       'ASHIBA_TEST_DATABASE_URL conflicts with the starter-owned DB settings.',
       'Use .env as the single source of truth for Ashiba test DB settings, or set ASHIBA_TEST_DATABASE_URL to the exact derived value.',
-      \`derived: \${derivedUrl}\`,
-      \`explicit: \${explicitUrl}\`,
+      \`derived: \${redactedDerivedUrl}\`,
+      \`explicit: \${redactedExplicitUrl}\`,
     ].join('\\n'));
   }
 } else {
@@ -197,6 +199,18 @@ function readDbEnv(name: string, fallback: string): string {
   const value = process.env[name]?.trim();
   if (value) return value;
   return fallback;
+}
+
+function redactPostgresUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    if (url.password) {
+      url.password = '***';
+    }
+    return url.toString();
+  } catch {
+    return '<invalid database URL>';
+  }
 }
 `,
   },
@@ -822,6 +836,13 @@ function scanNamedParams(sql: string): NamedToken[] {
       index = skipQuoted(sql, index, current);
       continue;
     }
+    if (current === '$') {
+      const nextIndex = skipDollarQuoted(sql, index);
+      if (nextIndex !== index) {
+        index = nextIndex;
+        continue;
+      }
+    }
     if (current === '-' && next === '-') {
       index = sql.indexOf('\\n', index + 2);
       if (index < 0) return tokens;
@@ -842,6 +863,13 @@ function scanNamedParams(sql: string): NamedToken[] {
   }
 
   return tokens;
+}
+
+function skipDollarQuoted(sql: string, start: number): number {
+  const tag = sql.slice(start).match(/^(\\$\\$|\\$[A-Za-z_][A-Za-z0-9_]*\\$)/)?.[0];
+  if (!tag) return start;
+  const close = sql.indexOf(tag, start + tag.length);
+  return close < 0 ? sql.length : close + tag.length;
 }
 
 function skipQuoted(sql: string, start: number, quote: string): number {

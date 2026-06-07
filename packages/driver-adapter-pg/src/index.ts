@@ -499,7 +499,7 @@ function removeLeadingWhereConnectives(sql: string): string {
 
 function removeDanglingWhereClauses(sql: string): string {
   return sql.replace(
-    /\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*(?=(?:group\s+by|order\s+by|having|limit|offset|fetch|for|union|intersect|except)\b|\))/gi,
+    /\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*(?=(?:group\s+by|order\s+by|having|limit|offset|fetch|for|union|intersect|except)\b|\)|;|$)/gi,
     '',
   );
 }
@@ -563,11 +563,14 @@ function hasRemainingWherePredicateAfter(sql: string, index: number): boolean {
   if (after.length === 0) {
     return false;
   }
+  if (after.startsWith(';')) {
+    return false;
+  }
   if (/^(?:and|or)\b/i.test(after)) {
     const withoutDanglingConnective = after.replace(/^(?:and|or)\b\s*/i, '');
     return hasRemainingWherePredicateAfter(withoutDanglingConnective, 0);
   }
-  return !/^(?:group\s+by|order\s+by|having|limit|offset|fetch|for|union|intersect|except)\b|^\)/i.test(after);
+  return !/^(?:group\s+by|order\s+by|having|limit|offset|fetch|for|union|intersect|except)\b|^\)|^;/i.test(after);
 }
 
 function normalizeRanges(ranges: readonly TextRange[]): TextRange[] {
@@ -602,9 +605,10 @@ function realignOrderByInsertion(
   if (insertion.mode === 'prepend-comma') {
     return realignPrependOrderByInsertion(sql, { index: insertion.index, mode: 'prepend-comma' });
   }
-  if (insertion.mode !== 'order-by') {
-    return insertion;
+  if (insertion.mode === 'comma') {
+    return realignCommaOrderByInsertion(sql, { index: insertion.index, mode: 'comma' });
   }
+  if (insertion.mode !== 'order-by') return insertion;
   if (/^\s*(?:limit|offset|fetch|for)\b/i.test(sql.slice(insertion.index))) {
     return insertion;
   }
@@ -619,6 +623,20 @@ function realignOrderByInsertion(
     ...insertion,
     index: windowStart + nearbyClause.index,
   };
+}
+
+function realignCommaOrderByInsertion(
+  sql: string,
+  insertion: { index: number; mode: 'comma' },
+): { index: number; mode: 'comma' } {
+  const windowStart = Math.max(0, insertion.index - 64);
+  const windowEnd = Math.min(sql.length, insertion.index + 64);
+  const windowText = sql.slice(windowStart, windowEnd);
+  const match = /\b(?:limit|offset|fetch|for)\b/i.exec(windowText);
+  if (!match || match.index === undefined) {
+    return insertion;
+  }
+  return { ...insertion, index: windowStart + match.index };
 }
 
 function realignPrependOrderByInsertion(

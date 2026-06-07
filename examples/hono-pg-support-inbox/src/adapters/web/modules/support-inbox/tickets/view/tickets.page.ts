@@ -505,6 +505,9 @@ function formatRelative(value: unknown): string {
     return '-';
   }
   const date = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
   const hours = Math.max(1, Math.round((Date.now() - date.getTime()) / 3_600_000));
   if (hours < 24) {
     return `${hours}時間前`;

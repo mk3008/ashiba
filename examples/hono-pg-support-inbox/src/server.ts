@@ -5,7 +5,8 @@ import { serve } from '@hono/node-server';
 import { createPgPool } from '#adapters/pg/pool.js';
 import { createApp } from './app.js';
 
-const port = Number(process.env.PORT ?? 3000);
+const requestedPort = Number(process.env.PORT ?? 3000);
+const port = Number.isInteger(requestedPort) && requestedPort > 0 && requestedPort <= 65535 ? requestedPort : 3000;
 const pool = createPgPool({
   connectionString: resolveDatabaseUrl(),
 });

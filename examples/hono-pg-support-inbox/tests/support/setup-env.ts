@@ -22,15 +22,17 @@ if (hasExplicitDbConfig) {
   const user = readDbEnv('ASHIBA_TEST_DB_USER', 'ashiba');
   const password = readDbEnv('ASHIBA_TEST_DB_PASSWORD', 'ashiba');
   const derivedUrl = `postgres://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${encodeURIComponent(database)}`;
+  const redactedDerivedUrl = redactPostgresUrl(derivedUrl);
 
   if (process.env.ASHIBA_TEST_DATABASE_URL?.trim()) {
     const explicitUrl = process.env.ASHIBA_TEST_DATABASE_URL.trim();
+    const redactedExplicitUrl = redactPostgresUrl(explicitUrl);
     if (explicitUrl !== derivedUrl) {
       throw new Error([
         'ASHIBA_TEST_DATABASE_URL conflicts with the starter-owned DB settings.',
         'Use .env as the single source of truth for Ashiba test DB settings, or set ASHIBA_TEST_DATABASE_URL to the exact derived value.',
-        `derived: ${derivedUrl}`,
-        `explicit: ${explicitUrl}`,
+        `derived: ${redactedDerivedUrl}`,
+        `explicit: ${redactedExplicitUrl}`,
       ].join('\n'));
     }
   } else {
@@ -42,4 +44,16 @@ function readDbEnv(name: string, fallback: string): string {
   const value = process.env[name]?.trim();
   if (value) return value;
   return fallback;
+}
+
+function redactPostgresUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    if (url.password) {
+      url.password = '***';
+    }
+    return url.toString();
+  } catch {
+    return '<invalid database URL>';
+  }
 }
