@@ -37,7 +37,6 @@ describe('support inbox HTTP filters', () => {
     expect(html).toContain('現在の条件');
     expect(html).toContain('説明');
     expect(html).toContain('SQL');
-    expect(html).toContain('executed SQL');
     expect(html).not.toContain('実行ログ');
     expect(html).not.toContain('[now] bound names');
     expect(html).toContain('order by case when t.sla_due_at is not null');

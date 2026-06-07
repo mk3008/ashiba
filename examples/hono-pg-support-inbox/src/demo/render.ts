@@ -265,10 +265,6 @@ function renderQueryConsole(filters: TicketFilters, inspection: SupportInboxView
       </details>
     </section>
     <section class="consoleTabPanel sqlPanel">
-      <div class="sectionTitleRow sqlTitle">
-        <h2>SQL</h2>
-        <span class="sectionHint">executed SQL</span>
-      </div>
       <pre>${escapeHtml(inspection.compiledSql || 'SQL has not been captured yet.')}</pre>
     </section>
   </aside>`;
@@ -573,8 +569,7 @@ function styles(): string {
     .guideBox { max-height: 150px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #08111f; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
     .guideLine { color: #8ea3bf; }
     .logLine { color: #67e8a5; }
-    .sqlPanel { min-height: 0; grid-template-rows: auto minmax(0, 1fr); gap: 10px; }
-    .sqlTitle { min-height: 24px; }
+    .sqlPanel { min-height: 0; }
     .sqlPanel pre { margin: 0; min-height: 0; overflow: auto; border-radius: 8px; border: 1px solid #263850; padding: 12px; background: #050b15; color: #b9d7ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; white-space: pre; }
     .errorPage { max-width: 760px; margin: 80px auto; background: #fff; border: 1px solid #d8dee9; border-radius: 8px; padding: 24px; }
     .errorPage pre { white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px; }
