@@ -5,6 +5,7 @@
 - The `/tickets` route accepts `priority=high`, `priority=medium`, and `priority=low`.
 - Empty `priority` behaves like no filter.
 - `priority=high` returns only high-priority tickets in the seeded demo.
+- The seeded demo currently shows `7件のチケット` for `priority=high`.
 - The SQL inspection panel shows the compressed predicate `t.priority = $1` when the filter is present.
 - The SQL inspection panel does not keep the optional guard expression for a present priority value.
 
@@ -15,6 +16,7 @@
 - Optional condition compression metadata includes a `priority` branch.
 - Mapper generated assets are refreshed.
 - Application request parsing passes `priority` through to `ListTicketsQueryParams`.
+- Feature boundary input parsing accepts `priority`.
 - TypeScript boundary files compile.
 - Route-level E2E coverage checks the new filter.
 

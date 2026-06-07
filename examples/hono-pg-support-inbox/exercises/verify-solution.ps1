@@ -14,7 +14,11 @@ function Invoke-Step {
   )
 
   Write-Host "==> $Label"
+  $global:LASTEXITCODE = 0
   & $Script
+  if ($LASTEXITCODE -ne 0) {
+    throw "$Label failed with exit code $LASTEXITCODE"
+  }
 }
 
 function Assert-UnderPath {

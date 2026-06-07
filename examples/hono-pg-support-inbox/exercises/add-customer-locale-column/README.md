@@ -41,8 +41,9 @@ Expected UI label:
 3. Run `node node_modules/@ashiba-ts/cli/dist/index.js feature tests check --fix support-inbox list-tickets`.
 4. Run `pnpm typecheck`.
 5. Update `ListTicketsQueryResult`, feature output projection, and boundary fixtures where typecheck/test points.
-6. Render the new column in `render.ts`.
-7. Add route-level coverage that the header appears.
+6. Render the new column in `src/adapters/web/modules/support-inbox/tickets/view/tickets.page.ts`.
+7. Add the column to the web adapter's header safe-sort whitelist when it should be sortable.
+8. Add route-level coverage that the header appears.
 
 ## Solution Patch
 

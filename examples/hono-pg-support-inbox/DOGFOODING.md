@@ -148,7 +148,7 @@ That allowed `status=open` to fail in the browser with a PostgreSQL parameter ty
 Resolution:
 
 - Added explicit casts to optional filter null checks in `list-tickets.sql`.
-- Added `src/demo/app.e2e.test.ts` to seed PostgreSQL and verify `/tickets`, `/tickets?status=open...`, and `/tickets?keyword=ログイン...` through the Hono app.
+- Added route-level E2E coverage under `src/adapters/web/modules/support-inbox/tickets/route/` to seed PostgreSQL and verify `/tickets`, `/tickets?status=open...`, and `/tickets?keyword=ログイン...` through the Hono app.
 
 Product note:
 

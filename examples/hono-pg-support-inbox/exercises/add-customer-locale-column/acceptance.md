@@ -4,6 +4,7 @@
 
 - The list SQL selects `customer_locale`.
 - The ticket table renders a `顧客ロケール` column.
+- The grid-header safe sort whitelist includes `customer_locale`.
 - The seeded demo renders without `Demo is not ready`.
 
 ## Implementation Acceptance

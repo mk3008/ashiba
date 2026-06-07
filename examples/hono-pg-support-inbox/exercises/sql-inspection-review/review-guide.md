@@ -9,12 +9,12 @@ The visible query still shows:
 - CTEs for latest message and last customer reply.
 - Joins from tickets to customers, messages, replies, and tags.
 - Optional filters as normal SQL predicates after compression.
-- Safe sort inserted into `order by`.
+- Preset safe sort or grid-header safe sort inserted into `order by`.
 - The fixed stable suffix `t.ticket_id`.
 
 ## Key Value Statement
 
-Dynamic filters and dynamic sort are request-level behavior. They do not force the team to abandon a stable SQL file.
+Dynamic filters, preset sort, and grid-header multi-sort are request-level behavior. They do not force the team to abandon a stable SQL file.
 
 Ashiba keeps the query reviewable as SQL and moves only the mechanical adaptation into the driver adapter.
 
@@ -34,7 +34,7 @@ It should not keep the original optional guard shape:
 cast($1 as text) is null or t.status = $2
 ```
 
-Safe sort should appear as reviewed SQL expressions, not raw request text.
+Safe sort should appear as reviewed SQL expressions, not raw request text. For example, a request such as `sort=customer_name.asc,updated_at.desc` should compile to expressions like `c.name asc, t.updated_at desc`, followed by the stable suffix.
 
 The stable suffix remains in the SQL file:
 
