@@ -131,7 +131,7 @@ Resolution:
 
 - Removed binding-side removal text from generated optional-condition metadata.
 - Re-aligned driver-side `order by` insertion to nearby clause boundaries after compression and placeholder renumbering.
-- Added `where true` to the demo SQL while the issue was being investigated.
+- Added `where true` to the demo SQL while the issue was being investigated, then removed it once leading optional branch removal was fixed.
 - Fixed the PostgreSQL driver adapter so `where true` is not required for correctness when leading optional branches are removed before required conditions.
 
 Product note:

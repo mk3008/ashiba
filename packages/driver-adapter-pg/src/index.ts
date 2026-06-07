@@ -442,8 +442,8 @@ function applyOptionalConditionCompression(
     ...compiledRemovalRanges.map((range) => ({ ...range, text: '' })),
     ...presentBranches.map((branch) => branch.compiled.presentReplacement),
   ]);
-  const sourceSql = rewriteTextRanges(query.sql, sourceRewriteRanges);
-  const compressedCompiledSql = rewriteTextRanges(precomputed.sql, compiledRewriteRanges);
+  const sourceSql = cleanCompressedWhereSyntax(rewriteTextRanges(query.sql, sourceRewriteRanges));
+  const compressedCompiledSql = cleanCompressedWhereSyntax(rewriteTextRanges(precomputed.sql, compiledRewriteRanges));
   const renumbered = renumberPostgresPlaceholders(compressedCompiledSql, precomputed.orderedNames);
 
   return {
@@ -486,6 +486,24 @@ function rewriteTextRanges(sql: string, ranges: readonly TextEdit[]): string {
   return output;
 }
 
+function cleanCompressedWhereSyntax(sql: string): string {
+  return removeDanglingWhereClauses(removeLeadingWhereConnectives(sql));
+}
+
+function removeLeadingWhereConnectives(sql: string): string {
+  return sql.replace(
+    /\bwhere((?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*)(?:and|or)\b\s*/gi,
+    'where$1 ',
+  );
+}
+
+function removeDanglingWhereClauses(sql: string): string {
+  return sql.replace(
+    /\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*(?=(?:group\s+by|order\s+by|having|limit|offset|fetch|for|union|intersect|except)\b|\))/gi,
+    '',
+  );
+}
+
 function normalizeTextEdits(ranges: readonly TextEdit[]): TextEdit[] {
   return ranges
     .map((range) => ({ start: range.start, end: range.end, text: range.text }))
@@ -493,7 +511,7 @@ function normalizeTextEdits(ranges: readonly TextEdit[]): TextEdit[] {
 }
 
 function normalizeOptionalConditionRemovalRanges(sql: string, ranges: readonly TextRange[]): TextRange[] {
-  return normalizeLeadingWhereRemoval(sql, mergeTextRanges(ranges));
+  return mergeTextRanges(normalizeLeadingWhereRemoval(sql, mergeTextRanges(ranges)));
 }
 
 function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
@@ -512,6 +530,17 @@ function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
 
 function normalizeLeadingWhereRemoval(sql: string, ranges: readonly TextRange[]): TextRange[] {
   return ranges.map((range) => {
+    const rangeText = sql.slice(range.start, range.end);
+    const whereAtRangeStart = rangeText.match(/^\s*where\b\s*/i);
+    if (whereAtRangeStart?.[0]) {
+      if (hasRemainingWherePredicateAfter(sql, range.end)) {
+        const danglingConnective = sql.slice(range.end).match(/^\s+(?:and|or)\b\s*/i);
+        const end = danglingConnective?.[0] ? range.end + danglingConnective[0].length : range.end;
+        return { start: range.start + whereAtRangeStart[0].length, end };
+      }
+      return range;
+    }
+
     const before = sql.slice(0, range.start);
     const whereMatch = before.match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
     if (!whereMatch || whereMatch.index === undefined) {

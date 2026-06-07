@@ -78,8 +78,7 @@ join public.customers c on c.customer_id = t.customer_id
 left join latest_message lm on lm.ticket_id = t.ticket_id
 left join last_customer_reply lcr on lcr.ticket_id = t.ticket_id
 left join aggregated_tags tags on tags.ticket_id = t.ticket_id
-where true
-  and (cast(:status as text) is null or t.status = :status)
+where (cast(:status as text) is null or t.status = :status)
   and (cast(:customerTier as text) is null or c.tier = :customerTier)
   and (
       cast(:slaState as text) is null

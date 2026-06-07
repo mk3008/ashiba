@@ -50,6 +50,7 @@ describe('support inbox HTTP filters', () => {
     expect(html).not.toContain('Demo is not ready');
     expect(html).toContain('t.status = $1');
     expect(html).not.toContain('cast($1 as text) is null or t.status = $2');
+    expect(html).not.toContain('where true');
   });
 
   test('renders keyword search', async () => {

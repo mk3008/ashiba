@@ -396,6 +396,47 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('keeps where spacing when the first optional condition is removed before a present optional condition', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email) and (:tier is null or tier = :tier)';
+    const compiledSql = 'select * from users where ($1 is null or email = $2) and ($3 is null or tier = $4)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['email', 'email', 'tier', 'tier'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
+              optionalCompressionBinding(compiledSql, 'tier', 'and ($3 is null or tier = $4)').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'tier', 'and (:tier is null or tier = :tier)').branches[0],
+            ],
+          },
+        })),
+      { email: null, tier: 'vip' }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users where tier = $1',
+      values: ['vip'],
+    }]);
+  });
+
   test('compresses optional conditions around a required middle predicate', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select * from users where (:email is null or email = :email) and tenant_id = :tenant_id and (:x is null or x = :x)';
