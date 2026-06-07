@@ -88,7 +88,7 @@ export type AshibaQueryModelAnalysis = {
       | {
         status: 'ready';
         index: number;
-        mode: 'order-by' | 'comma';
+        mode: 'order-by' | 'prepend-comma' | 'comma';
       }
       | {
         status: 'unresolved';

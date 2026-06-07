@@ -28,6 +28,9 @@ describe('support inbox HTTP filters', () => {
     expect(response.status).toBe(200);
     expect(html).toContain('7件のチケット');
     expect(html).toContain('請求書のダウンロードができない');
+    expect(html).toContain('公開 safe sort');
+    expect(html).toContain('action_required asc, sla_due_at asc, updated_at desc');
+    expect(html).toContain('ticket_id asc');
   });
 
   test('renders status=open search without PostgreSQL parameter type errors', async () => {

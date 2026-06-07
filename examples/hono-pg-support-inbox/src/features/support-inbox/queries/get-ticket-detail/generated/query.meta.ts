@@ -10,8 +10,8 @@ export const queryModel = {
     "safeSort": {
       "insertion": {
         "status": "ready",
-        "index": 542,
-        "mode": "comma"
+        "index": 524,
+        "mode": "prepend-comma"
       },
       "sortable": {
         "ticket_id": {
@@ -119,7 +119,7 @@ export const queryModel = {
         "ticketId"
       ],
       "safeSortInsertion": {
-        "index": 535
+        "index": 517
       },
       "optionalConditionCompression": {
         "branches": []

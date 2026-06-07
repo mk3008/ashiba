@@ -99,5 +99,6 @@ where true
       or c.name ilike '%' || :keyword || '%'
       or lm.latest_message_body ilike '%' || :keyword || '%'
   )
+order by t.ticket_id
 limit :limit
 offset :offset

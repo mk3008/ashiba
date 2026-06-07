@@ -2,7 +2,7 @@ import type { GetTicketDetailQueryResult } from '#features/support-inbox/queries
 import type { ListTicketsQueryResult } from '#features/support-inbox/queries/list-tickets/query.js';
 import { copy } from './copy.js';
 import type { SupportInboxViewModel } from './service.js';
-import type { TicketFilters, TicketSortKey } from './request.js';
+import { ticketSortInputs, type TicketFilters, type TicketSortKey } from './request.js';
 
 type Option = {
   value: string;
@@ -242,9 +242,23 @@ function renderDemoRail(): string {
   return `<aside class="demoRail">
     ${demoCard(copy.demoCards.routeTitle, copy.demoCards.routeBullets)}
     ${demoCard(copy.demoCards.sortTitle, copy.demoCards.sortBullets)}
+    ${renderSafeSortSurface()}
     <div class="note">${copy.demoCards.note}</div>
     ${demoCard(copy.demoCards.valueTitle, copy.demoCards.valueBullets, 'value')}
   </aside>`;
+}
+
+function renderSafeSortSurface(): string {
+  const rows = sortOptions.map((option) => {
+    const keys = ticketSortInputs[option.value]
+      .map((item) => `${item.key} ${item.direction ?? 'asc'}`)
+      .join(', ');
+    return `<div><dt>${escapeHtml(option.label)}</dt><dd>${escapeHtml(keys)}</dd></div>`;
+  }).join('');
+  return `<section class="demoCard sortSurface">
+    <h2>${copy.demoCards.safeSortSurfaceTitle}</h2>
+    <dl>${rows}<div><dt>${copy.demoCards.stableSortLabel}</dt><dd>ticket_id asc</dd></div></dl>
+  </section>`;
 }
 
 function demoCard(title: string, bullets: readonly string[], className = ''): string {
@@ -474,6 +488,10 @@ function styles(): string {
     .note { background: #e6f4ff; color: #075985; font-weight: 700; line-height: 1.6; }
     .demoCard.value { background: #eef8ef; }
     .demoCard.value h2 { color: #16803c; }
+    .sortSurface dl { display: grid; gap: 10px; margin: 0; }
+    .sortSurface div { display: grid; gap: 4px; }
+    .sortSurface dt { color: #344054; font-weight: 800; font-size: 12px; }
+    .sortSurface dd { margin: 0; color: #475467; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
     .errorPage { max-width: 760px; margin: 80px auto; background: #fff; border: 1px solid #d8dee9; border-radius: 8px; padding: 24px; }
     .errorPage pre { white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px; }
   `;

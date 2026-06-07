@@ -85,17 +85,40 @@ Safe sort can add a new `ORDER BY` clause when the query does not have one:
 select u.email from public.users u
 ```
 
-It can also append to an existing top-level `ORDER BY`:
+It can also combine with an existing top-level `ORDER BY`. By default, Ashiba treats existing `ORDER BY` terms as the stable suffix and prepends the dynamic safe sort terms before them:
 
 ```sql
 select u.email from public.users u order by u.created_at
 ```
 
-In that case, the generated SQL becomes comma-style ordering, such as:
+In that case, the generated SQL becomes:
 
 ```sql
-order by u.created_at, u.email asc
+order by u.email asc, u.created_at
 ```
+
+This is useful for pagination. Put the stable identity order, such as a primary key or another deterministic tie-breaker, in the visible SQL:
+
+```sql
+select
+  u.user_id as id,
+  u.email,
+  u.created_at as createdAt
+from public.users u
+order by u.user_id
+limit :limit
+offset :offset
+```
+
+Then a runtime request for `createdAt desc` becomes:
+
+```sql
+order by u.created_at desc, u.user_id
+limit $1
+offset $2
+```
+
+The user-selected sort stays primary. The fixed SQL sort stays as a deterministic suffix.
 
 For clauses such as `LIMIT`, `OFFSET`, `FETCH`, and `FOR UPDATE`, Ashiba records the insertion point and places the dynamic `ORDER BY` before those clauses.
 

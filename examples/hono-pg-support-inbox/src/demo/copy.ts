@@ -55,6 +55,8 @@ export const copy = {
       'SLA状態を視覚的に把握',
     ],
     sortTitle: 'safe sort の例',
+    safeSortSurfaceTitle: '公開 safe sort',
+    stableSortLabel: '固定の安定順序',
     sortBullets: [
       'アクション優先',
       '優先度: 高い順',

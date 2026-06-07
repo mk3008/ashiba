@@ -3468,7 +3468,7 @@ describe('@ashiba-ts/cli smoke', () => {
         safeSort: {
           insertion: {
             status: 'ready',
-            mode: 'comma',
+            mode: 'prepend-comma',
           },
           sortable: {
             email: { sql: 'email' },

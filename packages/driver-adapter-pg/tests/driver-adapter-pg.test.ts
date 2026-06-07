@@ -1298,7 +1298,90 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(calls).toEqual([{ sql: 'select a.user_id as id from users a order by a.user_id asc', values: [] }]);
   });
 
-  test('renders safe sort as comma when query already has ORDER BY', async () => {
+  test('prepends safe sort before existing ORDER BY terms by default', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a order by a.name';
+    const insertionIndex = sourceSql.indexOf('a.name');
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, {
+          analysis: {
+            astParse: 'ok',
+            statementKind: 'select',
+            rootQueryShape: 'simple-select',
+            hasTopLevelOrderBy: false,
+            sourceHash: hashSql(sourceSql),
+            safeSort: {
+              insertion: { status: 'ready', index: insertionIndex, mode: 'prepend-comma' },
+              sortable: { id: { sql: 'a.user_id' } },
+            },
+          },
+          bindings: queryModelFor(sourceSql, {
+            safeSortInsertion: { index: insertionIndex },
+          }).bindings,
+        }),
+      {},{
+        sort: [{ key: 'id', direction: 'desc' }]},
+    );
+
+    expect(calls).toEqual([{ sql: 'select a.user_id as id from users a order by a.user_id desc, a.name', values: [] }]);
+  });
+
+  test('prepends safe sort before a multiline stable ORDER BY suffix', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = [
+      'select a.user_id as id',
+      'from users a',
+      'order by a.name',
+      'limit 10',
+    ].join('\n');
+    const insertionIndex = sourceSql.indexOf('a.name');
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, {
+          analysis: {
+            astParse: 'ok',
+            statementKind: 'select',
+            rootQueryShape: 'simple-select',
+            hasTopLevelOrderBy: true,
+            sourceHash: hashSql(sourceSql),
+            safeSort: {
+              insertion: { status: 'ready', index: insertionIndex, mode: 'prepend-comma' },
+              sortable: { id: { sql: 'a.user_id' } },
+            },
+          },
+          bindings: queryModelFor(sourceSql, {
+            safeSortInsertion: { index: insertionIndex },
+          }).bindings,
+        }),
+      {},{
+        sort: [{ key: 'id', direction: 'desc' }]},
+    );
+
+    expect(calls).toEqual([{
+      sql: [
+        'select a.user_id as id',
+        'from users a',
+        'order by a.user_id desc, a.name',
+        'limit 10',
+      ].join('\n'),
+      values: [],
+    }]);
+  });
+
+  test('can append safe sort after existing ORDER BY terms for compatibility', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select a.user_id as id from users a order by a.name';
     const client: NodePostgresQueryable = {

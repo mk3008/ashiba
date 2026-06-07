@@ -24,7 +24,7 @@ export type TicketFilters = {
 
 type SortInput = NonNullable<AshibaPostgresExecuteOptions['sort']>[number];
 
-const sortInputs: Record<TicketSortKey, readonly SortInput[]> = {
+export const ticketSortInputs: Record<TicketSortKey, readonly SortInput[]> = {
   'action-required': [
     { key: 'action_required', direction: 'asc' },
     { key: 'sla_due_at', direction: 'asc' },
@@ -49,7 +49,7 @@ const sortInputs: Record<TicketSortKey, readonly SortInput[]> = {
   ],
 };
 
-const knownSorts = new Set<TicketSortKey>(Object.keys(sortInputs) as TicketSortKey[]);
+const knownSorts = new Set<TicketSortKey>(Object.keys(ticketSortInputs) as TicketSortKey[]);
 
 export function parseTicketFilters(url: URL): TicketFilters {
   const sort = normalizeSort(url.searchParams.get('sort'));
@@ -81,7 +81,7 @@ export function toListTicketsParams(filters: TicketFilters): ListTicketsQueryPar
 }
 
 export function toTicketSort(filters: TicketFilters): readonly SortInput[] {
-  return sortInputs[filters.sort];
+  return ticketSortInputs[filters.sort];
 }
 
 function normalizeSort(value: string | null): TicketSortKey {

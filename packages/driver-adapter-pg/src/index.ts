@@ -543,7 +543,7 @@ function normalizeRanges(ranges: readonly TextRange[]): TextRange[] {
     .sort((left, right) => left.start - right.start);
 }
 
-function adjustInsertionForRewriteRanges<T extends { index: number; mode: 'order-by' | 'comma' }>(
+function adjustInsertionForRewriteRanges<T extends { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' }>(
   insertion: T,
   ranges: readonly TextEdit[],
 ): T {
@@ -562,7 +562,7 @@ function adjustInsertionForRewriteRanges<T extends { index: number; mode: 'order
   return { ...insertion, index: adjustedIndex };
 }
 
-function realignOrderByInsertion<T extends { index: number; mode: 'order-by' | 'comma' }>(sql: string, insertion: T): T {
+function realignOrderByInsertion<T extends { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' }>(sql: string, insertion: T): T {
   if (insertion.mode !== 'order-by') {
     return insertion;
   }
@@ -677,8 +677,8 @@ function getSortInsertion(
   query: AshibaPostgresQuerySource,
   options: AshibaPostgresExecuteOptions,
 ): {
-  insertion: { index: number; mode: 'order-by' | 'comma' };
-  compiledInsertion: { index: number; mode: 'order-by' | 'comma' };
+  insertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' };
+  compiledInsertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' };
   orderBy: string;
 } | undefined {
   if (!options.sort || options.sort.length === 0) return undefined;
@@ -815,9 +815,14 @@ function describeQueryModelErrorNextAction(code: AshibaPostgresQueryModelError['
 
 function spliceOrderBy(
   sql: string,
-  insertion: { index: number; mode: 'order-by' | 'comma' },
+  insertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' },
   orderBy: string,
 ): string {
+  if (insertion.mode === 'prepend-comma') {
+    const prefix = sql.slice(0, insertion.index).trimEnd();
+    const suffix = sql.slice(insertion.index).trimStart();
+    return `${prefix} ${stripOrderByPrefix(orderBy)}, ${suffix}`;
+  }
   const prefix = sql.slice(0, insertion.index).trimEnd();
   const suffix = sql.slice(insertion.index);
   const fragment = insertion.mode === 'comma'
@@ -828,8 +833,7 @@ function spliceOrderBy(
 }
 
 function stripOrderByPrefix(value: string): string {
-  const prefix = 'order by ';
-  return value.toLowerCase().startsWith(prefix) ? value.slice(prefix.length) : value;
+  return value.trimStart().replace(/^order\s+by\s+/i, '');
 }
 
 function isWhitespace(value: string): boolean {
