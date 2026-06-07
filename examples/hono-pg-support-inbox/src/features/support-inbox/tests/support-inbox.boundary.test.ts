@@ -36,6 +36,7 @@ test('support-inbox executes imported list-tickets query boundary through inject
     subject: "value",
     tag_slugs: "value",
     ticket_id: 1,
+    total_count: 1,
     updated_at: "value",
     vip_rank: 1
   };

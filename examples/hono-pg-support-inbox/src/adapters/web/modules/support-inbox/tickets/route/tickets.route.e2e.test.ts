@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { Pool } from 'pg';
 
-import { createApp } from '../app.js';
-import { seedSupportInbox } from '../../scripts/seed.js';
+import { createWebApp } from '#adapters/web/app.js';
+import { seedSupportInbox } from '../../../../../../../scripts/seed.js';
 
 describe('support inbox HTTP filters', () => {
   const connectionString = process.env.ASHIBA_TEST_DATABASE_URL;
@@ -11,7 +11,7 @@ describe('support inbox HTTP filters', () => {
   }
 
   const pool = new Pool({ connectionString });
-  const app = createApp(pool);
+  const app = createWebApp({ pool });
 
   beforeAll(async () => {
     await seedSupportInbox(pool);
@@ -26,21 +26,27 @@ describe('support inbox HTTP filters', () => {
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(html).toContain('7件のチケット');
+    expect(html).toContain('31件のチケット');
+    expect(html).toContain('1 / 4ページ・表示 10件');
+    expect(html).toContain('href="/tickets?page=2#ticket-list">次へ</a>');
+    expect(html).toContain('#ticket-detail');
+    expect(html).toContain('data-sort-key="customer_name"');
+    expect(html).toContain('href="/tickets?sort=customer_name.asc#ticket-list"');
     expect(html).toContain('請求書のダウンロードができない');
-    expect(html).toContain('公開 safe sort');
-    expect(html).toContain('action_required asc, sla_due_at asc, updated_at desc');
-    expect(html).toContain('ticket_id asc');
     expect(html).toContain('Live Query Console');
-    expect(html).toContain('INFO');
-    expect(html).toContain('リクエスト概要');
-    expect(html).toContain('現在の条件');
-    expect(html).toContain('説明');
-    expect(html).toContain('SQL');
+    expect(html).toContain('<td>$1</td><td>limit</td><td>10</td>');
+    expect(html).toContain('<td>$2</td><td>offset</td><td>0</td>');
+    expect(html).toContain('with latest_message as');
+    expect(html).toContain('order by t.ticket_id');
+    expect(html).not.toContain('INFO');
+    expect(html).not.toContain('リクエスト概要');
+    expect(html).not.toContain('現在の条件');
+    expect(html).not.toContain('説明');
     expect(html).not.toContain('実行ログ');
     expect(html).not.toContain('[now] bound names');
-    expect(html).toContain('order by case when t.sla_due_at is not null');
-    expect(html).toContain('t.updated_at desc, t.ticket_id');
+    expect(html).toContain('並び順: 未指定');
+    expect(html).toContain('order by t.ticket_id');
+    expect(html).not.toContain('order by case when t.sla_due_at is not null');
   });
 
   test('renders status=open search without PostgreSQL parameter type errors', async () => {
@@ -53,6 +59,8 @@ describe('support inbox HTTP filters', () => {
     expect(html).toContain('プランの変更方法を教えてください');
     expect(html).not.toContain('Demo is not ready');
     expect(html).toContain('t.status = $1');
+    expect(html).toContain('<td>$1</td><td>status</td><td>open</td>');
+    expect(html).toContain('<td>$2</td><td>limit</td><td>10</td>');
     expect(html).not.toContain('cast($1 as text) is null or t.status = $2');
     expect(html).not.toContain('where true');
   });
@@ -81,21 +89,21 @@ describe('support inbox HTTP filters', () => {
     {
       label: 'SLA state',
       path: '/tickets?slaState=breached&sort=action-required',
-      count: '2件のチケット',
+      count: '7件のチケット',
       includes: ['請求書のダウンロードができない', 'ログインできません'],
       excludes: ['プランの変更方法を教えてください'],
     },
     {
       label: 'language',
       path: '/tickets?language=en&sort=action-required',
-      count: '1件のチケット',
+      count: '5件のチケット',
       includes: ['英語のドキュメントはありますか?', 'Global Inc.'],
       excludes: ['ログインできません'],
     },
     {
       label: 'channel',
       path: '/tickets?channel=web&sort=action-required',
-      count: '2件のチケット',
+      count: '11件のチケット',
       includes: ['アカウントの権限について', 'プランの変更方法を教えてください'],
       excludes: ['APIレスポンスが遅い'],
     },
@@ -121,6 +129,38 @@ describe('support inbox HTTP filters', () => {
     }
   });
 
+  test('paginates ten tickets per page and keeps query state in page links', async () => {
+    const firstPage = await app.request('/tickets?status=waiting_agent&sort=action-required');
+    const firstHtml = await firstPage.text();
+
+    expect(firstPage.status).toBe(200);
+    expectReadyHtml(firstHtml);
+    expect(firstHtml).toContain('21件のチケット');
+    expect(firstHtml).toContain('1 / 3ページ・表示 10件');
+    expect(firstHtml).toContain('href="/tickets?status=waiting_agent&sort=action-required&page=2#ticket-list">次へ</a>');
+
+    const secondPage = await app.request('/tickets?status=waiting_agent&sort=action-required&page=2');
+    const secondHtml = await secondPage.text();
+
+    expect(secondPage.status).toBe(200);
+    expectReadyHtml(secondHtml);
+    expect(secondHtml).toContain('21件のチケット');
+    expect(secondHtml).toContain('2 / 3ページ・表示 10件');
+    expect(secondHtml).toContain('href="/tickets?status=waiting_agent&sort=action-required#ticket-list">前へ</a>');
+    expect(secondHtml).toContain('href="/tickets?status=waiting_agent&sort=action-required&page=3#ticket-list">次へ</a>');
+  });
+
+  test('does not render pagination for draft shortcut with fewer than ten tickets', async () => {
+    const response = await app.request('/tickets?status=draft');
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expectReadyHtml(html);
+    expect(html).toContain('6件のチケット');
+    expect(html).toContain('1 / 1ページ・表示 6件');
+    expect(html).not.toContain('class="pagination"');
+  });
+
   test.each([
     ['/tickets?sort=action-required', '並び順: アクション優先'],
     ['/tickets?sort=priority-high', '並び順: 優先度: 高い順'],
@@ -134,8 +174,20 @@ describe('support inbox HTTP filters', () => {
 
     expect(response.status).toBe(200);
     expectReadyHtml(html);
-    expect(html).toContain('7件のチケット');
+    expect(html).toContain('31件のチケット');
     expect(html).toContain(label);
+  });
+
+  test('renders header multi-sort choices through the HTTP route', async () => {
+    const response = await app.request('/tickets?sort=customer_name.asc,updated_at.desc');
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expectReadyHtml(html);
+    expect(html).toContain('並び順: 顧客 昇順 → 更新日時 降順');
+    expect(html).toContain('order by c.name asc, t.updated_at desc, t.ticket_id');
+    expect(html).toContain('data-sort-key="customer_name">顧客<span class="sortMarker">↑</span>');
+    expect(html).toContain('data-sort-key="updated_at">更新日時<span class="sortMarker">↓2</span>');
   });
 });
 

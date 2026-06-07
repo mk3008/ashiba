@@ -182,6 +182,12 @@
         "nullability": "unknown"
       },
       {
+        "name": "total_count",
+        "typeScriptType": "number | null",
+        "sqlType": "integer",
+        "nullability": "unknown"
+      },
+      {
         "name": "updated_at",
         "typeScriptType": "unknown",
         "sqlType": "text",

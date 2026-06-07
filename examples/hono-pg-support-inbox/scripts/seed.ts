@@ -157,6 +157,7 @@ const tickets: TicketSeed[] = [
       { senderName: 'サポート 花子', senderRole: 'agent', body: '設定方法をご案内しました。', createdOffsetHours: 24 },
     ],
   },
+  ...buildGeneratedTickets(),
 ];
 
 export async function seedSupportInbox(pool: Pool): Promise<void> {
@@ -239,6 +240,81 @@ async function insertTickets(pool: Pool): Promise<void> {
 
 function offsetDate(base: Date, hours: number): Date {
   return new Date(base.getTime() + hours * 3_600_000);
+}
+
+function buildGeneratedTickets(): TicketSeed[] {
+  const waitingAgentTickets = Array.from({ length: 18 }, (_, index) => {
+    const number = index + 1;
+    return buildGeneratedTicket({
+      ticketId: 10300 + number,
+      customerId: (index % customers.length) + 1,
+      subject: `追加調査が必要な問い合わせ ${number}`,
+      status: 'waiting_agent',
+      priority: index % 4 === 0 ? 'high' : index % 3 === 0 ? 'medium' : 'low',
+      language: index % 5 === 0 ? 'en' : 'ja',
+      channel: ['email', 'chat', 'web'][index % 3] ?? 'email',
+      tags: index % 2 === 0 ? ['api'] : ['plan'],
+      createdOffsetHours: 60 + index,
+      updatedOffsetHours: 8 + index,
+      slaOffsetHours: index % 4 === 0 ? -index - 1 : 8 + index,
+      body: `追加調査が必要な問い合わせ ${number} の詳細です。`,
+    });
+  });
+  const draftTickets = Array.from({ length: 6 }, (_, index) => {
+    const number = index + 1;
+    return buildGeneratedTicket({
+      ticketId: 10400 + number,
+      customerId: ((index + 2) % customers.length) + 1,
+      subject: `返信準備中の下書き ${number}`,
+      status: 'draft',
+      priority: index % 2 === 0 ? 'medium' : 'low',
+      language: 'ja',
+      channel: ['email', 'web'][index % 2] ?? 'email',
+      tags: ['docs'],
+      createdOffsetHours: 100 + index,
+      updatedOffsetHours: 30 + index,
+      body: `返信準備中の下書き ${number} です。`,
+    });
+  });
+  return [...waitingAgentTickets, ...draftTickets];
+}
+
+function buildGeneratedTicket(input: {
+  ticketId: number;
+  customerId: number;
+  subject: string;
+  status: string;
+  priority: string;
+  language: string;
+  channel: string;
+  tags: string[];
+  createdOffsetHours: number;
+  updatedOffsetHours: number;
+  slaOffsetHours?: number;
+  body: string;
+}): TicketSeed {
+  const customer = customers.find((item) => item.customerId === input.customerId);
+  return {
+    ticketId: input.ticketId,
+    customerId: input.customerId,
+    subject: input.subject,
+    status: input.status,
+    priority: input.priority,
+    language: input.language,
+    channel: input.channel,
+    slaOffsetHours: input.slaOffsetHours,
+    createdOffsetHours: input.createdOffsetHours,
+    updatedOffsetHours: input.updatedOffsetHours,
+    tags: input.tags,
+    messages: [
+      {
+        senderName: customer?.name ?? 'テスト顧客',
+        senderRole: 'customer',
+        body: input.body,
+        createdOffsetHours: input.updatedOffsetHours,
+      },
+    ],
+  };
 }
 
 function resolveDatabaseUrl(): string {

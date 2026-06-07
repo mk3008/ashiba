@@ -3,8 +3,8 @@ import type { Pool } from 'pg';
 import { createPgSqlClient } from '#adapters/pg/pool.js';
 import { executeGetTicketDetailQuery, type GetTicketDetailQueryResult } from '#features/support-inbox/queries/get-ticket-detail/query.js';
 import { executeListTicketsQuery, type ListTicketsQueryResult } from '#features/support-inbox/queries/list-tickets/query.js';
-import type { TicketFilters } from './request.js';
-import { toListTicketsParams, toTicketSort } from './request.js';
+import type { TicketFilters } from '../request/tickets.request.js';
+import { toListTicketsParams, toTicketSort } from '../request/tickets.request.js';
 
 export type TicketDetail = {
   summary?: GetTicketDetailQueryResult;
@@ -15,6 +15,16 @@ export type SupportInboxViewModel = {
   tickets: ListTicketsQueryResult[];
   selectedTicket?: TicketDetail;
   inspection: SqlInspection;
+  pagination: Pagination;
+};
+
+export type Pagination = {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
 };
 
 export type SqlInspection = {
@@ -23,15 +33,23 @@ export type SqlInspection = {
   safeSortKeys: string;
   stableOrder: string;
   orderedNames: readonly string[];
+  boundParams: readonly BoundParam[];
   compiledSql: string;
   rowCount: number;
   elapsedMs?: number;
+};
+
+export type BoundParam = {
+  placeholder: string;
+  name: string;
+  value: unknown;
 };
 
 type SqlInspectionEvent = {
   phase: 'start' | 'end' | 'error';
   compiledSql?: string;
   orderedNames?: readonly string[];
+  params?: readonly unknown[];
   elapsedMs?: number;
   rowCount?: number;
 };
@@ -39,6 +57,7 @@ type SqlInspectionEvent = {
 export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Promise<SupportInboxViewModel> {
   const listEvents: SqlInspectionEvent[] = [];
   const listExecutor = createPgSqlClient(pool, {
+    includeUnmaskedParamsInEvents: true,
     observer: {
       emit(event) {
         listEvents.push(event);
@@ -55,6 +74,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Prom
     tickets,
     selectedTicket,
     inspection: buildSqlInspection(filters, tickets.length, listEvents),
+    pagination: buildPagination(filters, tickets),
   };
 }
 
@@ -72,13 +92,37 @@ function buildSqlInspection(filters: TicketFilters, rowCount: number, events: re
   return {
     sqlPath: 'src/features/support-inbox/queries/list-tickets/list-tickets.sql',
     selectedSort: filters.sort,
-    safeSortKeys: toTicketSort(filters)
-      .map((item) => `${item.key} ${item.direction ?? 'asc'}`)
-      .join(', '),
+    safeSortKeys:
+      toTicketSort(filters)
+        .map((item) => `${item.key} ${item.direction ?? 'asc'}`)
+        .join(', ') || 'なし',
     stableOrder: 'ticket_id asc',
     orderedNames: executed?.orderedNames ?? [],
+    boundParams: buildBoundParams(executed?.orderedNames ?? [], executed?.params ?? []),
     compiledSql: executed?.compiledSql ?? '',
     rowCount: executed?.rowCount ?? rowCount,
     elapsedMs: executed?.elapsedMs,
+  };
+}
+
+function buildBoundParams(orderedNames: readonly string[], params: readonly unknown[]): BoundParam[] {
+  return orderedNames.map((name, index) => ({
+    placeholder: `$${index + 1}`,
+    name,
+    value: params[index],
+  }));
+}
+
+function buildPagination(filters: TicketFilters, tickets: readonly ListTicketsQueryResult[]): Pagination {
+  const pageSize = 10;
+  const totalCount = Number(tickets[0]?.total_count ?? 0);
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  return {
+    page: filters.page,
+    pageSize,
+    totalCount,
+    totalPages,
+    hasPrevious: filters.page > 1,
+    hasNext: filters.page < totalPages,
   };
 }

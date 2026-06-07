@@ -6,14 +6,17 @@ export const queryModel = {
     "statementKind": "select",
     "rootQueryShape": "simple-select",
     "hasTopLevelOrderBy": true,
-    "sourceHash": "sha256:d443b222dc01e1c726aecd15ed0a662dd02244f026aec6c016678bb46fe3295b",
+    "sourceHash": "sha256:cd98fd0973caf061d7e87bfcb22ab6c8e4ead80a416c3923367dbb64681c0642",
     "safeSort": {
       "insertion": {
         "status": "ready",
-        "index": 3333,
+        "index": 3369,
         "mode": "prepend-comma"
       },
       "sortable": {
+        "total_count": {
+          "sql": "count(*) over()"
+        },
         "ticket_id": {
           "sql": "t.ticket_id"
         },
@@ -86,18 +89,18 @@ export const queryModel = {
           "parameterName": "status",
           "kind": "expression",
           "sourceRange": {
-            "start": 2512,
-            "end": 2565,
+            "start": 2548,
+            "end": 2601,
             "text": "(cast(:status as text) is null or t.status = :status)"
           },
           "removalRange": {
-            "start": 2506,
-            "end": 2565,
+            "start": 2542,
+            "end": 2601,
             "text": "where (cast(:status as text) is null or t.status = :status)"
           },
           "presentReplacement": {
-            "start": 2512,
-            "end": 2565,
+            "start": 2548,
+            "end": 2601,
             "text": "t.status = :status"
           }
         },
@@ -105,18 +108,18 @@ export const queryModel = {
           "parameterName": "customerTier",
           "kind": "expression",
           "sourceRange": {
-            "start": 2572,
-            "end": 2635,
+            "start": 2608,
+            "end": 2671,
             "text": "(cast(:customerTier as text) is null or c.tier = :customerTier)"
           },
           "removalRange": {
-            "start": 2568,
-            "end": 2635,
+            "start": 2604,
+            "end": 2671,
             "text": "and (cast(:customerTier as text) is null or c.tier = :customerTier)"
           },
           "presentReplacement": {
-            "start": 2572,
-            "end": 2635,
+            "start": 2608,
+            "end": 2671,
             "text": "c.tier = :customerTier"
           }
         },
@@ -124,18 +127,18 @@ export const queryModel = {
           "parameterName": "slaState",
           "kind": "expression",
           "sourceRange": {
-            "start": 2642,
-            "end": 2913,
+            "start": 2678,
+            "end": 2949,
             "text": "(\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )"
           },
           "removalRange": {
-            "start": 2638,
-            "end": 2913,
+            "start": 2674,
+            "end": 2949,
             "text": "and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )"
           },
           "presentReplacement": {
-            "start": 2642,
-            "end": 2913,
+            "start": 2678,
+            "end": 2949,
             "text": "case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState"
           }
         },
@@ -143,18 +146,18 @@ export const queryModel = {
           "parameterName": "language",
           "kind": "expression",
           "sourceRange": {
-            "start": 2920,
-            "end": 2979,
+            "start": 2956,
+            "end": 3015,
             "text": "(cast(:language as text) is null or t.language = :language)"
           },
           "removalRange": {
-            "start": 2916,
-            "end": 2979,
+            "start": 2952,
+            "end": 3015,
             "text": "and (cast(:language as text) is null or t.language = :language)"
           },
           "presentReplacement": {
-            "start": 2920,
-            "end": 2979,
+            "start": 2956,
+            "end": 3015,
             "text": "t.language = :language"
           }
         },
@@ -162,18 +165,18 @@ export const queryModel = {
           "parameterName": "channel",
           "kind": "expression",
           "sourceRange": {
-            "start": 2986,
-            "end": 3042,
+            "start": 3022,
+            "end": 3078,
             "text": "(cast(:channel as text) is null or t.channel = :channel)"
           },
           "removalRange": {
-            "start": 2982,
-            "end": 3042,
+            "start": 3018,
+            "end": 3078,
             "text": "and (cast(:channel as text) is null or t.channel = :channel)"
           },
           "presentReplacement": {
-            "start": 2986,
-            "end": 3042,
+            "start": 3022,
+            "end": 3078,
             "text": "t.channel = :channel"
           }
         },
@@ -181,18 +184,18 @@ export const queryModel = {
           "parameterName": "tag",
           "kind": "expression",
           "sourceRange": {
-            "start": 3049,
-            "end": 3134,
+            "start": 3085,
+            "end": 3170,
             "text": "(cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))"
           },
           "removalRange": {
-            "start": 3045,
-            "end": 3134,
+            "start": 3081,
+            "end": 3170,
             "text": "and (cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))"
           },
           "presentReplacement": {
-            "start": 3049,
-            "end": 3134,
+            "start": 3085,
+            "end": 3170,
             "text": ":tag = any(coalesce(tags.tag_slugs, array[]::text[]))"
           }
         },
@@ -200,18 +203,18 @@ export const queryModel = {
           "parameterName": "keyword",
           "kind": "expression",
           "sourceRange": {
-            "start": 3141,
-            "end": 3323,
+            "start": 3177,
+            "end": 3359,
             "text": "(\n      :keyword is null\n      or t.subject ilike '%' || :keyword || '%'\n      or c.name ilike '%' || :keyword || '%'\n      or lm.latest_message_body ilike '%' || :keyword || '%'\n  )"
           },
           "removalRange": {
-            "start": 3137,
-            "end": 3323,
+            "start": 3173,
+            "end": 3359,
             "text": "and (\n      :keyword is null\n      or t.subject ilike '%' || :keyword || '%'\n      or c.name ilike '%' || :keyword || '%'\n      or lm.latest_message_body ilike '%' || :keyword || '%'\n  )"
           },
           "presentReplacement": {
-            "start": 3141,
-            "end": 3323,
+            "start": 3177,
+            "end": 3359,
             "text": "(t.subject ilike '%' || :keyword || '%' or c.name ilike '%' || :keyword || '%' or lm.latest_message_body ilike '%' || :keyword || '%')"
           }
         }
@@ -237,6 +240,7 @@ export const queryModel = {
       "subject",
       "tag_slugs",
       "ticket_id",
+      "total_count",
       "updated_at",
       "vip_rank"
     ],
@@ -260,6 +264,7 @@ export const queryModel = {
       "subject": "string",
       "tag_slugs": "unknown",
       "ticket_id": "number",
+      "total_count": "number",
       "updated_at": "unknown",
       "vip_rank": "number"
     },
@@ -277,8 +282,8 @@ export const queryModel = {
   },
   "bindings": {
     "postgres": {
-      "sourceHash": "sha256:d443b222dc01e1c726aecd15ed0a662dd02244f026aec6c016678bb46fe3295b",
-      "sql": "with latest_message as (\n    select\n        ranked.ticket_id,\n        ranked.sender_name as latest_sender_name,\n        ranked.sender_role as latest_sender_role,\n        ranked.body as latest_message_body,\n        ranked.created_at as latest_message_at\n    from (\n        select\n            tm.ticket_id,\n            tm.sender_name,\n            tm.sender_role,\n            tm.body,\n            tm.created_at,\n            row_number() over (partition by tm.ticket_id order by tm.created_at desc) as message_rank\n        from public.ticket_messages tm\n    ) ranked\n    where ranked.message_rank = 1\n),\nlast_customer_reply as (\n    select\n        tm.ticket_id,\n        max(tm.created_at) as last_customer_reply_at\n    from public.ticket_messages tm\n    where tm.sender_role = 'customer'\n    group by tm.ticket_id\n),\naggregated_tags as (\n    select\n        ttl.ticket_id,\n        array_agg(tt.slug order by tt.slug) as tag_slugs\n    from public.ticket_tag_links ttl\n    join public.ticket_tags tt on tt.tag_id = ttl.tag_id\n    group by ttl.ticket_id\n)\nselect\n    t.ticket_id,\n    t.subject,\n    c.name as customer_name,\n    c.tier as customer_tier,\n    t.status,\n    t.priority,\n    t.language,\n    t.channel,\n    t.sla_due_at,\n    case\n        when t.sla_due_at is null then 'none'\n        when t.sla_due_at < now() then 'breached'\n        when t.sla_due_at < now() + interval '4 hours' then 'warning'\n        else 'ok'\n    end as sla_state,\n    lm.latest_sender_name,\n    lm.latest_sender_role,\n    lm.latest_message_body,\n    lm.latest_message_at,\n    lcr.last_customer_reply_at,\n    t.created_at,\n    t.updated_at,\n    coalesce(tags.tag_slugs, array[]::text[]) as tag_slugs,\n    case\n        when t.sla_due_at is not null and t.sla_due_at < now() then 1\n        when t.priority = 'high' and t.status in ('open', 'waiting_agent') then 2\n        when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then 3\n        when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then 4\n        else 9\n    end as action_required,\n    case t.priority\n        when 'high' then 1\n        when 'medium' then 2\n        else 3\n    end as priority_rank,\n    case c.tier\n        when 'vip' then 1\n        else 2\n    end as vip_rank\nfrom public.tickets t\njoin public.customers c on c.customer_id = t.customer_id\nleft join latest_message lm on lm.ticket_id = t.ticket_id\nleft join last_customer_reply lcr on lcr.ticket_id = t.ticket_id\nleft join aggregated_tags tags on tags.ticket_id = t.ticket_id\nwhere (cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      $13 is null\n      or t.subject ilike '%' || $14 || '%'\n      or c.name ilike '%' || $15 || '%'\n      or lm.latest_message_body ilike '%' || $16 || '%'\n  )\norder by t.ticket_id\nlimit $17\noffset $18\n",
+      "sourceHash": "sha256:cd98fd0973caf061d7e87bfcb22ab6c8e4ead80a416c3923367dbb64681c0642",
+      "sql": "with latest_message as (\n    select\n        ranked.ticket_id,\n        ranked.sender_name as latest_sender_name,\n        ranked.sender_role as latest_sender_role,\n        ranked.body as latest_message_body,\n        ranked.created_at as latest_message_at\n    from (\n        select\n            tm.ticket_id,\n            tm.sender_name,\n            tm.sender_role,\n            tm.body,\n            tm.created_at,\n            row_number() over (partition by tm.ticket_id order by tm.created_at desc) as message_rank\n        from public.ticket_messages tm\n    ) ranked\n    where ranked.message_rank = 1\n),\nlast_customer_reply as (\n    select\n        tm.ticket_id,\n        max(tm.created_at) as last_customer_reply_at\n    from public.ticket_messages tm\n    where tm.sender_role = 'customer'\n    group by tm.ticket_id\n),\naggregated_tags as (\n    select\n        ttl.ticket_id,\n        array_agg(tt.slug order by tt.slug) as tag_slugs\n    from public.ticket_tag_links ttl\n    join public.ticket_tags tt on tt.tag_id = ttl.tag_id\n    group by ttl.ticket_id\n)\nselect\n    count(*) over() as total_count,\n    t.ticket_id,\n    t.subject,\n    c.name as customer_name,\n    c.tier as customer_tier,\n    t.status,\n    t.priority,\n    t.language,\n    t.channel,\n    t.sla_due_at,\n    case\n        when t.sla_due_at is null then 'none'\n        when t.sla_due_at < now() then 'breached'\n        when t.sla_due_at < now() + interval '4 hours' then 'warning'\n        else 'ok'\n    end as sla_state,\n    lm.latest_sender_name,\n    lm.latest_sender_role,\n    lm.latest_message_body,\n    lm.latest_message_at,\n    lcr.last_customer_reply_at,\n    t.created_at,\n    t.updated_at,\n    coalesce(tags.tag_slugs, array[]::text[]) as tag_slugs,\n    case\n        when t.sla_due_at is not null and t.sla_due_at < now() then 1\n        when t.priority = 'high' and t.status in ('open', 'waiting_agent') then 2\n        when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then 3\n        when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then 4\n        else 9\n    end as action_required,\n    case t.priority\n        when 'high' then 1\n        when 'medium' then 2\n        else 3\n    end as priority_rank,\n    case c.tier\n        when 'vip' then 1\n        else 2\n    end as vip_rank\nfrom public.tickets t\njoin public.customers c on c.customer_id = t.customer_id\nleft join latest_message lm on lm.ticket_id = t.ticket_id\nleft join last_customer_reply lcr on lcr.ticket_id = t.ticket_id\nleft join aggregated_tags tags on tags.ticket_id = t.ticket_id\nwhere (cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      $13 is null\n      or t.subject ilike '%' || $14 || '%'\n      or c.name ilike '%' || $15 || '%'\n      or lm.latest_message_body ilike '%' || $16 || '%'\n  )\norder by t.ticket_id\nlimit $17\noffset $18\n",
       "orderedNames": [
         "status",
         "status",
@@ -300,91 +305,91 @@ export const queryModel = {
         "offset"
       ],
       "safeSortInsertion": {
-        "index": 3240
+        "index": 3276
       },
       "optionalConditionCompression": {
         "branches": [
           {
             "parameterName": "status",
             "removalRange": {
-              "start": 2506,
-              "end": 2555
+              "start": 2542,
+              "end": 2591
             },
             "presentReplacement": {
-              "start": 2512,
-              "end": 2555,
+              "start": 2548,
+              "end": 2591,
               "text": "t.status = $1"
             }
           },
           {
             "parameterName": "customerTier",
             "removalRange": {
-              "start": 2558,
-              "end": 2603
+              "start": 2594,
+              "end": 2639
             },
             "presentReplacement": {
-              "start": 2562,
-              "end": 2603,
+              "start": 2598,
+              "end": 2639,
               "text": "c.tier = $3"
             }
           },
           {
             "parameterName": "slaState",
             "removalRange": {
-              "start": 2606,
-              "end": 2867
+              "start": 2642,
+              "end": 2903
             },
             "presentReplacement": {
-              "start": 2610,
-              "end": 2867,
+              "start": 2646,
+              "end": 2903,
               "text": "case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $5"
             }
           },
           {
             "parameterName": "language",
             "removalRange": {
-              "start": 2870,
-              "end": 2919
+              "start": 2906,
+              "end": 2955
             },
             "presentReplacement": {
-              "start": 2874,
-              "end": 2919,
+              "start": 2910,
+              "end": 2955,
               "text": "t.language = $7"
             }
           },
           {
             "parameterName": "channel",
             "removalRange": {
-              "start": 2922,
-              "end": 2971
+              "start": 2958,
+              "end": 3007
             },
             "presentReplacement": {
-              "start": 2926,
-              "end": 2971,
+              "start": 2962,
+              "end": 3007,
               "text": "t.channel = $9"
             }
           },
           {
             "parameterName": "tag",
             "removalRange": {
-              "start": 2974,
-              "end": 3061
+              "start": 3010,
+              "end": 3097
             },
             "presentReplacement": {
-              "start": 2978,
-              "end": 3061,
+              "start": 3014,
+              "end": 3097,
               "text": "$11 = any(coalesce(tags.tag_slugs, array[]::text[]))"
             }
           },
           {
             "parameterName": "keyword",
             "removalRange": {
-              "start": 3064,
-              "end": 3230
+              "start": 3100,
+              "end": 3266
             },
             "presentReplacement": {
-              "start": 3068,
-              "end": 3230,
+              "start": 3104,
+              "end": 3266,
               "text": "(t.subject ilike '%' || $13 || '%' or c.name ilike '%' || $14 || '%' or lm.latest_message_body ilike '%' || $15 || '%')"
             }
           }

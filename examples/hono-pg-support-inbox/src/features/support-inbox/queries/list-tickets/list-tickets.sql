@@ -34,6 +34,7 @@ aggregated_tags as (
     group by ttl.ticket_id
 )
 select
+    count(*) over() as total_count,
     t.ticket_id,
     t.subject,
     c.name as customer_name,

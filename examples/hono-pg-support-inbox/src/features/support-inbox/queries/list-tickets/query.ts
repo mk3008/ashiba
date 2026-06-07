@@ -54,6 +54,7 @@ export interface ListTicketsQueryResult {
   subject: string | null;
   tag_slugs: unknown;
   ticket_id: number | null;
+  total_count: number | null;
   updated_at: unknown;
   vip_rank: number | null;
 }

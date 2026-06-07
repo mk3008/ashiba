@@ -10,6 +10,22 @@ export type TicketSortKey =
   | 'updated-new'
   | 'vip-first';
 
+export type TicketColumnSortKey =
+  | 'ticket_id'
+  | 'subject'
+  | 'customer_name'
+  | 'customer_tier'
+  | 'status'
+  | 'priority_rank'
+  | 'sla_due_at'
+  | 'sla_state'
+  | 'latest_message_at'
+  | 'language'
+  | 'channel'
+  | 'updated_at';
+
+export type TicketSortValue = string;
+
 export type TicketFilters = {
   status: string;
   customerTier: string;
@@ -18,7 +34,8 @@ export type TicketFilters = {
   channel: string;
   tag: string;
   keyword: string;
-  sort: TicketSortKey;
+  sort: TicketSortValue;
+  page: number;
   selectedTicketId?: string;
 };
 
@@ -49,7 +66,23 @@ export const ticketSortInputs: Record<TicketSortKey, readonly SortInput[]> = {
   ],
 };
 
+export const ticketColumnSortInputs: Record<TicketColumnSortKey, SortInput['key']> = {
+  ticket_id: 'ticket_id',
+  subject: 'subject',
+  customer_name: 'customer_name',
+  customer_tier: 'customer_tier',
+  status: 'status',
+  priority_rank: 'priority_rank',
+  sla_due_at: 'sla_due_at',
+  sla_state: 'sla_state',
+  latest_message_at: 'latest_message_at',
+  language: 'language',
+  channel: 'channel',
+  updated_at: 'updated_at',
+};
+
 const knownSorts = new Set<TicketSortKey>(Object.keys(ticketSortInputs) as TicketSortKey[]);
+const knownColumnSorts = new Set<TicketColumnSortKey>(Object.keys(ticketColumnSortInputs) as TicketColumnSortKey[]);
 
 export function parseTicketFilters(url: URL): TicketFilters {
   const sort = normalizeSort(url.searchParams.get('sort'));
@@ -62,6 +95,7 @@ export function parseTicketFilters(url: URL): TicketFilters {
     tag: normalizeOption(url.searchParams.get('tag')),
     keyword: normalizeKeyword(url.searchParams.get('keyword')),
     sort,
+    page: normalizePage(url.searchParams.get('page')),
     selectedTicketId: normalizeTicketId(url.searchParams.get('ticketId')),
   };
 }
@@ -75,17 +109,29 @@ export function toListTicketsParams(filters: TicketFilters): ListTicketsQueryPar
     channel: nullable(filters.channel),
     tag: nullable(filters.tag),
     keyword: nullable(filters.keyword),
-    limit: 50,
-    offset: 0,
+    limit: 10,
+    offset: (filters.page - 1) * 10,
   };
 }
 
 export function toTicketSort(filters: TicketFilters): readonly SortInput[] {
-  return ticketSortInputs[filters.sort];
+  if (filters.sort === '') {
+    return [];
+  }
+  if (knownSorts.has(filters.sort as TicketSortKey)) {
+    return ticketSortInputs[filters.sort as TicketSortKey];
+  }
+  return parseColumnSort(filters.sort);
 }
 
-function normalizeSort(value: string | null): TicketSortKey {
-  return value && knownSorts.has(value as TicketSortKey) ? (value as TicketSortKey) : 'action-required';
+function normalizeSort(value: string | null): TicketSortValue {
+  if (!value) {
+    return '';
+  }
+  if (knownSorts.has(value as TicketSortKey)) {
+    return value;
+  }
+  return serializeColumnSort(parseColumnSort(value));
 }
 
 function normalizeOption(value: string | null): string {
@@ -100,6 +146,36 @@ function normalizeTicketId(value: string | null): string | undefined {
   return value && /^\d+$/.test(value) ? value : undefined;
 }
 
+function normalizePage(value: string | null): number {
+  if (!value || !/^\d+$/.test(value)) {
+    return 1;
+  }
+  return Math.max(1, Math.min(Number(value), 999));
+}
+
 function nullable(value: string): string | null {
   return value === '' ? null : value;
+}
+
+function parseColumnSort(value: string): SortInput[] {
+  const result: SortInput[] = [];
+  const seen = new Set<string>();
+  for (const part of value.split(',')) {
+    const [rawKey, rawDirection] = part.split('.');
+    const key = rawKey?.trim();
+    const direction = rawDirection?.trim().toLowerCase();
+    if (!knownColumnSorts.has(key as TicketColumnSortKey) || (direction !== 'asc' && direction !== 'desc') || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    result.push({
+      key: ticketColumnSortInputs[key as TicketColumnSortKey],
+      direction,
+    });
+  }
+  return result.slice(0, 4);
+}
+
+function serializeColumnSort(sort: readonly SortInput[]): string {
+  return sort.map((item) => `${item.key}.${item.direction ?? 'asc'}`).join(',');
 }
