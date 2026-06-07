@@ -31,10 +31,11 @@ describe('support inbox HTTP filters', () => {
     expect(html).toContain('公開 safe sort');
     expect(html).toContain('action_required asc, sla_due_at asc, updated_at desc');
     expect(html).toContain('ticket_id asc');
-    expect(html).toContain('SQL inspection');
-    expect(html).toContain('selected sort');
-    expect(html).toContain('safe sort keys');
-    expect(html).toContain('bound names');
+    expect(html).toContain('Live Query Console');
+    expect(html).toContain('リクエスト概要');
+    expect(html).toContain('実行ログ');
+    expect(html).toContain('実行されたSQL');
+    expect(html).toContain('[now] bound names');
     expect(html).toContain('order by case when t.sla_due_at is not null');
     expect(html).toContain('t.updated_at desc, t.ticket_id');
   });

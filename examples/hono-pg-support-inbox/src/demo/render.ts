@@ -86,9 +86,8 @@ export function renderSupportInbox(filters: TicketFilters, viewModel: SupportInb
       ${renderFilterForm(filters)}
       ${renderTicketTable(filters, viewModel.tickets)}
       ${renderDetail(viewModel.selectedTicket?.summary, viewModel.selectedTicket?.messages ?? [])}
-      ${renderSqlInspection(viewModel.inspection)}
     </main>
-    ${renderDemoRail()}
+    ${renderQueryConsole(filters, viewModel.inspection)}
   </div>
 </body>
 </html>`;
@@ -228,22 +227,44 @@ function renderDetail(summary: GetTicketDetailQueryResult | undefined, messages:
   </section>`;
 }
 
-function renderSqlInspection(inspection: SupportInboxViewModel['inspection']): string {
-  return `<section class="panel sqlPanel">
-    <div class="panelHeader">
-      <strong>SQL inspection</strong>
-      <span>${escapeHtml(inspection.sqlPath)}</span>
-    </div>
-    <div class="sqlConsole">
-      <div class="sqlMeta">
-        <div><span>selected sort</span><code>${escapeHtml(inspection.selectedSort)}</code></div>
-        <div><span>safe sort keys</span><code>${escapeHtml(inspection.safeSortKeys)}</code></div>
-        <div><span>stable suffix</span><code>${escapeHtml(inspection.stableOrder)}</code></div>
-        <div><span>bound names</span><code>${escapeHtml(inspection.orderedNames.join(', ') || '-')}</code></div>
+function renderQueryConsole(filters: TicketFilters, inspection: SupportInboxViewModel['inspection']): string {
+  return `<aside class="queryConsole">
+    <div class="consoleHeader">
+      <div>
+        <strong>Live Query Console</strong>
+        <span>${escapeHtml(inspection.sqlPath)}</span>
       </div>
-      <pre>${escapeHtml(inspection.compiledSql || 'SQL has not been captured yet.')}</pre>
+      <span class="liveBadge">LIVE</span>
     </div>
-  </section>`;
+    <section class="consoleSection">
+      <h2>リクエスト概要</h2>
+      <div class="requestSummary">
+        <div><span>endpoint</span><strong>GET /tickets</strong></div>
+        <div><span>rows</span><strong>${inspection.rowCount} rows</strong></div>
+        <div><span>elapsed</span><strong>${inspection.elapsedMs ?? '-'} ms</strong></div>
+      </div>
+    </section>
+    <section class="consoleSection">
+      <h2>現在のフィルター</h2>
+      <div class="consoleChips">${renderFilterChips(filters)}</div>
+      <h2>並び順</h2>
+      <p class="sortLine">${escapeHtml(currentSortLabel(filters.sort))} <code>(${escapeHtml(inspection.safeSortKeys)})</code></p>
+      <p class="stableLine">stable suffix <code>${escapeHtml(inspection.stableOrder)}</code></p>
+    </section>
+    <section class="consoleSection">
+      <h2>実行ログ</h2>
+      <div class="executionLog">
+        ${consoleGuideLines().map((line) => `<div class="guideLine">${escapeHtml(line)}</div>`).join('')}
+        <div class="logLine">[now] GET /tickets -> ${inspection.rowCount} rows${inspection.elapsedMs === undefined ? '' : ` (${inspection.elapsedMs} ms)`} ok</div>
+        <div class="logLine">[now] safe sort -> ${escapeHtml(inspection.safeSortKeys)}, ${escapeHtml(inspection.stableOrder)}</div>
+        <div class="logLine">[now] bound names -> ${escapeHtml(inspection.orderedNames.join(', ') || '-')}</div>
+      </div>
+    </section>
+    <section class="consoleSection sqlBlock">
+      <h2>実行されたSQL</h2>
+      <pre>${escapeHtml(inspection.compiledSql || 'SQL has not been captured yet.')}</pre>
+    </section>
+  </aside>`;
 }
 
 function renderMessage(message: GetTicketDetailQueryResult): string {
@@ -257,34 +278,38 @@ function renderMessage(message: GetTicketDetailQueryResult): string {
   </article>`;
 }
 
-function renderDemoRail(): string {
-  return `<aside class="demoRail">
-    ${demoCard(copy.demoCards.routeTitle, copy.demoCards.routeBullets)}
-    ${demoCard(copy.demoCards.sortTitle, copy.demoCards.sortBullets)}
-    ${renderSafeSortSurface()}
-    <div class="note">${copy.demoCards.note}</div>
-    ${demoCard(copy.demoCards.valueTitle, copy.demoCards.valueBullets, 'value')}
-  </aside>`;
+function renderFilterChips(filters: TicketFilters): string {
+  const chips = [
+    ['ステータス', filters.status ? statusLabel(filters.status) : copy.values.all],
+    ['顧客ティア', filters.customerTier ? tierLabel(filters.customerTier) : copy.values.all],
+    ['SLA状態', filters.slaState ? slaLabel(filters.slaState) : copy.values.all],
+    ['言語', filters.language ? languageLabel(filters.language) : copy.values.all],
+    ['チャネル', filters.channel ? channelLabel(filters.channel) : copy.values.all],
+    ['タグ', filters.tag || copy.values.all],
+    ['キーワード', filters.keyword || 'なし'],
+  ];
+  return chips.map(([label, value]) => `<span>${escapeHtml(label)}: ${escapeHtml(value)}</span>`).join('');
 }
 
-function renderSafeSortSurface(): string {
-  const rows = sortOptions.map((option) => {
+function consoleGuideLines(): string[] {
+  const safeSortLines = sortOptions.map((option) => {
     const keys = ticketSortInputs[option.value]
       .map((item) => `${item.key} ${item.direction ?? 'asc'}`)
       .join(', ');
-    return `<div><dt>${escapeHtml(option.label)}</dt><dd>${escapeHtml(keys)}</dd></div>`;
-  }).join('');
-  return `<section class="demoCard sortSurface">
-    <h2>${copy.demoCards.safeSortSurfaceTitle}</h2>
-    <dl>${rows}<div><dt>${copy.demoCards.stableSortLabel}</dt><dd>ticket_id asc</dd></div></dl>
-  </section>`;
-}
-
-function demoCard(title: string, bullets: readonly string[], className = ''): string {
-  return `<section class="demoCard ${className}">
-    <h2>${escapeHtml(title)}</h2>
-    <ul>${bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
-  </section>`;
+    return `${option.label}: ${keys}`;
+  });
+  return [
+    copy.demoCards.routeTitle,
+    ...copy.demoCards.routeBullets.map((item) => `- ${item}`),
+    copy.demoCards.sortTitle,
+    ...copy.demoCards.sortBullets.map((item) => `- ${item}`),
+    copy.demoCards.safeSortSurfaceTitle,
+    ...safeSortLines,
+    `${copy.demoCards.stableSortLabel}: ticket_id asc`,
+    copy.demoCards.note,
+    copy.demoCards.valueTitle,
+    ...copy.demoCards.valueBullets.map((item) => `- ${item}`),
+  ];
 }
 
 function select(name: string, label: string, options: readonly Option[], current: string): string {
@@ -446,7 +471,7 @@ function styles(): string {
     * { box-sizing: border-box; }
     body { margin: 0; min-width: 1120px; }
     a { color: #1459b8; text-decoration: none; }
-    .shell { display: grid; grid-template-columns: 210px minmax(0, 1fr) 320px; min-height: 100vh; }
+    .shell { display: grid; grid-template-columns: 190px minmax(0, 1fr) 390px; min-height: 100vh; }
     .sidebar { background: #ffffff; border-right: 1px solid #d8dee9; display: flex; flex-direction: column; padding: 18px 12px; }
     .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
     .brandIcon { width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; background: #e8f2ff; color: #1459b8; font-weight: 700; }
@@ -454,13 +479,13 @@ function styles(): string {
     nav a { padding: 10px 12px; border-radius: 6px; color: #344054; font-weight: 600; }
     nav a.active, nav a:hover { background: #e9f2ff; color: #1459b8; }
     .version { margin-top: auto; color: #667085; font-size: 12px; }
-    .workspace { padding: 18px; display: grid; grid-template-rows: auto auto minmax(360px, 1fr) minmax(260px, auto) minmax(260px, auto); gap: 12px; overflow: hidden; }
+    .workspace { padding: 18px; display: grid; grid-template-rows: auto auto minmax(360px, 1fr) minmax(280px, auto); gap: 12px; overflow: hidden; }
     .toolbar { display: flex; align-items: center; justify-content: space-between; }
     h1, h2, h3, p { margin-top: 0; }
     h1 { font-size: 24px; margin-bottom: 6px; }
     .toolbar p { color: #667085; margin-bottom: 0; }
     .profile { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #e7e4ff; color: #4639b8; font-weight: 700; font-size: 12px; }
-    .filters { display: grid; grid-template-columns: repeat(5, minmax(110px, 1fr)); gap: 10px; align-items: end; }
+    .filters { display: grid; grid-template-columns: repeat(3, minmax(130px, 1fr)); gap: 10px; align-items: end; }
     .field { display: grid; gap: 6px; min-width: 0; }
     .field span { color: #475467; font-size: 12px; font-weight: 700; }
     select, input { width: 100%; min-height: 36px; border: 1px solid #cfd7e6; border-radius: 6px; padding: 7px 10px; color: #17202f; background: #fff; }
@@ -500,24 +525,29 @@ function styles(): string {
     .messageCard p { margin: 8px 0 0; line-height: 1.6; }
     .replyBox { display: grid; grid-template-columns: 1fr 72px; gap: 8px; }
     .replyBox button { border: 0; border-radius: 6px; background: #1459b8; color: #fff; font-weight: 700; }
-    .demoRail { padding: 20px 18px; display: grid; gap: 16px; align-content: start; }
-    .demoCard, .note { border-radius: 8px; padding: 18px; background: #fff; border: 1px solid #e0e6f0; }
-    .demoCard h2 { font-size: 20px; margin-bottom: 12px; color: #3b2d8f; }
-    .demoCard ul { padding-left: 20px; margin: 0; display: grid; gap: 10px; line-height: 1.65; font-weight: 650; }
-    .note { background: #e6f4ff; color: #075985; font-weight: 700; line-height: 1.6; }
-    .demoCard.value { background: #eef8ef; }
-    .demoCard.value h2 { color: #16803c; }
-    .sortSurface dl { display: grid; gap: 10px; margin: 0; }
-    .sortSurface div { display: grid; gap: 4px; }
-    .sortSurface dt { color: #344054; font-weight: 800; font-size: 12px; }
-    .sortSurface dd { margin: 0; color: #475467; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
-    .sqlPanel { min-height: 260px; }
-    .sqlConsole { display: grid; grid-template-rows: auto minmax(160px, 1fr); gap: 12px; padding: 0 16px 16px; }
-    .sqlMeta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-    .sqlMeta div { display: grid; gap: 5px; min-width: 0; padding: 10px; border: 1px solid #edf0f5; border-radius: 6px; background: #fbfcfe; }
-    .sqlMeta span { color: #667085; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-    .sqlMeta code { color: #17202f; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sqlConsole pre { margin: 0; max-height: 280px; overflow: auto; border-radius: 6px; padding: 14px; background: #101828; color: #d1e9ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; line-height: 1.55; white-space: pre; }
+    .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto auto auto minmax(170px, auto) minmax(320px, 1fr); gap: 16px; min-height: 100vh; max-height: 100vh; overflow: auto; }
+    .consoleHeader { display: flex; justify-content: space-between; gap: 14px; align-items: start; padding-bottom: 14px; border-bottom: 1px solid #1e2d44; }
+    .consoleHeader div { display: grid; gap: 5px; min-width: 0; }
+    .consoleHeader strong { color: #ffffff; font-size: 18px; }
+    .consoleHeader span:not(.liveBadge) { color: #8ea3bf; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; overflow-wrap: anywhere; }
+    .liveBadge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 9px; background: #063f2a; color: #7dffb0; font-size: 11px; font-weight: 900; letter-spacing: 0; }
+    .liveBadge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.8); }
+    .consoleSection { display: grid; gap: 10px; min-width: 0; }
+    .consoleSection h2 { margin: 0; color: #d8e4f6; font-size: 13px; }
+    .requestSummary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #263850; border-radius: 8px; background: #111b2b; }
+    .requestSummary div { display: grid; gap: 6px; padding: 11px; border-right: 1px solid #263850; min-width: 0; }
+    .requestSummary div:last-child { border-right: 0; }
+    .requestSummary span { color: #8ea3bf; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .requestSummary strong { color: #ffffff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; overflow-wrap: anywhere; }
+    .consoleChips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .consoleChips span, .sortLine, .stableLine { border: 1px solid #263850; background: #0f1a2b; border-radius: 6px; padding: 7px 9px; color: #d8e4f6; font-size: 12px; font-weight: 700; }
+    .sortLine, .stableLine { margin: 0; line-height: 1.45; }
+    .sortLine code, .stableLine code { color: #9bd2ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
+    .executionLog { min-height: 150px; max-height: 210px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #08111f; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
+    .guideLine { color: #8ea3bf; }
+    .logLine { color: #67e8a5; }
+    .sqlBlock { min-height: 0; }
+    .sqlBlock pre { margin: 0; min-height: 300px; max-height: calc(100vh - 560px); overflow: auto; border-radius: 8px; border: 1px solid #263850; padding: 12px; background: #050b15; color: #b9d7ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; white-space: pre; }
     .errorPage { max-width: 760px; margin: 80px auto; background: #fff; border: 1px solid #d8dee9; border-radius: 8px; padding: 24px; }
     .errorPage pre { white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px; }
   `;

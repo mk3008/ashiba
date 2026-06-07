@@ -24,12 +24,16 @@ export type SqlInspection = {
   stableOrder: string;
   orderedNames: readonly string[];
   compiledSql: string;
+  rowCount: number;
+  elapsedMs?: number;
 };
 
 type SqlInspectionEvent = {
   phase: 'start' | 'end' | 'error';
   compiledSql?: string;
   orderedNames?: readonly string[];
+  elapsedMs?: number;
+  rowCount?: number;
 };
 
 export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Promise<SupportInboxViewModel> {
@@ -50,7 +54,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Prom
   return {
     tickets,
     selectedTicket,
-    inspection: buildSqlInspection(filters, listEvents),
+    inspection: buildSqlInspection(filters, tickets.length, listEvents),
   };
 }
 
@@ -63,7 +67,7 @@ async function loadTicketDetail(pool: Pool, ticketId: string): Promise<TicketDet
   };
 }
 
-function buildSqlInspection(filters: TicketFilters, events: readonly SqlInspectionEvent[]): SqlInspection {
+function buildSqlInspection(filters: TicketFilters, rowCount: number, events: readonly SqlInspectionEvent[]): SqlInspection {
   const executed = [...events].reverse().find((event) => event.phase === 'end' || event.phase === 'start');
   return {
     sqlPath: 'src/features/support-inbox/queries/list-tickets/list-tickets.sql',
@@ -74,5 +78,7 @@ function buildSqlInspection(filters: TicketFilters, events: readonly SqlInspecti
     stableOrder: 'ticket_id asc',
     orderedNames: executed?.orderedNames ?? [],
     compiledSql: executed?.compiledSql ?? '',
+    rowCount: executed?.rowCount ?? rowCount,
+    elapsedMs: executed?.elapsedMs,
   };
 }
