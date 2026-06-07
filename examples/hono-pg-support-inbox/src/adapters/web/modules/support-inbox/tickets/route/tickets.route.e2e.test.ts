@@ -4,9 +4,12 @@ import { Pool } from 'pg';
 import { createWebApp } from '#adapters/web/app.js';
 import { seedSupportInbox } from '../../../../../../../scripts/seed.js';
 
-describe('support inbox HTTP filters', () => {
-  const connectionString = process.env.ASHIBA_TEST_DATABASE_URL;
-  if (!connectionString) {
+const skipDbBackedTests = process.env.ASHIBA_SKIP_DB_BACKED_TESTS === '1';
+const describeDb = skipDbBackedTests ? describe.skip : describe;
+
+describeDb('support inbox HTTP filters', () => {
+  const connectionString = process.env.ASHIBA_TEST_DATABASE_URL || 'postgres://skip:skip@localhost:1/skip';
+  if (!skipDbBackedTests && !process.env.ASHIBA_TEST_DATABASE_URL) {
     throw new Error('Set ASHIBA_TEST_DATABASE_URL before running support inbox HTTP tests.');
   }
 
