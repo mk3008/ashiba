@@ -86,6 +86,7 @@ export function renderSupportInbox(filters: TicketFilters, viewModel: SupportInb
       ${renderFilterForm(filters)}
       ${renderTicketTable(filters, viewModel.tickets)}
       ${renderDetail(viewModel.selectedTicket?.summary, viewModel.selectedTicket?.messages ?? [])}
+      ${renderSqlInspection(viewModel.inspection)}
     </main>
     ${renderDemoRail()}
   </div>
@@ -223,6 +224,24 @@ function renderDetail(summary: GetTicketDetailQueryResult | undefined, messages:
         <input disabled placeholder="メッセージを入力...">
         <button disabled>送信</button>
       </form>
+    </div>
+  </section>`;
+}
+
+function renderSqlInspection(inspection: SupportInboxViewModel['inspection']): string {
+  return `<section class="panel sqlPanel">
+    <div class="panelHeader">
+      <strong>SQL inspection</strong>
+      <span>${escapeHtml(inspection.sqlPath)}</span>
+    </div>
+    <div class="sqlConsole">
+      <div class="sqlMeta">
+        <div><span>selected sort</span><code>${escapeHtml(inspection.selectedSort)}</code></div>
+        <div><span>safe sort keys</span><code>${escapeHtml(inspection.safeSortKeys)}</code></div>
+        <div><span>stable suffix</span><code>${escapeHtml(inspection.stableOrder)}</code></div>
+        <div><span>bound names</span><code>${escapeHtml(inspection.orderedNames.join(', ') || '-')}</code></div>
+      </div>
+      <pre>${escapeHtml(inspection.compiledSql || 'SQL has not been captured yet.')}</pre>
     </div>
   </section>`;
 }
@@ -435,7 +454,7 @@ function styles(): string {
     nav a { padding: 10px 12px; border-radius: 6px; color: #344054; font-weight: 600; }
     nav a.active, nav a:hover { background: #e9f2ff; color: #1459b8; }
     .version { margin-top: auto; color: #667085; font-size: 12px; }
-    .workspace { padding: 18px; display: grid; grid-template-rows: auto auto minmax(360px, 1fr) minmax(260px, auto); gap: 12px; overflow: hidden; }
+    .workspace { padding: 18px; display: grid; grid-template-rows: auto auto minmax(360px, 1fr) minmax(260px, auto) minmax(260px, auto); gap: 12px; overflow: hidden; }
     .toolbar { display: flex; align-items: center; justify-content: space-between; }
     h1, h2, h3, p { margin-top: 0; }
     h1 { font-size: 24px; margin-bottom: 6px; }
@@ -492,6 +511,13 @@ function styles(): string {
     .sortSurface div { display: grid; gap: 4px; }
     .sortSurface dt { color: #344054; font-weight: 800; font-size: 12px; }
     .sortSurface dd { margin: 0; color: #475467; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+    .sqlPanel { min-height: 260px; }
+    .sqlConsole { display: grid; grid-template-rows: auto minmax(160px, 1fr); gap: 12px; padding: 0 16px 16px; }
+    .sqlMeta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .sqlMeta div { display: grid; gap: 5px; min-width: 0; padding: 10px; border: 1px solid #edf0f5; border-radius: 6px; background: #fbfcfe; }
+    .sqlMeta span { color: #667085; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .sqlMeta code { color: #17202f; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sqlConsole pre { margin: 0; max-height: 280px; overflow: auto; border-radius: 6px; padding: 14px; background: #101828; color: #d1e9ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; line-height: 1.55; white-space: pre; }
     .errorPage { max-width: 760px; margin: 80px auto; background: #fff; border: 1px solid #d8dee9; border-radius: 8px; padding: 24px; }
     .errorPage pre { white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px; }
   `;

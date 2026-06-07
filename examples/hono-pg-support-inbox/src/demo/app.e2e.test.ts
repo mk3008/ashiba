@@ -31,6 +31,12 @@ describe('support inbox HTTP filters', () => {
     expect(html).toContain('公開 safe sort');
     expect(html).toContain('action_required asc, sla_due_at asc, updated_at desc');
     expect(html).toContain('ticket_id asc');
+    expect(html).toContain('SQL inspection');
+    expect(html).toContain('selected sort');
+    expect(html).toContain('safe sort keys');
+    expect(html).toContain('bound names');
+    expect(html).toContain('order by case when t.sla_due_at is not null');
+    expect(html).toContain('t.updated_at desc, t.ticket_id');
   });
 
   test('renders status=open search without PostgreSQL parameter type errors', async () => {
@@ -52,6 +58,9 @@ describe('support inbox HTTP filters', () => {
     expect(html).toContain('1件のチケット');
     expect(html).toContain('ログインできません');
     expect(html).not.toContain('請求書のダウンロードができない');
+    expect(html).toContain('t.subject ilike &#39;%&#39; || $');
+    expect(html).toContain('c.name ilike &#39;%&#39; || $');
+    expect(html).toContain('lm.latest_message_body ilike &#39;%&#39; || $');
   });
 
   test.each([

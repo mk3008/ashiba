@@ -14,10 +14,32 @@ export type TicketDetail = {
 export type SupportInboxViewModel = {
   tickets: ListTicketsQueryResult[];
   selectedTicket?: TicketDetail;
+  inspection: SqlInspection;
+};
+
+export type SqlInspection = {
+  sqlPath: string;
+  selectedSort: string;
+  safeSortKeys: string;
+  stableOrder: string;
+  orderedNames: readonly string[];
+  compiledSql: string;
+};
+
+type SqlInspectionEvent = {
+  phase: 'start' | 'end' | 'error';
+  compiledSql?: string;
+  orderedNames?: readonly string[];
 };
 
 export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Promise<SupportInboxViewModel> {
+  const listEvents: SqlInspectionEvent[] = [];
   const listExecutor = createPgSqlClient(pool, {
+    observer: {
+      emit(event) {
+        listEvents.push(event);
+      },
+    },
     executeOptions: {
       sort: toTicketSort(filters),
     },
@@ -28,6 +50,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Prom
   return {
     tickets,
     selectedTicket,
+    inspection: buildSqlInspection(filters, listEvents),
   };
 }
 
@@ -37,5 +60,19 @@ async function loadTicketDetail(pool: Pool, ticketId: string): Promise<TicketDet
   return {
     summary: messages[0],
     messages,
+  };
+}
+
+function buildSqlInspection(filters: TicketFilters, events: readonly SqlInspectionEvent[]): SqlInspection {
+  const executed = [...events].reverse().find((event) => event.phase === 'end' || event.phase === 'start');
+  return {
+    sqlPath: 'src/features/support-inbox/queries/list-tickets/list-tickets.sql',
+    selectedSort: filters.sort,
+    safeSortKeys: toTicketSort(filters)
+      .map((item) => `${item.key} ${item.direction ?? 'asc'}`)
+      .join(', '),
+    stableOrder: 'ticket_id asc',
+    orderedNames: executed?.orderedNames ?? [],
+    compiledSql: executed?.compiledSql ?? '',
   };
 }
