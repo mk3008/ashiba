@@ -89,7 +89,6 @@ export function renderSupportInbox(filters: TicketFilters, viewModel: SupportInb
     </main>
     ${renderQueryConsole(filters, viewModel.inspection)}
   </div>
-  <script>${consoleScript()}</script>
 </body>
 </html>`;
 }
@@ -237,42 +236,33 @@ function renderQueryConsole(filters: TicketFilters, inspection: SupportInboxView
       </div>
       <span class="liveBadge">LIVE</span>
     </div>
-    <section class="consoleSection">
+    <section class="consoleSection sqlBlock">
+      <div class="sectionTitleRow">
+        <h2>SQL</h2>
+        <span class="sectionHint">実行されたSQL</span>
+      </div>
+      <pre>${escapeHtml(inspection.compiledSql || 'SQL has not been captured yet.')}</pre>
+    </section>
+    <details class="consoleSection consoleDetails" open>
+      <summary>現在の条件</summary>
       <h2>リクエスト概要</h2>
       <div class="requestSummary">
         <div><span>endpoint</span><strong>GET /tickets</strong></div>
         <div><span>rows</span><strong>${inspection.rowCount} rows</strong></div>
         <div><span>elapsed</span><strong>${inspection.elapsedMs ?? '-'} ms</strong></div>
       </div>
-    </section>
-    <section class="consoleSection">
       <h2>現在のフィルター</h2>
       <div class="consoleChips">${renderFilterChips(filters)}</div>
       <h2>並び順</h2>
       <p class="sortLine">${escapeHtml(currentSortLabel(filters.sort))} <code>(${escapeHtml(inspection.safeSortKeys)})</code></p>
       <p class="stableLine">stable suffix <code>${escapeHtml(inspection.stableOrder)}</code></p>
-    </section>
-    <section class="consoleSection consoleGuide" data-console-guide>
-      <div class="sectionTitleRow">
-        <h2>説明</h2>
-        <button type="button" data-dismiss-guide aria-label="説明を非表示">×</button>
-      </div>
+    </details>
+    <details class="consoleSection consoleDetails consoleGuide">
+      <summary>説明</summary>
       <div class="guideBox">
         ${consoleGuideLines().map((line) => `<div class="guideLine">${escapeHtml(line)}</div>`).join('')}
       </div>
-    </section>
-    <section class="consoleSection">
-      <h2>実行ログ</h2>
-      <div class="executionLog">
-        <div class="logLine">[now] GET /tickets -> ${inspection.rowCount} rows${inspection.elapsedMs === undefined ? '' : ` (${inspection.elapsedMs} ms)`} ok</div>
-        <div class="logLine">[now] safe sort -> ${escapeHtml(inspection.safeSortKeys)}, ${escapeHtml(inspection.stableOrder)}</div>
-        <div class="logLine">[now] bound names -> ${escapeHtml(inspection.orderedNames.join(', ') || '-')}</div>
-      </div>
-    </section>
-    <section class="consoleSection sqlBlock">
-      <h2>実行されたSQL</h2>
-      <pre>${escapeHtml(inspection.compiledSql || 'SQL has not been captured yet.')}</pre>
-    </section>
+    </details>
   </aside>`;
 }
 
@@ -319,22 +309,6 @@ function consoleGuideLines(): string[] {
     copy.demoCards.valueTitle,
     ...copy.demoCards.valueBullets.map((item) => `- ${item}`),
   ];
-}
-
-function consoleScript(): string {
-  return `
-    (() => {
-      const guide = document.querySelector('[data-console-guide]');
-      if (!guide) return;
-      if (localStorage.getItem('support-inbox-console-guide') === 'hidden') {
-        guide.hidden = true;
-      }
-      document.querySelector('[data-dismiss-guide]')?.addEventListener('click', () => {
-        guide.hidden = true;
-        localStorage.setItem('support-inbox-console-guide', 'hidden');
-      });
-    })();
-  `;
 }
 
 function select(name: string, label: string, options: readonly Option[], current: string): string {
@@ -550,7 +524,7 @@ function styles(): string {
     .messageCard p { margin: 8px 0 0; line-height: 1.6; }
     .replyBox { display: grid; grid-template-columns: 1fr 72px; gap: 8px; }
     .replyBox button { border: 0; border-radius: 6px; background: #1459b8; color: #fff; font-weight: 700; }
-    .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto auto auto auto minmax(82px, auto) minmax(320px, 1fr); gap: 14px; min-height: 100vh; max-height: 100vh; overflow: auto; }
+    .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 14px; min-height: 100vh; max-height: 100vh; overflow: hidden; }
     .consoleHeader { display: flex; justify-content: space-between; gap: 14px; align-items: start; padding-bottom: 14px; border-bottom: 1px solid #1e2d44; }
     .consoleHeader div { display: grid; gap: 5px; min-width: 0; }
     .consoleHeader strong { color: #ffffff; font-size: 18px; }
@@ -560,8 +534,15 @@ function styles(): string {
     .consoleSection { display: grid; gap: 10px; min-width: 0; }
     .consoleSection h2 { margin: 0; color: #d8e4f6; font-size: 13px; }
     .sectionTitleRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .sectionTitleRow button { width: 24px; height: 24px; border: 1px solid #263850; border-radius: 6px; background: #111b2b; color: #8ea3bf; cursor: pointer; font-weight: 900; line-height: 1; }
-    .sectionTitleRow button:hover { color: #ffffff; border-color: #3b5271; }
+    .sectionHint { color: #8ea3bf; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .consoleDetails { display: block; border: 1px solid #263850; border-radius: 8px; background: #0f1a2b; padding: 0; overflow: hidden; }
+    .consoleDetails summary { cursor: pointer; list-style: none; color: #d8e4f6; font-size: 13px; font-weight: 800; padding: 10px 12px; }
+    .consoleDetails summary::-webkit-details-marker { display: none; }
+    .consoleDetails summary::after { content: "+"; float: right; color: #8ea3bf; font-weight: 900; }
+    .consoleDetails[open] summary { border-bottom: 1px solid #263850; }
+    .consoleDetails[open] summary::after { content: "-"; }
+    .consoleDetails h2 { padding: 10px 12px 0; }
+    .consoleDetails .requestSummary, .consoleDetails .consoleChips, .consoleDetails .sortLine, .consoleDetails .stableLine, .consoleDetails .guideBox { margin: 0 12px 12px; }
     .requestSummary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #263850; border-radius: 8px; background: #111b2b; }
     .requestSummary div { display: grid; gap: 6px; padding: 11px; border-right: 1px solid #263850; min-width: 0; }
     .requestSummary div:last-child { border-right: 0; }
@@ -571,12 +552,11 @@ function styles(): string {
     .consoleChips span, .sortLine, .stableLine { border: 1px solid #263850; background: #0f1a2b; border-radius: 6px; padding: 7px 9px; color: #d8e4f6; font-size: 12px; font-weight: 700; }
     .sortLine, .stableLine { margin: 0; line-height: 1.45; }
     .sortLine code, .stableLine code { color: #9bd2ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
-    .guideBox { max-height: 150px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #0f1a2b; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
-    .executionLog { min-height: 76px; max-height: 120px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #08111f; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
+    .guideBox { max-height: 150px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #08111f; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
     .guideLine { color: #8ea3bf; }
     .logLine { color: #67e8a5; }
-    .sqlBlock { min-height: 0; }
-    .sqlBlock pre { margin: 0; min-height: 300px; max-height: calc(100vh - 560px); overflow: auto; border-radius: 8px; border: 1px solid #263850; padding: 12px; background: #050b15; color: #b9d7ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; white-space: pre; }
+    .sqlBlock { min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+    .sqlBlock pre { margin: 0; min-height: 420px; overflow: auto; border-radius: 8px; border: 1px solid #263850; padding: 12px; background: #050b15; color: #b9d7ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; white-space: pre; }
     .errorPage { max-width: 760px; margin: 80px auto; background: #fff; border: 1px solid #d8dee9; border-radius: 8px; padding: 24px; }
     .errorPage pre { white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px; }
   `;
