@@ -30,7 +30,26 @@ The goal is not to prove every CRUD path. This demo focuses on the `R` side: a r
 
 ## Run Locally
 
-Copy `.env.example` to `.env`. The example uses port `55433` by default to avoid clashing with a local PostgreSQL on `5432`.
+Prerequisites:
+
+- Node.js and pnpm
+- Docker, for the local PostgreSQL container
+
+Run the commands from the repository root.
+
+Create the example environment file:
+
+```sh
+cp examples/hono-pg-support-inbox/.env.example examples/hono-pg-support-inbox/.env
+```
+
+On PowerShell:
+
+```powershell
+Copy-Item examples/hono-pg-support-inbox/.env.example examples/hono-pg-support-inbox/.env
+```
+
+The checked-in `.env.example` uses PostgreSQL port `55433` to avoid clashing with a local PostgreSQL on `5432`. Change `ASHIBA_TEST_DB_PORT` in `examples/hono-pg-support-inbox/.env` if that port is already in use.
 
 ```sh
 pnpm install
@@ -41,7 +60,15 @@ pnpm --dir examples/hono-pg-support-inbox dev
 
 Open `http://localhost:3000/tickets`.
 
+Stop and remove the demo database container when you are done:
+
+```sh
+pnpm --dir examples/hono-pg-support-inbox db:down
+```
+
 ## Verify
+
+The verification commands use the same `.env` file as the local demo.
 
 ```sh
 pnpm --dir examples/hono-pg-support-inbox typecheck
@@ -49,7 +76,9 @@ pnpm --dir examples/hono-pg-support-inbox test
 pnpm --dir examples/hono-pg-support-inbox check:drift
 ```
 
-If port `55433` is not available, set `ASHIBA_TEST_DB_PORT` consistently for `db:up`, `db:seed`, and `test`.
+If `test` fails before connecting to PostgreSQL, make sure `db:up` has been run and the `ASHIBA_TEST_DB_PORT` in `.env` matches the container port.
+
+If you set `DATABASE_URL`, the dev server and seed script will use it instead of the `ASHIBA_TEST_DB_*` values. For the standard demo flow, prefer the `.env.example` settings.
 
 ## Demo Boundary
 
