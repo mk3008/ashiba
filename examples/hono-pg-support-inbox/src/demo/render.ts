@@ -89,6 +89,7 @@ export function renderSupportInbox(filters: TicketFilters, viewModel: SupportInb
     </main>
     ${renderQueryConsole(filters, viewModel.inspection)}
   </div>
+  <script>${consoleScript()}</script>
 </body>
 </html>`;
 }
@@ -251,10 +252,18 @@ function renderQueryConsole(filters: TicketFilters, inspection: SupportInboxView
       <p class="sortLine">${escapeHtml(currentSortLabel(filters.sort))} <code>(${escapeHtml(inspection.safeSortKeys)})</code></p>
       <p class="stableLine">stable suffix <code>${escapeHtml(inspection.stableOrder)}</code></p>
     </section>
+    <section class="consoleSection consoleGuide" data-console-guide>
+      <div class="sectionTitleRow">
+        <h2>説明</h2>
+        <button type="button" data-dismiss-guide aria-label="説明を非表示">×</button>
+      </div>
+      <div class="guideBox">
+        ${consoleGuideLines().map((line) => `<div class="guideLine">${escapeHtml(line)}</div>`).join('')}
+      </div>
+    </section>
     <section class="consoleSection">
       <h2>実行ログ</h2>
       <div class="executionLog">
-        ${consoleGuideLines().map((line) => `<div class="guideLine">${escapeHtml(line)}</div>`).join('')}
         <div class="logLine">[now] GET /tickets -> ${inspection.rowCount} rows${inspection.elapsedMs === undefined ? '' : ` (${inspection.elapsedMs} ms)`} ok</div>
         <div class="logLine">[now] safe sort -> ${escapeHtml(inspection.safeSortKeys)}, ${escapeHtml(inspection.stableOrder)}</div>
         <div class="logLine">[now] bound names -> ${escapeHtml(inspection.orderedNames.join(', ') || '-')}</div>
@@ -310,6 +319,22 @@ function consoleGuideLines(): string[] {
     copy.demoCards.valueTitle,
     ...copy.demoCards.valueBullets.map((item) => `- ${item}`),
   ];
+}
+
+function consoleScript(): string {
+  return `
+    (() => {
+      const guide = document.querySelector('[data-console-guide]');
+      if (!guide) return;
+      if (localStorage.getItem('support-inbox-console-guide') === 'hidden') {
+        guide.hidden = true;
+      }
+      document.querySelector('[data-dismiss-guide]')?.addEventListener('click', () => {
+        guide.hidden = true;
+        localStorage.setItem('support-inbox-console-guide', 'hidden');
+      });
+    })();
+  `;
 }
 
 function select(name: string, label: string, options: readonly Option[], current: string): string {
@@ -525,7 +550,7 @@ function styles(): string {
     .messageCard p { margin: 8px 0 0; line-height: 1.6; }
     .replyBox { display: grid; grid-template-columns: 1fr 72px; gap: 8px; }
     .replyBox button { border: 0; border-radius: 6px; background: #1459b8; color: #fff; font-weight: 700; }
-    .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto auto auto minmax(170px, auto) minmax(320px, 1fr); gap: 16px; min-height: 100vh; max-height: 100vh; overflow: auto; }
+    .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto auto auto auto minmax(82px, auto) minmax(320px, 1fr); gap: 14px; min-height: 100vh; max-height: 100vh; overflow: auto; }
     .consoleHeader { display: flex; justify-content: space-between; gap: 14px; align-items: start; padding-bottom: 14px; border-bottom: 1px solid #1e2d44; }
     .consoleHeader div { display: grid; gap: 5px; min-width: 0; }
     .consoleHeader strong { color: #ffffff; font-size: 18px; }
@@ -534,6 +559,9 @@ function styles(): string {
     .liveBadge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.8); }
     .consoleSection { display: grid; gap: 10px; min-width: 0; }
     .consoleSection h2 { margin: 0; color: #d8e4f6; font-size: 13px; }
+    .sectionTitleRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .sectionTitleRow button { width: 24px; height: 24px; border: 1px solid #263850; border-radius: 6px; background: #111b2b; color: #8ea3bf; cursor: pointer; font-weight: 900; line-height: 1; }
+    .sectionTitleRow button:hover { color: #ffffff; border-color: #3b5271; }
     .requestSummary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #263850; border-radius: 8px; background: #111b2b; }
     .requestSummary div { display: grid; gap: 6px; padding: 11px; border-right: 1px solid #263850; min-width: 0; }
     .requestSummary div:last-child { border-right: 0; }
@@ -543,7 +571,8 @@ function styles(): string {
     .consoleChips span, .sortLine, .stableLine { border: 1px solid #263850; background: #0f1a2b; border-radius: 6px; padding: 7px 9px; color: #d8e4f6; font-size: 12px; font-weight: 700; }
     .sortLine, .stableLine { margin: 0; line-height: 1.45; }
     .sortLine code, .stableLine code { color: #9bd2ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
-    .executionLog { min-height: 150px; max-height: 210px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #08111f; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
+    .guideBox { max-height: 150px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #0f1a2b; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
+    .executionLog { min-height: 76px; max-height: 120px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #08111f; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
     .guideLine { color: #8ea3bf; }
     .logLine { color: #67e8a5; }
     .sqlBlock { min-height: 0; }
