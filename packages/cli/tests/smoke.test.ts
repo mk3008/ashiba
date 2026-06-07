@@ -3121,6 +3121,38 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('does not generate fallback optional condition metadata from comments or dollar-quoted strings', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-casted-optional-condition-comments-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        '-- Example only: (cast(:comment_status as text) is null or status = :comment_status)',
+        'select',
+        '  user_id as id,',
+        '  $tag$(cast(:body_status as text) is null or status = :body_status)$tag$ as note',
+        'from public.users',
+        'where tenant_id = :tenant_id',
+        '  and (cast(:status as text) is null or status = :status);',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.analysis.optionalConditionCompression?.branches.map((branch) => branch.parameterName))
+        .toEqual(['status']);
+      expect(result.bindings.postgres.optionalConditionCompression?.branches.map((branch) => branch.parameterName))
+        .toEqual(['status']);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('generates optional condition compression metadata for nested query scopes', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-optional-condition-nested-'));
 

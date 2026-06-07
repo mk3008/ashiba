@@ -54,19 +54,65 @@ function collectFallbackOptionalConditionBranchSpans(sql: string): Array<{
   }> = [];
   const stack: number[] = [];
   let quote: "'" | '"' | undefined;
+  let quoteBackslashEscapes = false;
+  let dollarTag: string | undefined;
+  let lineComment = false;
+  let blockComment = false;
   for (let index = 0; index < sql.length; index += 1) {
     const current = sql[index] ?? '';
     const next = sql[index + 1] ?? '';
+    if (dollarTag) {
+      if (sql.startsWith(dollarTag, index)) {
+        index += dollarTag.length - 1;
+        dollarTag = undefined;
+      }
+      continue;
+    }
+    if (lineComment) {
+      if (current === '\n') lineComment = false;
+      continue;
+    }
+    if (blockComment) {
+      if (current === '*' && next === '/') {
+        blockComment = false;
+        index += 1;
+      }
+      continue;
+    }
     if (quote) {
+      if (quoteBackslashEscapes && current === '\\' && next) {
+        index += 1;
+        continue;
+      }
       if (current === quote && next === quote) {
         index += 1;
         continue;
       }
-      if (current === quote) quote = undefined;
+      if (current === quote) {
+        quote = undefined;
+        quoteBackslashEscapes = false;
+      }
+      continue;
+    }
+    if (current === '-' && next === '-') {
+      lineComment = true;
+      index += 1;
+      continue;
+    }
+    if (current === '/' && next === '*') {
+      blockComment = true;
+      index += 1;
+      continue;
+    }
+    const dollarQuote = postgresDollarQuoteAt(sql, index);
+    if (dollarQuote) {
+      dollarTag = dollarQuote;
+      index += dollarQuote.length - 1;
       continue;
     }
     if (current === "'" || current === '"') {
       quote = current;
+      quoteBackslashEscapes = current === "'" && isPostgresEscapeStringStart(sql, index);
       continue;
     }
     if (current === '(') {
@@ -308,4 +354,18 @@ function collectNamedParameters(value: string): string[] {
     }
   }
   return names;
+}
+
+function postgresDollarQuoteAt(sql: string, index: number): string | undefined {
+  const match = sql.slice(index).match(/^(\$\$|\$[A-Za-z_][A-Za-z0-9_]*\$)/);
+  return match?.[0];
+}
+
+function isPostgresEscapeStringStart(sql: string, quoteIndex: number): boolean {
+  const marker = sql[quoteIndex - 1] ?? '';
+  if (marker !== 'E' && marker !== 'e') {
+    return false;
+  }
+  const beforeMarker = sql[quoteIndex - 2] ?? '';
+  return !/[A-Za-z0-9_$]/.test(beforeMarker);
 }
