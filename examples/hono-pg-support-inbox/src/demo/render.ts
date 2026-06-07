@@ -236,33 +236,41 @@ function renderQueryConsole(filters: TicketFilters, inspection: SupportInboxView
       </div>
       <span class="liveBadge">LIVE</span>
     </div>
-    <section class="consoleSection sqlBlock">
-      <div class="sectionTitleRow">
+    <input class="consoleTabInput" type="radio" id="console-tab-info" name="console-tab">
+    <input class="consoleTabInput" type="radio" id="console-tab-sql" name="console-tab" checked>
+    <div class="consoleTabs">
+      <label for="console-tab-info">INFO</label>
+      <label for="console-tab-sql">SQL</label>
+    </div>
+    <section class="consoleTabPanel infoPanel">
+      <details class="consoleSection consoleDetails" open>
+        <summary>現在の条件</summary>
+        <h2>リクエスト概要</h2>
+        <div class="requestSummary">
+          <div><span>endpoint</span><strong>GET /tickets</strong></div>
+          <div><span>rows</span><strong>${inspection.rowCount} rows</strong></div>
+          <div><span>elapsed</span><strong>${inspection.elapsedMs ?? '-'} ms</strong></div>
+        </div>
+        <h2>現在のフィルター</h2>
+        <div class="consoleChips">${renderFilterChips(filters)}</div>
+        <h2>並び順</h2>
+        <p class="sortLine">${escapeHtml(currentSortLabel(filters.sort))} <code>(${escapeHtml(inspection.safeSortKeys)})</code></p>
+        <p class="stableLine">stable suffix <code>${escapeHtml(inspection.stableOrder)}</code></p>
+      </details>
+      <details class="consoleSection consoleDetails consoleGuide">
+        <summary>説明</summary>
+        <div class="guideBox">
+          ${consoleGuideLines().map((line) => `<div class="guideLine">${escapeHtml(line)}</div>`).join('')}
+        </div>
+      </details>
+    </section>
+    <section class="consoleTabPanel sqlPanel">
+      <div class="sectionTitleRow sqlTitle">
         <h2>SQL</h2>
-        <span class="sectionHint">実行されたSQL</span>
+        <span class="sectionHint">executed SQL</span>
       </div>
       <pre>${escapeHtml(inspection.compiledSql || 'SQL has not been captured yet.')}</pre>
     </section>
-    <details class="consoleSection consoleDetails" open>
-      <summary>現在の条件</summary>
-      <h2>リクエスト概要</h2>
-      <div class="requestSummary">
-        <div><span>endpoint</span><strong>GET /tickets</strong></div>
-        <div><span>rows</span><strong>${inspection.rowCount} rows</strong></div>
-        <div><span>elapsed</span><strong>${inspection.elapsedMs ?? '-'} ms</strong></div>
-      </div>
-      <h2>現在のフィルター</h2>
-      <div class="consoleChips">${renderFilterChips(filters)}</div>
-      <h2>並び順</h2>
-      <p class="sortLine">${escapeHtml(currentSortLabel(filters.sort))} <code>(${escapeHtml(inspection.safeSortKeys)})</code></p>
-      <p class="stableLine">stable suffix <code>${escapeHtml(inspection.stableOrder)}</code></p>
-    </details>
-    <details class="consoleSection consoleDetails consoleGuide">
-      <summary>説明</summary>
-      <div class="guideBox">
-        ${consoleGuideLines().map((line) => `<div class="guideLine">${escapeHtml(line)}</div>`).join('')}
-      </div>
-    </details>
   </aside>`;
 }
 
@@ -470,7 +478,7 @@ function styles(): string {
     * { box-sizing: border-box; }
     body { margin: 0; min-width: 1120px; }
     a { color: #1459b8; text-decoration: none; }
-    .shell { display: grid; grid-template-columns: 190px minmax(0, 1fr) 390px; min-height: 100vh; }
+    .shell { display: grid; grid-template-columns: 180px minmax(0, 1fr) 470px; min-height: 100vh; }
     .sidebar { background: #ffffff; border-right: 1px solid #d8dee9; display: flex; flex-direction: column; padding: 18px 12px; }
     .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
     .brandIcon { width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; background: #e8f2ff; color: #1459b8; font-weight: 700; }
@@ -524,13 +532,23 @@ function styles(): string {
     .messageCard p { margin: 8px 0 0; line-height: 1.6; }
     .replyBox { display: grid; grid-template-columns: 1fr 72px; gap: 8px; }
     .replyBox button { border: 0; border-radius: 6px; background: #1459b8; color: #fff; font-weight: 700; }
-    .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 14px; min-height: 100vh; max-height: 100vh; overflow: hidden; }
+    .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 14px; min-height: 100vh; max-height: 100vh; overflow: hidden; }
     .consoleHeader { display: flex; justify-content: space-between; gap: 14px; align-items: start; padding-bottom: 14px; border-bottom: 1px solid #1e2d44; }
     .consoleHeader div { display: grid; gap: 5px; min-width: 0; }
     .consoleHeader strong { color: #ffffff; font-size: 18px; }
     .consoleHeader span:not(.liveBadge) { color: #8ea3bf; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; overflow-wrap: anywhere; }
     .liveBadge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 9px; background: #063f2a; color: #7dffb0; font-size: 11px; font-weight: 900; letter-spacing: 0; }
     .liveBadge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.8); }
+    .consoleTabInput { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
+    .consoleTabs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #263850; border-radius: 8px; overflow: hidden; background: #08111f; }
+    .consoleTabs label { cursor: pointer; padding: 10px 12px; color: #8ea3bf; text-align: center; font-size: 12px; font-weight: 900; letter-spacing: 0; }
+    .consoleTabs label + label { border-left: 1px solid #263850; }
+    #console-tab-info:checked ~ .consoleTabs label[for="console-tab-info"],
+    #console-tab-sql:checked ~ .consoleTabs label[for="console-tab-sql"] { background: #14345c; color: #ffffff; }
+    .consoleTabPanel { min-height: 0; display: none; }
+    #console-tab-info:checked ~ .infoPanel,
+    #console-tab-sql:checked ~ .sqlPanel { display: grid; }
+    .infoPanel { align-content: start; gap: 12px; overflow: auto; }
     .consoleSection { display: grid; gap: 10px; min-width: 0; }
     .consoleSection h2 { margin: 0; color: #d8e4f6; font-size: 13px; }
     .sectionTitleRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -555,8 +573,9 @@ function styles(): string {
     .guideBox { max-height: 150px; overflow: auto; border: 1px solid #263850; border-radius: 8px; background: #08111f; padding: 10px; display: grid; align-content: start; gap: 5px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; }
     .guideLine { color: #8ea3bf; }
     .logLine { color: #67e8a5; }
-    .sqlBlock { min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
-    .sqlBlock pre { margin: 0; min-height: 420px; overflow: auto; border-radius: 8px; border: 1px solid #263850; padding: 12px; background: #050b15; color: #b9d7ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; white-space: pre; }
+    .sqlPanel { min-height: 0; grid-template-rows: auto minmax(0, 1fr); gap: 10px; }
+    .sqlTitle { min-height: 24px; }
+    .sqlPanel pre { margin: 0; min-height: 0; overflow: auto; border-radius: 8px; border: 1px solid #263850; padding: 12px; background: #050b15; color: #b9d7ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; white-space: pre; }
     .errorPage { max-width: 760px; margin: 80px auto; background: #fff; border: 1px solid #d8dee9; border-radius: 8px; padding: 24px; }
     .errorPage pre { white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px; }
   `;
