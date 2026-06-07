@@ -48,6 +48,8 @@ describe('support inbox HTTP filters', () => {
     expect(html).toContain('ログインできません');
     expect(html).toContain('プランの変更方法を教えてください');
     expect(html).not.toContain('Demo is not ready');
+    expect(html).toContain('t.status = $1');
+    expect(html).not.toContain('cast($1 as text) is null or t.status = $2');
   });
 
   test('renders keyword search', async () => {

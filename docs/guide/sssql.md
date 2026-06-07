@@ -40,6 +40,14 @@ When PostgreSQL needs help inferring a nullable parameter type, the guard can ca
 (cast(:status as text) is null or u.status = :status)
 ```
 
+Ashiba recognizes these null-guard forms as the same SSSQL guard:
+
+```sql
+(:status is null or u.status = :status)
+(:status::text is null or u.status = :status)
+(cast(:status as text) is null or u.status = :status)
+```
+
 Multiple predicate branches are allowed when they all belong to the same optional parameter:
 
 ```sql

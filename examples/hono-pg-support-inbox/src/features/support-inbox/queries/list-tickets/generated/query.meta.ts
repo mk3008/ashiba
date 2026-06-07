@@ -83,6 +83,120 @@ export const queryModel = {
       "enabled": true,
       "branches": [
         {
+          "parameterName": "status",
+          "kind": "expression",
+          "sourceRange": {
+            "start": 2523,
+            "end": 2576,
+            "text": "(cast(:status as text) is null or t.status = :status)"
+          },
+          "removalRange": {
+            "start": 2519,
+            "end": 2576,
+            "text": "and (cast(:status as text) is null or t.status = :status)"
+          },
+          "presentReplacement": {
+            "start": 2523,
+            "end": 2576,
+            "text": "t.status = :status"
+          }
+        },
+        {
+          "parameterName": "customerTier",
+          "kind": "expression",
+          "sourceRange": {
+            "start": 2583,
+            "end": 2646,
+            "text": "(cast(:customerTier as text) is null or c.tier = :customerTier)"
+          },
+          "removalRange": {
+            "start": 2579,
+            "end": 2646,
+            "text": "and (cast(:customerTier as text) is null or c.tier = :customerTier)"
+          },
+          "presentReplacement": {
+            "start": 2583,
+            "end": 2646,
+            "text": "c.tier = :customerTier"
+          }
+        },
+        {
+          "parameterName": "slaState",
+          "kind": "expression",
+          "sourceRange": {
+            "start": 2653,
+            "end": 2924,
+            "text": "(\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )"
+          },
+          "removalRange": {
+            "start": 2649,
+            "end": 2924,
+            "text": "and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )"
+          },
+          "presentReplacement": {
+            "start": 2653,
+            "end": 2924,
+            "text": "case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState"
+          }
+        },
+        {
+          "parameterName": "language",
+          "kind": "expression",
+          "sourceRange": {
+            "start": 2931,
+            "end": 2990,
+            "text": "(cast(:language as text) is null or t.language = :language)"
+          },
+          "removalRange": {
+            "start": 2927,
+            "end": 2990,
+            "text": "and (cast(:language as text) is null or t.language = :language)"
+          },
+          "presentReplacement": {
+            "start": 2931,
+            "end": 2990,
+            "text": "t.language = :language"
+          }
+        },
+        {
+          "parameterName": "channel",
+          "kind": "expression",
+          "sourceRange": {
+            "start": 2997,
+            "end": 3053,
+            "text": "(cast(:channel as text) is null or t.channel = :channel)"
+          },
+          "removalRange": {
+            "start": 2993,
+            "end": 3053,
+            "text": "and (cast(:channel as text) is null or t.channel = :channel)"
+          },
+          "presentReplacement": {
+            "start": 2997,
+            "end": 3053,
+            "text": "t.channel = :channel"
+          }
+        },
+        {
+          "parameterName": "tag",
+          "kind": "expression",
+          "sourceRange": {
+            "start": 3060,
+            "end": 3145,
+            "text": "(cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))"
+          },
+          "removalRange": {
+            "start": 3056,
+            "end": 3145,
+            "text": "and (cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))"
+          },
+          "presentReplacement": {
+            "start": 3060,
+            "end": 3145,
+            "text": ":tag = any(coalesce(tags.tag_slugs, array[]::text[]))"
+          }
+        },
+        {
           "parameterName": "keyword",
           "kind": "expression",
           "sourceRange": {
@@ -190,6 +304,78 @@ export const queryModel = {
       },
       "optionalConditionCompression": {
         "branches": [
+          {
+            "parameterName": "status",
+            "removalRange": {
+              "start": 2519,
+              "end": 2566
+            },
+            "presentReplacement": {
+              "start": 2523,
+              "end": 2566,
+              "text": "t.status = $1"
+            }
+          },
+          {
+            "parameterName": "customerTier",
+            "removalRange": {
+              "start": 2569,
+              "end": 2614
+            },
+            "presentReplacement": {
+              "start": 2573,
+              "end": 2614,
+              "text": "c.tier = $3"
+            }
+          },
+          {
+            "parameterName": "slaState",
+            "removalRange": {
+              "start": 2617,
+              "end": 2878
+            },
+            "presentReplacement": {
+              "start": 2621,
+              "end": 2878,
+              "text": "case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $5"
+            }
+          },
+          {
+            "parameterName": "language",
+            "removalRange": {
+              "start": 2881,
+              "end": 2930
+            },
+            "presentReplacement": {
+              "start": 2885,
+              "end": 2930,
+              "text": "t.language = $7"
+            }
+          },
+          {
+            "parameterName": "channel",
+            "removalRange": {
+              "start": 2933,
+              "end": 2982
+            },
+            "presentReplacement": {
+              "start": 2937,
+              "end": 2982,
+              "text": "t.channel = $9"
+            }
+          },
+          {
+            "parameterName": "tag",
+            "removalRange": {
+              "start": 2985,
+              "end": 3072
+            },
+            "presentReplacement": {
+              "start": 2989,
+              "end": 3072,
+              "text": "$11 = any(coalesce(tags.tag_slugs, array[]::text[]))"
+            }
+          },
           {
             "parameterName": "keyword",
             "removalRange": {

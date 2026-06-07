@@ -1381,6 +1381,96 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('keeps prepend safe sort aligned after multiple optional rewrites', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = [
+      'select a.id, a.email from users a',
+      'where true',
+      '  and (:status is null or a.status = :status)',
+      '  and (:tier is null or a.tier = :tier)',
+      '  and (:lang is null or a.lang = :lang)',
+      '  and (:channel is null or a.channel = :channel)',
+      '  and (:tag is null or :tag = any(a.tags))',
+      "  and (:keyword is null or a.email ilike '%' || :keyword || '%')",
+      'order by a.id',
+      'limit :limit',
+    ].join('\n');
+    const compiledSql = [
+      'select a.id, a.email from users a',
+      'where true',
+      '  and ($1 is null or a.status = $2)',
+      '  and ($3 is null or a.tier = $4)',
+      '  and ($5 is null or a.lang = $6)',
+      '  and ($7 is null or a.channel = $8)',
+      '  and ($9 is null or $10 = any(a.tags))',
+      "  and ($11 is null or a.email ilike '%' || $12 || '%')",
+      'order by a.id',
+      'limit $13',
+    ].join('\n');
+    const insertionIndex = sourceSql.indexOf('a.id\nlimit');
+    const compiledInsertionIndex = compiledSql.indexOf('a.id\nlimit');
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['status', 'status', 'tier', 'tier', 'lang', 'lang', 'channel', 'channel', 'tag', 'tag', 'keyword', 'keyword', 'limit'],
+          safeSortInsertion: { index: compiledInsertionIndex },
+          optionalConditionCompression: {
+            branches: [
+              ...optionalCompressionBinding(compiledSql, 'status', 'and ($1 is null or a.status = $2)').branches,
+              ...optionalCompressionBinding(compiledSql, 'tier', 'and ($3 is null or a.tier = $4)').branches,
+              ...optionalCompressionBinding(compiledSql, 'lang', 'and ($5 is null or a.lang = $6)').branches,
+              ...optionalCompressionBinding(compiledSql, 'channel', 'and ($7 is null or a.channel = $8)').branches,
+              ...optionalCompressionBinding(compiledSql, 'tag', 'and ($9 is null or $10 = any(a.tags))').branches,
+              ...optionalCompressionBinding(compiledSql, 'keyword', "and ($11 is null or a.email ilike '%' || $12 || '%')").branches,
+            ],
+          },
+        }, {
+          safeSort: {
+            insertion: { status: 'ready', index: insertionIndex, mode: 'prepend-comma' },
+            sortable: { priority: { sql: 'a.priority' } },
+          },
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              ...optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'tier', 'and (:tier is null or a.tier = :tier)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'lang', 'and (:lang is null or a.lang = :lang)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'channel', 'and (:channel is null or a.channel = :channel)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'tag', 'and (:tag is null or :tag = any(a.tags))').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'keyword', "and (:keyword is null or a.email ilike '%' || :keyword || '%')").branches,
+            ],
+          },
+        })),
+      { status: null, tier: null, lang: null, channel: null, tag: null, keyword: 'login', limit: 10 }, {
+        optionalConditionCompression: true,
+        sort: [{ key: 'priority', direction: 'desc' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: [
+        'select a.id, a.email from users a',
+        'where true',
+        '  ',
+        '  ',
+        '  ',
+        '  ',
+        '  ',
+        "  and a.email ilike '%' || $1 || '%'",
+        'order by a.priority desc, a.id',
+        'limit $2',
+      ].join('\n'),
+      values: ['login', 10],
+    }]);
+  });
+
   test('can append safe sort after existing ORDER BY terms for compatibility', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select a.user_id as id from users a order by a.name';

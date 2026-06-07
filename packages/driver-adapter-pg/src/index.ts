@@ -190,9 +190,13 @@ export function createPostgresAdapter(
         compiledSql = prepared.sql;
         bound = prepared;
         if (sortInsertion) {
-          sourceSql = spliceOrderBy(
+          const sourceInsertion = realignOrderByInsertion(
             prepared.sourceSql,
             adjustInsertionForRewriteRanges(sortInsertion.insertion, prepared.sourceRewriteRanges),
+          );
+          sourceSql = spliceOrderBy(
+            prepared.sourceSql,
+            sourceInsertion,
             sortInsertion.orderBy,
           );
           const compiledInsertion = realignOrderByInsertion(
@@ -562,7 +566,13 @@ function adjustInsertionForRewriteRanges<T extends { index: number; mode: 'order
   return { ...insertion, index: adjustedIndex };
 }
 
-function realignOrderByInsertion<T extends { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' }>(sql: string, insertion: T): T {
+function realignOrderByInsertion(
+  sql: string,
+  insertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' },
+): { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' } {
+  if (insertion.mode === 'prepend-comma') {
+    return realignPrependOrderByInsertion(sql, { index: insertion.index, mode: 'prepend-comma' });
+  }
   if (insertion.mode !== 'order-by') {
     return insertion;
   }
@@ -580,6 +590,24 @@ function realignOrderByInsertion<T extends { index: number; mode: 'order-by' | '
     ...insertion,
     index: windowStart + nearbyClause.index,
   };
+}
+
+function realignPrependOrderByInsertion(
+  sql: string,
+  insertion: { index: number; mode: 'prepend-comma' },
+): { index: number; mode: 'prepend-comma' } {
+  const windowStart = Math.max(0, insertion.index - 64);
+  const windowEnd = Math.min(sql.length, insertion.index + 64);
+  const windowText = sql.slice(windowStart, windowEnd);
+  const matches = [...windowText.matchAll(/\border\s+by\b/gi)];
+  const match = matches.at(-1);
+  if (!match || match.index === undefined) {
+    return insertion;
+  }
+
+  let index = windowStart + match.index + match[0].length;
+  while (isWhitespace(sql[index] ?? '')) index += 1;
+  return { ...insertion, index };
 }
 
 function renumberPostgresPlaceholders(

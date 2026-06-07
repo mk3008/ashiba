@@ -154,10 +154,28 @@ Product note:
 
 - For demos, route-level tests must cover the primary user interactions, not just parser helpers and mapper contracts.
 
+### Casted SSSQL null guards were not compressed
+
+PostgreSQL can fail to infer a parameter type for a bare `$1 is null` guard when the value is null, so the demo SQL used guards such as `cast(:status as text) is null`.
+
+The first SQL inspection panel made it visible that these guards were still present in compiled SQL for `status=open`, for example `cast($1 as text) is null or t.status = $2`. That meant SSSQL compression metadata only recognized the bare `:keyword is null` shape and missed casted guards.
+
+Resolution:
+
+- Updated optional-condition compression metadata generation to recognize `cast(:param as type) is null` as the same SSSQL null guard.
+- Fixed named parameter collection so PostgreSQL casts like `array[]::text[]` are not mistaken for named parameters.
+- Re-generated the support inbox query metadata so all public optional filters are compressible.
+- Fixed safe sort insertion realignment after many optional-condition rewrites, preventing safe sort from being inserted into the middle of the stable `order by t.ticket_id` suffix.
+
+Product note:
+
+- The SQL inspection panel is valuable because it exposes whether the final execution SQL actually matches the SSSQL promise.
+- PostgreSQL-friendly SSSQL should allow explicit null-guard casts while still compressing to the natural predicate when the parameter is present.
+
 ## Current Verification
 
 - `pnpm --dir examples/hono-pg-support-inbox typecheck`: passed
-- `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox test`: passed, including HTTP E2E for all public filters and safe sort choices
+- `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox test`: passed, including HTTP E2E for all public filters, safe sort choices, SQL inspection, and compressed SSSQL output
 - `pnpm --dir examples/hono-pg-support-inbox check:drift`: passed
 - `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox db:seed`: passed
 - Playwright screenshot of `http://localhost:3000/tickets`: passed

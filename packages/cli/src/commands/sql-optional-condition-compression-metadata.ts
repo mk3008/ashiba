@@ -260,13 +260,21 @@ function isTopLevelOrAt(value: string, index: number): boolean {
 }
 
 function isNullGuard(value: string, parameterName: string): boolean {
-  const escaped = parameterName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`^\\s*:${escaped}\\s+is\\s+null\\s*$`, 'i').test(stripBalancedOuterParens(value).text);
+  return guardedParameterName(value) === parameterName;
 }
 
 function guardedParameterName(value: string): string | undefined {
-  const match = stripBalancedOuterParens(value).text.match(/^\s*:([A-Za-z_][A-Za-z0-9_]*)\s+is\s+null\s*$/i);
-  return match?.[1];
+  const text = stripBalancedOuterParens(value).text;
+  const directMatch = text.match(/^\s*:([A-Za-z_][A-Za-z0-9_]*)\s+is\s+null\s*$/i);
+  if (directMatch?.[1]) {
+    return directMatch[1];
+  }
+  const postgresCastMatch = text.match(/^\s*:([A-Za-z_][A-Za-z0-9_]*)(?:::[A-Za-z_][A-Za-z0-9_]*(?:\s*\[\s*\])*)+\s+is\s+null\s*$/i);
+  if (postgresCastMatch?.[1]) {
+    return postgresCastMatch[1];
+  }
+  const castMatch = text.match(/^\s*cast\s*\(\s*:([A-Za-z_][A-Za-z0-9_]*)\s+as\s+.+\)\s+is\s+null\s*$/i);
+  return castMatch?.[1];
 }
 
 function collectNamedParameters(value: string): string[] {
@@ -287,7 +295,11 @@ function collectNamedParameters(value: string): string[] {
       quote = current;
       continue;
     }
-    if (current === ':' && next !== ':') {
+    if (current === ':' && next === ':') {
+      index += 1;
+      continue;
+    }
+    if (current === ':') {
       const match = value.slice(index + 1).match(/^([A-Za-z_][A-Za-z0-9_]*)/);
       if (match?.[1]) {
         names.push(match[1]);

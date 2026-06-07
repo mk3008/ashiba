@@ -3057,6 +3057,70 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('generates optional condition compression metadata for casted null guards', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-casted-optional-condition-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id as id, email',
+        'from public.users',
+        'where tenant_id = :tenant_id',
+        '  and (cast(:status as text) is null or status = :status)',
+        '  and (:language::text is null or language = :language)',
+        '  and (cast(:tag as text) is null or :tag = any(coalesce(tags, array[]::text[])));',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.analysis.optionalConditionCompression?.branches).toHaveLength(3);
+      expect(result.analysis.optionalConditionCompression?.branches[0]).toMatchObject({
+        parameterName: 'status',
+        presentReplacement: {
+          text: 'status = :status',
+        },
+      });
+      expect(result.analysis.optionalConditionCompression?.branches[1]).toMatchObject({
+        parameterName: 'language',
+        presentReplacement: {
+          text: 'language = :language',
+        },
+      });
+      expect(result.analysis.optionalConditionCompression?.branches[2]).toMatchObject({
+        parameterName: 'tag',
+        presentReplacement: {
+          text: ':tag = any(coalesce(tags, array[]::text[]))',
+        },
+      });
+      expect(result.bindings.postgres.optionalConditionCompression?.branches[0]).toMatchObject({
+        parameterName: 'status',
+        presentReplacement: {
+          text: 'status = $2',
+        },
+      });
+      expect(result.bindings.postgres.optionalConditionCompression?.branches[1]).toMatchObject({
+        parameterName: 'language',
+        presentReplacement: {
+          text: 'language = $4',
+        },
+      });
+      expect(result.bindings.postgres.optionalConditionCompression?.branches[2]).toMatchObject({
+        parameterName: 'tag',
+        presentReplacement: {
+          text: '$6 = any(coalesce(tags, array[]::text[]))',
+        },
+      });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('generates optional condition compression metadata for nested query scopes', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-optional-condition-nested-'));
 
