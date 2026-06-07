@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-pg build && pnpm --filter @ashiba-ts/testkit-adapter-pg build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:mapper": "vitest run src/features -t ZTD",
     "ashiba:generate": "node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox list-tickets && node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox get-ticket-detail",
