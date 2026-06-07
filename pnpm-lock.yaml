@@ -37,8 +37,8 @@ importers:
   examples/hono-pg-support-inbox:
     dependencies:
       '@ashiba-ts/driver-adapter-pg':
-        specifier: file:../../packages/driver-adapter-pg
-        version: file:packages/driver-adapter-pg(pg@8.21.0)
+        specifier: workspace:*
+        version: link:../../packages/driver-adapter-pg
       '@hono/node-server':
         specifier: ^1.19.6
         version: 1.19.14(hono@4.12.23)
@@ -50,10 +50,10 @@ importers:
         version: 8.21.0
     devDependencies:
       '@ashiba-ts/cli':
-        specifier: file:../../packages/cli
+        specifier: workspace:*
         version: link:../../packages/cli
       '@ashiba-ts/testkit-adapter-pg':
-        specifier: file:../../packages/testkit-adapter-pg
+        specifier: workspace:*
         version: link:../../packages/testkit-adapter-pg
       '@types/node':
         specifier: ^22.13.10
@@ -239,15 +239,6 @@ packages:
   '@algolia/requester-node-http@5.52.1':
     resolution: {integrity: sha512-tqZXM+54rWo4mk5jL5Z/flE11nPmNEdXwFBM5py9DkOmbjeCNemfVd45FyM97XdzfZ0dl9uOJC6PYn1FpkeyQg==}
     engines: {node: '>= 14.0.0'}
-
-  '@ashiba-ts/driver-adapter-pg@file:packages/driver-adapter-pg':
-    resolution: {directory: packages/driver-adapter-pg, type: directory}
-    engines: {node: '>=20'}
-    peerDependencies:
-      pg: '>=8'
-    peerDependenciesMeta:
-      pg:
-        optional: true
 
   '@azure-rest/core-client@2.6.0':
     resolution: {integrity: sha512-iuFKDm8XPzNxPfRjhyU5/xKZmcRDzSuEghXDHHk4MjBV/wFL34GmYVBZnn9wmuoLBeS1qAw9ceMdaeJBPcB1QQ==}
@@ -2313,12 +2304,6 @@ snapshots:
   '@algolia/requester-node-http@5.52.1':
     dependencies:
       '@algolia/client-common': 5.52.1
-
-  '@ashiba-ts/driver-adapter-pg@file:packages/driver-adapter-pg(pg@8.21.0)':
-    dependencies:
-      '@ashiba-ts/driver-adapter-core': link:packages/driver-adapter-core
-    optionalDependencies:
-      pg: 8.21.0
 
   '@azure-rest/core-client@2.6.0':
     dependencies:
