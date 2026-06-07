@@ -3210,6 +3210,56 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('generates grouped optional condition removal metadata without runtime SQL cleanup', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-optional-condition-groups-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id as id, email',
+        'from public.users',
+        'where (:email is null or email = :email)',
+        '  and (:status is null or status = :status)',
+        '  and tenant_id = :tenant_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.analysis.optionalConditionCompression?.groups).toEqual([{
+        branchIndexes: [0, 1],
+        removalRange: {
+          start: readFileSync(sqlPath, 'utf8').indexOf('(:email is null'),
+          end: readFileSync(sqlPath, 'utf8').indexOf('tenant_id = :tenant_id'),
+          text: [
+            '(:email is null or email = :email)',
+            '  and (:status is null or status = :status)',
+            '  and ',
+          ].join('\n'),
+        },
+      }]);
+      expect(result.bindings.postgres.optionalConditionCompression?.groups).toEqual([{
+        branchIndexes: [0, 1],
+        removalRange: {
+          start: result.bindings.postgres.sql.indexOf('($1 is null'),
+          end: result.bindings.postgres.sql.indexOf('tenant_id = $5'),
+          text: [
+            '($1 is null or email = $2)',
+            '  and ($3 is null or status = $4)',
+            '  and ',
+          ].join('\n'),
+        },
+      }]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('uses collision-free metadata names when model-gen writes sibling query contracts', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-sibling-contracts-'));
 
@@ -3616,6 +3666,35 @@ describe('@ashiba-ts/cli smoke', () => {
         id: { sql: 'a.user_id' },
         email: { sql: 'a.email' },
       });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('records safe sort insertion before WINDOW without runtime clause realignment', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-window-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/windowed');
+      const sqlPath = path.join(sqlDir, 'windowed.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select a.user_id as id, row_number() over w as row_no',
+        'from public.users a',
+        'where a.status = :status',
+        'window w as (partition by a.tenant_id order by a.created_at desc)',
+        'limit :limit',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/windowed/windowed.sql' });
+
+      expect(result.analysis.safeSort.insertion).toMatchObject({
+        status: 'ready',
+        mode: 'order-by',
+      });
+      expect(result.analysis.safeSort.insertion.status === 'ready' ? result.analysis.safeSort.insertion.index : -1)
+        .toBe(readFileSync(sqlPath, 'utf8').indexOf('window w'));
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

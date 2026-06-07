@@ -117,6 +117,14 @@ export type AshibaQueryModelAnalysis = {
         text: string;
       };
     }[];
+    groups?: readonly {
+      branchIndexes: readonly number[];
+      removalRange: {
+        start: number;
+        end: number;
+        text?: string;
+      };
+    }[];
   };
 };
 

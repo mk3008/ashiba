@@ -80,6 +80,14 @@ export interface QueryModelBindings {
           text: string;
         };
       }>;
+      groups?: Array<{
+        branchIndexes: number[];
+        removalRange: {
+          start: number;
+          end: number;
+          text?: string;
+        };
+      }>;
     };
   };
   mysql2?: {
@@ -318,7 +326,38 @@ export function buildPostgresOptionalConditionCompressionBindingMetadata(
         },
         presentReplacement: buildPostgresPresentReplacement(sourceSql, branch.presentReplacement),
       })),
+      ...(metadata.groups && metadata.groups.length > 0
+        ? {
+          groups: metadata.groups.map((group) => ({
+            branchIndexes: [...group.branchIndexes],
+            removalRange: buildPostgresRemovalRange(sourceSql, group.removalRange),
+          })),
+        }
+        : {}),
     },
+  };
+}
+
+function buildPostgresRemovalRange(
+  sourceSql: string,
+  removalRange: { start: number; end: number; text?: string },
+): { start: number; end: number; text?: string } {
+  const start = compileNamedParameters(sourceSql.slice(0, removalRange.start), {
+    placeholderStyle: 'postgres',
+  }).sql.length;
+  const end = compileNamedParameters(sourceSql.slice(0, removalRange.end), {
+    placeholderStyle: 'postgres',
+  }).sql.length;
+  return {
+    start,
+    end,
+    ...(removalRange.text !== undefined
+      ? {
+        text: compileNamedParameters(removalRange.text, {
+          placeholderStyle: 'postgres',
+        }).sql,
+      }
+      : {}),
   };
 }
 

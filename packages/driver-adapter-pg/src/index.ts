@@ -63,6 +63,14 @@ export type AshibaPostgresQueryModel = {
             text: string;
           };
         }[];
+        groups?: readonly {
+          branchIndexes: readonly number[];
+          removalRange: {
+            start: number;
+            end: number;
+            text?: string;
+          };
+        }[];
       };
     };
   };
@@ -190,19 +198,13 @@ export function createPostgresAdapter(
         compiledSql = prepared.sql;
         bound = prepared;
         if (sortInsertion) {
-          const sourceInsertion = realignOrderByInsertion(
-            prepared.sourceSql,
-            adjustInsertionForRewriteRanges(sortInsertion.insertion, prepared.sourceRewriteRanges),
-          );
+          const sourceInsertion = adjustInsertionForRewriteRanges(sortInsertion.insertion, prepared.sourceRewriteRanges);
           sourceSql = spliceOrderBy(
             prepared.sourceSql,
             sourceInsertion,
             sortInsertion.orderBy,
           );
-          const compiledInsertion = realignOrderByInsertion(
-            prepared.sql,
-            adjustInsertionForRewriteRanges(sortInsertion.compiledInsertion, prepared.compiledRewriteRanges),
-          );
+          const compiledInsertion = adjustInsertionForRewriteRanges(sortInsertion.compiledInsertion, prepared.compiledRewriteRanges);
           compiledSql = spliceOrderBy(prepared.sql, compiledInsertion, sortInsertion.orderBy);
           bound = { ...bound, sql: compiledSql };
         }
@@ -382,10 +384,11 @@ function applyOptionalConditionCompression(
   }
 
   const activeBranches = analysis.branches
-    .map((branch, index) => ({ source: branch, compiled: binding.branches[index] }))
+    .map((branch, index) => ({ source: branch, compiled: binding.branches[index], index }))
     .filter((branch): branch is {
       source: NonNullable<typeof analysis>['branches'][number];
       compiled: NonNullable<typeof binding>['branches'][number];
+      index: number;
     } => {
       if (!branch.compiled || branch.source.parameterName !== branch.compiled.parameterName) {
         throw new AshibaPostgresQueryModelError(
@@ -396,6 +399,7 @@ function applyOptionalConditionCompression(
       return Object.prototype.hasOwnProperty.call(params, branch.source.parameterName)
         && params[branch.source.parameterName] == null;
     });
+  const activeBranchIndexes = new Set(activeBranches.map((branch) => branch.index));
   const presentBranches = analysis.branches
     .map((branch, index) => ({ source: branch, compiled: binding.branches[index] }))
     .filter((branch): branch is {
@@ -423,8 +427,21 @@ function applyOptionalConditionCompression(
     };
   }
 
-  const sourceRemovalRanges = normalizeOptionalConditionRemovalRanges(query.sql, activeBranches.map((branch) => branch.source.removalRange));
-  const compiledRemovalRanges = normalizeOptionalConditionRemovalRanges(precomputed.sql, activeBranches.map((branch) => branch.compiled.removalRange));
+  const activeSourceGroups = (analysis.groups ?? [])
+    .filter((group) => group.branchIndexes.every((index) => activeBranchIndexes.has(index)));
+  const activeCompiledGroups = (binding.groups ?? [])
+    .filter((group) => group.branchIndexes.every((index) => activeBranchIndexes.has(index)));
+  const groupedBranchIndexes = new Set(activeSourceGroups.flatMap((group) => [...group.branchIndexes]));
+  const activeSourceGroupRanges = activeSourceGroups.map((group) => group.removalRange);
+  const activeCompiledGroupRanges = activeCompiledGroups.map((group) => group.removalRange);
+  const sourceRemovalRanges = mergeTextRanges([
+    ...activeSourceGroupRanges,
+    ...activeBranches.filter((branch) => !groupedBranchIndexes.has(branch.index)).map((branch) => branch.source.removalRange),
+  ]);
+  const compiledRemovalRanges = mergeTextRanges([
+    ...activeCompiledGroupRanges,
+    ...activeBranches.filter((branch) => !groupedBranchIndexes.has(branch.index)).map((branch) => branch.compiled.removalRange),
+  ]);
   for (const branch of activeBranches) {
     assertRangeTextMatches(query.sql, branch.source.sourceRange, 'source SQL source range');
     assertRangeTextMatches(query.sql, branch.source.removalRange, 'source SQL removal range');
@@ -432,6 +449,12 @@ function applyOptionalConditionCompression(
   }
   for (const branch of presentBranches) {
     assertRangeTextMatches(query.sql, branch.source.sourceRange, 'source SQL source range');
+  }
+  for (const range of activeSourceGroupRanges) {
+    assertRangeTextMatches(query.sql, range, 'source SQL empty group removal range');
+  }
+  for (const range of activeCompiledGroupRanges) {
+    assertRangeTextMatches(precomputed.sql, range, 'compiled SQL empty group removal range');
   }
 
   const sourceRewriteRanges = normalizeTextEdits([
@@ -442,8 +465,8 @@ function applyOptionalConditionCompression(
     ...compiledRemovalRanges.map((range) => ({ ...range, text: '' })),
     ...presentBranches.map((branch) => branch.compiled.presentReplacement),
   ]);
-  const sourceSql = cleanCompressedWhereSyntax(rewriteTextRanges(query.sql, sourceRewriteRanges));
-  const compressedCompiledSql = cleanCompressedWhereSyntax(rewriteTextRanges(precomputed.sql, compiledRewriteRanges));
+  const sourceSql = rewriteTextRanges(query.sql, sourceRewriteRanges);
+  const compressedCompiledSql = rewriteTextRanges(precomputed.sql, compiledRewriteRanges);
   const renumbered = renumberPostgresPlaceholders(compressedCompiledSql, precomputed.orderedNames);
 
   return {
@@ -486,32 +509,10 @@ function rewriteTextRanges(sql: string, ranges: readonly TextEdit[]): string {
   return output;
 }
 
-function cleanCompressedWhereSyntax(sql: string): string {
-  return removeDanglingWhereClauses(removeLeadingWhereConnectives(sql));
-}
-
-function removeLeadingWhereConnectives(sql: string): string {
-  return sql.replace(
-    /\bwhere((?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*)(?:and|or)\b\s*/gi,
-    'where$1 ',
-  );
-}
-
-function removeDanglingWhereClauses(sql: string): string {
-  return sql.replace(
-    /\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*(?=(?:group\s+by|order\s+by|having|limit|offset|fetch|for|union|intersect|except)\b|\)|;|$)/gi,
-    '',
-  );
-}
-
 function normalizeTextEdits(ranges: readonly TextEdit[]): TextEdit[] {
   return ranges
     .map((range) => ({ start: range.start, end: range.end, text: range.text }))
     .sort((left, right) => left.start - right.start);
-}
-
-function normalizeOptionalConditionRemovalRanges(sql: string, ranges: readonly TextRange[]): TextRange[] {
-  return mergeTextRanges(normalizeLeadingWhereRemoval(sql, mergeTextRanges(ranges)));
 }
 
 function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
@@ -526,51 +527,6 @@ function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
     previous.end = Math.max(previous.end, range.end);
   }
   return merged;
-}
-
-function normalizeLeadingWhereRemoval(sql: string, ranges: readonly TextRange[]): TextRange[] {
-  return ranges.map((range) => {
-    const rangeText = sql.slice(range.start, range.end);
-    const whereAtRangeStart = rangeText.match(/^\s*where\b\s*/i);
-    if (whereAtRangeStart?.[0]) {
-      if (hasRemainingWherePredicateAfter(sql, range.end)) {
-        const danglingConnective = sql.slice(range.end).match(/^\s+(?:and|or)\b\s*/i);
-        const end = danglingConnective?.[0] ? range.end + danglingConnective[0].length : range.end;
-        return { start: range.start + whereAtRangeStart[0].length, end };
-      }
-      return range;
-    }
-
-    const before = sql.slice(0, range.start);
-    const whereMatch = before.match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
-    if (!whereMatch || whereMatch.index === undefined) {
-      return range;
-    }
-    if (hasRemainingWherePredicateAfter(sql, range.end)) {
-      const danglingConnective = sql.slice(range.end).match(/^\s+(?:and|or)\b\s*/i);
-      if (danglingConnective?.[0]) {
-        return { start: range.start, end: range.end + danglingConnective[0].length };
-      }
-      const trailingWhitespace = sql.slice(range.end).match(/^\s+/)?.[0] ?? '';
-      return { start: range.start, end: range.end + trailingWhitespace.length };
-    }
-    return { start: whereMatch.index, end: range.end };
-  });
-}
-
-function hasRemainingWherePredicateAfter(sql: string, index: number): boolean {
-  const after = sql.slice(index).trimStart();
-  if (after.length === 0) {
-    return false;
-  }
-  if (after.startsWith(';')) {
-    return false;
-  }
-  if (/^(?:and|or)\b/i.test(after)) {
-    const withoutDanglingConnective = after.replace(/^(?:and|or)\b\s*/i, '');
-    return hasRemainingWherePredicateAfter(withoutDanglingConnective, 0);
-  }
-  return !/^(?:group\s+by|order\s+by|having|limit|offset|fetch|for|union|intersect|except)\b|^\)|^;/i.test(after);
 }
 
 function normalizeRanges(ranges: readonly TextRange[]): TextRange[] {
@@ -596,65 +552,6 @@ function adjustInsertionForRewriteRanges<T extends { index: number; mode: 'order
     }
   }
   return { ...insertion, index: adjustedIndex };
-}
-
-function realignOrderByInsertion(
-  sql: string,
-  insertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' },
-): { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' } {
-  if (insertion.mode === 'prepend-comma') {
-    return realignPrependOrderByInsertion(sql, { index: insertion.index, mode: 'prepend-comma' });
-  }
-  if (insertion.mode === 'comma') {
-    return realignCommaOrderByInsertion(sql, { index: insertion.index, mode: 'comma' });
-  }
-  if (insertion.mode !== 'order-by') return insertion;
-  if (/^\s*(?:limit|offset|fetch|for)\b/i.test(sql.slice(insertion.index))) {
-    return insertion;
-  }
-
-  const windowStart = Math.max(0, insertion.index - 16);
-  const windowEnd = Math.min(sql.length, insertion.index + 16);
-  const nearbyClause = /\b(?:limit|offset|fetch|for)\b/i.exec(sql.slice(windowStart, windowEnd));
-  if (!nearbyClause || nearbyClause.index === undefined) {
-    return insertion;
-  }
-  return {
-    ...insertion,
-    index: windowStart + nearbyClause.index,
-  };
-}
-
-function realignCommaOrderByInsertion(
-  sql: string,
-  insertion: { index: number; mode: 'comma' },
-): { index: number; mode: 'comma' } {
-  const windowStart = Math.max(0, insertion.index - 64);
-  const windowEnd = Math.min(sql.length, insertion.index + 64);
-  const windowText = sql.slice(windowStart, windowEnd);
-  const match = /\b(?:limit|offset|fetch|for)\b/i.exec(windowText);
-  if (!match || match.index === undefined) {
-    return insertion;
-  }
-  return { ...insertion, index: windowStart + match.index };
-}
-
-function realignPrependOrderByInsertion(
-  sql: string,
-  insertion: { index: number; mode: 'prepend-comma' },
-): { index: number; mode: 'prepend-comma' } {
-  const windowStart = Math.max(0, insertion.index - 64);
-  const windowEnd = Math.min(sql.length, insertion.index + 64);
-  const windowText = sql.slice(windowStart, windowEnd);
-  const matches = [...windowText.matchAll(/\border\s+by\b/gi)];
-  const match = matches.at(-1);
-  if (!match || match.index === undefined) {
-    return insertion;
-  }
-
-  let index = windowStart + match.index + match[0].length;
-  while (isWhitespace(sql[index] ?? '')) index += 1;
-  return { ...insertion, index };
 }
 
 function renumberPostgresPlaceholders(

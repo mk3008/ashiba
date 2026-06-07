@@ -116,7 +116,7 @@ function findOrderByListStart(sql: string, orderByIndex: number): number {
 }
 
 function findOrderByInsertionIndex(sql: string, selectIndex: number): number {
-  return findFirstTopLevelKeyword(sql, ['limit', 'offset', 'fetch', 'for'], selectIndex) ?? findStatementEnd(sql, selectIndex);
+  return findFirstTopLevelKeyword(sql, ['window', 'limit', 'offset', 'fetch', 'for'], selectIndex) ?? findStatementEnd(sql, selectIndex);
 }
 
 function findFirstTopLevelKeyword(sql: string, keywords: string[], start: number): number | undefined {

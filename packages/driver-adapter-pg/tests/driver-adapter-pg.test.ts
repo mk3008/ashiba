@@ -1518,8 +1518,8 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       'order by a.id',
       'limit $13',
     ].join('\n');
-    const insertionIndex = sourceSql.indexOf('a.id\nlimit');
-    const compiledInsertionIndex = compiledSql.indexOf('a.id\nlimit');
+    const insertionIndex = sourceSql.indexOf('order by a.id') + 'order by'.length;
+    const compiledInsertionIndex = compiledSql.indexOf('order by a.id') + 'order by'.length;
     const client: NodePostgresQueryable = {
       async query(sql, values) {
         calls.push({ sql, values });
@@ -2087,21 +2087,32 @@ function queryModelFor(
   } = {},
   analysis: Record<string, unknown> = {},
 ) {
+  const analysisWithGroups = enrichOptionalCompressionGroups(sourceSql, analysis);
+  const bindingWithGroups = binding.optionalConditionCompression
+    ? {
+      ...binding,
+      optionalConditionCompression: enrichBindingOptionalCompressionGroups(
+        binding.sql ?? sourceSql,
+        binding.optionalConditionCompression,
+        analysisWithGroups.optionalConditionCompression,
+      ),
+    }
+    : binding;
   return {
     analysis: {
       astParse: 'ok',
       statementKind: 'select',
       hasTopLevelOrderBy: false,
       sourceHash: hashSql(sourceSql),
-      ...analysis,
+      ...analysisWithGroups,
     },
     bindings: {
       postgres: {
         sourceHash: hashSql(sourceSql),
-        sql: binding.sql ?? sourceSql,
-        orderedNames: binding.orderedNames ?? [],
-        ...(binding.safeSortInsertion ? { safeSortInsertion: binding.safeSortInsertion } : {}),
-        ...(binding.optionalConditionCompression ? { optionalConditionCompression: binding.optionalConditionCompression } : {}),
+        sql: bindingWithGroups.sql ?? sourceSql,
+        orderedNames: bindingWithGroups.orderedNames ?? [],
+        ...(bindingWithGroups.safeSortInsertion ? { safeSortInsertion: bindingWithGroups.safeSortInsertion } : {}),
+        ...(bindingWithGroups.optionalConditionCompression ? { optionalConditionCompression: bindingWithGroups.optionalConditionCompression } : {}),
       },
     },
   };
@@ -2110,9 +2121,13 @@ function queryModelFor(
 function optionalCompressionAnalysis(sourceSql: string, parameterName: string, removalText: string) {
   const removalStart = sourceSql.indexOf(removalText);
   if (removalStart < 0) throw new Error(`Missing source removal text: ${removalText}`);
-  const sourceText = removalText.replace(/^and\s+/i, '');
+  const sourceText = sourceRangeTextFromRemovalText(removalText);
   const sourceStart = sourceSql.indexOf(sourceText, removalStart);
   const presentText = buildPresentReplacementText(sourceText);
+  const removalRange = normalizeTestOptionalRemovalRange(sourceSql, {
+    start: removalStart,
+    end: removalStart + removalText.length,
+  });
   return {
     enabled: true,
     branches: [{
@@ -2124,9 +2139,8 @@ function optionalCompressionAnalysis(sourceSql: string, parameterName: string, r
         text: sourceText,
       },
       removalRange: {
-        start: removalStart,
-        end: removalStart + removalText.length,
-        text: removalText,
+        ...removalRange,
+        text: sourceSql.slice(removalRange.start, removalRange.end),
       },
       presentReplacement: {
         start: sourceStart,
@@ -2140,15 +2154,18 @@ function optionalCompressionAnalysis(sourceSql: string, parameterName: string, r
 function optionalCompressionBinding(compiledSql: string, parameterName: string, removalText: string) {
   const removalStart = compiledSql.indexOf(removalText);
   if (removalStart < 0) throw new Error(`Missing compiled removal text: ${removalText}`);
-  const sourceText = removalText.replace(/^and\s+/i, '');
+  const sourceText = sourceRangeTextFromRemovalText(removalText);
   const sourceStart = compiledSql.indexOf(sourceText, removalStart);
+  const removalRange = normalizeTestOptionalRemovalRange(compiledSql, {
+    start: removalStart,
+    end: removalStart + removalText.length,
+  });
   return {
     branches: [{
       parameterName,
       removalRange: {
-        start: removalStart,
-        end: removalStart + removalText.length,
-        text: removalText,
+        ...removalRange,
+        text: compiledSql.slice(removalRange.start, removalRange.end),
       },
       presentReplacement: {
         start: sourceStart,
@@ -2165,4 +2182,161 @@ function buildPresentReplacementText(branchText: string): string {
   const terms = inner.split(/\s+or\s+/i);
   const meaningful = terms.filter((term) => !/^\s*(?::[A-Za-z_][A-Za-z0-9_]*|\$\d+)\s+is\s+null\s*$/i.test(term));
   return meaningful.length === 1 ? meaningful[0]!.trim() : `(${meaningful.map((term) => term.trim()).join(' or ')})`;
+}
+
+function sourceRangeTextFromRemovalText(removalText: string): string {
+  return removalText
+    .replace(/^(?:where|and|or)\s+/i, '')
+    .replace(/\s+(?:and|or)\s*$/i, '');
+}
+
+function normalizeTestOptionalRemovalRange(sql: string, range: { start: number; end: number }): { start: number; end: number } {
+  const rangeText = sql.slice(range.start, range.end);
+  const whereAtRangeStart = rangeText.match(/^\s*where\b\s*/i);
+  if (whereAtRangeStart?.[0]) {
+    if (hasTestRemainingPredicateAfter(sql, range.end)) {
+      const danglingConnective = sql.slice(range.end).match(/^\s+(?:and|or)\b\s*/i);
+      return {
+        start: range.start + whereAtRangeStart[0].length,
+        end: danglingConnective?.[0] ? range.end + danglingConnective[0].length : range.end,
+      };
+    }
+    return range;
+  }
+
+  const before = sql.slice(0, range.start);
+  const whereMatch = before.match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
+  if (!whereMatch || whereMatch.index === undefined) {
+    return extendTrailingConnectorWhitespace(sql, range);
+  }
+  if (hasTestRemainingPredicateAfter(sql, range.end)) {
+    const danglingConnective = sql.slice(range.end).match(/^\s+(?:and|or)\b\s*/i);
+    if (danglingConnective?.[0]) {
+      return { start: range.start, end: range.end + danglingConnective[0].length };
+    }
+    return extendTrailingConnectorWhitespace(sql, range);
+  }
+  return { start: whereMatch.index, end: range.end };
+}
+
+function extendTrailingConnectorWhitespace(sql: string, range: { start: number; end: number }): { start: number; end: number } {
+  const text = sql.slice(range.start, range.end);
+  if (!/(?:^|\s)(?:and|or)$/i.test(text.trimEnd())) {
+    return range;
+  }
+  const trailingWhitespace = sql.slice(range.end).match(/^\s*/)?.[0] ?? '';
+  return { start: range.start, end: range.end + trailingWhitespace.length };
+}
+
+function enrichOptionalCompressionGroups(sourceSql: string, analysis: Record<string, unknown>): Record<string, unknown> {
+  const optionalConditionCompression = analysis.optionalConditionCompression as
+    | { branches?: Array<{ sourceRange: { start: number; end: number }; removalRange: { start: number; end: number; text?: string } }>; groups?: unknown[] }
+    | undefined;
+  if (!optionalConditionCompression?.branches || optionalConditionCompression.groups) {
+    return analysis;
+  }
+  const groups = buildTestOptionalCompressionGroups(sourceSql, optionalConditionCompression.branches);
+  return {
+    ...analysis,
+    optionalConditionCompression: {
+      ...optionalConditionCompression,
+      ...(groups.length > 0 ? { groups } : {}),
+    },
+  };
+}
+
+function enrichBindingOptionalCompressionGroups(
+  compiledSql: string,
+  binding: {
+    branches: readonly {
+      parameterName: string;
+      removalRange: { start: number; end: number; text?: string };
+      presentReplacement: { start: number; end: number; text: string };
+    }[];
+    groups?: readonly {
+      branchIndexes: readonly number[];
+      removalRange: { start: number; end: number; text?: string };
+    }[];
+  },
+  analysisCompression: unknown,
+): typeof binding {
+  if (binding.groups) return binding;
+  const groups = (analysisCompression as { groups?: Array<{ branchIndexes: number[]; removalRange: { text?: string } }> } | undefined)?.groups;
+  if (!groups || groups.length === 0) return binding;
+  const bindingGroups = groups.map((group) => {
+    const firstBranch = binding.branches[group.branchIndexes[0] ?? -1];
+    const lastBranch = binding.branches[group.branchIndexes[group.branchIndexes.length - 1] ?? -1];
+    if (!firstBranch || !lastBranch) return undefined;
+    const branchEnd = Math.max(...group.branchIndexes.map((index) => binding.branches[index]?.removalRange.end ?? -1));
+    const removesWholeWhere = /^\s*where\b/i.test(group.removalRange.text ?? '');
+    const start = removesWholeWhere
+      ? compiledSql.slice(0, firstBranch.removalRange.start).match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i)?.index ?? firstBranch.removalRange.start
+      : firstBranch.removalRange.start;
+    const trailingConnective = removesWholeWhere ? '' : compiledSql.slice(branchEnd).match(/^\s+(?:and|or)\b\s*/i)?.[0] ?? '';
+    const end = branchEnd + trailingConnective.length;
+    return {
+      branchIndexes: [...group.branchIndexes],
+      removalRange: {
+        start,
+        end,
+        text: compiledSql.slice(start, end),
+      },
+    };
+  }).filter((group): group is { branchIndexes: number[]; removalRange: { start: number; end: number; text: string } } => group !== undefined);
+  return {
+    ...binding,
+    ...(bindingGroups.length > 0 ? { groups: bindingGroups } : {}),
+  };
+}
+
+function buildTestOptionalCompressionGroups(
+  sql: string,
+  branches: readonly { sourceRange?: { start: number; end: number }; removalRange: { start: number; end: number; text?: string } }[],
+): Array<{ branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }> {
+  const sourceLikeRanges = branches.map((branch) => branch.sourceRange ?? branch.removalRange);
+  const groups: Array<{ branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }> = [];
+  const consumed = new Set<number>();
+  for (let index = 0; index < sourceLikeRanges.length; index += 1) {
+    if (consumed.has(index)) continue;
+    const range = sourceLikeRanges[index];
+    if (!range) continue;
+    const prefix = sql.slice(0, range.start).match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
+    if (!prefix?.[0] || prefix.index === undefined) continue;
+    const groupIndexes: number[] = [];
+    let cursor = range.start;
+    for (let branchIndex = index; branchIndex < sourceLikeRanges.length; branchIndex += 1) {
+      const branchRange = sourceLikeRanges[branchIndex];
+      if (!branchRange) break;
+      const between = sql.slice(cursor, branchRange.start).replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\n]*(?:\n|$)/g, ' ').trim();
+      if (groupIndexes.length === 0 ? between !== '' : !/^(?:and|or)\b\s*$/i.test(between)) break;
+      groupIndexes.push(branchIndex);
+      cursor = branchRange.end;
+    }
+    const lastRange = sourceLikeRanges[groupIndexes[groupIndexes.length - 1] ?? -1];
+    if (groupIndexes.length < 2 || !lastRange) continue;
+    const remainingPredicateAfterGroup = hasTestRemainingPredicateAfter(sql, lastRange.end);
+    const trailingConnective = remainingPredicateAfterGroup
+      ? sql.slice(lastRange.end).match(/^\s+(?:and|or)\b\s*/i)?.[0] ?? ''
+      : '';
+    const whereKeyword = prefix[0].match(/\bwhere\b\s*/i)?.[0] ?? 'where';
+    const start = remainingPredicateAfterGroup ? prefix.index + whereKeyword.length : prefix.index;
+    const end = lastRange.end + trailingConnective.length;
+    groups.push({
+      branchIndexes: groupIndexes,
+      removalRange: {
+        start,
+        end,
+        text: sql.slice(start, end),
+      },
+    });
+    for (const groupIndex of groupIndexes) consumed.add(groupIndex);
+  }
+  return groups;
+}
+
+function hasTestRemainingPredicateAfter(sql: string, index: number): boolean {
+  const after = sql.slice(index).trimStart();
+  if (after.length === 0 || after.startsWith(';')) return false;
+  if (/^(?:and|or)\b/i.test(after)) return hasTestRemainingPredicateAfter(after.replace(/^(?:and|or)\b\s*/i, ''), 0);
+  return !/^(?:group\s+by|order\s+by|having|window|limit|offset|fetch|for|union|intersect|except)\b|^\)|^;/i.test(after);
 }
