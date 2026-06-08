@@ -65,6 +65,7 @@ jobs:
 
       - name: Verify support inbox example
         run: |
+          pnpm --dir examples/hono-pg-support-inbox db:wait
           pnpm --dir examples/hono-pg-support-inbox db:seed
           pnpm --dir examples/hono-pg-support-inbox verify
 

@@ -13,6 +13,7 @@
     "check:drift": "node node_modules/@ashiba-ts/cli/dist/index.js check",
     "ashiba:verify": "node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command \"vitest run\"",
     "db:up": "docker compose up -d",
+    "db:wait": "tsx scripts/wait-for-db.ts",
     "db:down": "docker compose down --volumes",
     "db:seed": "tsx scripts/seed.ts"
   },

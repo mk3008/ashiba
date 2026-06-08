@@ -61,6 +61,7 @@ The checked-in `.env.example` uses PostgreSQL port `55433` to avoid clashing wit
 
 ```sh
 pnpm --dir examples/hono-pg-support-inbox db:up
+pnpm --dir examples/hono-pg-support-inbox db:wait
 pnpm --dir examples/hono-pg-support-inbox db:seed
 pnpm --dir examples/hono-pg-support-inbox dev
 ```
@@ -112,12 +113,12 @@ pnpm --dir examples/hono-pg-support-inbox ashiba:generate
 pnpm --dir examples/hono-pg-support-inbox check:drift
 ```
 
-If `test` fails before connecting to PostgreSQL, make sure `db:up` has been run and the `ASHIBA_TEST_DB_PORT` in `.env` matches the container port.
+If `test` fails before connecting to PostgreSQL, make sure `db:up` and `db:wait` have been run and the `ASHIBA_TEST_DB_PORT` in `.env` matches the container port.
 
 If `/tickets` renders `Demo is not ready`, read the diagnosis on the page first:
 
 - Metadata drift means the visible SQL and generated Ashiba metadata are out of sync. Run `check:drift`.
-- PostgreSQL connection failure means the container is not reachable. Run `db:up`, or use the direct `docker compose up -d` fallback above.
+- PostgreSQL connection failure means the container is not reachable. Run `db:up` and `db:wait`, or use the direct `docker compose up -d` fallback above before running `db:wait`.
 - Credential or database-name errors usually mean `.env` and the running container were changed independently. Restart the container after changing `.env`.
 
 If you set `DATABASE_URL`, the dev server and seed script will use it instead of the `ASHIBA_TEST_DB_*` values. For the standard demo flow, prefer the `.env.example` settings.
