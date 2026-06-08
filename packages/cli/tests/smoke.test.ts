@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { SqlParser } from 'rawsql-ts';
 import { createHash } from 'node:crypto';
 import { formatAshibaError } from '../src/error-format.js';
 import { buildProgram, getErrorMode, VERSION } from '../src/index.js';
@@ -19,6 +20,7 @@ import { runPerfInit, runPerfReportDiff, runPerfRun, runPerfScenarioInit, runPer
 import { formatProjectCheckResult, runProjectCheck } from '../src/commands/project.js';
 import { runQueryFormat, runQueryFormatAll, runQueryLint, runQueryOptionalAdd, runQuerySlice, runQueryStructure, runQueryUses } from '../src/commands/query.js';
 import { runRfbaInspect } from '../src/commands/rfba.js';
+import { collectTableReferences } from '../src/commands/table-resolution.js';
 
 describe('@ashiba-ts/cli smoke', () => {
   test('builds an ashiba program', () => {
@@ -2614,6 +2616,60 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('ignores CTE aliases in UPDATE FROM DDL-aware lint', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-aware-lint-cte-write-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'sql'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db/ddl/public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null,',
+        '  active boolean not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'sql/update-users.sql'), [
+        'with eligible_users as (',
+        '  select user_id, email',
+        '  from public.users',
+        '  where active = true',
+        ')',
+        'update public.users u',
+        'set email = e.email',
+        'from eligible_users e',
+        'where e.user_id = u.user_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runLint('sql', { rootDir });
+
+      expect(result.ok).toBe(true);
+      expect(result.files.flatMap((file) => file.ddlIssues)).toEqual([]);
+      expect(result.files.map((file) => file.output).join('\n')).not.toContain('eligible_users');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('ignores CTE aliases in DELETE USING table references', () => {
+    const refs = collectTableReferences(SqlParser.parse([
+      'with stale_users as (',
+      '  select user_id',
+      '  from public.users',
+      '  where active = false',
+      ')',
+      'delete from public.users u',
+      'using stale_users s',
+      'where s.user_id = u.user_id;',
+      '',
+    ].join('\n')));
+
+    expect(refs.map((ref) => ref.table)).toEqual(['users', 'users']);
+    expect(refs.map((ref) => ref.table)).not.toContain('stale_users');
+  });
+
   test('runs DDL-aware lint for obvious INSERT literal type mismatch', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-aware-lint-type-'));
 
@@ -3335,6 +3391,57 @@ describe('@ashiba-ts/cli smoke', () => {
             ].join('\n'),
           },
         }],
+      }]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('generates leading optional condition prefix metadata across SQL comments', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-optional-condition-comment-prefix-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id as id, email',
+        'from public.users',
+        'where (:email is null or email = :email)',
+        '  /* keep connector trivia */',
+        '  and (:status is null or status = :status)',
+        '  and tenant_id = :tenant_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.analysis.optionalConditionCompression?.groups?.[0]?.leadingPrefixes).toEqual([{
+        branchIndexes: [0],
+        removalRange: {
+          start: readFileSync(sqlPath, 'utf8').indexOf('(:email is null'),
+          end: readFileSync(sqlPath, 'utf8').indexOf('(:status is null'),
+          text: [
+            '(:email is null or email = :email)',
+            '  /* keep connector trivia */',
+            '  and ',
+          ].join('\n'),
+        },
+      }]);
+      expect(result.bindings.postgres.optionalConditionCompression?.groups?.[0]?.leadingPrefixes).toEqual([{
+        branchIndexes: [0],
+        removalRange: {
+          start: result.bindings.postgres.sql.indexOf('($1 is null'),
+          end: result.bindings.postgres.sql.indexOf('($3 is null'),
+          text: [
+            '($1 is null or email = $2)',
+            '  /* keep connector trivia */',
+            '  and ',
+          ].join('\n'),
+        },
       }]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });

@@ -46,6 +46,11 @@ export function resolveDdlTable<T extends SchemaPathTable>(
  */
 export function collectTableReferences(query: ReturnType<typeof SqlParser.parse>): TableReference[] {
   const references: TableReference[] = [];
+  const isVisibleCteSource = (source: SourceExpression | null | undefined, visibleCteNames: Set<string>) => {
+    if (!source || !(source.datasource instanceof TableSource)) return false;
+    const { schema, table } = parseQualifiedTableName(source.datasource.qualifiedName.toString());
+    return !schema && visibleCteNames.has(normalizeIdentifier(table).toLowerCase());
+  };
   const addSource = (source: SourceExpression | null | undefined) => {
     if (!source || !(source.datasource instanceof TableSource)) return;
     const { schema, table } = parseQualifiedTableName(source.datasource.qualifiedName.toString());
@@ -62,7 +67,7 @@ export function collectTableReferences(query: ReturnType<typeof SqlParser.parse>
       ]);
       addCtes(selectQuery.withClause?.tables, cteNames);
       for (const source of selectQuery.fromClause?.getSources() ?? []) {
-        if (source.datasource instanceof TableSource && cteNames.has(source.datasource.table.name.toLowerCase())) continue;
+        if (isVisibleCteSource(source, cteNames)) continue;
         addSource(source);
       }
     } else if (selectQuery instanceof BinarySelectQuery) {
@@ -82,7 +87,10 @@ export function collectTableReferences(query: ReturnType<typeof SqlParser.parse>
       ]);
       addCtes(value.withClause?.tables, cteNames);
       addSource(value.updateClause.source);
-      for (const source of value.fromClause?.getSources() ?? []) addSource(source);
+      for (const source of value.fromClause?.getSources() ?? []) {
+        if (isVisibleCteSource(source, cteNames)) continue;
+        addSource(source);
+      }
     } else if (value instanceof DeleteQuery) {
       const cteNames = new Set([
         ...inheritedCteNames,
@@ -90,7 +98,10 @@ export function collectTableReferences(query: ReturnType<typeof SqlParser.parse>
       ]);
       addCtes(value.withClause?.tables, cteNames);
       addSource(value.deleteClause.source);
-      for (const source of value.usingClause?.getSources() ?? []) addSource(source);
+      for (const source of value.usingClause?.getSources() ?? []) {
+        if (isVisibleCteSource(source, cteNames)) continue;
+        addSource(source);
+      }
     }
   };
   collectFromQuery(query);

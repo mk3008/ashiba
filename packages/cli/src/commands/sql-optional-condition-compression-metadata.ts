@@ -335,10 +335,11 @@ function buildLeadingOptionalCompressionGroupPrefixes(
   for (let length = 1; length < groupIndexes.length; length += 1) {
     const prefixIndexes = groupIndexes.slice(0, length);
     const lastBranch = branches[prefixIndexes[prefixIndexes.length - 1] ?? -1];
-    if (!lastBranch) continue;
-    const trailingConnective = sql.slice(lastBranch.sourceRange.end).match(/^\s+(?:and|or)\b\s*/i)?.[0] ?? '';
-    if (trailingConnective.length === 0) continue;
-    const end = lastBranch.sourceRange.end + trailingConnective.length;
+    const nextBranch = branches[groupIndexes[length] ?? -1];
+    if (!lastBranch || !nextBranch) continue;
+    const separator = sql.slice(lastBranch.sourceRange.end, nextBranch.sourceRange.start);
+    if (!isWhereBranchSeparator(separator, true)) continue;
+    const end = nextBranch.sourceRange.start;
     prefixes.push({
       branchIndexes: prefixIndexes,
       removalRange: {
