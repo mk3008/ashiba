@@ -14,10 +14,17 @@ Production-oriented logs should identify the query without storing sensitive dat
 Recommended default fields:
 
 - `phase`: `start`, `end`, or `error`
+- `level`: `info` or `error`
+- `service`: stable application/service name
+- `pid`: process ID for local process correlation
+- `requestId`: one HTTP request correlation ID
+- `executionId`: one SQL execution correlation ID, shared by its `start`, `end`, or `error` events
 - `sqlId` / `queryId`: stable identifiers from query metadata
 - `sqlPath`: the source SQL file path for local/review lookup
 - `orderedNames`: named parameter order, without values
+- `parameterSummary`: parameter names and placeholder positions, without values
 - `elapsedMs`
+- `durationBucket`
 - `rowCount`
 - `warnings`
 - normalized error metadata
@@ -31,6 +38,14 @@ Avoid these fields in default logs:
 
 The source SQL can be recovered from `sqlId`, `queryId`, or `sqlPath`, so normal logs do not need to store the full SQL body.
 
+Use `requestId` and `executionId` together:
+
+- `requestId` groups every SQL call made while rendering one HTTP request.
+- `executionId` pairs one SQL call's `start` event with its `end` or `error` event.
+- `pid` helps local debugging when multiple dev servers or workers are running.
+
+Do not rely on timestamp ordering alone. Servers handle concurrent requests, and log lines from different requests can interleave.
+
 ## Parameter Values
 
 Ashiba SQL files use named parameters, and the PostgreSQL adapter emits `orderedNames`. This is enough to understand which named parameters were bound to `$1`, `$2`, and so on.
@@ -41,7 +56,7 @@ Parameter values are useful during local debugging, but they are also the highes
 - staging: log values only behind an explicit, short-lived debug flag
 - local/demo: values may be shown when the developer explicitly opts in
 
-In this example, `src/adapters/logger/sqlLogger.ts` logs IDs, path, timing, row count, and parameter names by default. It only includes SQL text or raw params when extra local environment flags are enabled.
+In this example, `src/adapters/logger/sqlLogger.ts` logs IDs, path, timing, row count, and parameter names by default. It also logs `parameterSummary`, which shows which named parameters were actually bound and which placeholders they occupied. It only includes SQL text or raw params when extra local environment flags are enabled.
 
 When `ASHIBA_DEMO_SQL_LOG=1` is set, the example writes JSON Lines to `.logs/sql.log` by default. This makes the log visible even when an AI agent or another process owns the terminal that started the dev server.
 
@@ -125,16 +140,32 @@ Useful alerts:
 - p95 / p99 latency by `sqlId`
 - unexpected high row count by `sqlId`
 - repeated adapter warnings, especially stale metadata or unsafe runtime input
+- missing `end` / `error` event for a `start` event after a timeout window
+- repeated slow executions from the same `requestId`
 
 Keep alert policy outside Ashiba. Ashiba supplies query identity and execution metadata; the application decides thresholds, sampling, retention, and escalation.
+
+## Operational Defaults
+
+For a production application, decide these outside Ashiba:
+
+- log level mapping: normal SQL completion is `info`, adapter or driver failure is `error`, slow query may be `warn`
+- retention: short for debug logs, longer for aggregated metrics
+- rotation: size-based or time-based rotation for file logs
+- sampling: sample high-volume successful queries, keep all errors and slow queries
+- access control: raw logs should be restricted because even names and row counts can reveal business activity
+- redaction review: treat free-text filters, emails, names, customer IDs, message bodies, and request headers as sensitive by default
+- clock/correlation: prefer ISO timestamps plus request/execution IDs; do not depend on timestamp ordering only
+- environment split: local/demo can show more, production should default to safe summaries
 
 ## Reuse Checklist
 
 When adding another demo or application screen:
 
 1. Give each query stable metadata: `sqlId`, `queryId`, and `sqlPath`.
-2. Wire the adapter observer at the application SQL client boundary.
-3. Log query identity, timing, row count, warnings, and named parameter order by default.
-4. Keep SQL text and raw parameter values behind local/debug-only opt-ins.
-5. If the screen is an adoption demo, add a visible inspection panel that explains the dynamic behavior.
-6. Cover the route with tests that assert the important SQL shape when the panel is part of the demo value.
+2. Generate or propagate a request correlation ID at the inbound adapter boundary.
+3. Wire the adapter observer at the application SQL client boundary.
+4. Log query identity, request ID, execution ID, timing, row count, warnings, named parameter order, and parameter summary by default.
+5. Keep SQL text and raw parameter values behind local/debug-only opt-ins.
+6. If the screen is an adoption demo, add a visible inspection panel that explains the dynamic behavior.
+7. Cover the route with tests that assert the important SQL shape when the panel is part of the demo value.

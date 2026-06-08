@@ -9,6 +9,7 @@ export type AshibaMaskPolicy = 'always' | 'development' | 'never';
 export type AshibaSqlExecutionMetadata = {
   sqlId?: string;
   queryId?: string;
+  requestId?: string;
   sqlFile?: string;
   sqlPath?: string;
   dialect?: string;
@@ -19,6 +20,7 @@ export type AshibaSqlExecutionMetadata = {
  */
 export type AshibaSqlExecutionEvent = {
   phase: 'start' | 'end' | 'error';
+  executionId?: string;
   metadata?: AshibaSqlExecutionMetadata;
   warnings?: readonly {
     code: string;

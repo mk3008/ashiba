@@ -29,6 +29,7 @@ describeDb('support inbox HTTP filters', () => {
     const html = await response.text();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('x-request-id')).toBeTruthy();
     expect(html).toContain('31件のチケット');
     expect(html).toContain('1 / 4ページ・表示 10件');
     expect(html).toContain('href="/tickets?page=2#ticket-list">次へ</a>');
@@ -52,6 +53,15 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('並び順: 未指定');
     expect(html).toContain('order by st.ticket_id');
     expect(html).not.toContain('order by case when t.sla_due_at is not null');
+  });
+
+  test('preserves inbound request id for log correlation', async () => {
+    const response = await app.request('/tickets', {
+      headers: { 'x-request-id': 'support-inbox-test-request' },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('x-request-id')).toBe('support-inbox-test-request');
   });
 
   test('renders status=open search without PostgreSQL parameter type errors', async () => {

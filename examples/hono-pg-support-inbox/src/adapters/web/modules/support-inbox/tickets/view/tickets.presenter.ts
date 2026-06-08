@@ -48,6 +48,7 @@ export type BoundParam = {
 
 type SqlInspectionEvent = {
   phase: 'start' | 'end' | 'error';
+  executionId?: string;
   compiledSql?: string;
   orderedNames?: readonly string[];
   params?: readonly unknown[];
@@ -55,7 +56,11 @@ type SqlInspectionEvent = {
   rowCount?: number;
 };
 
-export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Promise<SupportInboxViewModel> {
+export type SupportInboxRequestContext = {
+  requestId: string;
+};
+
+export async function loadSupportInbox(pool: Pool, filters: TicketFilters, context: SupportInboxRequestContext): Promise<SupportInboxViewModel> {
   const listEvents: SqlInspectionEvent[] = [];
   const listExecutor = createPgSqlClient(pool, {
     includeUnmaskedParamsInEvents: true,
@@ -66,12 +71,13 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Prom
       },
     },
     executeOptions: {
+      metadata: { requestId: context.requestId },
       sort: toTicketSort(filters),
     },
   });
   const tickets = await executeListTicketsQuery(listExecutor, toListTicketsParams(filters));
   const selectedTicketId = filters.selectedTicketId ?? tickets[0]?.ticket_id?.toString();
-  const selectedTicket = selectedTicketId ? await loadTicketDetail(pool, selectedTicketId) : undefined;
+  const selectedTicket = selectedTicketId ? await loadTicketDetail(pool, selectedTicketId, context) : undefined;
   return {
     tickets,
     selectedTicket,
@@ -80,8 +86,12 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Prom
   };
 }
 
-async function loadTicketDetail(pool: Pool, ticketId: string): Promise<TicketDetail> {
-  const executor = createPgSqlClient(pool);
+async function loadTicketDetail(pool: Pool, ticketId: string, context: SupportInboxRequestContext): Promise<TicketDetail> {
+  const executor = createPgSqlClient(pool, {
+    executeOptions: {
+      metadata: { requestId: context.requestId },
+    },
+  });
   const messages = await executeGetTicketDetailQuery(executor, { ticketId });
   return {
     summary: messages[0],

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import {
   type AshibaMaskPolicy,
   type AshibaQueryModelAnalysis,
@@ -195,6 +195,7 @@ export function createPostgresAdapter(
       };
       const warnings = buildSqlSourceWarnings(query, metadata);
       const startedAt = Date.now();
+      const executionId = randomUUID();
       let sourceSql = sql;
       let compiledSql = sql;
       let bound: { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } | undefined;
@@ -220,6 +221,7 @@ export function createPostgresAdapter(
 
         options.observer?.emit({
           phase: 'start',
+          executionId,
           metadata,
           ...(warnings.length > 0 ? { warnings } : {}),
           sourceSql,
@@ -232,6 +234,7 @@ export function createPostgresAdapter(
         const result = await client.query(bound.sql, bound.values);
         options.observer?.emit({
           phase: 'end',
+          executionId,
           metadata,
           ...(warnings.length > 0 ? { warnings } : {}),
           sourceSql,
@@ -246,6 +249,7 @@ export function createPostgresAdapter(
       } catch (error) {
         options.observer?.emit({
           phase: 'error',
+          executionId,
           metadata,
           ...(warnings.length > 0 ? { warnings } : {}),
           sourceSql,

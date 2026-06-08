@@ -69,7 +69,7 @@ pnpm --dir examples/hono-pg-support-inbox dev
 
 Open `http://localhost:3000/tickets`.
 
-To keep SQL execution logs visible even when another process starts the dev server, enable the demo SQL log. It writes JSON Lines to `examples/hono-pg-support-inbox/.logs/sql.log` by default:
+To keep SQL execution logs visible even when another process starts the dev server, enable the demo SQL log. It writes JSON Lines with `requestId`, `executionId`, SQL identity, timing, row count, and safe parameter summaries to `examples/hono-pg-support-inbox/.logs/sql.log` by default:
 
 ```powershell
 $env:ASHIBA_DEMO_SQL_LOG="1"

@@ -144,6 +144,8 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       metadata: { queryId: 'q1' }});
 
     expect(events.map((event) => event.phase)).toEqual(['start', 'end']);
+    expect(events[0]?.executionId).toBeTruthy();
+    expect(events[1]?.executionId).toBe(events[0]?.executionId);
     expect(events[0]?.metadata?.queryId).toBe('q1');
     expect(events[1]?.sourceSql).toBe('select :secret');
     expect(events[0]?.maskedParams).toEqual(['<masked>']);
@@ -177,6 +179,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     expect(called).toBe(false);
     expect(events).toHaveLength(1);
+    expect(events[0]?.executionId).toBeTruthy();
     expect(events[0]).toMatchObject({
       phase: 'error',
       metadata: {
@@ -2020,6 +2023,8 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       })), { id: 1 },{})).rejects.toThrow('relation does not exist');
 
     expect(events.map((event) => event.phase)).toEqual(['start', 'error']);
+    expect(events[0]?.executionId).toBeTruthy();
+    expect(events[1]?.executionId).toBe(events[0]?.executionId);
     expect(events[1]?.error).toMatchObject({ message: 'relation does not exist', code: '42P01' });
     expect(events[1]?.params).toEqual([1]);
     expect(events[1]?.maskedParams).toEqual([1]);
