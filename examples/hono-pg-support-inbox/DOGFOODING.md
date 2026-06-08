@@ -180,6 +180,25 @@ Product note:
 - `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox db:seed`: passed
 - Playwright screenshot of `http://localhost:3000/tickets`: passed
 
+## External Evaluation Report Dogfooding Tasks
+
+Source: `ashiba-evaluation-report.md`, dated 2026-06-08.
+
+This report is treated as customer-style dogfooding feedback. It covers a fresh clone of `mk3008/ashiba` and evaluates whether the support inbox demo, docs, checks, and runtime adapter behavior match the product promise.
+
+| Priority | Status | Task | Notes |
+| --- | --- | --- | --- |
+| P0 | done | Ship the support inbox demo in a clone-to-green state. | The report found `check:drift` failures and `/tickets` HTTP 503 from stale query metadata. The example now documents `typecheck`, `test`, `check:drift`, and `verify`; current dogfooding verification records those checks as passing. Keep this as a release-blocking demo invariant. |
+| P0 | done | Add CI coverage for the example drift and HTTP route path. | `.github/workflows/verify.yml` starts PostgreSQL directly from the example directory, seeds the DB, and runs `pnpm --dir examples/hono-pg-support-inbox verify`, which includes `check:drift` and route-level Vitest coverage. |
+| P0 | done | Separate metadata drift from database-startup failures on the demo error page. | The `/tickets` error page now identifies query metadata drift separately and points to `check:drift` / `ashiba:generate`; PostgreSQL startup failures point to `db:up` and direct `docker compose up -d`. Route E2E covers both messages. |
+| P0 | done | Cover adapter composition where optional-condition compression and safe sort interact. | The report found `where and ...` and safe-sort insertion-position failures after compression and placeholder renumbering. Driver-adapter regression coverage now covers this composition, and route-level E2E exercises public filters plus safe sort. |
+| P1 | done | Document Windows / sandbox Docker fallback. | The example README now documents direct `docker compose up -d` from the example directory for restricted Windows, sandbox, or Docker pipe environments. |
+| P1 | done | Make the workspace build prerequisite explicit. | The example README now tells users to run `pnpm install` and `pnpm build` from the repository root before running the workspace-backed example. |
+| P1 | partial | Make adapter behavior visible enough that it is not a black box. | The SQL inspection panel shows compiled SQL, bound parameters, selected safe sort, and stable suffix. Remaining improvement: factor this into reusable adapter/debug guidance so future demos do not reimplement the visibility surface ad hoc. |
+| P1 | partial | Strengthen project-level checks so runtime composition issues are caught before browser dogfooding. | The example CI now runs route-level tests, and adapter unit tests cover the known composition bug. Remaining question: whether `ashiba check --full`, generated verification, or example CI should own full HTTP route execution for future examples. |
+| P1 | open | Improve the performance demonstration for source-proximal filtering. | The report notes that `list-tickets.sql` mostly applies filters in the final `where`, so it is a readability demo more than proof of reducing rows before aggregation. A future SQL/demo revision should show tag/customer filters pushed closer to source tables while preserving visible SQL, paging, count, safe sort, and full tag display semantics. |
+| P2 | open | Add a separate CUD / mutation dogfooding lane. | The report could not evaluate CUD, transaction boundaries, mutation mapper tests, optimistic locking, audit, or affected-row behavior. This should be a separate adoption demo or clearly scoped extension, not hidden inside the read-heavy demo. |
+
 ## Remaining Product Questions
 
 | Priority | Status | Task | Notes |
@@ -193,6 +212,6 @@ Product note:
 | P1 | done | Provide a user-facing safe sort surface. | The demo page shows the public sort labels, the safe sort key sequence each label maps to, and the fixed `ticket_id asc` stable suffix. A future CLI/helper could still reduce app-owned display wiring, but the adoption demo surface is present. |
 | P1 | done | Add a SQL inspection panel to the demo. | The demo page shows the selected sort, safe sort keys, stable suffix, bound parameter names, and compiled SQL captured from the Ashiba PostgreSQL adapter observer. Users can see the visible SQL story without reading terminal logs. |
 | P1 | open | Add README AI edit exercise. | The planning doc calls for a 5-10 minute edit exercise, but the example README currently focuses on running and verifying the demo. |
-| P2 | open | Add a separate CUD demo lane. | The support inbox demo intentionally proves the read-heavy path only. CUD should be a separate adoption demo covering mutation mapper tests, transaction boundaries, affected rows, and business constraints. |
+| P2 | open | Add a separate CUD demo lane. | The support inbox demo intentionally proves the read-heavy path only. The external evaluation report also flags CUD, transactions, mutation mapper tests, optimistic locking, audit, and affected-row behavior as unevaluated. |
 | P2 | open | Decide whether CUD belongs in the same example app. | Keeping it separate protects the read demo's focus; sharing the same domain may make the adoption story easier to compare. This needs human product judgment. |
-| P2 | open | Catch runtime composition issues before browser dogfooding. | Optional compression and safe sort now have direct regression coverage, but project-level checks still do not execute the full demo HTTP route. Decide whether `ashiba check --full`, example CI, or generated verification should own this. |
+| P2 | partial | Decide the standard owner for full runtime composition checks. | Optional compression and safe sort now have direct regression coverage, and example CI runs the route-level demo tests. Remaining question: whether `ashiba check --full`, generated verification, or per-example CI should own this pattern for future examples and customer projects. |
