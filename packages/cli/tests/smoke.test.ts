@@ -3242,6 +3242,17 @@ describe('@ashiba-ts/cli smoke', () => {
             '  and ',
           ].join('\n'),
         },
+        leadingPrefixes: [{
+          branchIndexes: [0],
+          removalRange: {
+            start: readFileSync(sqlPath, 'utf8').indexOf('(:email is null'),
+            end: readFileSync(sqlPath, 'utf8').indexOf('(:status is null'),
+            text: [
+              '(:email is null or email = :email)',
+              '  and ',
+            ].join('\n'),
+          },
+        }],
       }]);
       expect(result.bindings.postgres.optionalConditionCompression?.groups).toEqual([{
         branchIndexes: [0, 1],
@@ -3254,6 +3265,17 @@ describe('@ashiba-ts/cli smoke', () => {
             '  and ',
           ].join('\n'),
         },
+        leadingPrefixes: [{
+          branchIndexes: [0],
+          removalRange: {
+            start: result.bindings.postgres.sql.indexOf('($1 is null'),
+            end: result.bindings.postgres.sql.indexOf('($3 is null'),
+            text: [
+              '($1 is null or email = $2)',
+              '  and ',
+            ].join('\n'),
+          },
+        }],
       }]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });

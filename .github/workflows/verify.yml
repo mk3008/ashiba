@@ -32,3 +32,43 @@ jobs:
 
       - name: Run verification gate
         run: pnpm verify
+
+  support-inbox-example:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages used by the example
+        run: pnpm build
+
+      - name: Prepare example environment
+        run: cp examples/hono-pg-support-inbox/.env.example examples/hono-pg-support-inbox/.env
+
+      - name: Start example PostgreSQL
+        working-directory: examples/hono-pg-support-inbox
+        run: docker compose up -d
+
+      - name: Verify support inbox example
+        run: |
+          pnpm --dir examples/hono-pg-support-inbox db:seed
+          pnpm --dir examples/hono-pg-support-inbox verify
+
+      - name: Stop example PostgreSQL
+        if: always()
+        working-directory: examples/hono-pg-support-inbox
+        run: docker compose down --volumes

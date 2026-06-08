@@ -23,6 +23,12 @@ export interface SqlOptionalConditionCompressionMetadata {
 export interface SqlOptionalConditionCompressionGroup {
   branchIndexes: number[];
   removalRange: OptionalConditionSourceRange;
+  leadingPrefixes?: SqlOptionalConditionCompressionGroupPrefix[];
+}
+
+export interface SqlOptionalConditionCompressionGroupPrefix {
+  branchIndexes: number[];
+  removalRange: OptionalConditionSourceRange;
 }
 
 /**
@@ -303,6 +309,8 @@ function buildOptionalConditionCompressionGroups(
     const start = remainingPredicateAfterGroup ? wherePrefix.keepStart : wherePrefix.start;
     const end = lastBranch.sourceRange.end + trailingConnective.length;
 
+    const leadingPrefixes = buildLeadingOptionalCompressionGroupPrefixes(sql, groupIndexes, branches, wherePrefix.keepStart);
+
     groups.push({
       branchIndexes: groupIndexes,
       removalRange: {
@@ -310,10 +318,37 @@ function buildOptionalConditionCompressionGroups(
         end,
         text: sql.slice(start, end),
       },
+      ...(leadingPrefixes.length > 0 ? { leadingPrefixes } : {}),
     });
     for (const groupIndex of groupIndexes) consumed.add(groupIndex);
   }
   return groups;
+}
+
+function buildLeadingOptionalCompressionGroupPrefixes(
+  sql: string,
+  groupIndexes: readonly number[],
+  branches: readonly SqlOptionalConditionCompressionBranch[],
+  keepStart: number,
+): SqlOptionalConditionCompressionGroupPrefix[] {
+  const prefixes: SqlOptionalConditionCompressionGroupPrefix[] = [];
+  for (let length = 1; length < groupIndexes.length; length += 1) {
+    const prefixIndexes = groupIndexes.slice(0, length);
+    const lastBranch = branches[prefixIndexes[prefixIndexes.length - 1] ?? -1];
+    if (!lastBranch) continue;
+    const trailingConnective = sql.slice(lastBranch.sourceRange.end).match(/^\s+(?:and|or)\b\s*/i)?.[0] ?? '';
+    if (trailingConnective.length === 0) continue;
+    const end = lastBranch.sourceRange.end + trailingConnective.length;
+    prefixes.push({
+      branchIndexes: prefixIndexes,
+      removalRange: {
+        start: keepStart,
+        end,
+        text: sql.slice(keepStart, end),
+      },
+    });
+  }
+  return prefixes;
 }
 
 function findWherePrefixForBranch(sql: string, branchStart: number): { start: number; end: number; keepStart: number } | undefined {

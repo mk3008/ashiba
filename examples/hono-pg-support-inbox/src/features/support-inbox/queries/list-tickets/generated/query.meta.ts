@@ -94,9 +94,9 @@ export const queryModel = {
             "text": "(cast(:status as text) is null or t.status = :status)"
           },
           "removalRange": {
-            "start": 2608,
-            "end": 2667,
-            "text": "where (cast(:status as text) is null or t.status = :status)"
+            "start": 2614,
+            "end": 2674,
+            "text": "(cast(:status as text) is null or t.status = :status)\n  and "
           },
           "presentReplacement": {
             "start": 2614,
@@ -218,6 +218,101 @@ export const queryModel = {
             "text": "(t.subject ilike '%' || :keyword || '%' or c.name ilike '%' || :keyword || '%' or lm.latest_message_body ilike '%' || :keyword || '%')"
           }
         }
+      ],
+      "groups": [
+        {
+          "branchIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "removalRange": {
+            "start": 2608,
+            "end": 3425,
+            "text": "where (cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and (cast(:language as text) is null or t.language = :language)\n  and (cast(:channel as text) is null or t.channel = :channel)\n  and (cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      :keyword is null\n      or t.subject ilike '%' || :keyword || '%'\n      or c.name ilike '%' || :keyword || '%'\n      or lm.latest_message_body ilike '%' || :keyword || '%'\n  )"
+          },
+          "leadingPrefixes": [
+            {
+              "branchIndexes": [
+                0
+              ],
+              "removalRange": {
+                "start": 2614,
+                "end": 2674,
+                "text": "(cast(:status as text) is null or t.status = :status)\n  and "
+              }
+            },
+            {
+              "branchIndexes": [
+                0,
+                1
+              ],
+              "removalRange": {
+                "start": 2614,
+                "end": 2744,
+                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and "
+              }
+            },
+            {
+              "branchIndexes": [
+                0,
+                1,
+                2
+              ],
+              "removalRange": {
+                "start": 2614,
+                "end": 3022,
+                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and "
+              }
+            },
+            {
+              "branchIndexes": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "removalRange": {
+                "start": 2614,
+                "end": 3088,
+                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and (cast(:language as text) is null or t.language = :language)\n  and "
+              }
+            },
+            {
+              "branchIndexes": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "removalRange": {
+                "start": 2614,
+                "end": 3151,
+                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and (cast(:language as text) is null or t.language = :language)\n  and (cast(:channel as text) is null or t.channel = :channel)\n  and "
+              }
+            },
+            {
+              "branchIndexes": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "removalRange": {
+                "start": 2614,
+                "end": 3243,
+                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and (cast(:language as text) is null or t.language = :language)\n  and (cast(:channel as text) is null or t.channel = :channel)\n  and (cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and "
+              }
+            }
+          ]
+        }
       ]
     },
     "resultColumns": [
@@ -312,8 +407,8 @@ export const queryModel = {
           {
             "parameterName": "status",
             "removalRange": {
-              "start": 2608,
-              "end": 2657
+              "start": 2614,
+              "end": 2664
             },
             "presentReplacement": {
               "start": 2614,
@@ -392,6 +487,101 @@ export const queryModel = {
               "end": 3332,
               "text": "(t.subject ilike '%' || $13 || '%' or c.name ilike '%' || $14 || '%' or lm.latest_message_body ilike '%' || $15 || '%')"
             }
+          }
+        ],
+        "groups": [
+          {
+            "branchIndexes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "removalRange": {
+              "start": 2608,
+              "end": 3332,
+              "text": "where (cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      $13 is null\n      or t.subject ilike '%' || $14 || '%'\n      or c.name ilike '%' || $15 || '%'\n      or lm.latest_message_body ilike '%' || $16 || '%'\n  )"
+            },
+            "leadingPrefixes": [
+              {
+                "branchIndexes": [
+                  0
+                ],
+                "removalRange": {
+                  "start": 2614,
+                  "end": 2664,
+                  "text": "(cast($1 as text) is null or t.status = $2)\n  and "
+                }
+              },
+              {
+                "branchIndexes": [
+                  0,
+                  1
+                ],
+                "removalRange": {
+                  "start": 2614,
+                  "end": 2712,
+                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and "
+                }
+              },
+              {
+                "branchIndexes": [
+                  0,
+                  1,
+                  2
+                ],
+                "removalRange": {
+                  "start": 2614,
+                  "end": 2976,
+                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and "
+                }
+              },
+              {
+                "branchIndexes": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "removalRange": {
+                  "start": 2614,
+                  "end": 3028,
+                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and "
+                }
+              },
+              {
+                "branchIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "removalRange": {
+                  "start": 2614,
+                  "end": 3080,
+                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and "
+                }
+              },
+              {
+                "branchIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ],
+                "removalRange": {
+                  "start": 2614,
+                  "end": 3170,
+                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and "
+                }
+              }
+            ]
           }
         ]
       }

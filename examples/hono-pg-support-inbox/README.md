@@ -37,6 +37,13 @@ Prerequisites:
 
 Run the commands from the repository root.
 
+Install dependencies and build the workspace packages once before running the example. The example imports workspace packages such as `@ashiba-ts/cli`, `@ashiba-ts/driver-adapter-pg`, and `@ashiba-ts/testkit-adapter-pg`; the root build makes their local `dist` output available.
+
+```sh
+pnpm install
+pnpm build
+```
+
 Create the example environment file:
 
 ```sh
@@ -52,13 +59,28 @@ Copy-Item examples/hono-pg-support-inbox/.env.example examples/hono-pg-support-i
 The checked-in `.env.example` uses PostgreSQL port `55433` to avoid clashing with a local PostgreSQL on `5432`. Change `ASHIBA_TEST_DB_PORT` in `examples/hono-pg-support-inbox/.env` if that port is already in use.
 
 ```sh
-pnpm install
 pnpm --dir examples/hono-pg-support-inbox db:up
 pnpm --dir examples/hono-pg-support-inbox db:seed
 pnpm --dir examples/hono-pg-support-inbox dev
 ```
 
 Open `http://localhost:3000/tickets`.
+
+If `pnpm --dir examples/hono-pg-support-inbox db:up` fails in a restricted Windows, sandbox, or Docker pipe environment, start Docker from the example directory directly:
+
+```sh
+cd examples/hono-pg-support-inbox
+docker compose up -d
+cd ../..
+```
+
+On PowerShell:
+
+```powershell
+Push-Location examples/hono-pg-support-inbox
+docker compose up -d
+Pop-Location
+```
 
 Stop and remove the demo database container when you are done:
 
@@ -76,7 +98,26 @@ pnpm --dir examples/hono-pg-support-inbox test
 pnpm --dir examples/hono-pg-support-inbox check:drift
 ```
 
+Or run the example-owned verification gate:
+
+```sh
+pnpm --dir examples/hono-pg-support-inbox verify
+```
+
+`check:drift` must pass in a clean clone. If it reports that query contracts, metadata, or generated mapping assets are out of sync, the demo source SQL and generated Ashiba assets are not aligned. Refresh them before judging the web app:
+
+```sh
+pnpm --dir examples/hono-pg-support-inbox ashiba:generate
+pnpm --dir examples/hono-pg-support-inbox check:drift
+```
+
 If `test` fails before connecting to PostgreSQL, make sure `db:up` has been run and the `ASHIBA_TEST_DB_PORT` in `.env` matches the container port.
+
+If `/tickets` renders `Demo is not ready`, read the diagnosis on the page first:
+
+- Metadata drift means the visible SQL and generated Ashiba metadata are out of sync. Run `check:drift`.
+- PostgreSQL connection failure means the container is not reachable. Run `db:up`, or use the direct `docker compose up -d` fallback above.
+- Credential or database-name errors usually mean `.env` and the running container were changed independently. Restart the container after changing `.env`.
 
 If you set `DATABASE_URL`, the dev server and seed script will use it instead of the `ASHIBA_TEST_DB_*` values. For the standard demo flow, prefer the `.env.example` settings.
 

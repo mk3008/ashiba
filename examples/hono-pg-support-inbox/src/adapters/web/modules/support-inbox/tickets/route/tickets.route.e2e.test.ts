@@ -194,7 +194,53 @@ describeDb('support inbox HTTP filters', () => {
   });
 });
 
+describe('support inbox demo error messages', () => {
+  test('explains query metadata drift separately from database startup', async () => {
+    const app = createWebApp({
+      pool: failingPool(Object.assign(new Error('Query model binding metadata was generated from different source SQL.'), {
+        code: 'ASHIBA_QUERY_MODEL_STALE',
+      })),
+    });
+
+    const response = await app.request('/tickets');
+    const html = await response.text();
+
+    expect(response.status).toBe(503);
+    expect(html).toContain('The visible SQL and generated Ashiba metadata are out of sync.');
+    expect(html).toContain('check:drift');
+    expect(html).toContain('This is not a PostgreSQL startup or seed-data problem.');
+    expect(html).toContain('code: ASHIBA_QUERY_MODEL_STALE');
+    expect(html).not.toContain('PostgreSQL is not reachable or the seed data has not been loaded.');
+  });
+
+  test('keeps PostgreSQL connection failures actionable', async () => {
+    const app = createWebApp({
+      pool: failingPool(Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:55433'), {
+        code: 'ECONNREFUSED',
+      })),
+    });
+
+    const response = await app.request('/tickets');
+    const html = await response.text();
+
+    expect(response.status).toBe(503);
+    expect(html).toContain('PostgreSQL is not reachable.');
+    expect(html).toContain('db:up');
+    expect(html).toContain('docker compose up -d');
+    expect(html).toContain('ASHIBA_TEST_DB_PORT');
+    expect(html).toContain('code: ECONNREFUSED');
+  });
+});
+
 function expectReadyHtml(html: string): void {
   expect(html).not.toContain('Demo is not ready');
   expect(html).not.toContain('PostgreSQL is not reachable');
+}
+
+function failingPool(error: Error): Pool {
+  return {
+    async query() {
+      throw error;
+    },
+  } as unknown as Pool;
 }

@@ -114,6 +114,7 @@ export function renderSupportInbox(filters: TicketFilters, viewModel: SupportInb
 }
 
 export function renderError(error: unknown): string {
+  const diagnosis = diagnoseDemoError(error);
   const message = error instanceof Error ? error.message : String(error);
   return `<!doctype html>
 <html lang="ja">
@@ -126,11 +127,88 @@ export function renderError(error: unknown): string {
 <body>
   <div class="errorPage">
     <h1>Demo is not ready</h1>
-    <p>PostgreSQL is not reachable or the seed data has not been loaded.</p>
+    <p>${escapeHtml(diagnosis.summary)}</p>
+    <ul>
+      ${diagnosis.actions.map((action) => `<li>${escapeHtml(action)}</li>`).join('')}
+    </ul>
+    <p class="errorCode">code: ${escapeHtml(diagnosis.code)}</p>
     <pre>${escapeHtml(message)}</pre>
   </div>
 </body>
 </html>`;
+}
+
+type DemoErrorDiagnosis = {
+  code: string;
+  summary: string;
+  actions: string[];
+};
+
+function diagnoseDemoError(error: unknown): DemoErrorDiagnosis {
+  const code = readErrorCode(error);
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (
+    code === 'ASHIBA_QUERY_MODEL_STALE' ||
+    code === 'ASHIBA_BINDING_METADATA_REQUIRED' ||
+    message.includes('Query model binding metadata was generated from different source SQL')
+  ) {
+    return {
+      code: code ?? 'ASHIBA_QUERY_MODEL_STALE',
+      summary: 'The visible SQL and generated Ashiba metadata are out of sync.',
+      actions: [
+        'Run pnpm --dir examples/hono-pg-support-inbox check:drift to see the drift.',
+        'Run pnpm --dir examples/hono-pg-support-inbox ashiba:generate, then rerun check:drift before starting the demo.',
+        'This is not a PostgreSQL startup or seed-data problem.',
+      ],
+    };
+  }
+
+  if (
+    code === 'ECONNREFUSED' ||
+    code === 'ENOTFOUND' ||
+    code === 'ETIMEDOUT' ||
+    message.toLowerCase().includes('connect econnrefused')
+  ) {
+    return {
+      code: code ?? 'POSTGRES_CONNECTION_FAILED',
+      summary: 'PostgreSQL is not reachable.',
+      actions: [
+        'Start the demo database with pnpm --dir examples/hono-pg-support-inbox db:up.',
+        'If pnpm cannot start Docker in this environment, run docker compose up -d from examples/hono-pg-support-inbox.',
+        'Check that ASHIBA_TEST_DB_PORT in .env matches the exposed container port.',
+      ],
+    };
+  }
+
+  if (code === '28P01' || code === '3D000' || code === 'ECONNRESET') {
+    return {
+      code,
+      summary: 'PostgreSQL is reachable, but the configured database credentials or database name look wrong.',
+      actions: [
+        'Copy examples/hono-pg-support-inbox/.env.example to examples/hono-pg-support-inbox/.env.',
+        'Restart the demo database after changing .env.',
+        'Run pnpm --dir examples/hono-pg-support-inbox db:seed after the database starts.',
+      ],
+    };
+  }
+
+  return {
+    code: code ?? 'UNKNOWN_DEMO_ERROR',
+    summary: 'The demo failed while rendering /tickets.',
+    actions: [
+      'Run pnpm --dir examples/hono-pg-support-inbox check:drift.',
+      'Run pnpm --dir examples/hono-pg-support-inbox db:seed.',
+      'Use the error details below if the problem persists.',
+    ],
+  };
+}
+
+function readErrorCode(error: unknown): string | undefined {
+  if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'string') {
+    return error.code;
+  }
+  return undefined;
 }
 
 function renderSidebar(): string {
@@ -699,6 +777,8 @@ function styles(): string {
     .paramsPanel th { color: #8ea3bf; background: #0f1a2b; }
     .sqlPanel pre { margin: 0; min-height: 0; overflow: auto; border-radius: 8px; border: 1px solid #263850; padding: 12px; background: #050b15; color: #b9d7ff; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; line-height: 1.45; white-space: pre; }
     .errorPage { max-width: 760px; margin: 80px auto; background: #fff; border: 1px solid #d8dee9; border-radius: 8px; padding: 24px; }
+    .errorPage ul { margin: 12px 0 16px; padding-left: 20px; color: #334155; }
+    .errorCode { font-size: 12px; color: #64748b; font-family: var(--mono); }
     .errorPage pre { white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px; }
   `;
 }

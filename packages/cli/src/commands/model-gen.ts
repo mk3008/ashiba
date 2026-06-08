@@ -87,6 +87,14 @@ export interface QueryModelBindings {
           end: number;
           text?: string;
         };
+        leadingPrefixes?: Array<{
+          branchIndexes: number[];
+          removalRange: {
+            start: number;
+            end: number;
+            text?: string;
+          };
+        }>;
       }>;
     };
   };
@@ -331,6 +339,14 @@ export function buildPostgresOptionalConditionCompressionBindingMetadata(
           groups: metadata.groups.map((group) => ({
             branchIndexes: [...group.branchIndexes],
             removalRange: buildPostgresRemovalRange(sourceSql, group.removalRange),
+            ...(group.leadingPrefixes && group.leadingPrefixes.length > 0
+              ? {
+                leadingPrefixes: group.leadingPrefixes.map((prefix) => ({
+                  branchIndexes: [...prefix.branchIndexes],
+                  removalRange: buildPostgresRemovalRange(sourceSql, prefix.removalRange),
+                })),
+              }
+              : {}),
           })),
         }
         : {}),
