@@ -1,5 +1,6 @@
 import type { Pool } from 'pg';
 
+import { logSqlExecution } from '#adapters/logger/sqlLogger.js';
 import { createPgSqlClient } from '#adapters/pg/pool.js';
 import { executeGetTicketDetailQuery, type GetTicketDetailQueryResult } from '#features/support-inbox/queries/get-ticket-detail/query.js';
 import { executeListTicketsQuery, type ListTicketsQueryResult } from '#features/support-inbox/queries/list-tickets/query.js';
@@ -60,6 +61,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Prom
     includeUnmaskedParamsInEvents: true,
     observer: {
       emit(event) {
+        logSqlExecution(event);
         listEvents.push(event);
       },
     },

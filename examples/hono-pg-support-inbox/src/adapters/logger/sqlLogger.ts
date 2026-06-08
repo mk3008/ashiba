@@ -1,3 +1,6 @@
+import { appendFileSync, mkdirSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+
 export type SqlExecutionLogEvent = {
   phase: 'start' | 'end' | 'error';
   warnings?: readonly { code: string; message: string; nextAction?: string }[];
@@ -22,7 +25,8 @@ export function logSqlExecution(event: SqlExecutionLogEvent): void {
   const metadata = event.metadata as { sqlId?: unknown; queryId?: unknown; sqlPath?: unknown } | undefined;
   const includeSqlText = process.env.ASHIBA_DEMO_SQL_LOG_SQL_TEXT === '1';
   const includeParams = process.env.ASHIBA_DEMO_SQL_LOG_PARAMS === '1';
-  console.log(JSON.stringify({
+  const logEvent = {
+    timestamp: new Date().toISOString(),
     phase: event.phase,
     sqlId: metadata?.sqlId,
     queryId: metadata?.queryId,
@@ -34,5 +38,13 @@ export function logSqlExecution(event: SqlExecutionLogEvent): void {
     error: event.error,
     ...(includeSqlText ? { compiledSql: event.compiledSql } : {}),
     ...(includeParams ? { params: event.params, maskedParams: event.maskedParams } : {}),
-  }, null, 2));
+  };
+  const logLine = JSON.stringify(logEvent);
+  const logFile = resolve(process.env.ASHIBA_DEMO_SQL_LOG_FILE ?? '.logs/sql.log');
+  mkdirSync(dirname(logFile), { recursive: true });
+  appendFileSync(logFile, `${logLine}\n`, 'utf8');
+
+  if (process.env.ASHIBA_DEMO_SQL_LOG_CONSOLE !== '0') {
+    console.log(JSON.stringify(logEvent, null, 2));
+  }
 }

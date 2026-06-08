@@ -43,6 +43,22 @@ Parameter values are useful during local debugging, but they are also the highes
 
 In this example, `src/adapters/logger/sqlLogger.ts` logs IDs, path, timing, row count, and parameter names by default. It only includes SQL text or raw params when extra local environment flags are enabled.
 
+When `ASHIBA_DEMO_SQL_LOG=1` is set, the example writes JSON Lines to `.logs/sql.log` by default. This makes the log visible even when an AI agent or another process owns the terminal that started the dev server.
+
+Useful local flags:
+
+- `ASHIBA_DEMO_SQL_LOG=1`: enable SQL execution logging
+- `ASHIBA_DEMO_SQL_LOG_FILE=path/to/sql.log`: override the log file path
+- `ASHIBA_DEMO_SQL_LOG_CONSOLE=0`: write only to the file, not stdout
+- `ASHIBA_DEMO_SQL_LOG_SQL_TEXT=1`: include compiled SQL text
+- `ASHIBA_DEMO_SQL_LOG_PARAMS=1`: include raw parameter values and masked parameters
+
+Watch the log from another terminal:
+
+```powershell
+Get-Content examples/hono-pg-support-inbox/.logs/sql.log -Wait
+```
+
 The web demo uses `includeUnmaskedParamsInEvents: true` only inside `tickets.presenter.ts` so the Live Query Console can show bound parameter values. Keep that behavior local to the demo/debug surface, not in feature code.
 
 ## Live Query Console
@@ -92,7 +108,7 @@ Ashiba should not own this choice. The adapter observer should hand structured e
 
 Prefer short retention and structured storage:
 
-- local/demo: browser memory or terminal output
+- local/demo: browser memory, terminal output, or `.logs/sql.log`
 - application logs: JSON logs collected by the existing platform
 - metrics: time-series storage for latency, error rate, and row count summaries
 - traces: OpenTelemetry collector or the organization's existing tracing backend

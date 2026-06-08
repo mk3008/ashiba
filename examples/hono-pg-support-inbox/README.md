@@ -69,6 +69,14 @@ pnpm --dir examples/hono-pg-support-inbox dev
 
 Open `http://localhost:3000/tickets`.
 
+To keep SQL execution logs visible even when another process starts the dev server, enable the demo SQL log. It writes JSON Lines to `examples/hono-pg-support-inbox/.logs/sql.log` by default:
+
+```powershell
+$env:ASHIBA_DEMO_SQL_LOG="1"
+pnpm --dir examples/hono-pg-support-inbox dev
+Get-Content examples/hono-pg-support-inbox/.logs/sql.log -Wait
+```
+
 If `pnpm --dir examples/hono-pg-support-inbox db:up` fails in a restricted Windows, sandbox, or Docker pipe environment, start Docker from the example directory directly:
 
 ```sh
