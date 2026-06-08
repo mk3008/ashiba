@@ -70,6 +70,14 @@ export type AshibaPostgresQueryModel = {
             end: number;
             text?: string;
           };
+          leadingPrefixes?: readonly {
+            branchIndexes: readonly number[];
+            removalRange: {
+              start: number;
+              end: number;
+              text?: string;
+            };
+          }[];
         }[];
       };
     };
@@ -204,7 +212,8 @@ export function createPostgresAdapter(
             sourceInsertion,
             sortInsertion.orderBy,
           );
-          const compiledInsertion = adjustInsertionForRewriteRanges(sortInsertion.compiledInsertion, prepared.compiledRewriteRanges);
+          const compressedCompiledInsertion = adjustInsertionForRewriteRanges(sortInsertion.compiledInsertion, prepared.compiledRewriteRanges);
+          const compiledInsertion = adjustInsertionForRewriteRanges(compressedCompiledInsertion, prepared.compiledRenumberRanges);
           compiledSql = spliceOrderBy(prepared.sql, compiledInsertion, sortInsertion.orderBy);
           bound = { ...bound, sql: compiledSql };
         }
@@ -283,6 +292,7 @@ function preparePostgresExecution(
   values: readonly unknown[];
   sourceRewriteRanges: readonly TextEdit[];
   compiledRewriteRanges: readonly TextEdit[];
+  compiledRenumberRanges: readonly TextEdit[];
 } {
   const sourceSql = query.sql;
   const precomputed = validatePostgresBindingMetadata(query);
@@ -304,6 +314,7 @@ function preparePostgresExecution(
     ...bound,
     sourceRewriteRanges: compression?.sourceRewriteRanges ?? [],
     compiledRewriteRanges: compression?.compiledRewriteRanges ?? [],
+    compiledRenumberRanges: compression?.compiledRenumberRanges ?? [],
   };
 }
 
@@ -361,6 +372,7 @@ function applyOptionalConditionCompression(
   compressedParameterNames: ReadonlySet<string>;
   sourceRewriteRanges: readonly TextEdit[];
   compiledRewriteRanges: readonly TextEdit[];
+  compiledRenumberRanges: readonly TextEdit[];
 } {
   const analysis = query.queryModel?.analysis.optionalConditionCompression;
   const binding = precomputed.optionalConditionCompression;
@@ -424,6 +436,7 @@ function applyOptionalConditionCompression(
       compressedParameterNames: new Set(),
       sourceRewriteRanges: [],
       compiledRewriteRanges: [],
+      compiledRenumberRanges: [],
     };
   }
 
@@ -431,9 +444,20 @@ function applyOptionalConditionCompression(
     .filter((group) => group.branchIndexes.every((index) => activeBranchIndexes.has(index)));
   const activeCompiledGroups = (binding.groups ?? [])
     .filter((group) => group.branchIndexes.every((index) => activeBranchIndexes.has(index)));
-  const groupedBranchIndexes = new Set(activeSourceGroups.flatMap((group) => [...group.branchIndexes]));
-  const activeSourceGroupRanges = activeSourceGroups.map((group) => group.removalRange);
-  const activeCompiledGroupRanges = activeCompiledGroups.map((group) => group.removalRange);
+  const activeSourcePrefixGroups = selectActiveLeadingPrefixGroups(analysis.groups ?? [], activeBranchIndexes);
+  const activeCompiledPrefixGroups = selectActiveLeadingPrefixGroups(binding.groups ?? [], activeBranchIndexes);
+  const groupedBranchIndexes = new Set([
+    ...activeSourceGroups.flatMap((group) => [...group.branchIndexes]),
+    ...activeSourcePrefixGroups.flatMap((group) => [...group.branchIndexes]),
+  ]);
+  const activeSourceGroupRanges = [
+    ...activeSourceGroups.map((group) => group.removalRange),
+    ...activeSourcePrefixGroups.map((group) => group.removalRange),
+  ];
+  const activeCompiledGroupRanges = [
+    ...activeCompiledGroups.map((group) => group.removalRange),
+    ...activeCompiledPrefixGroups.map((group) => group.removalRange),
+  ];
   const sourceRemovalRanges = mergeTextRanges([
     ...activeSourceGroupRanges,
     ...activeBranches.filter((branch) => !groupedBranchIndexes.has(branch.index)).map((branch) => branch.source.removalRange),
@@ -476,7 +500,35 @@ function applyOptionalConditionCompression(
     compressedParameterNames: new Set(activeBranches.map((branch) => branch.source.parameterName)),
     sourceRewriteRanges,
     compiledRewriteRanges,
+    compiledRenumberRanges: renumbered.rewriteRanges,
   };
+}
+
+function selectActiveLeadingPrefixGroups<T extends {
+  branchIndexes: readonly number[];
+  removalRange: TextRange & { text?: string };
+  leadingPrefixes?: readonly {
+    branchIndexes: readonly number[];
+    removalRange: TextRange & { text?: string };
+  }[];
+}>(
+  groups: readonly T[],
+  activeBranchIndexes: ReadonlySet<number>,
+): Array<{ branchIndexes: readonly number[]; removalRange: TextRange & { text?: string } }> {
+  const selected: Array<{ branchIndexes: readonly number[]; removalRange: TextRange & { text?: string } }> = [];
+  for (const group of groups) {
+    if (group.branchIndexes.every((index) => activeBranchIndexes.has(index))) {
+      continue;
+    }
+    const prefixes = [...(group.leadingPrefixes ?? [])]
+      .filter((prefix) => prefix.branchIndexes.every((index) => activeBranchIndexes.has(index)))
+      .sort((left, right) => right.branchIndexes.length - left.branchIndexes.length);
+    const prefix = prefixes[0];
+    if (prefix) {
+      selected.push(prefix);
+    }
+  }
+  return selected;
 }
 
 function assertRangeTextMatches(sql: string, range: TextRange & { text?: string }, label: string): void {
@@ -557,9 +609,10 @@ function adjustInsertionForRewriteRanges<T extends { index: number; mode: 'order
 function renumberPostgresPlaceholders(
   sql: string,
   originalOrderedNames: readonly string[],
-): { sql: string; orderedNames: readonly string[] } {
+): { sql: string; orderedNames: readonly string[]; rewriteRanges: readonly TextEdit[] } {
   let output = '';
   const orderedNames: string[] = [];
+  const rewriteRanges: TextEdit[] = [];
   let cursor = 0;
   let quote: '"' | "'" | undefined;
   let quoteBackslashEscapes = false;
@@ -635,14 +688,20 @@ function renumberPostgresPlaceholders(
       }
       output += sql.slice(cursor, index);
       orderedNames.push(name);
-      output += `$${orderedNames.length}`;
+      const replacement = `$${orderedNames.length}`;
+      output += replacement;
+      rewriteRanges.push({
+        start: index,
+        end,
+        text: replacement,
+      });
       cursor = end;
       index = end - 1;
     }
   }
 
   output += sql.slice(cursor);
-  return { sql: output, orderedNames };
+  return { sql: output, orderedNames, rewriteRanges };
 }
 
 function getSortInsertion(

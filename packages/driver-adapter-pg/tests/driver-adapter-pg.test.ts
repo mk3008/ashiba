@@ -1496,8 +1496,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = [
       'select a.id, a.email from users a',
-      'where true',
-      '  and (:status is null or a.status = :status)',
+      'where (:status is null or a.status = :status)',
       '  and (:tier is null or a.tier = :tier)',
       '  and (:lang is null or a.lang = :lang)',
       '  and (:channel is null or a.channel = :channel)',
@@ -1508,8 +1507,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     ].join('\n');
     const compiledSql = [
       'select a.id, a.email from users a',
-      'where true',
-      '  and ($1 is null or a.status = $2)',
+      'where ($1 is null or a.status = $2)',
       '  and ($3 is null or a.tier = $4)',
       '  and ($5 is null or a.lang = $6)',
       '  and ($7 is null or a.channel = $8)',
@@ -1534,7 +1532,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
           safeSortInsertion: { index: compiledInsertionIndex },
           optionalConditionCompression: {
             branches: [
-              ...optionalCompressionBinding(compiledSql, 'status', 'and ($1 is null or a.status = $2)').branches,
+              ...optionalCompressionBinding(compiledSql, 'status', 'where ($1 is null or a.status = $2)').branches,
               ...optionalCompressionBinding(compiledSql, 'tier', 'and ($3 is null or a.tier = $4)').branches,
               ...optionalCompressionBinding(compiledSql, 'lang', 'and ($5 is null or a.lang = $6)').branches,
               ...optionalCompressionBinding(compiledSql, 'channel', 'and ($7 is null or a.channel = $8)').branches,
@@ -1550,7 +1548,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
           optionalConditionCompression: {
             enabled: true,
             branches: [
-              ...optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'status', 'where (:status is null or a.status = :status)').branches,
               ...optionalCompressionAnalysis(sourceSql, 'tier', 'and (:tier is null or a.tier = :tier)').branches,
               ...optionalCompressionAnalysis(sourceSql, 'lang', 'and (:lang is null or a.lang = :lang)').branches,
               ...optionalCompressionAnalysis(sourceSql, 'channel', 'and (:channel is null or a.channel = :channel)').branches,
@@ -1568,13 +1566,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(calls).toEqual([{
       sql: [
         'select a.id, a.email from users a',
-        'where true',
-        '  ',
-        '  ',
-        '  ',
-        '  ',
-        '  ',
-        "  and a.email ilike '%' || $1 || '%'",
+        "where a.email ilike '%' || $1 || '%'",
         'order by a.priority desc, a.id',
         'limit $2',
       ].join('\n'),
@@ -2256,12 +2248,20 @@ function enrichBindingOptionalCompressionGroups(
     groups?: readonly {
       branchIndexes: readonly number[];
       removalRange: { start: number; end: number; text?: string };
+      leadingPrefixes?: readonly {
+        branchIndexes: readonly number[];
+        removalRange: { start: number; end: number; text?: string };
+      }[];
     }[];
   },
   analysisCompression: unknown,
 ): typeof binding {
   if (binding.groups) return binding;
-  const groups = (analysisCompression as { groups?: Array<{ branchIndexes: number[]; removalRange: { text?: string } }> } | undefined)?.groups;
+  const groups = (analysisCompression as { groups?: Array<{
+    branchIndexes: number[];
+    removalRange: { text?: string };
+    leadingPrefixes?: Array<{ branchIndexes: number[]; removalRange: { text?: string } }>;
+  }> } | undefined)?.groups;
   if (!groups || groups.length === 0) return binding;
   const bindingGroups = groups.map((group) => {
     const firstBranch = binding.branches[group.branchIndexes[0] ?? -1];
@@ -2281,8 +2281,31 @@ function enrichBindingOptionalCompressionGroups(
         end,
         text: compiledSql.slice(start, end),
       },
+      ...(group.leadingPrefixes && group.leadingPrefixes.length > 0
+        ? {
+          leadingPrefixes: group.leadingPrefixes.map((prefix) => {
+            const prefixFirstBranch = binding.branches[prefix.branchIndexes[0] ?? -1];
+            const prefixLastBranch = binding.branches[prefix.branchIndexes[prefix.branchIndexes.length - 1] ?? -1];
+            if (!prefixFirstBranch || !prefixLastBranch) return undefined;
+            const prefixEnd = Math.max(...prefix.branchIndexes.map((index) => binding.branches[index]?.removalRange.end ?? -1));
+            const prefixTrailingConnective = compiledSql.slice(prefixEnd).match(/^\s+(?:and|or)\b\s*/i)?.[0] ?? '';
+            return {
+              branchIndexes: [...prefix.branchIndexes],
+              removalRange: {
+                start: prefixFirstBranch.removalRange.start,
+                end: prefixEnd + prefixTrailingConnective.length,
+                text: compiledSql.slice(prefixFirstBranch.removalRange.start, prefixEnd + prefixTrailingConnective.length),
+              },
+            };
+          }).filter((prefix): prefix is { branchIndexes: number[]; removalRange: { start: number; end: number; text: string } } => prefix !== undefined),
+        }
+        : {}),
     };
-  }).filter((group): group is { branchIndexes: number[]; removalRange: { start: number; end: number; text: string } } => group !== undefined);
+  }).filter((group): group is {
+    branchIndexes: number[];
+    removalRange: { start: number; end: number; text: string };
+    leadingPrefixes?: { branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }[];
+  } => group !== undefined);
   return {
     ...binding,
     ...(bindingGroups.length > 0 ? { groups: bindingGroups } : {}),
@@ -2292,9 +2315,17 @@ function enrichBindingOptionalCompressionGroups(
 function buildTestOptionalCompressionGroups(
   sql: string,
   branches: readonly { sourceRange?: { start: number; end: number }; removalRange: { start: number; end: number; text?: string } }[],
-): Array<{ branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }> {
+): Array<{
+  branchIndexes: number[];
+  removalRange: { start: number; end: number; text: string };
+  leadingPrefixes?: { branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }[];
+}> {
   const sourceLikeRanges = branches.map((branch) => branch.sourceRange ?? branch.removalRange);
-  const groups: Array<{ branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }> = [];
+  const groups: Array<{
+    branchIndexes: number[];
+    removalRange: { start: number; end: number; text: string };
+    leadingPrefixes?: { branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }[];
+  }> = [];
   const consumed = new Set<number>();
   for (let index = 0; index < sourceLikeRanges.length; index += 1) {
     if (consumed.has(index)) continue;
@@ -2321,6 +2352,24 @@ function buildTestOptionalCompressionGroups(
     const whereKeyword = prefix[0].match(/\bwhere\b\s*/i)?.[0] ?? 'where';
     const start = remainingPredicateAfterGroup ? prefix.index + whereKeyword.length : prefix.index;
     const end = lastRange.end + trailingConnective.length;
+    const prefixStart = prefix.index + whereKeyword.length;
+    const leadingPrefixes: { branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }[] = [];
+    for (let length = 1; length < groupIndexes.length; length += 1) {
+      const prefixIndexes = groupIndexes.slice(0, length);
+      const prefixLastRange = sourceLikeRanges[prefixIndexes[prefixIndexes.length - 1] ?? -1];
+      if (!prefixLastRange) continue;
+      const prefixTrailingConnective = sql.slice(prefixLastRange.end).match(/^\s+(?:and|or)\b\s*/i)?.[0] ?? '';
+      if (prefixTrailingConnective.length === 0) continue;
+      const prefixEnd = prefixLastRange.end + prefixTrailingConnective.length;
+      leadingPrefixes.push({
+        branchIndexes: prefixIndexes,
+        removalRange: {
+          start: prefixStart,
+          end: prefixEnd,
+          text: sql.slice(prefixStart, prefixEnd),
+        },
+      });
+    }
     groups.push({
       branchIndexes: groupIndexes,
       removalRange: {
@@ -2328,6 +2377,7 @@ function buildTestOptionalCompressionGroups(
         end,
         text: sql.slice(start, end),
       },
+      ...(leadingPrefixes.length > 0 ? { leadingPrefixes } : {}),
     });
     for (const groupIndex of groupIndexes) consumed.add(groupIndex);
   }

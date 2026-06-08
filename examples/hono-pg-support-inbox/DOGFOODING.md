@@ -172,13 +172,48 @@ Product note:
 - The SQL inspection panel is valuable because it exposes whether the final execution SQL actually matches the SSSQL promise.
 - PostgreSQL-friendly SSSQL should allow explicit null-guard casts while still compressing to the natural predicate when the parameter is present.
 
+### Source-proximal filtering exposed CTE metadata gaps
+
+The evaluation report correctly noted that the first list SQL applied most filters in the final `where`, after message and tag helper CTEs had already been built. That made the demo strong as a readability story, but weaker as a performance-oriented SQL-ownership story.
+
+Resolution:
+
+- Reworked `list-tickets.sql` so ticket, customer, SLA, channel, language, and tag scope are narrowed in `filtered_tickets` before latest-message lookup, last-customer-reply aggregation, and full tag aggregation.
+- Preserved keyword search semantics by applying the latest-message-body keyword condition after `latest_message` exists, then using the resulting `searchable_tickets` scope for downstream aggregations.
+- Kept full tag display semantics: filtering by one tag still returns the complete tag list for each matching ticket.
+- Added output casts in the final projection so the editable TypeScript query contract remains aligned even though final columns now flow through CTE aliases.
+- Updated route-level E2E expectations to assert the source-proximal SQL shape in the SQL inspection panel.
+
+Product note:
+
+- CLI DDL-aware lint now carries outer CTE names into nested CTE queries, so CTE-to-CTE references are not mistaken for missing physical DDL tables.
+- CLI Postgres binding metadata now compiles grouped optional-condition removal text with full SQL placeholder context, so runtime optional compression does not reject valid refreshed metadata when earlier parameters appear before the grouped `where`.
+
 ## Current Verification
 
-- `pnpm --dir examples/hono-pg-support-inbox typecheck`: passed
-- `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox test`: passed, including HTTP E2E for all public filters, safe sort choices, SQL inspection, and compressed SSSQL output
-- `pnpm --dir examples/hono-pg-support-inbox check:drift`: passed
 - `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox db:seed`: passed
-- Playwright screenshot of `http://localhost:3000/tickets`: passed
+- `pnpm --dir examples/hono-pg-support-inbox verify`: passed, including typecheck, `check:drift`, and route-level Vitest coverage for all public filters, safe sort choices, SQL inspection, and compressed SSSQL output
+- `pnpm --filter @ashiba-ts/cli build`: passed
+- `pnpm --filter @ashiba-ts/cli test -- tests/smoke.test.ts`: passed
+
+## External Evaluation Report Dogfooding Tasks
+
+Source: `ashiba-evaluation-report.md`, dated 2026-06-08.
+
+This report is treated as customer-style dogfooding feedback. It covers a fresh clone of `mk3008/ashiba` and evaluates whether the support inbox demo, docs, checks, and runtime adapter behavior match the product promise.
+
+| Priority | Status | Task | Notes |
+| --- | --- | --- | --- |
+| P0 | done | Ship the support inbox demo in a clone-to-green state. | The report found `check:drift` failures and `/tickets` HTTP 503 from stale query metadata. The example now documents `typecheck`, `test`, `check:drift`, and `verify`; current dogfooding verification records those checks as passing. Keep this as a release-blocking demo invariant. |
+| P0 | done | Add CI coverage for the example drift and HTTP route path. | The GitHub workflow `.github/workflows/verify.yml` starts PostgreSQL directly from the example directory, seeds the DB, and runs `pnpm --dir examples/hono-pg-support-inbox verify`, which includes `check:drift` and route-level Vitest coverage. |
+| P0 | done | Separate metadata drift from database-startup failures on the demo error page. | The `/tickets` error page now identifies query metadata drift separately and points to `check:drift` / `ashiba:generate`; PostgreSQL startup failures point to `db:up` and direct `docker compose up -d`. Route E2E covers both messages. |
+| P0 | done | Cover adapter composition where optional-condition compression and safe sort interact. | The report found `where and ...` and safe-sort insertion-position failures after compression and placeholder renumbering. Driver-adapter regression coverage now covers this composition, and route-level E2E exercises public filters plus safe sort. |
+| P1 | done | Document Windows / sandbox Docker fallback. | The example README now documents direct `docker compose up -d` from the example directory for restricted Windows, sandbox, or Docker pipe environments. |
+| P1 | done | Make the workspace build prerequisite explicit. | The example README now tells users to run `pnpm install` and `pnpm build` from the repository root before running the workspace-backed example. |
+| P1 | partial | Make adapter behavior visible enough that it is not a black box. | The SQL inspection panel shows compiled SQL, bound parameters, selected safe sort, and stable suffix. Remaining improvement: factor this into reusable adapter/debug guidance so future demos do not reimplement the visibility surface ad hoc. |
+| P1 | partial | Strengthen project-level checks so runtime composition issues are caught before browser dogfooding. | The example CI now runs route-level tests, and adapter unit tests cover the known composition bug. Remaining question: whether `ashiba check --full`, generated verification, or example CI should own full HTTP route execution for future examples. |
+| P1 | done | Improve the performance demonstration for source-proximal filtering. | `list-tickets.sql` now narrows ticket/customer/tag scope before latest-message lookup, customer-reply aggregation, and tag aggregation, while preserving visible SQL, paging, count, safe sort, keyword semantics, and full tag display. This also dogfooded refresh, DDL-aware lint, generated mapper contracts, and route-level SQL inspection. |
+| P2 | open | Add a separate CUD / mutation dogfooding lane. | The report could not evaluate CUD, transaction boundaries, mutation mapper tests, optimistic locking, audit, or affected-row behavior. This should be a separate adoption demo or clearly scoped extension, not hidden inside the read-heavy demo. |
 
 ## Remaining Product Questions
 
@@ -193,6 +228,6 @@ Product note:
 | P1 | done | Provide a user-facing safe sort surface. | The demo page shows the public sort labels, the safe sort key sequence each label maps to, and the fixed `ticket_id asc` stable suffix. A future CLI/helper could still reduce app-owned display wiring, but the adoption demo surface is present. |
 | P1 | done | Add a SQL inspection panel to the demo. | The demo page shows the selected sort, safe sort keys, stable suffix, bound parameter names, and compiled SQL captured from the Ashiba PostgreSQL adapter observer. Users can see the visible SQL story without reading terminal logs. |
 | P1 | open | Add README AI edit exercise. | The planning doc calls for a 5-10 minute edit exercise, but the example README currently focuses on running and verifying the demo. |
-| P2 | open | Add a separate CUD demo lane. | The support inbox demo intentionally proves the read-heavy path only. CUD should be a separate adoption demo covering mutation mapper tests, transaction boundaries, affected rows, and business constraints. |
+| P2 | open | Add a separate CUD demo lane. | The support inbox demo intentionally proves the read-heavy path only. The external evaluation report also flags CUD, transactions, mutation mapper tests, optimistic locking, audit, and affected-row behavior as unevaluated. |
 | P2 | open | Decide whether CUD belongs in the same example app. | Keeping it separate protects the read demo's focus; sharing the same domain may make the adoption story easier to compare. This needs human product judgment. |
-| P2 | open | Catch runtime composition issues before browser dogfooding. | Optional compression and safe sort now have direct regression coverage, but project-level checks still do not execute the full demo HTTP route. Decide whether `ashiba check --full`, example CI, or generated verification should own this. |
+| P2 | partial | Decide the standard owner for full runtime composition checks. | Optional compression and safe sort now have direct regression coverage, and example CI runs the route-level demo tests. Remaining question: whether `ashiba check --full`, generated verification, or per-example CI should own this pattern for future examples and customer projects. |

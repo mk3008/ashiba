@@ -7,11 +7,13 @@
     "dev": "tsx src/server.ts",
     "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-pg build && pnpm --filter @ashiba-ts/testkit-adapter-pg build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
+    "verify": "pnpm typecheck && pnpm check:drift && pnpm test",
     "test:mapper": "vitest run src/features -t ZTD",
     "ashiba:generate": "node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox list-tickets && node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox get-ticket-detail",
     "check:drift": "node node_modules/@ashiba-ts/cli/dist/index.js check",
     "ashiba:verify": "node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command \"vitest run\"",
     "db:up": "docker compose up -d",
+    "db:wait": "tsx scripts/wait-for-db.ts",
     "db:down": "docker compose down --volumes",
     "db:seed": "tsx scripts/seed.ts"
   },

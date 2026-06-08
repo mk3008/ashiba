@@ -46,40 +46,62 @@ export function resolveDdlTable<T extends SchemaPathTable>(
  */
 export function collectTableReferences(query: ReturnType<typeof SqlParser.parse>): TableReference[] {
   const references: TableReference[] = [];
+  const isVisibleCteSource = (source: SourceExpression | null | undefined, visibleCteNames: Set<string>) => {
+    if (!source || !(source.datasource instanceof TableSource)) return false;
+    const { schema, table } = parseQualifiedTableName(source.datasource.qualifiedName.toString());
+    return !schema && visibleCteNames.has(normalizeIdentifier(table).toLowerCase());
+  };
   const addSource = (source: SourceExpression | null | undefined) => {
     if (!source || !(source.datasource instanceof TableSource)) return;
     const { schema, table } = parseQualifiedTableName(source.datasource.qualifiedName.toString());
     references.push({ schema, table, alias: normalizeIdentifier(source.getAliasName() ?? table) });
   };
-  const addCtes = (ctes: CommonTable[] | null | undefined) => {
-    for (const cte of ctes ?? []) collectFromQuery(cte.query);
+  const addCtes = (ctes: CommonTable[] | null | undefined, visibleCteNames: Set<string>) => {
+    for (const cte of ctes ?? []) collectFromQuery(cte.query, visibleCteNames);
   };
-  const collectSelect = (selectQuery: SelectQuery) => {
+  const collectSelect = (selectQuery: SelectQuery, inheritedCteNames: Set<string>) => {
     if (selectQuery instanceof SimpleSelectQuery) {
-      addCtes(selectQuery.withClause?.tables);
-      const cteNames = new Set((selectQuery.withClause?.tables ?? []).map((cte) => cte.getSourceAliasName().toLowerCase()));
+      const cteNames = new Set([
+        ...inheritedCteNames,
+        ...(selectQuery.withClause?.tables ?? []).map((cte) => cte.getSourceAliasName().toLowerCase()),
+      ]);
+      addCtes(selectQuery.withClause?.tables, cteNames);
       for (const source of selectQuery.fromClause?.getSources() ?? []) {
-        if (source.datasource instanceof TableSource && cteNames.has(source.datasource.table.name.toLowerCase())) continue;
+        if (isVisibleCteSource(source, cteNames)) continue;
         addSource(source);
       }
     } else if (selectQuery instanceof BinarySelectQuery) {
-      collectSelect(selectQuery.left);
-      collectSelect(selectQuery.right);
+      collectSelect(selectQuery.left, inheritedCteNames);
+      collectSelect(selectQuery.right, inheritedCteNames);
     }
   };
-  const collectFromQuery = (value: ReturnType<typeof SqlParser.parse> | SelectQuery) => {
+  const collectFromQuery = (value: ReturnType<typeof SqlParser.parse> | SelectQuery, inheritedCteNames = new Set<string>()) => {
     if (value instanceof SimpleSelectQuery || value instanceof BinarySelectQuery) {
-      collectSelect(value);
+      collectSelect(value, inheritedCteNames);
     } else if (value instanceof InsertQuery) {
       addSource(value.insertClause.source);
     } else if (value instanceof UpdateQuery) {
-      addCtes(value.withClause?.tables);
+      const cteNames = new Set([
+        ...inheritedCteNames,
+        ...(value.withClause?.tables ?? []).map((cte) => cte.getSourceAliasName().toLowerCase()),
+      ]);
+      addCtes(value.withClause?.tables, cteNames);
       addSource(value.updateClause.source);
-      for (const source of value.fromClause?.getSources() ?? []) addSource(source);
+      for (const source of value.fromClause?.getSources() ?? []) {
+        if (isVisibleCteSource(source, cteNames)) continue;
+        addSource(source);
+      }
     } else if (value instanceof DeleteQuery) {
-      addCtes(value.withClause?.tables);
+      const cteNames = new Set([
+        ...inheritedCteNames,
+        ...(value.withClause?.tables ?? []).map((cte) => cte.getSourceAliasName().toLowerCase()),
+      ]);
+      addCtes(value.withClause?.tables, cteNames);
       addSource(value.deleteClause.source);
-      for (const source of value.usingClause?.getSources() ?? []) addSource(source);
+      for (const source of value.usingClause?.getSources() ?? []) {
+        if (isVisibleCteSource(source, cteNames)) continue;
+        addSource(source);
+      }
     }
   };
   collectFromQuery(query);

@@ -10,6 +10,7 @@ The goal is not to prove every CRUD path. This demo focuses on the `R` side: a r
 
 - `GET /tickets` renders a practical support inbox list.
 - Filters are passed as SQL parameters and handled by Ashiba optional-condition compression.
+- The list SQL applies source-proximal filtering: ticket, customer, and tag scope are narrowed before latest-message lookup, customer-reply aggregation, and tag aggregation.
 - Keyword search stays in a PostgreSQL-natural SSSQL shape such as `(:keyword is null or subject ilike '%' || :keyword || '%')`; when `keyword` is present, the adapter executes the predicate without the null guard.
 - Sort choices are mapped to reviewed safe sort keys from the generated query model.
 - The page shows a user-facing safe sort whitelist and a SQL inspection panel with compiled SQL and bound parameter names.
@@ -37,6 +38,13 @@ Prerequisites:
 
 Run the commands from the repository root.
 
+Install dependencies and build the workspace packages once before running the example. The example imports workspace packages such as `@ashiba-ts/cli`, `@ashiba-ts/driver-adapter-pg`, and `@ashiba-ts/testkit-adapter-pg`; the root build makes their local `dist` output available.
+
+```sh
+pnpm install
+pnpm build
+```
+
 Create the example environment file:
 
 ```sh
@@ -52,13 +60,29 @@ Copy-Item examples/hono-pg-support-inbox/.env.example examples/hono-pg-support-i
 The checked-in `.env.example` uses PostgreSQL port `55433` to avoid clashing with a local PostgreSQL on `5432`. Change `ASHIBA_TEST_DB_PORT` in `examples/hono-pg-support-inbox/.env` if that port is already in use.
 
 ```sh
-pnpm install
 pnpm --dir examples/hono-pg-support-inbox db:up
+pnpm --dir examples/hono-pg-support-inbox db:wait
 pnpm --dir examples/hono-pg-support-inbox db:seed
 pnpm --dir examples/hono-pg-support-inbox dev
 ```
 
 Open `http://localhost:3000/tickets`.
+
+If `pnpm --dir examples/hono-pg-support-inbox db:up` fails in a restricted Windows, sandbox, or Docker pipe environment, start Docker from the example directory directly:
+
+```sh
+cd examples/hono-pg-support-inbox
+docker compose up -d
+cd ../..
+```
+
+On PowerShell:
+
+```powershell
+Push-Location examples/hono-pg-support-inbox
+docker compose up -d
+Pop-Location
+```
 
 Stop and remove the demo database container when you are done:
 
@@ -76,7 +100,26 @@ pnpm --dir examples/hono-pg-support-inbox test
 pnpm --dir examples/hono-pg-support-inbox check:drift
 ```
 
-If `test` fails before connecting to PostgreSQL, make sure `db:up` has been run and the `ASHIBA_TEST_DB_PORT` in `.env` matches the container port.
+Or run the example-owned verification gate:
+
+```sh
+pnpm --dir examples/hono-pg-support-inbox verify
+```
+
+`check:drift` must pass in a clean clone. If it reports that query contracts, metadata, or generated mapping assets are out of sync, the demo source SQL and generated Ashiba assets are not aligned. Refresh them before judging the web app:
+
+```sh
+pnpm --dir examples/hono-pg-support-inbox ashiba:generate
+pnpm --dir examples/hono-pg-support-inbox check:drift
+```
+
+If `test` fails before connecting to PostgreSQL, make sure `db:up` and `db:wait` have been run and the `ASHIBA_TEST_DB_PORT` in `.env` matches the container port.
+
+If `/tickets` renders `Demo is not ready`, read the diagnosis on the page first:
+
+- Metadata drift means the visible SQL and generated Ashiba metadata are out of sync. Run `check:drift`.
+- PostgreSQL connection failure means the container is not reachable. Run `db:up` and `db:wait`, or use the direct `docker compose up -d` fallback above before running `db:wait`.
+- Credential or database-name errors usually mean `.env` and the running container were changed independently. Restart the container after changing `.env`.
 
 If you set `DATABASE_URL`, the dev server and seed script will use it instead of the `ASHIBA_TEST_DB_*` values. For the standard demo flow, prefer the `.env.example` settings.
 

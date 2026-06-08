@@ -87,6 +87,14 @@ export interface QueryModelBindings {
           end: number;
           text?: string;
         };
+        leadingPrefixes?: Array<{
+          branchIndexes: number[];
+          removalRange: {
+            start: number;
+            end: number;
+            text?: string;
+          };
+        }>;
       }>;
     };
   };
@@ -331,6 +339,14 @@ export function buildPostgresOptionalConditionCompressionBindingMetadata(
           groups: metadata.groups.map((group) => ({
             branchIndexes: [...group.branchIndexes],
             removalRange: buildPostgresRemovalRange(sourceSql, group.removalRange),
+            ...(group.leadingPrefixes && group.leadingPrefixes.length > 0
+              ? {
+                leadingPrefixes: group.leadingPrefixes.map((prefix) => ({
+                  branchIndexes: [...prefix.branchIndexes],
+                  removalRange: buildPostgresRemovalRange(sourceSql, prefix.removalRange),
+                })),
+              }
+              : {}),
           })),
         }
         : {}),
@@ -348,14 +364,23 @@ function buildPostgresRemovalRange(
   const end = compileNamedParameters(sourceSql.slice(0, removalRange.end), {
     placeholderStyle: 'postgres',
   }).sql.length;
+  const compiledText = removalRange.text === undefined
+    ? undefined
+    : (() => {
+      const compiledPrefix = compileNamedParameters(sourceSql.slice(0, removalRange.start), {
+        placeholderStyle: 'postgres',
+      }).sql;
+      const compiledThroughRange = compileNamedParameters(`${sourceSql.slice(0, removalRange.start)}${removalRange.text}`, {
+        placeholderStyle: 'postgres',
+      }).sql;
+      return compiledThroughRange.slice(compiledPrefix.length);
+    })();
   return {
     start,
     end,
-    ...(removalRange.text !== undefined
+    ...(compiledText !== undefined
       ? {
-        text: compileNamedParameters(removalRange.text, {
-          placeholderStyle: 'postgres',
-        }).sql,
+        text: compiledText,
       }
       : {}),
   };

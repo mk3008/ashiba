@@ -9,7 +9,7 @@
     "public.ticket_tags",
     "public.tickets"
   ],
-  "anchorSource": "tickets",
+  "anchorSource": "searchable_tickets",
   "anchorTable": "public.tickets",
   "table": "public.tickets",
   "primaryKeyColumn": "ticket_id",
@@ -18,7 +18,7 @@
     "query": "list-tickets",
     "action": "list",
     "table": "public.tickets",
-    "anchorSource": "tickets",
+    "anchorSource": "searchable_tickets",
     "anchorTable": "public.tickets",
     "primaryKeyColumn": "ticket_id",
     "physicalTables": [
@@ -29,6 +29,10 @@
       "public.tickets"
     ],
     "params": [
+      {
+        "name": "tag",
+        "typeScriptType": "unknown"
+      },
       {
         "name": "status",
         "typeScriptType": "unknown"
@@ -50,10 +54,6 @@
         "typeScriptType": "unknown"
       },
       {
-        "name": "tag",
-        "typeScriptType": "unknown"
-      },
-      {
         "name": "keyword",
         "typeScriptType": "unknown"
       },
@@ -71,7 +71,7 @@
         "name": "action_required",
         "typeScriptType": "number | null",
         "sqlType": "integer",
-        "nullability": "nullable"
+        "nullability": "unknown"
       },
       {
         "name": "channel",
@@ -155,7 +155,7 @@
         "name": "sla_state",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "nullable"
+        "nullability": "unknown"
       },
       {
         "name": "status",
@@ -178,7 +178,7 @@
       {
         "name": "ticket_id",
         "typeScriptType": "number | null",
-        "sqlType": "integer",
+        "sqlType": "bigint",
         "nullability": "unknown"
       },
       {
