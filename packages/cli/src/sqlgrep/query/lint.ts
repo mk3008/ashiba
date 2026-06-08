@@ -40,6 +40,7 @@ import {
 } from './analysis.js';
 import { buildRelationGraphFromCreateTableQueries, getOutgoingRelations } from 'rawsql-ts';
 import { invalidCliInputError } from '../../errors.js';
+import { buildSqlOptionalConditionCompressionMetadata } from '../../commands/sql-optional-condition-compression-metadata.js';
 
 export type QueryLintFormat = 'text' | 'json';
 export type QueryLintSeverity = 'error' | 'warning' | 'info';
@@ -482,14 +483,43 @@ function buildDuplicateIssues(
 }
 
 function detectAnalysisRiskPatterns(sql: string): QueryLintIssue[] {
+  const safeStringConcatRanges = collectSafeSssqlStringConcatRanges(sql);
   return ANALYSIS_RISK_PATTERNS
-    .filter(({ pattern }) => pattern.test(sql))
+    .filter(({ pattern, riskPattern }) => hasUnsafeAnalysisRiskOccurrence(sql, pattern, riskPattern, safeStringConcatRanges))
     .map(({ riskPattern, message }) => ({
       type: 'analysis-risk' as const,
       severity: 'warning' as const,
       risk_pattern: riskPattern,
       message
     }));
+}
+
+function collectSafeSssqlStringConcatRanges(sql: string): Array<{ start: number; end: number }> {
+  try {
+    return buildSqlOptionalConditionCompressionMetadata(sql).branches.map((branch) => branch.sourceRange);
+  } catch {
+    return [];
+  }
+}
+
+function hasUnsafeAnalysisRiskOccurrence(
+  sql: string,
+  pattern: RegExp,
+  riskPattern: string,
+  safeStringConcatRanges: readonly { start: number; end: number }[],
+): boolean {
+  const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
+  const globalPattern = new RegExp(pattern.source, flags);
+  for (const match of sql.matchAll(globalPattern)) {
+    const start = match.index;
+    if (start === undefined) return true;
+    const end = start + match[0].length;
+    if (riskPattern === 'string-concatenation' && safeStringConcatRanges.some((range) => start >= range.start && end <= range.end)) {
+      continue;
+    }
+    return true;
+  }
+  return false;
 }
 
 function loadJoinDirectionRelationGraph(projectRoot?: string): RelationGraph | null {

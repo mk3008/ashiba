@@ -88,7 +88,7 @@ export type AshibaQueryModelAnalysis = {
       | {
         status: 'ready';
         index: number;
-        mode: 'order-by' | 'comma';
+        mode: 'order-by' | 'prepend-comma' | 'comma';
       }
       | {
         status: 'unresolved';
@@ -106,6 +106,19 @@ export type AshibaQueryModelAnalysis = {
         end: number;
         text?: string;
       };
+      removalRange: {
+        start: number;
+        end: number;
+        text?: string;
+      };
+      presentReplacement: {
+        start: number;
+        end: number;
+        text: string;
+      };
+    }[];
+    groups?: readonly {
+      branchIndexes: readonly number[];
       removalRange: {
         start: number;
         end: number;

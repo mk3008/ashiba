@@ -57,6 +57,19 @@ export type AshibaPostgresQueryModel = {
             end: number;
             text?: string;
           };
+          presentReplacement: {
+            start: number;
+            end: number;
+            text: string;
+          };
+        }[];
+        groups?: readonly {
+          branchIndexes: readonly number[];
+          removalRange: {
+            start: number;
+            end: number;
+            text?: string;
+          };
         }[];
       };
     };
@@ -147,6 +160,10 @@ type TextRange = {
   end: number;
 };
 
+type TextEdit = TextRange & {
+  text: string;
+};
+
 /**
  * Create a thin adapter around a pg-compatible client or pool.
  */
@@ -181,16 +198,14 @@ export function createPostgresAdapter(
         compiledSql = prepared.sql;
         bound = prepared;
         if (sortInsertion) {
+          const sourceInsertion = adjustInsertionForRewriteRanges(sortInsertion.insertion, prepared.sourceRewriteRanges);
           sourceSql = spliceOrderBy(
             prepared.sourceSql,
-            adjustInsertionForRemovedRanges(sortInsertion.insertion, prepared.sourceRemovalRanges),
+            sourceInsertion,
             sortInsertion.orderBy,
           );
-          compiledSql = spliceOrderBy(
-            prepared.sql,
-            adjustInsertionForRemovedRanges(sortInsertion.compiledInsertion, prepared.compiledRemovalRanges),
-            sortInsertion.orderBy,
-          );
+          const compiledInsertion = adjustInsertionForRewriteRanges(sortInsertion.compiledInsertion, prepared.compiledRewriteRanges);
+          compiledSql = spliceOrderBy(prepared.sql, compiledInsertion, sortInsertion.orderBy);
           bound = { ...bound, sql: compiledSql };
         }
 
@@ -266,8 +281,8 @@ function preparePostgresExecution(
   sql: string;
   orderedNames: readonly string[];
   values: readonly unknown[];
-  sourceRemovalRanges: readonly TextRange[];
-  compiledRemovalRanges: readonly TextRange[];
+  sourceRewriteRanges: readonly TextEdit[];
+  compiledRewriteRanges: readonly TextEdit[];
 } {
   const sourceSql = query.sql;
   const precomputed = validatePostgresBindingMetadata(query);
@@ -287,8 +302,8 @@ function preparePostgresExecution(
   return {
     sourceSql: compression?.sourceSql ?? sourceSql,
     ...bound,
-    sourceRemovalRanges: compression?.sourceRemovalRanges ?? [],
-    compiledRemovalRanges: compression?.compiledRemovalRanges ?? [],
+    sourceRewriteRanges: compression?.sourceRewriteRanges ?? [],
+    compiledRewriteRanges: compression?.compiledRewriteRanges ?? [],
   };
 }
 
@@ -344,8 +359,8 @@ function applyOptionalConditionCompression(
   compiledSql: string;
   orderedNames: readonly string[];
   compressedParameterNames: ReadonlySet<string>;
-  sourceRemovalRanges: readonly TextRange[];
-  compiledRemovalRanges: readonly TextRange[];
+  sourceRewriteRanges: readonly TextEdit[];
+  compiledRewriteRanges: readonly TextEdit[];
 } {
   const analysis = query.queryModel?.analysis.optionalConditionCompression;
   const binding = precomputed.optionalConditionCompression;
@@ -369,6 +384,23 @@ function applyOptionalConditionCompression(
   }
 
   const activeBranches = analysis.branches
+    .map((branch, index) => ({ source: branch, compiled: binding.branches[index], index }))
+    .filter((branch): branch is {
+      source: NonNullable<typeof analysis>['branches'][number];
+      compiled: NonNullable<typeof binding>['branches'][number];
+      index: number;
+    } => {
+      if (!branch.compiled || branch.source.parameterName !== branch.compiled.parameterName) {
+        throw new AshibaPostgresQueryModelError(
+          'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_STALE',
+          'Optional condition compression metadata has mismatched branch order.',
+        );
+      }
+      return Object.prototype.hasOwnProperty.call(params, branch.source.parameterName)
+        && params[branch.source.parameterName] == null;
+    });
+  const activeBranchIndexes = new Set(activeBranches.map((branch) => branch.index));
+  const presentBranches = analysis.branches
     .map((branch, index) => ({ source: branch, compiled: binding.branches[index] }))
     .filter((branch): branch is {
       source: NonNullable<typeof analysis>['branches'][number];
@@ -381,38 +413,69 @@ function applyOptionalConditionCompression(
         );
       }
       return Object.prototype.hasOwnProperty.call(params, branch.source.parameterName)
-        && params[branch.source.parameterName] == null;
+        && params[branch.source.parameterName] != null;
     });
 
-  if (activeBranches.length === 0) {
+  if (activeBranches.length === 0 && presentBranches.length === 0) {
     return {
       sourceSql: query.sql,
       compiledSql: precomputed.sql,
       orderedNames: [...precomputed.orderedNames],
       compressedParameterNames: new Set(),
-      sourceRemovalRanges: [],
-      compiledRemovalRanges: [],
+      sourceRewriteRanges: [],
+      compiledRewriteRanges: [],
     };
   }
 
-  const sourceRemovalRanges = normalizeOptionalConditionRemovalRanges(query.sql, activeBranches.map((branch) => branch.source.removalRange));
-  const compiledRemovalRanges = normalizeOptionalConditionRemovalRanges(precomputed.sql, activeBranches.map((branch) => branch.compiled.removalRange));
+  const activeSourceGroups = (analysis.groups ?? [])
+    .filter((group) => group.branchIndexes.every((index) => activeBranchIndexes.has(index)));
+  const activeCompiledGroups = (binding.groups ?? [])
+    .filter((group) => group.branchIndexes.every((index) => activeBranchIndexes.has(index)));
+  const groupedBranchIndexes = new Set(activeSourceGroups.flatMap((group) => [...group.branchIndexes]));
+  const activeSourceGroupRanges = activeSourceGroups.map((group) => group.removalRange);
+  const activeCompiledGroupRanges = activeCompiledGroups.map((group) => group.removalRange);
+  const sourceRemovalRanges = mergeTextRanges([
+    ...activeSourceGroupRanges,
+    ...activeBranches.filter((branch) => !groupedBranchIndexes.has(branch.index)).map((branch) => branch.source.removalRange),
+  ]);
+  const compiledRemovalRanges = mergeTextRanges([
+    ...activeCompiledGroupRanges,
+    ...activeBranches.filter((branch) => !groupedBranchIndexes.has(branch.index)).map((branch) => branch.compiled.removalRange),
+  ]);
   for (const branch of activeBranches) {
     assertRangeTextMatches(query.sql, branch.source.sourceRange, 'source SQL source range');
     assertRangeTextMatches(query.sql, branch.source.removalRange, 'source SQL removal range');
     assertRangeTextMatches(precomputed.sql, branch.compiled.removalRange, 'compiled SQL removal range');
   }
+  for (const branch of presentBranches) {
+    assertRangeTextMatches(query.sql, branch.source.sourceRange, 'source SQL source range');
+  }
+  for (const range of activeSourceGroupRanges) {
+    assertRangeTextMatches(query.sql, range, 'source SQL empty group removal range');
+  }
+  for (const range of activeCompiledGroupRanges) {
+    assertRangeTextMatches(precomputed.sql, range, 'compiled SQL empty group removal range');
+  }
 
-  const compressedCompiledSql = removeTextRanges(precomputed.sql, compiledRemovalRanges);
+  const sourceRewriteRanges = normalizeTextEdits([
+    ...sourceRemovalRanges.map((range) => ({ ...range, text: '' })),
+    ...presentBranches.map((branch) => branch.source.presentReplacement),
+  ]);
+  const compiledRewriteRanges = normalizeTextEdits([
+    ...compiledRemovalRanges.map((range) => ({ ...range, text: '' })),
+    ...presentBranches.map((branch) => branch.compiled.presentReplacement),
+  ]);
+  const sourceSql = rewriteTextRanges(query.sql, sourceRewriteRanges);
+  const compressedCompiledSql = rewriteTextRanges(precomputed.sql, compiledRewriteRanges);
   const renumbered = renumberPostgresPlaceholders(compressedCompiledSql, precomputed.orderedNames);
 
   return {
-    sourceSql: removeTextRanges(query.sql, sourceRemovalRanges),
+    sourceSql,
     compiledSql: renumbered.sql,
     orderedNames: renumbered.orderedNames,
     compressedParameterNames: new Set(activeBranches.map((branch) => branch.source.parameterName)),
-    sourceRemovalRanges: normalizeRanges(sourceRemovalRanges),
-    compiledRemovalRanges: normalizeRanges(compiledRemovalRanges),
+    sourceRewriteRanges,
+    compiledRewriteRanges,
   };
 }
 
@@ -429,21 +492,27 @@ function assertRangeTextMatches(sql: string, range: TextRange & { text?: string 
 }
 
 function removeTextRanges(sql: string, ranges: readonly TextRange[]): string {
+  return rewriteTextRanges(sql, ranges.map((range) => ({ ...range, text: '' })));
+}
+
+function rewriteTextRanges(sql: string, ranges: readonly TextEdit[]): string {
   let output = sql;
-  for (const range of normalizeRanges(ranges).sort((left, right) => right.start - left.start)) {
+  for (const range of normalizeTextEdits(ranges).sort((left, right) => right.start - left.start)) {
     if (range.start < 0 || range.end < range.start || range.end > sql.length) {
       throw new AshibaPostgresQueryModelError(
         'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_STALE',
         'Optional condition compression metadata contains an invalid removal range.',
       );
     }
-    output = `${output.slice(0, range.start)}${output.slice(range.end)}`;
+    output = `${output.slice(0, range.start)}${range.text}${output.slice(range.end)}`;
   }
   return output;
 }
 
-function normalizeOptionalConditionRemovalRanges(sql: string, ranges: readonly TextRange[]): TextRange[] {
-  return expandWholeWhereClauseRemoval(sql, mergeTextRanges(ranges));
+function normalizeTextEdits(ranges: readonly TextEdit[]): TextEdit[] {
+  return ranges
+    .map((range) => ({ start: range.start, end: range.end, text: range.text }))
+    .sort((left, right) => left.start - right.start);
 }
 
 function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
@@ -460,37 +529,26 @@ function mergeTextRanges(ranges: readonly TextRange[]): TextRange[] {
   return merged;
 }
 
-function expandWholeWhereClauseRemoval(sql: string, ranges: readonly TextRange[]): TextRange[] {
-  return ranges.map((range) => {
-    const before = sql.slice(0, range.start);
-    const whereMatch = before.match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
-    if (!whereMatch || whereMatch.index === undefined) {
-      return range;
-    }
-    return { start: whereMatch.index, end: range.end };
-  });
-}
-
 function normalizeRanges(ranges: readonly TextRange[]): TextRange[] {
   return ranges
     .map((range) => ({ start: range.start, end: range.end }))
     .sort((left, right) => left.start - right.start);
 }
 
-function adjustInsertionForRemovedRanges<T extends { index: number; mode: 'order-by' | 'comma' }>(
+function adjustInsertionForRewriteRanges<T extends { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' }>(
   insertion: T,
-  ranges: readonly TextRange[],
+  ranges: readonly TextEdit[],
 ): T {
   let adjustedIndex = insertion.index;
-  for (const range of normalizeRanges(ranges)) {
+  for (const range of normalizeTextEdits(ranges)) {
     if (insertion.index > range.start && insertion.index < range.end) {
       throw new AshibaPostgresQueryModelError(
         'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_STALE',
-        'Optional condition compression removed the safe-sort insertion point.',
+        'Optional condition compression rewrote the safe-sort insertion point.',
       );
     }
     if (insertion.index >= range.end) {
-      adjustedIndex -= range.end - range.start;
+      adjustedIndex += range.text.length - (range.end - range.start);
     }
   }
   return { ...insertion, index: adjustedIndex };
@@ -591,8 +649,8 @@ function getSortInsertion(
   query: AshibaPostgresQuerySource,
   options: AshibaPostgresExecuteOptions,
 ): {
-  insertion: { index: number; mode: 'order-by' | 'comma' };
-  compiledInsertion: { index: number; mode: 'order-by' | 'comma' };
+  insertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' };
+  compiledInsertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' };
   orderBy: string;
 } | undefined {
   if (!options.sort || options.sort.length === 0) return undefined;
@@ -729,9 +787,14 @@ function describeQueryModelErrorNextAction(code: AshibaPostgresQueryModelError['
 
 function spliceOrderBy(
   sql: string,
-  insertion: { index: number; mode: 'order-by' | 'comma' },
+  insertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' },
   orderBy: string,
 ): string {
+  if (insertion.mode === 'prepend-comma') {
+    const prefix = sql.slice(0, insertion.index).trimEnd();
+    const suffix = sql.slice(insertion.index).trimStart();
+    return `${prefix} ${stripOrderByPrefix(orderBy)}, ${suffix}`;
+  }
   const prefix = sql.slice(0, insertion.index).trimEnd();
   const suffix = sql.slice(insertion.index);
   const fragment = insertion.mode === 'comma'
@@ -742,8 +805,7 @@ function spliceOrderBy(
 }
 
 function stripOrderByPrefix(value: string): string {
-  const prefix = 'order by ';
-  return value.toLowerCase().startsWith(prefix) ? value.slice(prefix.length) : value;
+  return value.trimStart().replace(/^order\s+by\s+/i, '');
 }
 
 function isWhitespace(value: string): boolean {

@@ -14,11 +14,51 @@ where (:email is null or u.email = :email)
 
 That condition means:
 
-- when `:email` is provided, filter by `u.email = :email`
-- when `:email` is `null`, keep the condition harmless
+- in the source SQL file, when `:email` is provided, filter by `u.email = :email`
+- in the source SQL file, when `:email` is `null`, keep the condition harmless
 - keep the SQL readable, reviewable, and runnable in a SQL client
 
 Ashiba keeps this as plain SQL. There is no hidden query DSL and no runtime-only condition builder.
+
+## Shape
+
+The common SSSQL shape is a parenthesized optional predicate:
+
+```sql
+(:parameter is null or predicate_using_the_same_parameter)
+```
+
+The null guard must be for the same named parameter used by the predicate branch. The predicate branch can use normal SQL syntax, including database-native expressions:
+
+```sql
+(:keyword is null or u.email ilike '%' || :keyword || '%')
+```
+
+When PostgreSQL needs help inferring a nullable parameter type, the guard can cast that same parameter:
+
+```sql
+(cast(:status as text) is null or u.status = :status)
+```
+
+Ashiba recognizes these null-guard forms as the same SSSQL guard:
+
+```sql
+(:status is null or u.status = :status)
+(:status::text is null or u.status = :status)
+(cast(:status as text) is null or u.status = :status)
+```
+
+Multiple predicate branches are allowed when they all belong to the same optional parameter:
+
+```sql
+(
+  :keyword is null
+  or u.email ilike '%' || :keyword || '%'
+  or u.display_name ilike '%' || :keyword || '%'
+)
+```
+
+Avoid treating SSSQL as a general boolean rewrite language. It is for one optional input parameter and the SQL predicates that should exist only when that parameter has a value.
 
 ## How To Ask For It
 
@@ -46,13 +86,34 @@ npx ashiba query optional remove path/to/query.sql --parameter email
 
 SSSQL conditions are readable, but leaving every optional branch in the final SQL can be noisy for the database planner. The PostgreSQL driver adapter can compress optional branches at execution time.
 
-For example, when `email` is `null`, Ashiba can remove this branch from the SQL sent to PostgreSQL:
+For example, when `email` is `null` or `undefined`, Ashiba can remove this branch from the SQL sent to PostgreSQL:
 
 ```sql
 and (:email is null or u.email = :email)
 ```
 
+When `email` has a value, Ashiba removes only the null guard and keeps the real predicate:
+
+```sql
+and u.email = $1
+```
+
 The source SQL file stays unchanged. The generated metadata tells the adapter which ranges can be removed safely.
+
+Compression also repairs the surrounding boolean glue. For example:
+
+```sql
+where (:email is null or u.email = :email)
+  and u.tenant_id = :tenant_id
+```
+
+When `email` is `null`, the SQL sent to PostgreSQL becomes:
+
+```sql
+where u.tenant_id = $1
+```
+
+If every predicate in a `WHERE` scope is removed, Ashiba removes that `WHERE` clause instead of leaving dangling SQL. CTEs, derived subqueries, and the root query are handled by their own SQL ranges, so an optional branch in one scope does not remove a `WHERE` clause in another scope.
 
 ## Default Behavior
 
@@ -76,9 +137,11 @@ So, in normal scaffolded feature code, SSSQL compression is on by default.
 
 At the low-level driver adapter boundary, compression only runs when `optionalConditionCompression: true` is provided. This keeps hand-built adapter calls explicit.
 
-## Disabling Compression
+## Controlling Compression
 
-Disable compression for one generated query by editing the query source:
+Compression is optional. The default scaffold turns it on for generated feature query sources, but you can change that at the query source or SQL client wiring.
+
+Disable compression for one generated query by editing that query source:
 
 ```ts
 export const listQuery = {
@@ -87,7 +150,9 @@ export const listQuery = {
 } as const;
 ```
 
-Or disable it by passing execution options from your SQL client wiring when the query source does not set its own value:
+This query-level setting wins over SQL client defaults.
+
+Set a default from your SQL client wiring when the query source does not set its own value:
 
 ```ts
 createPgSqlClient(pool, {
@@ -97,7 +162,20 @@ createPgSqlClient(pool, {
 });
 ```
 
-If a generated query source explicitly sets `optionalConditionCompression: true`, that query-level setting wins. Change the generated query source when you want a specific query to opt out.
+The generated PostgreSQL client uses this precedence:
+
+```ts
+optionalConditionCompression:
+  query.optionalConditionCompression ?? executeOptions?.optionalConditionCompression
+```
+
+So:
+
+- edit the generated query source when one specific query should opt in or out
+- edit `createPgSqlClient(..., { executeOptions })` when you want a default for query sources that leave the setting unset
+- pass `{ optionalConditionCompression: true }` when calling the low-level PostgreSQL adapter directly
+
+If a generated query source explicitly sets `optionalConditionCompression: true`, change that query source when you want that specific query to opt out.
 
 ## Safety Boundary
 

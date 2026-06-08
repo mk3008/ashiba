@@ -14,7 +14,7 @@ export interface SqlSafeSortMetadata {
     | {
       status: 'ready';
       index: number;
-      mode: 'order-by' | 'comma';
+      mode: 'order-by' | 'prepend-comma' | 'comma';
     }
     | {
       status: 'unresolved';
@@ -50,7 +50,7 @@ export function buildSqlSafeSortMetadata(sql: string): SqlSafeSortMetadata {
 
   const orderByIndex = findTopLevelPhrase(sql, ['order', 'by'], selectIndex + 'select'.length);
   const insertion = orderByIndex >= 0
-    ? { status: 'ready' as const, index: findOrderByListEnd(sql, orderByIndex), mode: 'comma' as const }
+    ? { status: 'ready' as const, index: findOrderByListStart(sql, orderByIndex), mode: 'prepend-comma' as const }
     : { status: 'ready' as const, index: findOrderByInsertionIndex(sql, selectIndex), mode: 'order-by' as const };
 
   return {
@@ -105,12 +105,18 @@ function formatValueComponent(value: ValueComponent): string {
   return sqlFormatter.format(value).formattedSql.replace(/"([A-Za-z_][A-Za-z0-9_$]*)"/g, '$1');
 }
 
-function findOrderByListEnd(sql: string, orderByIndex: number): number {
-  return findFirstTopLevelKeyword(sql, ['limit', 'offset', 'fetch', 'for'], orderByIndex) ?? findStatementEnd(sql, orderByIndex);
+function findOrderByListStart(sql: string, orderByIndex: number): number {
+  let index = orderByIndex + 'order'.length;
+  while (/\s/.test(sql[index] ?? '')) index += 1;
+  if (sql.slice(index, index + 'by'.length).toLowerCase() === 'by') {
+    index += 'by'.length;
+  }
+  while (/\s/.test(sql[index] ?? '')) index += 1;
+  return index;
 }
 
 function findOrderByInsertionIndex(sql: string, selectIndex: number): number {
-  return findFirstTopLevelKeyword(sql, ['limit', 'offset', 'fetch', 'for'], selectIndex) ?? findStatementEnd(sql, selectIndex);
+  return findFirstTopLevelKeyword(sql, ['window', 'limit', 'offset', 'fetch', 'for'], selectIndex) ?? findStatementEnd(sql, selectIndex);
 }
 
 function findFirstTopLevelKeyword(sql: string, keywords: string[], start: number): number | undefined {

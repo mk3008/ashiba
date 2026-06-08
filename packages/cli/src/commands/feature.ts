@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { Command } from 'commander';
 import { compileNamedParameters } from '../parameter-metadata.js';
 import {
+  BinarySelectQuery,
   CreateTableQuery,
   DeleteQuery,
   InsertQuery,
@@ -16,8 +17,11 @@ import {
   TableSource,
   TypeValue,
   UpdateQuery,
+  type CommonTable,
   type ValueComponent,
   type Lexeme,
+  type SelectQuery,
+  type SourceExpression,
 } from 'rawsql-ts';
 import { extractSqlResultColumns, type SqlResultColumnContract } from './sql-result-columns.js';
 import {
@@ -33,6 +37,7 @@ import { formatSearchPath, resolveSchemaPathTable } from './schema-path.js';
 import { DEFAULT_SQL_FORMAT_OPTIONS, resolveGeneratedSqlFormatOptions } from '../sql-format.js';
 import { areTypeScriptTypesCompatible, inferSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
+import { collectTableReferences } from './table-resolution.js';
 
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
 const FEATURE_SHARED_LOAD_SQL_RESOURCE_IMPORT_PATH = '#features/_shared/loadSqlResource.js';
@@ -231,6 +236,9 @@ interface QueryTestMetadata {
   action?: FeatureAction;
   table?: string;
   primaryKeyColumn?: string;
+  anchorSource?: string | null;
+  anchorTable?: string | null;
+  physicalTables?: string[];
   importSource?: 'existing-sql';
 }
 
@@ -814,8 +822,11 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       const mapperResultColumns = extractMapperResultColumns(querySource, queryName).sort();
       const queryTestMetadata = readQueryTestMetadata(queryDir);
       const resultTypesShouldBeConservative = queryTestMetadata?.importSource === 'existing-sql';
-      const importedDdlTable = queryTestMetadata?.importSource === 'existing-sql' && queryTestMetadata.table
-        ? loadOptionalDdlTable(rootDir, queryTestMetadata.table)
+      const importedDdlTableName = queryTestMetadata?.importSource === 'existing-sql'
+        ? queryTestMetadata.anchorTable ?? queryTestMetadata.table
+        : undefined;
+      const importedDdlTable = importedDdlTableName
+        ? loadOptionalDdlTable(rootDir, importedDdlTableName)
         : undefined;
       const resultNullabilityByColumn = resultTypesShouldBeConservative
         ? inferImportedResultNullabilityByColumn(buildQueryResultColumnContracts(sql, rootDir), importedDdlTable)
@@ -1017,6 +1028,11 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
           : {}),
         ...(typeof parsed.table === 'string' ? { table: parsed.table } : {}),
         ...(typeof parsed.primaryKeyColumn === 'string' ? { primaryKeyColumn: parsed.primaryKeyColumn } : {}),
+        ...(typeof parsed.anchorSource === 'string' || parsed.anchorSource === null ? { anchorSource: parsed.anchorSource } : {}),
+        ...(typeof parsed.anchorTable === 'string' || parsed.anchorTable === null ? { anchorTable: parsed.anchorTable } : {}),
+        ...(Array.isArray(parsed.physicalTables)
+          ? { physicalTables: parsed.physicalTables.filter((entry): entry is string => typeof entry === 'string') }
+          : {}),
         importSource: 'existing-sql',
       };
     }
@@ -1077,22 +1093,45 @@ function inferQueryTestMetadataFromSql(
   if (!existsSync(sqlPath)) return undefined;
   const sql = readFileSync(sqlPath, 'utf8');
   const statement = parseFeatureQuerySql(sql);
+  const action = inferFeatureAction(statement, queryName);
+  const imported = inferImportedQueryTestMetadata(rootDir, featureName, queryName, sql);
   const tableName = extractRootTableName(statement);
   if (!tableName) {
     return {
       feature: featureName,
       query: queryName,
+      action,
+      ...(imported.anchorSource ? { anchorSource: imported.anchorSource } : {}),
+      ...(imported.anchorTable ? { anchorTable: imported.anchorTable.canonicalName } : {}),
+      ...(imported.anchorTable ? { table: imported.anchorTable.canonicalName } : {}),
+      ...(imported.primaryKeyColumn ? { primaryKeyColumn: imported.primaryKeyColumn } : {}),
+      physicalTables: imported.physicalTables.map((table) => table.canonicalName),
       importSource: 'existing-sql',
     };
   }
-  const table = loadDdlTable(rootDir, tableName);
+  const table = loadOptionalDdlTable(rootDir, tableName);
+  if (!table) {
+    return {
+      feature: featureName,
+      query: queryName,
+      action,
+      ...(imported.anchorSource ? { anchorSource: imported.anchorSource } : {}),
+      ...(imported.anchorTable ? { anchorTable: imported.anchorTable.canonicalName } : {}),
+      ...(imported.anchorTable ? { table: imported.anchorTable.canonicalName } : {}),
+      ...(imported.primaryKeyColumn ? { primaryKeyColumn: imported.primaryKeyColumn } : {}),
+      physicalTables: imported.physicalTables.map((physicalTable) => physicalTable.canonicalName),
+      importSource: 'existing-sql',
+    };
+  }
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
-  const action = inferFeatureAction(statement, queryName);
   return {
     feature: featureName,
     query: queryName,
     action,
     table: table.canonicalName,
+    anchorSource: imported.anchorSource ?? table.name,
+    anchorTable: table.canonicalName,
+    physicalTables: imported.physicalTables.map((physicalTable) => physicalTable.canonicalName),
     primaryKeyColumn,
   };
 }
@@ -1128,6 +1167,94 @@ function extractRootTableName(statement: ReturnType<typeof SqlParser.parse>): st
   const schema = readIdentifierText(qualifiedName.namespaces?.at(-1));
   const table = normalizeIdentifier(readIdentifierText(qualifiedName.name) ?? '');
   return schema ? `${normalizeIdentifier(schema)}.${table}` : table;
+}
+
+interface AnchorSource {
+  name: string;
+  tableName?: string;
+}
+
+function resolveAnchorSource(statement: ReturnType<typeof SqlParser.parse>): AnchorSource | undefined {
+  return resolveAnchorSourceFromStatement(statement, new Set(), []);
+}
+
+function resolveAnchorSourceFromStatement(
+  statement: ReturnType<typeof SqlParser.parse> | SelectQuery,
+  seenCtes: Set<string>,
+  outerCtes: CommonTable[],
+): AnchorSource | undefined {
+  if (statement instanceof SimpleSelectQuery) {
+    return resolveAnchorSourceFromSelect(statement, seenCtes, outerCtes);
+  }
+  if (statement instanceof BinarySelectQuery) {
+    return undefined;
+  }
+  if (statement instanceof InsertQuery) {
+    return anchorFromSource(statement.insertClause.source);
+  }
+  if (statement instanceof UpdateQuery) {
+    return anchorFromSource(statement.updateClause.source);
+  }
+  if (statement instanceof DeleteQuery) {
+    return anchorFromSource(statement.deleteClause.source);
+  }
+  return undefined;
+}
+
+function resolveAnchorSourceFromSelect(query: SimpleSelectQuery, seenCtes: Set<string>, outerCtes: CommonTable[]): AnchorSource | undefined {
+  const source = query.fromClause?.source;
+  const anchor = anchorFromSource(source);
+  if (!anchor) return undefined;
+  const visibleCtes = [...(query.withClause?.tables ?? []), ...outerCtes];
+  const cte = findCteByName(visibleCtes, anchor.name);
+  if (!cte) return anchor;
+  const key = anchor.name.toLowerCase();
+  if (seenCtes.has(key)) return { name: anchor.name };
+  const nextSeen = new Set(seenCtes);
+  nextSeen.add(key);
+  const resolved = resolveAnchorSourceFromStatement(cte.query, nextSeen, visibleCtes);
+  return {
+    name: anchor.name,
+    ...(resolved?.tableName ? { tableName: resolved.tableName } : {}),
+  };
+}
+
+function findCteByName(ctes: CommonTable[] | null | undefined, name: string): CommonTable | undefined {
+  return (ctes ?? []).find((cte) => normalizeIdentifier(cte.getSourceAliasName()).toLowerCase() === normalizeIdentifier(name).toLowerCase());
+}
+
+function anchorFromSource(source: SourceExpression | null | undefined): AnchorSource | undefined {
+  if (!source || !(source.datasource instanceof TableSource)) return undefined;
+  const name = normalizeIdentifier(source.datasource.table.name);
+  const tableName = source.datasource.qualifiedName.toString();
+  return {
+    name,
+    ...(tableName ? { tableName } : {}),
+  };
+}
+
+function resolveAnchorDdlTable(
+  anchor: AnchorSource,
+  tableMap: Map<string, DdlTable>,
+  pathConfig: ReturnType<typeof loadProjectPathConfig>,
+): DdlTable | undefined {
+  return anchor.tableName ? resolveSchemaPathTable({ tables: tableMap }, anchor.tableName, pathConfig) : undefined;
+}
+
+function collectPhysicalDdlTables(
+  statement: ReturnType<typeof SqlParser.parse>,
+  tableMap: Map<string, DdlTable>,
+  pathConfig: ReturnType<typeof loadProjectPathConfig>,
+): DdlTable[] {
+  const found = new Map<string, DdlTable>();
+  for (const reference of collectTableReferences(statement)) {
+    const rawName = reference.schema ? `${reference.schema}.${reference.table}` : reference.table;
+    const table = resolveSchemaPathTable({ tables: tableMap }, rawName, pathConfig);
+    if (table) {
+      found.set(table.canonicalName.toLowerCase(), table);
+    }
+  }
+  return Array.from(found.values()).sort((left, right) => left.canonicalName.localeCompare(right.canonicalName));
 }
 
 function readIdentifierText(value: unknown): string | undefined {
@@ -1274,13 +1401,13 @@ function classifyResultTypeDrift(options: {
 }): ResultTypeDrift | undefined {
   const mapper = normalizeTypeScriptTypeForComparison(options.mapperType);
   const expected = normalizeTypeScriptTypeForComparison(options.expectedSqlType);
+  if (mapper === expected) return undefined;
   if (mapper === 'unknown') {
     return {
       severity: 'error',
       message: `${options.column}: mapper ${options.mapperType} / SQL ${options.expectedSqlType}`,
     };
   }
-  if (mapper === expected) return undefined;
 
   const mapperBase = stripNullableType(mapper);
   const expectedBase = stripNullableType(expected);
@@ -1564,13 +1691,13 @@ function buildImportedMappingTestFiles(
 ): GeneratedFile[] {
   const queryDir = `${relativeFeatureDir}/queries/${queryName}`;
   const inferred = inferImportedQueryTestMetadata(rootDir, featureName, queryName, sql);
-  const fields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts, inferred?.table));
-  const cases = buildImportedMappingZtdCases(queryName, inferred?.table, inferred?.primaryKeyColumn, parameters, parameterTypes, fields);
+  const fields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts, inferred.anchorTable));
+  const cases = buildImportedMappingZtdCases(queryName, inferred.anchorTable, inferred.primaryKeyColumn, parameters, parameterTypes, fields);
   return [
     {
       relativePath: `${queryDir}/tests/boundary-ztd-types.ts`,
       kind: 'file',
-      contents: renderImportedQueryZtdTypes(queryName, inferred?.table, fields),
+      contents: renderImportedQueryZtdTypes(queryName, inferred.anchorTable, fields),
       overwrite: true,
     },
     {
@@ -1632,33 +1759,54 @@ function buildExpectedGeneratedMappingTestFiles(
   return buildGeneratedMappingTestFiles(relativeFeatureDir, scaffoldMetadata, table, actionPlan);
 }
 
+interface ImportedQueryTestMetadata {
+  feature: string;
+  query: string;
+  action: FeatureAction;
+  anchorSource?: string;
+  anchorTable?: DdlTable;
+  primaryKeyColumn?: string;
+  physicalTables: DdlTable[];
+}
+
 function inferImportedQueryTestMetadata(
   rootDir: string,
   featureName: string,
   queryName: string,
   sql: string,
-): { feature: string; query: string; action: FeatureAction; table: DdlTable; primaryKeyColumn: string } | undefined {
+): ImportedQueryTestMetadata {
   const statement = parseFeatureQuerySql(sql);
-  const tableName = extractRootTableName(statement);
-  if (!tableName) return undefined;
-  const table = loadDdlTable(rootDir, tableName);
-  const primaryKeyColumn = resolvePrimaryKeyColumn(table);
+  const tables = loadOptionalDdlTables(rootDir);
+  const pathConfig = loadProjectPathConfig(rootDir);
+  const tableMap = new Map(tables.map((table) => [table.canonicalName.toLowerCase(), table]));
+  const physicalTables = collectPhysicalDdlTables(statement, tableMap, pathConfig);
+  const anchor = resolveAnchorSource(statement);
+  const anchorTable = anchor ? resolveAnchorDdlTable(anchor, tableMap, pathConfig) : undefined;
+  const primaryKeyColumn = anchorTable ? resolvePrimaryKeyColumn(anchorTable) : undefined;
   const action = inferFeatureAction(statement, queryName);
-  return { feature: featureName, query: queryName, action, table, primaryKeyColumn };
+  return {
+    feature: featureName,
+    query: queryName,
+    action,
+    ...(anchor?.name ? { anchorSource: anchor.name } : {}),
+    ...(anchorTable ? { anchorTable } : {}),
+    ...(primaryKeyColumn ? { primaryKeyColumn } : {}),
+    physicalTables,
+  };
 }
 
 function renderImportedGeneratedTestAnalysis(
   featureName: string,
   queryName: string,
-  inferred: { action: FeatureAction; table: DdlTable; primaryKeyColumn: string } | undefined,
+  inferred: ImportedQueryTestMetadata,
   parameters: string[],
   parameterTypes: Record<string, string>,
   fields: RenderContractField[],
 ): string {
   const generatedCaseNames = buildImportedMappingZtdCases(
     queryName,
-    inferred?.table,
-    inferred?.primaryKeyColumn,
+    inferred.anchorTable,
+    inferred.primaryKeyColumn,
     parameters,
     parameterTypes,
     fields,
@@ -1666,24 +1814,30 @@ function renderImportedGeneratedTestAnalysis(
   return `${JSON.stringify({
     feature: featureName,
     query: queryName,
-    ...(inferred
+    action: inferred.action,
+    physicalTables: inferred.physicalTables.map((table) => table.canonicalName),
+    ...(inferred.anchorSource ? { anchorSource: inferred.anchorSource } : {}),
+    ...(inferred.anchorTable
       ? {
-          action: inferred.action,
-          table: inferred.table.canonicalName,
-          primaryKeyColumn: inferred.primaryKeyColumn,
+          anchorTable: inferred.anchorTable.canonicalName,
+          table: inferred.anchorTable.canonicalName,
         }
       : {}),
+    ...(inferred.primaryKeyColumn ? { primaryKeyColumn: inferred.primaryKeyColumn } : {}),
     importSource: 'existing-sql',
     mappingCaseSignature: {
       query: queryName,
-      action: inferred?.action ?? 'unknown',
-      table: inferred?.table.canonicalName ?? null,
-      primaryKeyColumn: inferred?.primaryKeyColumn ?? null,
+      action: inferred.action,
+      table: inferred.anchorTable?.canonicalName ?? null,
+      anchorSource: inferred.anchorSource ?? null,
+      anchorTable: inferred.anchorTable?.canonicalName ?? null,
+      primaryKeyColumn: inferred.primaryKeyColumn ?? null,
+      physicalTables: inferred.physicalTables.map((table) => table.canonicalName),
       params: parameters.map((name) => ({ name, typeScriptType: parameterTypes[name] ?? 'unknown' })),
       rows: fields,
       generatedCaseNames,
     },
-    status: inferred ? 'generated-from-imported-sql' : 'generated-from-imported-sql-without-root-table',
+    status: inferred.anchorTable ? 'generated-from-imported-sql' : 'generated-from-imported-sql-without-root-table',
   }, null, 2)}\n`;
 }
 
@@ -2640,6 +2794,16 @@ function loadOptionalDdlTable(rootDir: string, tableName: string): DdlTable | un
   }
 }
 
+function loadOptionalDdlTables(rootDir: string): DdlTable[] {
+  try {
+    const pathConfig = loadProjectPathConfig(rootDir);
+    return collectSqlFiles(resolveDdlDir(rootDir))
+      .flatMap((file) => parseDdlTables(readFileSync(file, 'utf8'), pathConfig.defaultSchema));
+  } catch {
+    return [];
+  }
+}
+
 function normalizeSqlExpressionForNullability(expression: string): string {
   return expression.replace(/\s+/g, ' ').trim();
 }
@@ -2692,18 +2856,32 @@ function validateImportedFormattedSql(
 ): ({ safe: true; reason?: undefined } | { safe: false; reason: string }) {
   const beforeTokens = LexemeCursor.getAllLexemesWithPosition(originalSql);
   const afterTokens = LexemeCursor.getAllLexemesWithPosition(formattedSql);
-  if (!sameImportedTokenSequence(beforeTokens, afterTokens)) {
-    return { safe: false, reason: `formatting skipped because token sequence changed: before=${beforeTokens.length}, after=${afterTokens.length}` };
-  }
+  const tokenSummary = formatImportedTokenSummary(beforeTokens, afterTokens);
   const missingComments = missingImportedSqlCommentFragments(originalSql, formattedSql);
   if (missingComments.length > 0) {
     return { safe: false, reason: `formatting skipped because SQL comments would be dropped: ${missingComments.join(', ')}` };
+  }
+  const originalParameters = compileNamedParameters(originalSql).orderedNames;
+  const formattedParameters = compileNamedParameters(formattedSql).orderedNames;
+  if (JSON.stringify(originalParameters) !== JSON.stringify(formattedParameters)) {
+    return {
+      safe: false,
+      reason: [
+        'formatting skipped because SQL named parameters changed',
+        `before=${formatImportedParameterList(originalParameters)}`,
+        `after=${formatImportedParameterList(formattedParameters)}`,
+        tokenSummary,
+      ].join('; '),
+    };
   }
   try {
     const originalNormalized = formatter.format(SqlParser.parse(originalSql)).formattedSql.trim();
     const formattedNormalized = formatter.format(SqlParser.parse(formattedSql)).formattedSql.trim();
     if (originalNormalized !== formattedNormalized) {
-      return { safe: false, reason: 'formatting skipped because formatted SQL did not round-trip to the same normalized AST output' };
+      return {
+        safe: false,
+        reason: `formatting skipped because formatted SQL did not round-trip to the same normalized AST output; ${tokenSummary}`,
+      };
     }
   } catch (error) {
     return { safe: false, reason: error instanceof Error ? error.message : String(error) };
@@ -2711,16 +2889,40 @@ function validateImportedFormattedSql(
   return { safe: true };
 }
 
-function sameImportedTokenSequence(before: readonly Lexeme[], after: readonly Lexeme[]): boolean {
-  if (before.length !== after.length) return false;
-  return before.every((token, index) => {
+function formatImportedTokenSummary(before: readonly Lexeme[], after: readonly Lexeme[]): string {
+  const difference = describeImportedTokenDifference(before, after);
+  return [
+    `tokens before=${before.length}`,
+    `after=${after.length}`,
+    ...(difference ? [`first difference=${difference}`] : []),
+  ].join(', ');
+}
+
+function describeImportedTokenDifference(before: readonly Lexeme[], after: readonly Lexeme[]): string | undefined {
+  const max = Math.min(before.length, after.length);
+  for (let index = 0; index < max; index += 1) {
+    const token = before[index];
     const other = after[index];
-    return Boolean(other)
-      && token.type === other.type
-      && token.value === other.value
-      && JSON.stringify(token.comments ?? null) === JSON.stringify(other.comments ?? null)
-      && JSON.stringify(token.positionedComments ?? null) === JSON.stringify(other.positionedComments ?? null);
-  });
+    if (
+      !other
+      || token.type !== other.type
+      || token.value !== other.value
+      || JSON.stringify(token.comments ?? null) !== JSON.stringify(other.comments ?? null)
+      || JSON.stringify(token.positionedComments ?? null) !== JSON.stringify(other.positionedComments ?? null)
+    ) {
+      return `#${index} ${JSON.stringify(token.value)} -> ${JSON.stringify(other?.value ?? null)}`;
+    }
+  }
+  if (before.length !== after.length) {
+    const token = before[max];
+    const other = after[max];
+    return `#${max} ${JSON.stringify(token?.value ?? null)} -> ${JSON.stringify(other?.value ?? null)}`;
+  }
+  return undefined;
+}
+
+function formatImportedParameterList(parameters: readonly string[]): string {
+  return parameters.length > 0 ? parameters.join(',') : '(none)';
 }
 
 function missingImportedSqlCommentFragments(before: string, after: string): string[] {
@@ -3263,6 +3465,9 @@ function sampleValueForType(typeScriptType: string): unknown {
 function sampleColumnValue(column: DdlColumn, rowNumber: number): unknown {
   const type = column.typeName.toLowerCase();
   const name = column.name.toLowerCase();
+  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) {
+    return `2026-01-0${rowNumber}T00:00:00.000Z`;
+  }
   if (/^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(type)) {
     return rowNumber;
   }

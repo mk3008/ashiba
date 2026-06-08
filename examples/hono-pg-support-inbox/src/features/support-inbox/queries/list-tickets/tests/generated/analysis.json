@@ -1,0 +1,209 @@
+{
+  "feature": "support-inbox",
+  "query": "list-tickets",
+  "action": "list",
+  "physicalTables": [
+    "public.customers",
+    "public.ticket_messages",
+    "public.ticket_tag_links",
+    "public.ticket_tags",
+    "public.tickets"
+  ],
+  "anchorSource": "tickets",
+  "anchorTable": "public.tickets",
+  "table": "public.tickets",
+  "primaryKeyColumn": "ticket_id",
+  "importSource": "existing-sql",
+  "mappingCaseSignature": {
+    "query": "list-tickets",
+    "action": "list",
+    "table": "public.tickets",
+    "anchorSource": "tickets",
+    "anchorTable": "public.tickets",
+    "primaryKeyColumn": "ticket_id",
+    "physicalTables": [
+      "public.customers",
+      "public.ticket_messages",
+      "public.ticket_tag_links",
+      "public.ticket_tags",
+      "public.tickets"
+    ],
+    "params": [
+      {
+        "name": "status",
+        "typeScriptType": "unknown"
+      },
+      {
+        "name": "customerTier",
+        "typeScriptType": "unknown"
+      },
+      {
+        "name": "slaState",
+        "typeScriptType": "unknown"
+      },
+      {
+        "name": "language",
+        "typeScriptType": "unknown"
+      },
+      {
+        "name": "channel",
+        "typeScriptType": "unknown"
+      },
+      {
+        "name": "tag",
+        "typeScriptType": "unknown"
+      },
+      {
+        "name": "keyword",
+        "typeScriptType": "unknown"
+      },
+      {
+        "name": "limit",
+        "typeScriptType": "unknown"
+      },
+      {
+        "name": "offset",
+        "typeScriptType": "unknown"
+      }
+    ],
+    "rows": [
+      {
+        "name": "action_required",
+        "typeScriptType": "number | null",
+        "sqlType": "integer",
+        "nullability": "nullable"
+      },
+      {
+        "name": "channel",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "created_at",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "customer_name",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "customer_tier",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "language",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "last_customer_reply_at",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "latest_message_at",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "latest_message_body",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "latest_sender_name",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "latest_sender_role",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "priority",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "priority_rank",
+        "typeScriptType": "number | null",
+        "sqlType": "integer",
+        "nullability": "unknown"
+      },
+      {
+        "name": "sla_due_at",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "nullable"
+      },
+      {
+        "name": "sla_state",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "nullable"
+      },
+      {
+        "name": "status",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "subject",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "tag_slugs",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "ticket_id",
+        "typeScriptType": "number | null",
+        "sqlType": "integer",
+        "nullability": "unknown"
+      },
+      {
+        "name": "total_count",
+        "typeScriptType": "number | null",
+        "sqlType": "integer",
+        "nullability": "unknown"
+      },
+      {
+        "name": "updated_at",
+        "typeScriptType": "unknown",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "vip_rank",
+        "typeScriptType": "number | null",
+        "sqlType": "integer",
+        "nullability": "unknown"
+      }
+    ],
+    "generatedCaseNames": [
+      "db-type-mapping: maps list-tickets imported result columns into the DTO",
+      "nullable-output-mapping: maps list-tickets nullable imported result columns into the DTO"
+    ]
+  },
+  "status": "generated-from-imported-sql"
+}

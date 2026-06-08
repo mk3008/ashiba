@@ -74,6 +74,19 @@ export interface QueryModelBindings {
           end: number;
           text?: string;
         };
+        presentReplacement: {
+          start: number;
+          end: number;
+          text: string;
+        };
+      }>;
+      groups?: Array<{
+        branchIndexes: number[];
+        removalRange: {
+          start: number;
+          end: number;
+          text?: string;
+        };
       }>;
     };
   };
@@ -310,12 +323,60 @@ export function buildPostgresOptionalConditionCompressionBindingMetadata(
           end: compileNamedParameters(sourceSql.slice(0, branch.removalRange.end), {
             placeholderStyle: 'postgres',
           }).sql.length,
-          text: compileNamedParameters(branch.removalRange.text ?? sourceSql.slice(branch.removalRange.start, branch.removalRange.end), {
-            placeholderStyle: 'postgres',
-          }).sql,
         },
+        presentReplacement: buildPostgresPresentReplacement(sourceSql, branch.presentReplacement),
       })),
+      ...(metadata.groups && metadata.groups.length > 0
+        ? {
+          groups: metadata.groups.map((group) => ({
+            branchIndexes: [...group.branchIndexes],
+            removalRange: buildPostgresRemovalRange(sourceSql, group.removalRange),
+          })),
+        }
+        : {}),
     },
+  };
+}
+
+function buildPostgresRemovalRange(
+  sourceSql: string,
+  removalRange: { start: number; end: number; text?: string },
+): { start: number; end: number; text?: string } {
+  const start = compileNamedParameters(sourceSql.slice(0, removalRange.start), {
+    placeholderStyle: 'postgres',
+  }).sql.length;
+  const end = compileNamedParameters(sourceSql.slice(0, removalRange.end), {
+    placeholderStyle: 'postgres',
+  }).sql.length;
+  return {
+    start,
+    end,
+    ...(removalRange.text !== undefined
+      ? {
+        text: compileNamedParameters(removalRange.text, {
+          placeholderStyle: 'postgres',
+        }).sql,
+      }
+      : {}),
+  };
+}
+
+function buildPostgresPresentReplacement(
+  sourceSql: string,
+  replacement: { start: number; end: number; text: string },
+): { start: number; end: number; text: string } {
+  const compiledPrefix = compileNamedParameters(sourceSql.slice(0, replacement.start), {
+    placeholderStyle: 'postgres',
+  }).sql;
+  const compiledThroughReplacement = compileNamedParameters(`${sourceSql.slice(0, replacement.start)}${replacement.text}`, {
+    placeholderStyle: 'postgres',
+  }).sql;
+  return {
+    start: compiledPrefix.length,
+    end: compileNamedParameters(sourceSql.slice(0, replacement.end), {
+      placeholderStyle: 'postgres',
+    }).sql.length,
+    text: compiledThroughReplacement.slice(compiledPrefix.length),
   };
 }
 

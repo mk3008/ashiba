@@ -217,6 +217,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/harness.ts'), 'utf8')).toContain('runQuerySpecZtdCases');
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/harness.ts'), 'utf8')).toContain('createQuerySpecZtdVerifier');
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain('createQuerySpecZtdVerifier');
+      expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain('actual instanceof Date');
+      expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain("Object.prototype.toString.call(value) === '[object Object]'");
       expect(readFileSync(path.join(rootDir, 'tests/support/ztd/verifier.ts'), 'utf8')).toContain('await pool.end()');
       expect(result.files.some((file) => /(^|\/)(AGENTS|AGENT|SKILL)\.md$/i.test(file.relativePath))).toBe(false);
       expect(result.files.some((file) => /(^|\/)(\.agent|\.agents|\.codex|skills|prompts|hooks)(\/|$)/i.test(file.relativePath))).toBe(false);
@@ -835,6 +837,202 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(analysis.mappingCaseSignature?.params).toEqual([
         { name: 'account_id', typeScriptType: 'string' },
       ]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('imports CTE-anchored SQL without treating the final CTE source as a DDL table', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-cte-anchor-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id integer primary key,',
+        '  customer_id integer not null,',
+        '  subject text not null',
+        ');',
+        'create table public.customers (',
+        '  customer_id integer primary key,',
+        '  display_name text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'list-tickets.sql'), [
+        'with ticket_base as (',
+        '  select',
+        '    t.ticket_id,',
+        '    t.subject,',
+        '    c.display_name as customer_name',
+        '  from public.tickets t',
+        '  inner join public.customers c on c.customer_id = t.customer_id',
+        '),',
+        'ticket_view as (',
+        '  select',
+        '    ticket_id,',
+        '    subject,',
+        '    customer_name',
+        '  from ticket_base',
+        ')',
+        'select ticket_id, subject, customer_name',
+        'from ticket_view',
+        'order by ticket_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'support-inbox',
+        queryName: 'list-tickets',
+        sql: 'tmp/list-tickets.sql',
+      });
+
+      const importedSql = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/list-tickets.sql'), 'utf8');
+      const analysisPath = path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json');
+      const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as {
+        anchorSource?: string;
+        anchorTable?: string;
+        table?: string;
+        physicalTables?: string[];
+        status?: string;
+        mappingCaseSignature?: {
+          anchorSource?: string;
+          anchorTable?: string;
+          physicalTables?: string[];
+        };
+      };
+
+      expect(result.formatted).toBe(true);
+      expect(result.formatSkippedReason).toBeUndefined();
+      expect(importedSql).toContain('from\n            public.tickets as t');
+      expect(importedSql).toContain('inner join public.customers as c');
+      expect(analysis).toMatchObject({
+        anchorSource: 'ticket_view',
+        anchorTable: 'public.tickets',
+        table: 'public.tickets',
+        status: 'generated-from-imported-sql',
+      });
+      expect(analysis.physicalTables).toEqual(['public.customers', 'public.tickets']);
+      expect(analysis.mappingCaseSignature).toMatchObject({
+        anchorSource: 'ticket_view',
+        anchorTable: 'public.tickets',
+        physicalTables: ['public.customers', 'public.tickets'],
+      });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('imports SQL with implicit aliases when formatting preserves AST and named parameters', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-relaxed-format-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'search-users.sql'), [
+        'select u.user_id, u.email',
+        'from public.users u',
+        'where u.email = :email',
+        'order by u.user_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'users-search',
+        queryName: 'search',
+        sql: 'tmp/search-users.sql',
+      });
+
+      const importedSql = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/search.sql'), 'utf8');
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/query.ts'), 'utf8');
+
+      expect(result.formatted).toBe(true);
+      expect(result.formatSkippedReason).toBeUndefined();
+      expect(importedSql).toContain('from\n    public.users as u');
+      expect(importedSql).toContain('u.email = :email');
+      expect(queryBoundary).toContain('email: string;');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps imported SQL unformatted when formatting would drop comments', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-comment-safe-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'users.sql'), [
+        'select user_id -- keep this review note',
+        'from public.users;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureImport({
+        rootDir,
+        feature: 'users-list',
+        queryName: 'list',
+        sql: 'tmp/users.sql',
+      });
+
+      const importedSql = readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/list.sql'), 'utf8');
+
+      expect(result.formatted).toBe(false);
+      expect(result.formatSkippedReason).toContain('SQL comments would be dropped');
+      expect(importedSql).toContain('-- keep this review note');
+      expect(importedSql).toContain('select user_id');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('imports timestamp result columns with valid PostgreSQL mapper probe fixtures', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-timestamp-fixture-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id integer primary key,',
+        '  created_at timestamptz not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'list-tickets.sql'), [
+        'select ticket_id, created_at',
+        'from public.tickets',
+        'where ticket_id = :ticket_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureImport({
+        rootDir,
+        feature: 'tickets-list',
+        queryName: 'list',
+        sql: 'tmp/list-tickets.sql',
+      });
+
+      const mappingCases = readFileSync(path.join(rootDir, 'src/features/tickets-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8');
+
+      expect(mappingCases).toContain("cast('2026-01-01T00:00:00.000Z' as timestamptz)");
+      expect(mappingCases).not.toContain("cast('created_at-1' as timestamptz)");
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1491,6 +1689,36 @@ describe('@ashiba-ts/cli smoke', () => {
           table: 'public.users',
         }),
       ]));
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not report mapper drift when SQL and mapper result types are both unknown', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-generated-unknown-result-check-'));
+
+    try {
+      const queryDir = path.join(rootDir, 'src/features/status-read/queries/status');
+      mkdirSync(queryDir, { recursive: true });
+      writeFileSync(path.join(queryDir, 'status.sql'), [
+        'select json_build_object(\'ready\', true) as payload;',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(queryDir, 'query.ts'), [
+        'export interface StatusQueryParams {}',
+        '',
+        'export interface StatusQueryResult {',
+        '  payload: unknown;',
+        '}',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runFeatureGeneratedMapperCheck({ rootDir, feature: 'status-read', query: 'status' });
+
+      expect(result.ok).toBe(true);
+      expect(result.checked[0]?.sqlResultTypes).toEqual({ payload: 'unknown' });
+      expect(result.checked[0]?.mapperResultTypes).toEqual({ payload: 'unknown' });
+      expect(result.checked[0]?.mismatchedResultTypes).toEqual([]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -2819,12 +3047,116 @@ describe('@ashiba-ts/cli smoke', () => {
       });
       expect(result.analysis.optionalConditionCompression?.branches[0]?.removalRange.text)
         .toContain('and (:status is null or status = :status)');
+      expect(result.analysis.optionalConditionCompression?.branches[0]?.presentReplacement).toMatchObject({
+        text: 'status = :status',
+      });
       expect(result.bindings.postgres.optionalConditionCompression).toMatchObject({
         branches: [{
           parameterName: 'status',
+          presentReplacement: {
+            text: 'status = $2',
+          },
         }],
       });
       expect(result.metadataContents).toContain('optionalConditionCompression');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('generates optional condition compression metadata for casted null guards', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-casted-optional-condition-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id as id, email',
+        'from public.users',
+        'where tenant_id = :tenant_id',
+        '  and (cast(:status as text) is null or status = :status)',
+        '  and (:language::text is null or language = :language)',
+        '  and (cast(:tag as text) is null or :tag = any(coalesce(tags, array[]::text[])));',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.analysis.optionalConditionCompression?.branches).toHaveLength(3);
+      expect(result.analysis.optionalConditionCompression?.branches[0]).toMatchObject({
+        parameterName: 'status',
+        presentReplacement: {
+          text: 'status = :status',
+        },
+      });
+      expect(result.analysis.optionalConditionCompression?.branches[1]).toMatchObject({
+        parameterName: 'language',
+        presentReplacement: {
+          text: 'language = :language',
+        },
+      });
+      expect(result.analysis.optionalConditionCompression?.branches[2]).toMatchObject({
+        parameterName: 'tag',
+        presentReplacement: {
+          text: ':tag = any(coalesce(tags, array[]::text[]))',
+        },
+      });
+      expect(result.bindings.postgres.optionalConditionCompression?.branches[0]).toMatchObject({
+        parameterName: 'status',
+        presentReplacement: {
+          text: 'status = $2',
+        },
+      });
+      expect(result.bindings.postgres.optionalConditionCompression?.branches[1]).toMatchObject({
+        parameterName: 'language',
+        presentReplacement: {
+          text: 'language = $4',
+        },
+      });
+      expect(result.bindings.postgres.optionalConditionCompression?.branches[2]).toMatchObject({
+        parameterName: 'tag',
+        presentReplacement: {
+          text: '$6 = any(coalesce(tags, array[]::text[]))',
+        },
+      });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not generate fallback optional condition metadata from comments or dollar-quoted strings', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-casted-optional-condition-comments-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        '-- Example only: (cast(:comment_status as text) is null or status = :comment_status)',
+        'select',
+        '  user_id as id,',
+        '  $tag$(cast(:body_status as text) is null or status = :body_status)$tag$ as note',
+        'from public.users',
+        'where tenant_id = :tenant_id',
+        '  and (cast(:status as text) is null or status = :status)',
+        '  and (cast(:priority as text) is null or /* :fake_priority or */ priority = :priority)',
+        '  and (:kind is null or kind = :kind || $tag$or :fake_kind$tag$);',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.analysis.optionalConditionCompression?.branches.map((branch) => branch.parameterName))
+        .toEqual(['status', 'priority', 'kind']);
+      expect(result.bindings.postgres.optionalConditionCompression?.branches.map((branch) => branch.parameterName))
+        .toEqual(['status', 'priority', 'kind']);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -2873,6 +3205,56 @@ describe('@ashiba-ts/cli smoke', () => {
         'where (:derived_email is null or email = :derived_email)',
         'where (:root_id is null or user_id = :root_id)',
       ]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('generates grouped optional condition removal metadata without runtime SQL cleanup', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-optional-condition-groups-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id as id, email',
+        'from public.users',
+        'where (:email is null or email = :email)',
+        '  and (:status is null or status = :status)',
+        '  and tenant_id = :tenant_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.analysis.optionalConditionCompression?.groups).toEqual([{
+        branchIndexes: [0, 1],
+        removalRange: {
+          start: readFileSync(sqlPath, 'utf8').indexOf('(:email is null'),
+          end: readFileSync(sqlPath, 'utf8').indexOf('tenant_id = :tenant_id'),
+          text: [
+            '(:email is null or email = :email)',
+            '  and (:status is null or status = :status)',
+            '  and ',
+          ].join('\n'),
+        },
+      }]);
+      expect(result.bindings.postgres.optionalConditionCompression?.groups).toEqual([{
+        branchIndexes: [0, 1],
+        removalRange: {
+          start: result.bindings.postgres.sql.indexOf('($1 is null'),
+          end: result.bindings.postgres.sql.indexOf('tenant_id = $5'),
+          text: [
+            '($1 is null or email = $2)',
+            '  and ($3 is null or status = $4)',
+            '  and ',
+          ].join('\n'),
+        },
+      }]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -3241,7 +3623,7 @@ describe('@ashiba-ts/cli smoke', () => {
         safeSort: {
           insertion: {
             status: 'ready',
-            mode: 'comma',
+            mode: 'prepend-comma',
           },
           sortable: {
             email: { sql: 'email' },
@@ -3284,6 +3666,35 @@ describe('@ashiba-ts/cli smoke', () => {
         id: { sql: 'a.user_id' },
         email: { sql: 'a.email' },
       });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('records safe sort insertion before WINDOW without runtime clause realignment', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-window-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/windowed');
+      const sqlPath = path.join(sqlDir, 'windowed.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select a.user_id as id, row_number() over w as row_no',
+        'from public.users a',
+        'where a.status = :status',
+        'window w as (partition by a.tenant_id order by a.created_at desc)',
+        'limit :limit',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/windowed/windowed.sql' });
+
+      expect(result.analysis.safeSort.insertion).toMatchObject({
+        status: 'ready',
+        mode: 'order-by',
+      });
+      expect(result.analysis.safeSort.insertion.status === 'ready' ? result.analysis.safeSort.insertion.index : -1)
+        .toBe(readFileSync(sqlPath, 'utf8').indexOf('window w'));
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -3730,6 +4141,26 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(output).toContain('unused-cte');
       expect(output).toContain('analysis-risk');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('allows DBMS-natural string concatenation inside supported SSSQL keyword branches', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-lint-sssql-keyword-'));
+
+    try {
+      const sqlPath = path.join(rootDir, 'search.sql');
+      writeFileSync(sqlPath, `
+        SELECT id, email
+        FROM public.users
+        WHERE (:keyword is null or email ilike '%' || :keyword || '%');
+      `, 'utf8');
+
+      const output = runQueryLint(sqlPath, { rootDir });
+
+      expect(output).toContain('No query lint issues detected.');
+      expect(output).not.toContain('analysis-risk');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

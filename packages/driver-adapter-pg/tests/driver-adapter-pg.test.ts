@@ -224,6 +224,36 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('prunes only the null guard when an optional parameter is present', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = "select * from users where tenant_id = :tenant_id and (:keyword is null or users.email ilike '%' || :keyword || '%')";
+    const compiledSql = "select * from users where tenant_id = $1 and ($2 is null or users.email ilike '%' || $3 || '%')";
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'keyword', 'keyword'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'keyword', "and ($2 is null or users.email ilike '%' || $3 || '%')"),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'keyword', "and (:keyword is null or users.email ilike '%' || :keyword || '%')"),
+        })),
+      { tenant_id: 10, keyword: 'alice' }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: "select * from users where tenant_id = $1 and users.email ilike '%' || $2 || '%'",
+      values: [10, 'alice'],
+    }]);
+  });
+
   test('compresses a sole optional where condition without leaving dangling where', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select * from users where (:email is null or email = :email)';
@@ -251,6 +281,66 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(calls).toEqual([{
       sql: 'select * from users ',
       values: [],
+    }]);
+  });
+
+  test('compresses a sole optional where condition before a statement terminator', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email);';
+    const compiledSql = 'select * from users where ($1 is null or email = $2);';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['email', 'email'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', 'where ($1 is null or email = $2)'),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', 'where (:email is null or email = :email)'),
+        })),
+      { email: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users ;',
+      values: [],
+    }]);
+  });
+
+  test('keeps where when a leading optional condition is removed before a required condition', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email) and tenant_id = :tenant_id';
+    const compiledSql = 'select * from users where ($1 is null or email = $2) and tenant_id = $3';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['email', 'email', 'tenant_id'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and'),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and'),
+        })),
+      { email: null, tenant_id: 10 }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users where tenant_id = $1',
+      values: [10],
     }]);
   });
 
@@ -292,6 +382,171 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(calls).toEqual([{
       sql: 'select * from users ',
       values: [],
+    }]);
+  });
+
+  test('removes multiple leading optional conditions before a required condition', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email) and (:status is null or status = :status) and tenant_id = :tenant_id';
+    const compiledSql = 'select * from users where ($1 is null or email = $2) and ($3 is null or status = $4) and tenant_id = $5';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['email', 'email', 'status', 'status', 'tenant_id'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
+              optionalCompressionBinding(compiledSql, 'status', 'and ($3 is null or status = $4)').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)').branches[0],
+            ],
+          },
+        })),
+      { email: null, status: null, tenant_id: 10 }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users where tenant_id = $1',
+      values: [10],
+    }]);
+  });
+
+  test('keeps where spacing when the first optional condition is removed before a present optional condition', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email) and (:tier is null or tier = :tier)';
+    const compiledSql = 'select * from users where ($1 is null or email = $2) and ($3 is null or tier = $4)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['email', 'email', 'tier', 'tier'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
+              optionalCompressionBinding(compiledSql, 'tier', 'and ($3 is null or tier = $4)').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'tier', 'and (:tier is null or tier = :tier)').branches[0],
+            ],
+          },
+        })),
+      { email: null, tier: 'vip' }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users where tier = $1',
+      values: ['vip'],
+    }]);
+  });
+
+  test('compresses optional conditions around a required middle predicate', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where (:email is null or email = :email) and tenant_id = :tenant_id and (:x is null or x = :x)';
+    const compiledSql = 'select * from users where ($1 is null or email = $2) and tenant_id = $3 and ($4 is null or x = $5)';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+    const source = querySource(sourceSql, queryModelFor(sourceSql, {
+      sql: compiledSql,
+      orderedNames: ['email', 'email', 'tenant_id', 'x', 'x'],
+      optionalConditionCompression: {
+        branches: [
+          optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
+          optionalCompressionBinding(compiledSql, 'x', 'and ($4 is null or x = $5)').branches[0],
+        ],
+      },
+    }, {
+      optionalConditionCompression: {
+        enabled: true,
+        branches: [
+          optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and').branches[0],
+          optionalCompressionAnalysis(sourceSql, 'x', 'and (:x is null or x = :x)').branches[0],
+        ],
+      },
+    }));
+
+    await adapter.execute(source,
+      { email: null, tenant_id: 10, x: null }, {
+        optionalConditionCompression: true,
+      },
+    );
+    await adapter.execute(source,
+      { email: null, tenant_id: 10, x: 20 }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([
+      {
+        sql: 'select * from users where tenant_id = $1 ',
+        values: [10],
+      },
+      {
+        sql: 'select * from users where tenant_id = $1 and x = $2',
+        values: [10, 20],
+      },
+    ]);
+  });
+
+  test('compresses an optional condition between required predicates', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select * from users where tenant_id = :tenant_id and (:email is null or email = :email) and x = :x';
+    const compiledSql = 'select * from users where tenant_id = $1 and ($2 is null or email = $3) and x = $4';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'email', 'email', 'x'],
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', 'and ($2 is null or email = $3)'),
+        }, {
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', 'and (:email is null or email = :email)'),
+        })),
+      { tenant_id: 10, email: null, x: 20 }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select * from users where tenant_id = $1  and x = $2',
+      values: [10, 20],
     }]);
   });
 
@@ -381,6 +636,47 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(calls).toEqual([{
       sql: 'with cte as (select * from t ) select * from cte ',
       values: [],
+    }]);
+  });
+
+  test('keeps required predicates in CTE and root query scopes when optional filters are removed', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'with cte as (select * from t where (:p is null or col = :p) and tenant_id = :tenant_id) select * from cte where (:id is null or id = :id) and status = :status';
+    const compiledSql = 'with cte as (select * from t where ($1 is null or col = $2) and tenant_id = $3) select * from cte where ($4 is null or id = $5) and status = $6';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['p', 'p', 'tenant_id', 'id', 'id', 'status'],
+          optionalConditionCompression: {
+            branches: [
+              optionalCompressionBinding(compiledSql, 'p', '($1 is null or col = $2) and').branches[0],
+              optionalCompressionBinding(compiledSql, 'id', '($4 is null or id = $5) and').branches[0],
+            ],
+          },
+        }, {
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              optionalCompressionAnalysis(sourceSql, 'p', '(:p is null or col = :p) and').branches[0],
+              optionalCompressionAnalysis(sourceSql, 'id', '(:id is null or id = :id) and').branches[0],
+            ],
+          },
+        })),
+      { p: null, tenant_id: 10, id: null, status: 'active' }, {
+        optionalConditionCompression: true,
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'with cte as (select * from t where tenant_id = $1) select * from cte where status = $2',
+      values: [10, 'active'],
     }]);
   });
 
@@ -608,6 +904,54 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     }]);
   });
 
+  test('combines optional compression and safe sort with generated binding metadata', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a where a.tenant_id = :tenant_id and (:status is null or a.status = :status) limit :limit';
+    const compiledSql = 'select a.user_id as id from users a where a.tenant_id = $1 and ($2 is null or a.status = $3) limit $4';
+    const compression = optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or a.status = $3)');
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['tenant_id', 'status', 'status', 'limit'],
+          safeSortInsertion: { index: compiledSql.indexOf('limit $4') },
+          optionalConditionCompression: {
+            branches: compression.branches.map((branch) => ({
+              parameterName: branch.parameterName,
+              removalRange: {
+                start: branch.removalRange.start,
+                end: branch.removalRange.end,
+              },
+              presentReplacement: branch.presentReplacement,
+            })),
+          },
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.indexOf('limit :limit'), mode: 'order-by' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+          optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
+        })),
+      { tenant_id: 7, status: null, limit: 10 }, {
+        optionalConditionCompression: true,
+        sort: [{ key: 'id', direction: 'desc' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1 order by a.user_id desc limit $2',
+      values: [7, 10],
+    }]);
+    expect(calls[0]?.sql).not.toContain('limi order by');
+  });
+
   test('renumbers placeholders above $10 after optional condition compression and safe sort', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const beforeNames = Array.from({ length: 9 }, (_, index) => `p${String(index + 1).padStart(2, '0')}`);
@@ -698,8 +1042,8 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     );
 
     expect(calls).toEqual([{
-      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and ($2 is null or a.email = $3) order by a.user_id desc',
-      values: [7, injectedEmail, injectedEmail],
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and a.email = $2 order by a.user_id desc',
+      values: [7, injectedEmail],
     }]);
     expect(calls[0]?.sql).not.toContain(injectedEmail);
   });
@@ -922,8 +1266,48 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     );
 
     expect(calls).toEqual([{
-      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and ($2 is null or a.email = $3) order by a.created_at, a.user_id asc',
-      values: [7, 'a@example.test', 'a@example.test'],
+      sql: 'select a.user_id as id from users a where a.tenant_id = $1  and a.email = $2 order by a.created_at, a.user_id asc',
+      values: [7, 'a@example.test'],
+    }]);
+  });
+
+  test('keeps comma-mode safe sort before LIMIT after optional cleanup shifts insertion left', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a where (:status is null or a.status = :status) order by a.created_at limit :limit';
+    const compiledSql = 'select a.user_id as id from users a where ($1 is null or a.status = $2) order by a.created_at limit $3';
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['status', 'status', 'limit'],
+          safeSortInsertion: { index: compiledSql.indexOf(' limit $3') },
+          optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'where ($1 is null or a.status = $2)'),
+        }, {
+          rootQueryShape: 'simple-select',
+          safeSort: {
+            insertion: { status: 'ready', index: sourceSql.indexOf(' limit :limit'), mode: 'comma' },
+            sortable: { id: { sql: 'a.user_id' } },
+          },
+          optionalConditionCompression: {
+            enabled: true,
+            branches: optionalCompressionAnalysis(sourceSql, 'status', 'where (:status is null or a.status = :status)').branches,
+          },
+        })),
+      { status: null, limit: 10 }, {
+        optionalConditionCompression: true,
+        sort: [{ key: 'id' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: 'select a.user_id as id from users a  order by a.created_at, a.user_id asc limit $1',
+      values: [10],
     }]);
   });
 
@@ -1025,7 +1409,180 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(calls).toEqual([{ sql: 'select a.user_id as id from users a order by a.user_id asc', values: [] }]);
   });
 
-  test('renders safe sort as comma when query already has ORDER BY', async () => {
+  test('prepends safe sort before existing ORDER BY terms by default', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = 'select a.user_id as id from users a order by a.name';
+    const insertionIndex = sourceSql.indexOf('a.name');
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, {
+          analysis: {
+            astParse: 'ok',
+            statementKind: 'select',
+            rootQueryShape: 'simple-select',
+            hasTopLevelOrderBy: false,
+            sourceHash: hashSql(sourceSql),
+            safeSort: {
+              insertion: { status: 'ready', index: insertionIndex, mode: 'prepend-comma' },
+              sortable: { id: { sql: 'a.user_id' } },
+            },
+          },
+          bindings: queryModelFor(sourceSql, {
+            safeSortInsertion: { index: insertionIndex },
+          }).bindings,
+        }),
+      {},{
+        sort: [{ key: 'id', direction: 'desc' }]},
+    );
+
+    expect(calls).toEqual([{ sql: 'select a.user_id as id from users a order by a.user_id desc, a.name', values: [] }]);
+  });
+
+  test('prepends safe sort before a multiline stable ORDER BY suffix', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = [
+      'select a.user_id as id',
+      'from users a',
+      'order by a.name',
+      'limit 10',
+    ].join('\n');
+    const insertionIndex = sourceSql.indexOf('a.name');
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, {
+          analysis: {
+            astParse: 'ok',
+            statementKind: 'select',
+            rootQueryShape: 'simple-select',
+            hasTopLevelOrderBy: true,
+            sourceHash: hashSql(sourceSql),
+            safeSort: {
+              insertion: { status: 'ready', index: insertionIndex, mode: 'prepend-comma' },
+              sortable: { id: { sql: 'a.user_id' } },
+            },
+          },
+          bindings: queryModelFor(sourceSql, {
+            safeSortInsertion: { index: insertionIndex },
+          }).bindings,
+        }),
+      {},{
+        sort: [{ key: 'id', direction: 'desc' }]},
+    );
+
+    expect(calls).toEqual([{
+      sql: [
+        'select a.user_id as id',
+        'from users a',
+        'order by a.user_id desc, a.name',
+        'limit 10',
+      ].join('\n'),
+      values: [],
+    }]);
+  });
+
+  test('keeps prepend safe sort aligned after multiple optional rewrites', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = [
+      'select a.id, a.email from users a',
+      'where true',
+      '  and (:status is null or a.status = :status)',
+      '  and (:tier is null or a.tier = :tier)',
+      '  and (:lang is null or a.lang = :lang)',
+      '  and (:channel is null or a.channel = :channel)',
+      '  and (:tag is null or :tag = any(a.tags))',
+      "  and (:keyword is null or a.email ilike '%' || :keyword || '%')",
+      'order by a.id',
+      'limit :limit',
+    ].join('\n');
+    const compiledSql = [
+      'select a.id, a.email from users a',
+      'where true',
+      '  and ($1 is null or a.status = $2)',
+      '  and ($3 is null or a.tier = $4)',
+      '  and ($5 is null or a.lang = $6)',
+      '  and ($7 is null or a.channel = $8)',
+      '  and ($9 is null or $10 = any(a.tags))',
+      "  and ($11 is null or a.email ilike '%' || $12 || '%')",
+      'order by a.id',
+      'limit $13',
+    ].join('\n');
+    const insertionIndex = sourceSql.indexOf('order by a.id') + 'order by'.length;
+    const compiledInsertionIndex = compiledSql.indexOf('order by a.id') + 'order by'.length;
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+          sql: compiledSql,
+          orderedNames: ['status', 'status', 'tier', 'tier', 'lang', 'lang', 'channel', 'channel', 'tag', 'tag', 'keyword', 'keyword', 'limit'],
+          safeSortInsertion: { index: compiledInsertionIndex },
+          optionalConditionCompression: {
+            branches: [
+              ...optionalCompressionBinding(compiledSql, 'status', 'and ($1 is null or a.status = $2)').branches,
+              ...optionalCompressionBinding(compiledSql, 'tier', 'and ($3 is null or a.tier = $4)').branches,
+              ...optionalCompressionBinding(compiledSql, 'lang', 'and ($5 is null or a.lang = $6)').branches,
+              ...optionalCompressionBinding(compiledSql, 'channel', 'and ($7 is null or a.channel = $8)').branches,
+              ...optionalCompressionBinding(compiledSql, 'tag', 'and ($9 is null or $10 = any(a.tags))').branches,
+              ...optionalCompressionBinding(compiledSql, 'keyword', "and ($11 is null or a.email ilike '%' || $12 || '%')").branches,
+            ],
+          },
+        }, {
+          safeSort: {
+            insertion: { status: 'ready', index: insertionIndex, mode: 'prepend-comma' },
+            sortable: { priority: { sql: 'a.priority' } },
+          },
+          optionalConditionCompression: {
+            enabled: true,
+            branches: [
+              ...optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'tier', 'and (:tier is null or a.tier = :tier)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'lang', 'and (:lang is null or a.lang = :lang)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'channel', 'and (:channel is null or a.channel = :channel)').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'tag', 'and (:tag is null or :tag = any(a.tags))').branches,
+              ...optionalCompressionAnalysis(sourceSql, 'keyword', "and (:keyword is null or a.email ilike '%' || :keyword || '%')").branches,
+            ],
+          },
+        })),
+      { status: null, tier: null, lang: null, channel: null, tag: null, keyword: 'login', limit: 10 }, {
+        optionalConditionCompression: true,
+        sort: [{ key: 'priority', direction: 'desc' }],
+      },
+    );
+
+    expect(calls).toEqual([{
+      sql: [
+        'select a.id, a.email from users a',
+        'where true',
+        '  ',
+        '  ',
+        '  ',
+        '  ',
+        '  ',
+        "  and a.email ilike '%' || $1 || '%'",
+        'order by a.priority desc, a.id',
+        'limit $2',
+      ].join('\n'),
+      values: ['login', 10],
+    }]);
+  });
+
+  test('can append safe sort after existing ORDER BY terms for compatibility', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select a.user_id as id from users a order by a.name';
     const client: NodePostgresQueryable = {
@@ -1520,26 +2077,42 @@ function queryModelFor(
             end: number;
             text?: string;
           };
+          presentReplacement: {
+            start: number;
+            end: number;
+            text: string;
+          };
         }[];
       };
   } = {},
   analysis: Record<string, unknown> = {},
 ) {
+  const analysisWithGroups = enrichOptionalCompressionGroups(sourceSql, analysis);
+  const bindingWithGroups = binding.optionalConditionCompression
+    ? {
+      ...binding,
+      optionalConditionCompression: enrichBindingOptionalCompressionGroups(
+        binding.sql ?? sourceSql,
+        binding.optionalConditionCompression,
+        analysisWithGroups.optionalConditionCompression,
+      ),
+    }
+    : binding;
   return {
     analysis: {
       astParse: 'ok',
       statementKind: 'select',
       hasTopLevelOrderBy: false,
       sourceHash: hashSql(sourceSql),
-      ...analysis,
+      ...analysisWithGroups,
     },
     bindings: {
       postgres: {
         sourceHash: hashSql(sourceSql),
-        sql: binding.sql ?? sourceSql,
-        orderedNames: binding.orderedNames ?? [],
-        ...(binding.safeSortInsertion ? { safeSortInsertion: binding.safeSortInsertion } : {}),
-        ...(binding.optionalConditionCompression ? { optionalConditionCompression: binding.optionalConditionCompression } : {}),
+        sql: bindingWithGroups.sql ?? sourceSql,
+        orderedNames: bindingWithGroups.orderedNames ?? [],
+        ...(bindingWithGroups.safeSortInsertion ? { safeSortInsertion: bindingWithGroups.safeSortInsertion } : {}),
+        ...(bindingWithGroups.optionalConditionCompression ? { optionalConditionCompression: bindingWithGroups.optionalConditionCompression } : {}),
       },
     },
   };
@@ -1548,8 +2121,13 @@ function queryModelFor(
 function optionalCompressionAnalysis(sourceSql: string, parameterName: string, removalText: string) {
   const removalStart = sourceSql.indexOf(removalText);
   if (removalStart < 0) throw new Error(`Missing source removal text: ${removalText}`);
-  const sourceText = removalText.replace(/^and\s+/i, '');
+  const sourceText = sourceRangeTextFromRemovalText(removalText);
   const sourceStart = sourceSql.indexOf(sourceText, removalStart);
+  const presentText = buildPresentReplacementText(sourceText);
+  const removalRange = normalizeTestOptionalRemovalRange(sourceSql, {
+    start: removalStart,
+    end: removalStart + removalText.length,
+  });
   return {
     enabled: true,
     branches: [{
@@ -1561,9 +2139,13 @@ function optionalCompressionAnalysis(sourceSql: string, parameterName: string, r
         text: sourceText,
       },
       removalRange: {
-        start: removalStart,
-        end: removalStart + removalText.length,
-        text: removalText,
+        ...removalRange,
+        text: sourceSql.slice(removalRange.start, removalRange.end),
+      },
+      presentReplacement: {
+        start: sourceStart,
+        end: sourceStart + sourceText.length,
+        text: presentText,
       },
     }],
   };
@@ -1572,14 +2154,189 @@ function optionalCompressionAnalysis(sourceSql: string, parameterName: string, r
 function optionalCompressionBinding(compiledSql: string, parameterName: string, removalText: string) {
   const removalStart = compiledSql.indexOf(removalText);
   if (removalStart < 0) throw new Error(`Missing compiled removal text: ${removalText}`);
+  const sourceText = sourceRangeTextFromRemovalText(removalText);
+  const sourceStart = compiledSql.indexOf(sourceText, removalStart);
+  const removalRange = normalizeTestOptionalRemovalRange(compiledSql, {
+    start: removalStart,
+    end: removalStart + removalText.length,
+  });
   return {
     branches: [{
       parameterName,
       removalRange: {
-        start: removalStart,
-        end: removalStart + removalText.length,
-        text: removalText,
+        ...removalRange,
+        text: compiledSql.slice(removalRange.start, removalRange.end),
+      },
+      presentReplacement: {
+        start: sourceStart,
+        end: sourceStart + sourceText.length,
+        text: buildPresentReplacementText(sourceText),
       },
     }],
   };
+}
+
+function buildPresentReplacementText(branchText: string): string {
+  const normalized = branchText.trim().replace(/^(?:where|and|or)\b\s*/i, '');
+  const inner = normalized.replace(/^\((.*)\)$/s, '$1');
+  const terms = inner.split(/\s+or\s+/i);
+  const meaningful = terms.filter((term) => !/^\s*(?::[A-Za-z_][A-Za-z0-9_]*|\$\d+)\s+is\s+null\s*$/i.test(term));
+  return meaningful.length === 1 ? meaningful[0]!.trim() : `(${meaningful.map((term) => term.trim()).join(' or ')})`;
+}
+
+function sourceRangeTextFromRemovalText(removalText: string): string {
+  return removalText
+    .replace(/^(?:where|and|or)\s+/i, '')
+    .replace(/\s+(?:and|or)\s*$/i, '');
+}
+
+function normalizeTestOptionalRemovalRange(sql: string, range: { start: number; end: number }): { start: number; end: number } {
+  const rangeText = sql.slice(range.start, range.end);
+  const whereAtRangeStart = rangeText.match(/^\s*where\b\s*/i);
+  if (whereAtRangeStart?.[0]) {
+    if (hasTestRemainingPredicateAfter(sql, range.end)) {
+      const danglingConnective = sql.slice(range.end).match(/^\s+(?:and|or)\b\s*/i);
+      return {
+        start: range.start + whereAtRangeStart[0].length,
+        end: danglingConnective?.[0] ? range.end + danglingConnective[0].length : range.end,
+      };
+    }
+    return range;
+  }
+
+  const before = sql.slice(0, range.start);
+  const whereMatch = before.match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
+  if (!whereMatch || whereMatch.index === undefined) {
+    return extendTrailingConnectorWhitespace(sql, range);
+  }
+  if (hasTestRemainingPredicateAfter(sql, range.end)) {
+    const danglingConnective = sql.slice(range.end).match(/^\s+(?:and|or)\b\s*/i);
+    if (danglingConnective?.[0]) {
+      return { start: range.start, end: range.end + danglingConnective[0].length };
+    }
+    return extendTrailingConnectorWhitespace(sql, range);
+  }
+  return { start: whereMatch.index, end: range.end };
+}
+
+function extendTrailingConnectorWhitespace(sql: string, range: { start: number; end: number }): { start: number; end: number } {
+  const text = sql.slice(range.start, range.end);
+  if (!/(?:^|\s)(?:and|or)$/i.test(text.trimEnd())) {
+    return range;
+  }
+  const trailingWhitespace = sql.slice(range.end).match(/^\s*/)?.[0] ?? '';
+  return { start: range.start, end: range.end + trailingWhitespace.length };
+}
+
+function enrichOptionalCompressionGroups(sourceSql: string, analysis: Record<string, unknown>): Record<string, unknown> {
+  const optionalConditionCompression = analysis.optionalConditionCompression as
+    | { branches?: Array<{ sourceRange: { start: number; end: number }; removalRange: { start: number; end: number; text?: string } }>; groups?: unknown[] }
+    | undefined;
+  if (!optionalConditionCompression?.branches || optionalConditionCompression.groups) {
+    return analysis;
+  }
+  const groups = buildTestOptionalCompressionGroups(sourceSql, optionalConditionCompression.branches);
+  return {
+    ...analysis,
+    optionalConditionCompression: {
+      ...optionalConditionCompression,
+      ...(groups.length > 0 ? { groups } : {}),
+    },
+  };
+}
+
+function enrichBindingOptionalCompressionGroups(
+  compiledSql: string,
+  binding: {
+    branches: readonly {
+      parameterName: string;
+      removalRange: { start: number; end: number; text?: string };
+      presentReplacement: { start: number; end: number; text: string };
+    }[];
+    groups?: readonly {
+      branchIndexes: readonly number[];
+      removalRange: { start: number; end: number; text?: string };
+    }[];
+  },
+  analysisCompression: unknown,
+): typeof binding {
+  if (binding.groups) return binding;
+  const groups = (analysisCompression as { groups?: Array<{ branchIndexes: number[]; removalRange: { text?: string } }> } | undefined)?.groups;
+  if (!groups || groups.length === 0) return binding;
+  const bindingGroups = groups.map((group) => {
+    const firstBranch = binding.branches[group.branchIndexes[0] ?? -1];
+    const lastBranch = binding.branches[group.branchIndexes[group.branchIndexes.length - 1] ?? -1];
+    if (!firstBranch || !lastBranch) return undefined;
+    const branchEnd = Math.max(...group.branchIndexes.map((index) => binding.branches[index]?.removalRange.end ?? -1));
+    const removesWholeWhere = /^\s*where\b/i.test(group.removalRange.text ?? '');
+    const start = removesWholeWhere
+      ? compiledSql.slice(0, firstBranch.removalRange.start).match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i)?.index ?? firstBranch.removalRange.start
+      : firstBranch.removalRange.start;
+    const trailingConnective = removesWholeWhere ? '' : compiledSql.slice(branchEnd).match(/^\s+(?:and|or)\b\s*/i)?.[0] ?? '';
+    const end = branchEnd + trailingConnective.length;
+    return {
+      branchIndexes: [...group.branchIndexes],
+      removalRange: {
+        start,
+        end,
+        text: compiledSql.slice(start, end),
+      },
+    };
+  }).filter((group): group is { branchIndexes: number[]; removalRange: { start: number; end: number; text: string } } => group !== undefined);
+  return {
+    ...binding,
+    ...(bindingGroups.length > 0 ? { groups: bindingGroups } : {}),
+  };
+}
+
+function buildTestOptionalCompressionGroups(
+  sql: string,
+  branches: readonly { sourceRange?: { start: number; end: number }; removalRange: { start: number; end: number; text?: string } }[],
+): Array<{ branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }> {
+  const sourceLikeRanges = branches.map((branch) => branch.sourceRange ?? branch.removalRange);
+  const groups: Array<{ branchIndexes: number[]; removalRange: { start: number; end: number; text: string } }> = [];
+  const consumed = new Set<number>();
+  for (let index = 0; index < sourceLikeRanges.length; index += 1) {
+    if (consumed.has(index)) continue;
+    const range = sourceLikeRanges[index];
+    if (!range) continue;
+    const prefix = sql.slice(0, range.start).match(/\bwhere(?:\s|\/\*[\s\S]*?\*\/|--[^\n]*(?:\n|$))*$/i);
+    if (!prefix?.[0] || prefix.index === undefined) continue;
+    const groupIndexes: number[] = [];
+    let cursor = range.start;
+    for (let branchIndex = index; branchIndex < sourceLikeRanges.length; branchIndex += 1) {
+      const branchRange = sourceLikeRanges[branchIndex];
+      if (!branchRange) break;
+      const between = sql.slice(cursor, branchRange.start).replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--[^\n]*(?:\n|$)/g, ' ').trim();
+      if (groupIndexes.length === 0 ? between !== '' : !/^(?:and|or)\b\s*$/i.test(between)) break;
+      groupIndexes.push(branchIndex);
+      cursor = branchRange.end;
+    }
+    const lastRange = sourceLikeRanges[groupIndexes[groupIndexes.length - 1] ?? -1];
+    if (groupIndexes.length < 2 || !lastRange) continue;
+    const remainingPredicateAfterGroup = hasTestRemainingPredicateAfter(sql, lastRange.end);
+    const trailingConnective = remainingPredicateAfterGroup
+      ? sql.slice(lastRange.end).match(/^\s+(?:and|or)\b\s*/i)?.[0] ?? ''
+      : '';
+    const whereKeyword = prefix[0].match(/\bwhere\b\s*/i)?.[0] ?? 'where';
+    const start = remainingPredicateAfterGroup ? prefix.index + whereKeyword.length : prefix.index;
+    const end = lastRange.end + trailingConnective.length;
+    groups.push({
+      branchIndexes: groupIndexes,
+      removalRange: {
+        start,
+        end,
+        text: sql.slice(start, end),
+      },
+    });
+    for (const groupIndex of groupIndexes) consumed.add(groupIndex);
+  }
+  return groups;
+}
+
+function hasTestRemainingPredicateAfter(sql: string, index: number): boolean {
+  const after = sql.slice(index).trimStart();
+  if (after.length === 0 || after.startsWith(';')) return false;
+  if (/^(?:and|or)\b/i.test(after)) return hasTestRemainingPredicateAfter(after.replace(/^(?:and|or)\b\s*/i, ''), 0);
+  return !/^(?:group\s+by|order\s+by|having|window|limit|offset|fetch|for|union|intersect|except)\b|^\)|^;/i.test(after);
 }
