@@ -1,0 +1,124 @@
+# Debug Visibility Pattern
+
+The Support Inbox demo has two visibility surfaces:
+
+- application logging at the PostgreSQL adapter boundary
+- the browser-only Live Query Console used by the demo page
+
+They have different safety rules. The application logger should be safe by default. The demo console may show more detail because it is a local adoption demo whose purpose is to make the SQL execution shape visible.
+
+## What To Log By Default
+
+Production-oriented logs should identify the query without storing sensitive data.
+
+Recommended default fields:
+
+- `phase`: `start`, `end`, or `error`
+- `sqlId` / `queryId`: stable identifiers from query metadata
+- `sqlPath`: the source SQL file path for local/review lookup
+- `orderedNames`: named parameter order, without values
+- `elapsedMs`
+- `rowCount`
+- `warnings`
+- normalized error metadata
+
+Avoid these fields in default logs:
+
+- full source SQL text
+- full compiled SQL text
+- unmasked parameter values
+- request bodies, headers, customer names, emails, message bodies, or free-text search values
+
+The source SQL can be recovered from `sqlId`, `queryId`, or `sqlPath`, so normal logs do not need to store the full SQL body.
+
+## Parameter Values
+
+Ashiba SQL files use named parameters, and the PostgreSQL adapter emits `orderedNames`. This is enough to understand which named parameters were bound to `$1`, `$2`, and so on.
+
+Parameter values are useful during local debugging, but they are also the highest leakage risk. Use this policy:
+
+- production: log parameter names, not values
+- staging: log values only behind an explicit, short-lived debug flag
+- local/demo: values may be shown when the developer explicitly opts in
+
+In this example, `src/adapters/logger/sqlLogger.ts` logs IDs, path, timing, row count, and parameter names by default. It only includes SQL text or raw params when extra local environment flags are enabled.
+
+The web demo uses `includeUnmaskedParamsInEvents: true` only inside `tickets.presenter.ts` so the Live Query Console can show bound parameter values. Keep that behavior local to the demo/debug surface, not in feature code.
+
+## Live Query Console
+
+The Live Query Console is a teaching surface, not the production logging policy.
+
+It intentionally shows:
+
+- the SQL file path
+- compiled SQL after optional-condition compression and safe sort
+- placeholder-to-name mapping
+- parameter values for local inspection
+- selected safe sort keys
+- stable suffix ordering
+- elapsed time and row count when available
+
+This helps reviewers confirm that dynamic filters and dynamic sort are still backed by visible SQL, not hidden query-builder logic.
+
+## Logger Wiring
+
+Keep logger wiring at the SQL client adapter boundary:
+
+```text
+query -> feature -> sqlClient -> logger
+```
+
+Feature code should receive `FeatureQueryExecutor`. It should not import `pg`, pino, winston, OpenTelemetry, or adapter observer code directly.
+
+The example wiring is:
+
+- `src/adapters/pg/pool.ts` creates the Ashiba PostgreSQL adapter and provides the observer.
+- `src/adapters/logger/sqlLogger.ts` is the application-owned logging hook.
+- `src/adapters/web/modules/support-inbox/tickets/view/tickets.presenter.ts` overrides the observer for the local demo console.
+
+## Library Choice
+
+This example intentionally does not choose a production logger. Reasonable choices are:
+
+- pino for structured JSON application logs
+- OpenTelemetry for traces, spans, metrics, and correlation
+- winston if the application already standardizes on it
+- console only for a small demo or local development
+
+Ashiba should not own this choice. The adapter observer should hand structured events to the application's existing logging and telemetry boundary.
+
+## Storage Choice
+
+Prefer short retention and structured storage:
+
+- local/demo: browser memory or terminal output
+- application logs: JSON logs collected by the existing platform
+- metrics: time-series storage for latency, error rate, and row count summaries
+- traces: OpenTelemetry collector or the organization's existing tracing backend
+
+Do not store raw SQL text and raw parameter values in long-lived production logs unless a human security decision explicitly allows it.
+
+## Performance And Alerts
+
+The observer emits `elapsedMs` and `rowCount`, so application code can add performance monitoring without parsing SQL.
+
+Useful alerts:
+
+- error rate by `sqlId`
+- p95 / p99 latency by `sqlId`
+- unexpected high row count by `sqlId`
+- repeated adapter warnings, especially stale metadata or unsafe runtime input
+
+Keep alert policy outside Ashiba. Ashiba supplies query identity and execution metadata; the application decides thresholds, sampling, retention, and escalation.
+
+## Reuse Checklist
+
+When adding another demo or application screen:
+
+1. Give each query stable metadata: `sqlId`, `queryId`, and `sqlPath`.
+2. Wire the adapter observer at the application SQL client boundary.
+3. Log query identity, timing, row count, warnings, and named parameter order by default.
+4. Keep SQL text and raw parameter values behind local/debug-only opt-ins.
+5. If the screen is an adoption demo, add a visible inspection panel that explains the dynamic behavior.
+6. Cover the route with tests that assert the important SQL shape when the panel is part of the demo value.
