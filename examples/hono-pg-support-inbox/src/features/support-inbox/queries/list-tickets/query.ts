@@ -23,12 +23,12 @@ export const listTicketsQuery = {
 } as const;
 
 export interface ListTicketsQueryParams {
+  tag: unknown;
   status: unknown;
   customerTier: unknown;
   slaState: unknown;
   language: unknown;
   channel: unknown;
-  tag: unknown;
   keyword: unknown;
   limit: unknown;
   offset: unknown;

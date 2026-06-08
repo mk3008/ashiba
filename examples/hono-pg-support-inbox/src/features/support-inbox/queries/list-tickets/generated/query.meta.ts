@@ -6,11 +6,11 @@ export const queryModel = {
     "statementKind": "select",
     "rootQueryShape": "simple-select",
     "hasTopLevelOrderBy": true,
-    "sourceHash": "sha256:c64342fc1c371fa954b8561a77c54d9ae5b8d541b51db6fac9c76d7d74450bc3",
+    "sourceHash": "sha256:834b6675fe99231ea5a5e847552c98cef9077b4288b60ddeec34cb82c05b35a0",
     "safeSort": {
       "insertion": {
         "status": "ready",
-        "index": 3435,
+        "index": 5227,
         "mode": "prepend-comma"
       },
       "sortable": {
@@ -18,67 +18,67 @@ export const queryModel = {
           "sql": "count(*) over()"
         },
         "ticket_id": {
-          "sql": "t.ticket_id"
+          "sql": "cast(st.ticket_id as bigint)"
         },
         "subject": {
-          "sql": "t.subject"
+          "sql": "cast(st.subject as text)"
         },
         "customer_name": {
-          "sql": "c.name"
+          "sql": "cast(st.customer_name as text)"
         },
         "customer_tier": {
-          "sql": "c.tier"
+          "sql": "cast(st.customer_tier as text)"
         },
         "status": {
-          "sql": "t.status"
+          "sql": "cast(st.status as text)"
         },
         "priority": {
-          "sql": "t.priority"
+          "sql": "cast(st.priority as text)"
         },
         "language": {
-          "sql": "t.language"
+          "sql": "cast(st.language as text)"
         },
         "channel": {
-          "sql": "t.channel"
+          "sql": "cast(st.channel as text)"
         },
         "sla_due_at": {
-          "sql": "t.sla_due_at"
+          "sql": "st.sla_due_at"
         },
         "sla_state": {
-          "sql": "case when t.sla_due_at is null then 'none' when t.sla_due_at < now() then 'breached' when t.sla_due_at < now() + interval '4 hours' then 'warning' else 'ok' end"
+          "sql": "cast(st.sla_state as text)"
         },
         "latest_sender_name": {
-          "sql": "lm.latest_sender_name"
+          "sql": "st.latest_sender_name"
         },
         "latest_sender_role": {
-          "sql": "lm.latest_sender_role"
+          "sql": "st.latest_sender_role"
         },
         "latest_message_body": {
-          "sql": "lm.latest_message_body"
+          "sql": "st.latest_message_body"
         },
         "latest_message_at": {
-          "sql": "lm.latest_message_at"
+          "sql": "st.latest_message_at"
         },
         "last_customer_reply_at": {
           "sql": "lcr.last_customer_reply_at"
         },
         "created_at": {
-          "sql": "t.created_at"
+          "sql": "st.created_at"
         },
         "updated_at": {
-          "sql": "t.updated_at"
+          "sql": "st.updated_at"
         },
         "tag_slugs": {
           "sql": "coalesce(tags.tag_slugs, cast(\"array[]\" as text[]))"
         },
         "action_required": {
-          "sql": "case when t.sla_due_at is not null and t.sla_due_at < now() then 1 when t.priority = 'high' and t.status in ('open', 'waiting_agent') then 2 when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then 3 when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then 4 else 9 end"
+          "sql": "cast(st.action_required as integer)"
         },
         "priority_rank": {
-          "sql": "case t.priority when 'high' then 1 when 'medium' then 2 else 3 end"
+          "sql": "cast(st.priority_rank as integer)"
         },
         "vip_rank": {
-          "sql": "case c.tier when 'vip' then 1 else 2 end"
+          "sql": "cast(st.vip_rank as integer)"
         }
       }
     },
@@ -86,21 +86,44 @@ export const queryModel = {
       "enabled": true,
       "branches": [
         {
+          "parameterName": "tag",
+          "kind": "expression",
+          "sourceRange": {
+            "start": 241,
+            "end": 287,
+            "text": "(cast(:tag as text) is null or tt.slug = :tag)"
+          },
+          "removalRange": {
+            "start": 235,
+            "end": 287,
+            "text": "where (cast(:tag as text) is null or tt.slug = :tag)"
+          },
+          "openParenIndex": 41,
+          "closeParenIndex": 56,
+          "presentReplacement": {
+            "start": 241,
+            "end": 287,
+            "text": "tt.slug = :tag"
+          }
+        },
+        {
           "parameterName": "status",
           "kind": "expression",
           "sourceRange": {
-            "start": 2614,
-            "end": 2667,
+            "start": 1603,
+            "end": 1656,
             "text": "(cast(:status as text) is null or t.status = :status)"
           },
           "removalRange": {
-            "start": 2614,
-            "end": 2674,
-            "text": "(cast(:status as text) is null or t.status = :status)\n  and "
+            "start": 1603,
+            "end": 1667,
+            "text": "(cast(:status as text) is null or t.status = :status)\n      and "
           },
+          "openParenIndex": 286,
+          "closeParenIndex": 301,
           "presentReplacement": {
-            "start": 2614,
-            "end": 2667,
+            "start": 1603,
+            "end": 1656,
             "text": "t.status = :status"
           }
         },
@@ -108,18 +131,20 @@ export const queryModel = {
           "parameterName": "customerTier",
           "kind": "expression",
           "sourceRange": {
-            "start": 2674,
-            "end": 2737,
+            "start": 1667,
+            "end": 1730,
             "text": "(cast(:customerTier as text) is null or c.tier = :customerTier)"
           },
           "removalRange": {
-            "start": 2670,
-            "end": 2737,
+            "start": 1663,
+            "end": 1730,
             "text": "and (cast(:customerTier as text) is null or c.tier = :customerTier)"
           },
+          "openParenIndex": 303,
+          "closeParenIndex": 318,
           "presentReplacement": {
-            "start": 2674,
-            "end": 2737,
+            "start": 1667,
+            "end": 1730,
             "text": "c.tier = :customerTier"
           }
         },
@@ -127,37 +152,41 @@ export const queryModel = {
           "parameterName": "slaState",
           "kind": "expression",
           "sourceRange": {
-            "start": 2744,
-            "end": 3015,
-            "text": "(\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )"
+            "start": 1741,
+            "end": 2044,
+            "text": "(\n          cast(:slaState as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = :slaState\n      )"
           },
           "removalRange": {
-            "start": 2740,
-            "end": 3015,
-            "text": "and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )"
+            "start": 1737,
+            "end": 2044,
+            "text": "and (\n          cast(:slaState as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = :slaState\n      )"
           },
+          "openParenIndex": 320,
+          "closeParenIndex": 366,
           "presentReplacement": {
-            "start": 2744,
-            "end": 3015,
-            "text": "case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState"
+            "start": 1741,
+            "end": 2044,
+            "text": "case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = :slaState"
           }
         },
         {
           "parameterName": "language",
           "kind": "expression",
           "sourceRange": {
-            "start": 3022,
-            "end": 3081,
+            "start": 2055,
+            "end": 2114,
             "text": "(cast(:language as text) is null or t.language = :language)"
           },
           "removalRange": {
-            "start": 3018,
-            "end": 3081,
+            "start": 2051,
+            "end": 2114,
             "text": "and (cast(:language as text) is null or t.language = :language)"
           },
+          "openParenIndex": 368,
+          "closeParenIndex": 383,
           "presentReplacement": {
-            "start": 3022,
-            "end": 3081,
+            "start": 2055,
+            "end": 2114,
             "text": "t.language = :language"
           }
         },
@@ -165,150 +194,104 @@ export const queryModel = {
           "parameterName": "channel",
           "kind": "expression",
           "sourceRange": {
-            "start": 3088,
-            "end": 3144,
+            "start": 2125,
+            "end": 2181,
             "text": "(cast(:channel as text) is null or t.channel = :channel)"
           },
           "removalRange": {
-            "start": 3084,
-            "end": 3144,
+            "start": 2121,
+            "end": 2181,
             "text": "and (cast(:channel as text) is null or t.channel = :channel)"
           },
+          "openParenIndex": 385,
+          "closeParenIndex": 400,
           "presentReplacement": {
-            "start": 3088,
-            "end": 3144,
+            "start": 2125,
+            "end": 2181,
             "text": "t.channel = :channel"
-          }
-        },
-        {
-          "parameterName": "tag",
-          "kind": "expression",
-          "sourceRange": {
-            "start": 3151,
-            "end": 3236,
-            "text": "(cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))"
-          },
-          "removalRange": {
-            "start": 3147,
-            "end": 3236,
-            "text": "and (cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))"
-          },
-          "presentReplacement": {
-            "start": 3151,
-            "end": 3236,
-            "text": ":tag = any(coalesce(tags.tag_slugs, array[]::text[]))"
           }
         },
         {
           "parameterName": "keyword",
           "kind": "expression",
           "sourceRange": {
-            "start": 3243,
-            "end": 3425,
-            "text": "(\n      :keyword is null\n      or t.subject ilike '%' || :keyword || '%'\n      or c.name ilike '%' || :keyword || '%'\n      or lm.latest_message_body ilike '%' || :keyword || '%'\n  )"
+            "start": 3511,
+            "end": 3714,
+            "text": "(\n        :keyword is null\n        or ft.subject ilike '%' || :keyword || '%'\n        or ft.customer_name ilike '%' || :keyword || '%'\n        or lm.latest_message_body ilike '%' || :keyword || '%'\n    )"
           },
           "removalRange": {
-            "start": 3239,
-            "end": 3425,
-            "text": "and (\n      :keyword is null\n      or t.subject ilike '%' || :keyword || '%'\n      or c.name ilike '%' || :keyword || '%'\n      or lm.latest_message_body ilike '%' || :keyword || '%'\n  )"
+            "start": 3505,
+            "end": 3714,
+            "text": "where (\n        :keyword is null\n        or ft.subject ilike '%' || :keyword || '%'\n        or ft.customer_name ilike '%' || :keyword || '%'\n        or lm.latest_message_body ilike '%' || :keyword || '%'\n    )"
           },
+          "openParenIndex": 599,
+          "closeParenIndex": 633,
           "presentReplacement": {
-            "start": 3243,
-            "end": 3425,
-            "text": "(t.subject ilike '%' || :keyword || '%' or c.name ilike '%' || :keyword || '%' or lm.latest_message_body ilike '%' || :keyword || '%')"
+            "start": 3511,
+            "end": 3714,
+            "text": "(ft.subject ilike '%' || :keyword || '%' or ft.customer_name ilike '%' || :keyword || '%' or lm.latest_message_body ilike '%' || :keyword || '%')"
           }
         }
       ],
       "groups": [
         {
           "branchIndexes": [
-            0,
             1,
             2,
             3,
             4,
-            5,
-            6
+            5
           ],
           "removalRange": {
-            "start": 2608,
-            "end": 3425,
-            "text": "where (cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and (cast(:language as text) is null or t.language = :language)\n  and (cast(:channel as text) is null or t.channel = :channel)\n  and (cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      :keyword is null\n      or t.subject ilike '%' || :keyword || '%'\n      or c.name ilike '%' || :keyword || '%'\n      or lm.latest_message_body ilike '%' || :keyword || '%'\n  )"
+            "start": 1597,
+            "end": 2181,
+            "text": "where (cast(:status as text) is null or t.status = :status)\n      and (cast(:customerTier as text) is null or c.tier = :customerTier)\n      and (\n          cast(:slaState as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = :slaState\n      )\n      and (cast(:language as text) is null or t.language = :language)\n      and (cast(:channel as text) is null or t.channel = :channel)"
           },
           "leadingPrefixes": [
             {
               "branchIndexes": [
-                0
-              ],
-              "removalRange": {
-                "start": 2614,
-                "end": 2674,
-                "text": "(cast(:status as text) is null or t.status = :status)\n  and "
-              }
-            },
-            {
-              "branchIndexes": [
-                0,
                 1
               ],
               "removalRange": {
-                "start": 2614,
-                "end": 2744,
-                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and "
+                "start": 1603,
+                "end": 1667,
+                "text": "(cast(:status as text) is null or t.status = :status)\n      and "
               }
             },
             {
               "branchIndexes": [
-                0,
                 1,
                 2
               ],
               "removalRange": {
-                "start": 2614,
-                "end": 3022,
-                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and "
+                "start": 1603,
+                "end": 1741,
+                "text": "(cast(:status as text) is null or t.status = :status)\n      and (cast(:customerTier as text) is null or c.tier = :customerTier)\n      and "
               }
             },
             {
               "branchIndexes": [
-                0,
                 1,
                 2,
                 3
               ],
               "removalRange": {
-                "start": 2614,
-                "end": 3088,
-                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and (cast(:language as text) is null or t.language = :language)\n  and "
+                "start": 1603,
+                "end": 2055,
+                "text": "(cast(:status as text) is null or t.status = :status)\n      and (cast(:customerTier as text) is null or c.tier = :customerTier)\n      and (\n          cast(:slaState as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = :slaState\n      )\n      and "
               }
             },
             {
               "branchIndexes": [
-                0,
                 1,
                 2,
                 3,
                 4
               ],
               "removalRange": {
-                "start": 2614,
-                "end": 3151,
-                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and (cast(:language as text) is null or t.language = :language)\n  and (cast(:channel as text) is null or t.channel = :channel)\n  and "
-              }
-            },
-            {
-              "branchIndexes": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5
-              ],
-              "removalRange": {
-                "start": 2614,
-                "end": 3243,
-                "text": "(cast(:status as text) is null or t.status = :status)\n  and (cast(:customerTier as text) is null or c.tier = :customerTier)\n  and (\n      cast(:slaState as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = :slaState\n  )\n  and (cast(:language as text) is null or t.language = :language)\n  and (cast(:channel as text) is null or t.channel = :channel)\n  and (cast(:tag as text) is null or :tag = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and "
+                "start": 1603,
+                "end": 2125,
+                "text": "(cast(:status as text) is null or t.status = :status)\n      and (cast(:customerTier as text) is null or c.tier = :customerTier)\n      and (\n          cast(:slaState as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = :slaState\n      )\n      and (cast(:language as text) is null or t.language = :language)\n      and "
               }
             }
           ]
@@ -364,12 +347,12 @@ export const queryModel = {
       "vip_rank": "number"
     },
     "namedParameters": [
+      "tag",
       "status",
       "customerTier",
       "slaState",
       "language",
       "channel",
-      "tag",
       "keyword",
       "limit",
       "offset"
@@ -377,9 +360,11 @@ export const queryModel = {
   },
   "bindings": {
     "postgres": {
-      "sourceHash": "sha256:c64342fc1c371fa954b8561a77c54d9ae5b8d541b51db6fac9c76d7d74450bc3",
-      "sql": "with latest_message as (\n    select\n        ranked.ticket_id,\n        ranked.sender_name as latest_sender_name,\n        ranked.sender_role as latest_sender_role,\n        ranked.body as latest_message_body,\n        ranked.created_at as latest_message_at\n    from (\n        select\n            tm.ticket_id,\n            tm.sender_name,\n            tm.sender_role,\n            tm.body,\n            tm.created_at,\n            row_number() over (\n                partition by tm.ticket_id\n                order by tm.created_at desc, tm.message_id desc\n            ) as message_rank\n        from public.ticket_messages tm\n    ) ranked\n    where ranked.message_rank = 1\n),\nlast_customer_reply as (\n    select\n        tm.ticket_id,\n        max(tm.created_at) as last_customer_reply_at\n    from public.ticket_messages tm\n    where tm.sender_role = 'customer'\n    group by tm.ticket_id\n),\naggregated_tags as (\n    select\n        ttl.ticket_id,\n        array_agg(tt.slug order by tt.slug) as tag_slugs\n    from public.ticket_tag_links ttl\n    join public.ticket_tags tt on tt.tag_id = ttl.tag_id\n    group by ttl.ticket_id\n)\nselect\n    count(*) over() as total_count,\n    t.ticket_id,\n    t.subject,\n    c.name as customer_name,\n    c.tier as customer_tier,\n    t.status,\n    t.priority,\n    t.language,\n    t.channel,\n    t.sla_due_at,\n    case\n        when t.sla_due_at is null then 'none'\n        when t.sla_due_at < now() then 'breached'\n        when t.sla_due_at < now() + interval '4 hours' then 'warning'\n        else 'ok'\n    end as sla_state,\n    lm.latest_sender_name,\n    lm.latest_sender_role,\n    lm.latest_message_body,\n    lm.latest_message_at,\n    lcr.last_customer_reply_at,\n    t.created_at,\n    t.updated_at,\n    coalesce(tags.tag_slugs, array[]::text[]) as tag_slugs,\n    case\n        when t.sla_due_at is not null and t.sla_due_at < now() then 1\n        when t.priority = 'high' and t.status in ('open', 'waiting_agent') then 2\n        when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then 3\n        when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then 4\n        else 9\n    end as action_required,\n    case t.priority\n        when 'high' then 1\n        when 'medium' then 2\n        else 3\n    end as priority_rank,\n    case c.tier\n        when 'vip' then 1\n        else 2\n    end as vip_rank\nfrom public.tickets t\njoin public.customers c on c.customer_id = t.customer_id\nleft join latest_message lm on lm.ticket_id = t.ticket_id\nleft join last_customer_reply lcr on lcr.ticket_id = t.ticket_id\nleft join aggregated_tags tags on tags.ticket_id = t.ticket_id\nwhere (cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      $13 is null\n      or t.subject ilike '%' || $14 || '%'\n      or c.name ilike '%' || $15 || '%'\n      or lm.latest_message_body ilike '%' || $16 || '%'\n  )\norder by t.ticket_id\nlimit $17\noffset $18\n",
+      "sourceHash": "sha256:834b6675fe99231ea5a5e847552c98cef9077b4288b60ddeec34cb82c05b35a0",
+      "sql": "with tag_matched_tickets as (\n    select distinct\n        t.ticket_id\n    from public.tickets t\n    left join public.ticket_tag_links ttl on ttl.ticket_id = t.ticket_id\n    left join public.ticket_tags tt on tt.tag_id = ttl.tag_id\n    where (cast($1 as text) is null or tt.slug = $2)\n),\nfiltered_tickets as (\n    select\n        t.ticket_id,\n        t.subject,\n        c.name as customer_name,\n        c.tier as customer_tier,\n        t.status,\n        t.priority,\n        t.language,\n        t.channel,\n        t.sla_due_at,\n        t.created_at,\n        t.updated_at,\n        case\n            when t.sla_due_at is null then 'none'\n            when t.sla_due_at < now() then 'breached'\n            when t.sla_due_at < now() + interval '4 hours' then 'warning'\n            else 'ok'\n        end as sla_state,\n        case\n            when t.sla_due_at is not null and t.sla_due_at < now() then 1\n            when t.priority = 'high' and t.status in ('open', 'waiting_agent') then 2\n            when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then 3\n            when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then 4\n            else 9\n        end as action_required,\n        case t.priority\n            when 'high' then 1\n            when 'medium' then 2\n            else 3\n        end as priority_rank,\n        case c.tier\n            when 'vip' then 1\n            else 2\n        end as vip_rank\n    from public.tickets t\n    join public.customers c on c.customer_id = t.customer_id\n    join tag_matched_tickets tmt on tmt.ticket_id = t.ticket_id\n    where (cast($3 as text) is null or t.status = $4)\n      and (cast($5 as text) is null or c.tier = $6)\n      and (\n          cast($7 as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = $8\n      )\n      and (cast($9 as text) is null or t.language = $10)\n      and (cast($11 as text) is null or t.channel = $12)\n),\nlatest_message as (\n    select\n        ranked.ticket_id,\n        ranked.sender_name as latest_sender_name,\n        ranked.sender_role as latest_sender_role,\n        ranked.body as latest_message_body,\n        ranked.created_at as latest_message_at\n    from (\n        select\n            tm.ticket_id,\n            tm.sender_name,\n            tm.sender_role,\n            tm.body,\n            tm.created_at,\n            row_number() over (\n                partition by tm.ticket_id\n                order by tm.created_at desc, tm.message_id desc\n            ) as message_rank\n        from public.ticket_messages tm\n        join filtered_tickets ft on ft.ticket_id = tm.ticket_id\n    ) ranked\n    where ranked.message_rank = 1\n),\nsearchable_tickets as (\n    select\n        ft.ticket_id,\n        ft.subject,\n        ft.customer_name,\n        ft.customer_tier,\n        ft.status,\n        ft.priority,\n        ft.language,\n        ft.channel,\n        ft.sla_due_at,\n        ft.sla_state,\n        ft.created_at,\n        ft.updated_at,\n        ft.action_required,\n        ft.priority_rank,\n        ft.vip_rank,\n        lm.latest_sender_name,\n        lm.latest_sender_role,\n        lm.latest_message_body,\n        lm.latest_message_at\n    from filtered_tickets ft\n    left join latest_message lm on lm.ticket_id = ft.ticket_id\n    where (\n        $13 is null\n        or ft.subject ilike '%' || $14 || '%'\n        or ft.customer_name ilike '%' || $15 || '%'\n        or lm.latest_message_body ilike '%' || $16 || '%'\n    )\n),\nlast_customer_reply as (\n    select\n        tm.ticket_id,\n        max(tm.created_at) as last_customer_reply_at\n    from public.ticket_messages tm\n    join searchable_tickets st on st.ticket_id = tm.ticket_id\n    where tm.sender_role = 'customer'\n    group by tm.ticket_id\n),\naggregated_tags as (\n    select\n        ttl.ticket_id,\n        array_agg(tt.slug order by tt.slug) as tag_slugs\n    from public.ticket_tag_links ttl\n    join searchable_tickets st on st.ticket_id = ttl.ticket_id\n    join public.ticket_tags tt on tt.tag_id = ttl.tag_id\n    group by ttl.ticket_id\n)\nselect\n    count(*) over() as total_count,\n    st.ticket_id::bigint as ticket_id,\n    st.subject::text as subject,\n    st.customer_name::text as customer_name,\n    st.customer_tier::text as customer_tier,\n    st.status::text as status,\n    st.priority::text as priority,\n    st.language::text as language,\n    st.channel::text as channel,\n    st.sla_due_at,\n    st.sla_state::text as sla_state,\n    st.latest_sender_name,\n    st.latest_sender_role,\n    st.latest_message_body,\n    st.latest_message_at,\n    lcr.last_customer_reply_at,\n    st.created_at,\n    st.updated_at,\n    coalesce(tags.tag_slugs, array[]::text[]) as tag_slugs,\n    st.action_required::integer as action_required,\n    st.priority_rank::integer as priority_rank,\n    st.vip_rank::integer as vip_rank\nfrom searchable_tickets st\nleft join last_customer_reply lcr on lcr.ticket_id = st.ticket_id\nleft join aggregated_tags tags on tags.ticket_id = st.ticket_id\norder by st.ticket_id\nlimit $17\noffset $18\n",
       "orderedNames": [
+        "tag",
+        "tag",
         "status",
         "status",
         "customerTier",
@@ -390,8 +375,6 @@ export const queryModel = {
         "language",
         "channel",
         "channel",
-        "tag",
-        "tag",
         "keyword",
         "keyword",
         "keyword",
@@ -400,185 +383,154 @@ export const queryModel = {
         "offset"
       ],
       "safeSortInsertion": {
-        "index": 3342
+        "index": 5134
       },
       "optionalConditionCompression": {
         "branches": [
           {
-            "parameterName": "status",
+            "parameterName": "tag",
             "removalRange": {
-              "start": 2614,
-              "end": 2664
+              "start": 235,
+              "end": 283
             },
             "presentReplacement": {
-              "start": 2614,
-              "end": 2657,
-              "text": "t.status = $1"
+              "start": 241,
+              "end": 283,
+              "text": "tt.slug = $1"
+            }
+          },
+          {
+            "parameterName": "status",
+            "removalRange": {
+              "start": 1599,
+              "end": 1653
+            },
+            "presentReplacement": {
+              "start": 1599,
+              "end": 1642,
+              "text": "t.status = $3"
             }
           },
           {
             "parameterName": "customerTier",
             "removalRange": {
-              "start": 2660,
-              "end": 2705
+              "start": 1649,
+              "end": 1694
             },
             "presentReplacement": {
-              "start": 2664,
-              "end": 2705,
-              "text": "c.tier = $3"
+              "start": 1653,
+              "end": 1694,
+              "text": "c.tier = $5"
             }
           },
           {
             "parameterName": "slaState",
             "removalRange": {
-              "start": 2708,
-              "end": 2969
+              "start": 1701,
+              "end": 1994
             },
             "presentReplacement": {
-              "start": 2712,
-              "end": 2969,
-              "text": "case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $5"
+              "start": 1705,
+              "end": 1994,
+              "text": "case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = $7"
             }
           },
           {
             "parameterName": "language",
             "removalRange": {
-              "start": 2972,
-              "end": 3021
+              "start": 2001,
+              "end": 2051
             },
             "presentReplacement": {
-              "start": 2976,
-              "end": 3021,
-              "text": "t.language = $7"
+              "start": 2005,
+              "end": 2051,
+              "text": "t.language = $9"
             }
           },
           {
             "parameterName": "channel",
             "removalRange": {
-              "start": 3024,
-              "end": 3073
+              "start": 2058,
+              "end": 2108
             },
             "presentReplacement": {
-              "start": 3028,
-              "end": 3073,
-              "text": "t.channel = $9"
-            }
-          },
-          {
-            "parameterName": "tag",
-            "removalRange": {
-              "start": 3076,
-              "end": 3163
-            },
-            "presentReplacement": {
-              "start": 3080,
-              "end": 3163,
-              "text": "$11 = any(coalesce(tags.tag_slugs, array[]::text[]))"
+              "start": 2062,
+              "end": 2108,
+              "text": "t.channel = $11"
             }
           },
           {
             "parameterName": "keyword",
             "removalRange": {
-              "start": 3166,
-              "end": 3332
+              "start": 3432,
+              "end": 3621
             },
             "presentReplacement": {
-              "start": 3170,
-              "end": 3332,
-              "text": "(t.subject ilike '%' || $13 || '%' or c.name ilike '%' || $14 || '%' or lm.latest_message_body ilike '%' || $15 || '%')"
+              "start": 3438,
+              "end": 3621,
+              "text": "(ft.subject ilike '%' || $13 || '%' or ft.customer_name ilike '%' || $14 || '%' or lm.latest_message_body ilike '%' || $15 || '%')"
             }
           }
         ],
         "groups": [
           {
             "branchIndexes": [
-              0,
               1,
               2,
               3,
               4,
-              5,
-              6
+              5
             ],
             "removalRange": {
-              "start": 2608,
-              "end": 3332,
-              "text": "where (cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and (\n      $13 is null\n      or t.subject ilike '%' || $14 || '%'\n      or c.name ilike '%' || $15 || '%'\n      or lm.latest_message_body ilike '%' || $16 || '%'\n  )"
+              "start": 1593,
+              "end": 2108,
+              "text": "where (cast($3 as text) is null or t.status = $4)\n      and (cast($5 as text) is null or c.tier = $6)\n      and (\n          cast($7 as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = $8\n      )\n      and (cast($9 as text) is null or t.language = $10)\n      and (cast($11 as text) is null or t.channel = $12)"
             },
             "leadingPrefixes": [
               {
                 "branchIndexes": [
-                  0
-                ],
-                "removalRange": {
-                  "start": 2614,
-                  "end": 2664,
-                  "text": "(cast($1 as text) is null or t.status = $2)\n  and "
-                }
-              },
-              {
-                "branchIndexes": [
-                  0,
                   1
                 ],
                 "removalRange": {
-                  "start": 2614,
-                  "end": 2712,
-                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and "
+                  "start": 1599,
+                  "end": 1653,
+                  "text": "(cast($3 as text) is null or t.status = $4)\n      and "
                 }
               },
               {
                 "branchIndexes": [
-                  0,
                   1,
                   2
                 ],
                 "removalRange": {
-                  "start": 2614,
-                  "end": 2976,
-                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and "
+                  "start": 1599,
+                  "end": 1705,
+                  "text": "(cast($3 as text) is null or t.status = $4)\n      and (cast($5 as text) is null or c.tier = $6)\n      and "
                 }
               },
               {
                 "branchIndexes": [
-                  0,
                   1,
                   2,
                   3
                 ],
                 "removalRange": {
-                  "start": 2614,
-                  "end": 3028,
-                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and "
+                  "start": 1599,
+                  "end": 2005,
+                  "text": "(cast($3 as text) is null or t.status = $4)\n      and (cast($5 as text) is null or c.tier = $6)\n      and (\n          cast($7 as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = $8\n      )\n      and "
                 }
               },
               {
                 "branchIndexes": [
-                  0,
                   1,
                   2,
                   3,
                   4
                 ],
                 "removalRange": {
-                  "start": 2614,
-                  "end": 3080,
-                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and "
-                }
-              },
-              {
-                "branchIndexes": [
-                  0,
-                  1,
-                  2,
-                  3,
-                  4,
-                  5
-                ],
-                "removalRange": {
-                  "start": 2614,
-                  "end": 3170,
-                  "text": "(cast($1 as text) is null or t.status = $2)\n  and (cast($3 as text) is null or c.tier = $4)\n  and (\n      cast($5 as text) is null\n      or case\n          when t.sla_due_at is null then 'none'\n          when t.sla_due_at < now() then 'breached'\n          when t.sla_due_at < now() + interval '4 hours' then 'warning'\n          else 'ok'\n      end = $6\n  )\n  and (cast($7 as text) is null or t.language = $8)\n  and (cast($9 as text) is null or t.channel = $10)\n  and (cast($11 as text) is null or $12 = any(coalesce(tags.tag_slugs, array[]::text[])))\n  and "
+                  "start": 1599,
+                  "end": 2062,
+                  "text": "(cast($3 as text) is null or t.status = $4)\n      and (cast($5 as text) is null or c.tier = $6)\n      and (\n          cast($7 as text) is null\n          or case\n              when t.sla_due_at is null then 'none'\n              when t.sla_due_at < now() then 'breached'\n              when t.sla_due_at < now() + interval '4 hours' then 'warning'\n              else 'ok'\n          end = $8\n      )\n      and (cast($9 as text) is null or t.language = $10)\n      and "
                 }
               }
             ]

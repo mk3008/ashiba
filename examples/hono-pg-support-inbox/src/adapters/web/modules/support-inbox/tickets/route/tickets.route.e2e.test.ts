@@ -39,8 +39,10 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('Live Query Console');
     expect(html).toContain('<td>$1</td><td>limit</td><td>10</td>');
     expect(html).toContain('<td>$2</td><td>offset</td><td>0</td>');
-    expect(html).toContain('with latest_message as');
-    expect(html).toContain('order by t.ticket_id');
+    expect(html).toContain('with tag_matched_tickets as');
+    expect(html).toContain('join filtered_tickets ft on ft.ticket_id = tm.ticket_id');
+    expect(html).toContain('join searchable_tickets st on st.ticket_id = ttl.ticket_id');
+    expect(html).toContain('order by st.ticket_id');
     expect(html).not.toContain('INFO');
     expect(html).not.toContain('リクエスト概要');
     expect(html).not.toContain('現在の条件');
@@ -48,7 +50,7 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).not.toContain('実行ログ');
     expect(html).not.toContain('[now] bound names');
     expect(html).toContain('並び順: 未指定');
-    expect(html).toContain('order by t.ticket_id');
+    expect(html).toContain('order by st.ticket_id');
     expect(html).not.toContain('order by case when t.sla_due_at is not null');
   });
 
@@ -76,8 +78,8 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('1件のチケット');
     expect(html).toContain('ログインできません');
     expect(html).not.toContain('請求書のダウンロードができない');
-    expect(html).toContain('t.subject ilike &#39;%&#39; || $');
-    expect(html).toContain('c.name ilike &#39;%&#39; || $');
+    expect(html).toContain('ft.subject ilike &#39;%&#39; || $');
+    expect(html).toContain('ft.customer_name ilike &#39;%&#39; || $');
     expect(html).toContain('lm.latest_message_body ilike &#39;%&#39; || $');
   });
 
@@ -188,7 +190,7 @@ describeDb('support inbox HTTP filters', () => {
     expect(response.status).toBe(200);
     expectReadyHtml(html);
     expect(html).toContain('並び順: 顧客 昇順 → 更新日時 降順');
-    expect(html).toContain('order by c.name asc, t.updated_at desc, t.ticket_id');
+    expect(html).toContain('order by cast(st.customer_name as text) asc, st.updated_at desc, st.ticket_id');
     expect(html).toContain('data-sort-key="customer_name">顧客<span class="sortMarker">↑</span>');
     expect(html).toContain('data-sort-key="updated_at">更新日時<span class="sortMarker">↓2</span>');
   });

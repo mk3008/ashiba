@@ -10,6 +10,7 @@ The goal is not to prove every CRUD path. This demo focuses on the `R` side: a r
 
 - `GET /tickets` renders a practical support inbox list.
 - Filters are passed as SQL parameters and handled by Ashiba optional-condition compression.
+- The list SQL applies source-proximal filtering: ticket, customer, and tag scope are narrowed before latest-message lookup, customer-reply aggregation, and tag aggregation.
 - Keyword search stays in a PostgreSQL-natural SSSQL shape such as `(:keyword is null or subject ilike '%' || :keyword || '%')`; when `keyword` is present, the adapter executes the predicate without the null guard.
 - Sort choices are mapped to reviewed safe sort keys from the generated query model.
 - The page shows a user-facing safe sort whitelist and a SQL inspection panel with compiled SQL and bound parameter names.

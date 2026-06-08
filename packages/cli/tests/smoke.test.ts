@@ -2555,6 +2555,65 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('ignores CTE-to-CTE references during DDL-aware lint', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-aware-lint-cte-chain-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'sql'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db/ddl/public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id integer primary key,',
+        '  customer_id integer not null,',
+        '  subject text not null',
+        ');',
+        'create table public.customers (',
+        '  customer_id integer primary key,',
+        '  display_name text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'sql/list-tickets.sql'), [
+        'with ticket_base as (',
+        '  select',
+        '    t.ticket_id,',
+        '    t.subject,',
+        '    c.display_name as customer_name',
+        '  from public.tickets t',
+        '  join public.customers c on c.customer_id = t.customer_id',
+        '),',
+        'ticket_view as (',
+        '  select',
+        '    ticket_id,',
+        '    subject,',
+        '    customer_name',
+        '  from ticket_base',
+        '),',
+        'ticket_page as (',
+        '  select',
+        '    ticket_id,',
+        '    subject,',
+        '    customer_name',
+        '  from ticket_view',
+        ')',
+        'select ticket_id, subject, customer_name',
+        'from ticket_page',
+        'order by ticket_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runLint('sql', { rootDir });
+
+      expect(result.ok).toBe(true);
+      expect(result.files[0]?.ddlIssues).toEqual([]);
+      expect(result.files[0]?.output).not.toContain('ticket_base');
+      expect(result.files[0]?.output).not.toContain('ticket_view');
+      expect(result.files[0]?.output).not.toContain('ticket_page');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('runs DDL-aware lint for obvious INSERT literal type mismatch', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-aware-lint-type-'));
 
@@ -3277,6 +3336,66 @@ describe('@ashiba-ts/cli smoke', () => {
           },
         }],
       }]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('numbers grouped optional condition binding text with prior SQL parameters', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-optional-condition-groups-prior-params-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/search');
+      const sqlPath = path.join(sqlDir, 'search.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'with scoped_users as (',
+        '  select user_id',
+        '  from public.users',
+        '  where (:scope is null or scope = :scope)',
+        ')',
+        'select user_id as id, email',
+        'from public.users',
+        'where (:email is null or email = :email)',
+        '  and (:status is null or status = :status)',
+        '  and tenant_id = :tenant_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/search/search.sql',
+      });
+
+      expect(result.bindings.postgres.optionalConditionCompression?.groups).toEqual([{
+        branchIndexes: [1, 2],
+        removalRange: {
+          start: result.bindings.postgres.sql.indexOf('($3 is null'),
+          end: result.bindings.postgres.sql.indexOf('tenant_id = $7'),
+          text: [
+            '($3 is null or email = $4)',
+            '  and ($5 is null or status = $6)',
+            '  and ',
+          ].join('\n'),
+        },
+        leadingPrefixes: [{
+          branchIndexes: [1],
+          removalRange: {
+            start: result.bindings.postgres.sql.indexOf('($3 is null'),
+            end: result.bindings.postgres.sql.indexOf('($5 is null'),
+            text: [
+              '($3 is null or email = $4)',
+              '  and ',
+            ].join('\n'),
+          },
+        }],
+      }]);
+      expect(result.bindings.postgres.optionalConditionCompression?.groups[0]?.removalRange.text)
+        .toBe(result.bindings.postgres.sql.slice(
+          result.bindings.postgres.sql.indexOf('($3 is null'),
+          result.bindings.postgres.sql.indexOf('tenant_id = $7'),
+        ));
+      expect(readFileSync(sqlPath, 'utf8')).toContain(':scope');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
