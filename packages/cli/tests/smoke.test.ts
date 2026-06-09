@@ -92,6 +92,12 @@ describe('@ashiba-ts/cli smoke', () => {
         sqlRoots: ['src/usecases', 'src/repositories'],
         defaultSchema: 'public',
         searchPath: ['public'],
+        mutation: {
+          optimisticLock: {
+            versionColumn: 'version_key',
+            scaffold: 'when-column-exists',
+          },
+        },
       });
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -756,6 +762,60 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('scaffolds update queries with configured optimistic lock columns', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-update-optimistic-lock-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: 'src/features',
+        sqlRoots: ['src/features'],
+        mutation: {
+          optimisticLock: {
+            versionColumn: 'version_key',
+            scaffold: 'when-column-exists',
+          },
+        },
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id bigserial primary key,',
+        '  status text not null,',
+        '  subject text not null,',
+        '  version_key integer not null default 1',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureScaffold({ rootDir, table: 'tickets', action: 'update' });
+
+      const sql = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/update-tickets.sql'), 'utf8');
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/query.ts'), 'utf8');
+      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/tests/generated/analysis.json'), 'utf8')) as {
+        optimisticLock?: { versionColumn?: string; expectedVersionParameter?: string };
+      };
+
+      expect(sql).toContain('status = :status');
+      expect(sql).toContain('subject = :subject');
+      expect(sql).toContain('version_key = version_key + 1');
+      expect(sql).toContain('and version_key = :expected_version_key');
+      expect(sql).not.toContain('version_key = :version_key');
+      expect(queryBoundary).toContain('expected_version_key: number;');
+      const paramsBlock = queryBoundary.split('export interface UpdateTicketsQueryParams')[1]?.split('}')[0] ?? '';
+      expect(paramsBlock).not.toMatch(/^\s+version_key: number;/m);
+      expect(queryBoundary).toContain('version_key: number;');
+      expect(analysis.optimisticLock).toEqual({
+        versionColumn: 'version_key',
+        expectedVersionParameter: 'expected_version_key',
+      });
+
+      const check = runFeatureTestsCheck({ rootDir, feature: 'tickets-update', query: 'update-tickets', fix: false });
+      expect(check.ok).toBe(true);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('imports an existing SQL file into a feature with DTO mapper metadata and ZTD cases', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-sql-'));
 
@@ -846,6 +906,48 @@ describe('@ashiba-ts/cli smoke', () => {
         'user_id: mapper string | null / SQL number | null',
       ]);
       expect(typeDrift.checked[0]?.warningResultTypeMismatches).toEqual([]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not enable optional-condition compression for imported non-select queries', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-update-sql-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id integer primary key,',
+        '  status text not null,',
+        '  version_key integer not null default 1',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'update-ticket-status.sql'), [
+        'update public.tickets',
+        'set status = :status,',
+        '    version_key = version_key + 1',
+        'where ticket_id = :ticket_id',
+        '  and version_key = :expected_version_key',
+        'returning ticket_id, status, version_key;',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureImport({
+        rootDir,
+        feature: 'tickets-update',
+        queryName: 'update-ticket-status',
+        sql: 'tmp/update-ticket-status.sql',
+      });
+
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-ticket-status/query.ts'), 'utf8');
+      const queryMeta = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-ticket-status/generated/query.meta.ts'), 'utf8');
+
+      expect(queryBoundary).not.toContain('optionalConditionCompression: true');
+      expect(queryMeta).toContain('"statementKind": "update"');
+      expect(queryMeta).not.toContain('"optionalConditionCompression"');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1950,6 +2052,12 @@ describe('@ashiba-ts/cli smoke', () => {
         sqlRoots: ['src/usecases', 'src/shared-sql'],
         defaultSchema: 'public',
         searchPath: ['public'],
+        mutation: {
+          optimisticLock: {
+            versionColumn: 'version_key',
+            scaffold: 'when-column-exists',
+          },
+        },
       });
       expect(result.errors).toEqual(expect.arrayContaining([
         expect.objectContaining({

@@ -51,6 +51,16 @@ const INSERT_RETURNING_MODES = ['all', 'minimal'] as const;
 type InsertReturningMode = (typeof INSERT_RETURNING_MODES)[number];
 const defaultSqlFormatter = new SqlFormatter(DEFAULT_SQL_FORMAT_OPTIONS);
 
+type OptimisticLockScaffoldConfig = {
+  versionColumn: string;
+  scaffold: 'off' | 'when-column-exists';
+};
+
+type OptimisticLockPlan = {
+  versionColumn: string;
+  expectedVersionParameter: string;
+};
+
 export interface FeatureScaffoldOptions {
   table?: string;
   action?: string;
@@ -242,6 +252,7 @@ interface QueryTestMetadata {
   table?: string;
   primaryKeyColumn?: string;
   returningMode?: InsertReturningMode;
+  optimisticLock?: OptimisticLockPlan;
   anchorSource?: string | null;
   anchorTable?: string | null;
   physicalTables?: string[];
@@ -393,11 +404,12 @@ export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaf
   const rootDir = path.resolve(options.rootDir ?? '.');
   const action = normalizeFeatureAction(options.action);
   const returningMode = normalizeInsertReturningMode(options.returning, action);
+  const projectConfig = loadProjectPathConfig(rootDir);
   const table = loadDdlTable(rootDir, requireValue(options.table, '--table'));
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
   const featureName = normalizeFeatureName(options.featureName ?? `${toKebab(table.name)}-${action}`);
   const queryName = deriveQueryName(table.name, action);
-  const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn, returningMode);
+  const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
 
   return {
@@ -418,6 +430,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
   const rootDir = path.resolve(options.rootDir ?? '.');
   const action = normalizeFeatureAction(options.action);
   const returningMode = normalizeInsertReturningMode(options.returning, action);
+  const projectConfig = loadProjectPathConfig(rootDir);
   const table = loadDdlTable(rootDir, requireValue(options.table, '--table'));
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
   const queryName = normalizeQueryName(options.queryName);
@@ -433,7 +446,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
     );
   }
 
-  const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn, returningMode);
+  const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
   const featureName = path.basename(boundaryDir);
 
@@ -487,7 +500,13 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
     {
       relativePath: `${relativeQueryDir}/query.ts`,
       kind: 'file',
-      contents: renderImportedQueryBoundary(queryName, parameters, parameterTypes, resultColumnContracts),
+      contents: renderImportedQueryBoundary(
+        queryName,
+        parameters,
+        parameterTypes,
+        resultColumnContracts,
+        queryModel.analysis.optionalConditionCompression?.enabled === true,
+      ),
     },
     { relativePath: `${relativeQueryDir}/generated`, kind: 'directory' },
     {
@@ -937,10 +956,11 @@ function buildFeatureFiles(
   action: FeatureAction,
   table: DdlTable,
   primaryKeyColumn: string,
-  returningMode: InsertReturningMode = 'all'
+  returningMode: InsertReturningMode = 'all',
+  optimisticLockConfig?: OptimisticLockScaffoldConfig
 ): GeneratedFile[] {
   const boundary = `src/features/${featureName}`;
-  const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode);
+  const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode, optimisticLockConfig);
   return [
     ...buildSharedFiles(),
     { relativePath: boundary, kind: 'directory' },
@@ -976,7 +996,7 @@ function buildFeatureFiles(
       kind: 'file',
       contents: renderFeatureBoundaryTest(featureName, queryName, actionPlan),
     },
-    ...buildQueryFiles(rootDir, boundary, queryName, action, table, primaryKeyColumn, returningMode),
+    ...buildQueryFiles(rootDir, boundary, queryName, action, table, primaryKeyColumn, returningMode, optimisticLockConfig),
   ];
 }
 
@@ -1042,6 +1062,7 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
         ...(typeof parsed.returningMode === 'string' && INSERT_RETURNING_MODES.includes(parsed.returningMode as InsertReturningMode)
           ? { returningMode: parsed.returningMode as InsertReturningMode }
           : {}),
+        ...(isOptimisticLockMetadata(parsed.optimisticLock) ? { optimisticLock: parsed.optimisticLock } : {}),
         ...(typeof parsed.anchorSource === 'string' || parsed.anchorSource === null ? { anchorSource: parsed.anchorSource } : {}),
         ...(typeof parsed.anchorTable === 'string' || parsed.anchorTable === null ? { anchorTable: parsed.anchorTable } : {}),
         ...(Array.isArray(parsed.physicalTables)
@@ -1065,12 +1086,22 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
         ...(typeof parsed.returningMode === 'string' && INSERT_RETURNING_MODES.includes(parsed.returningMode as InsertReturningMode)
           ? { returningMode: parsed.returningMode as InsertReturningMode }
           : {}),
+        ...(isOptimisticLockMetadata(parsed.optimisticLock) ? { optimisticLock: parsed.optimisticLock } : {}),
       };
     }
   } catch {
     return undefined;
   }
   return undefined;
+}
+
+function isOptimisticLockMetadata(value: unknown): value is OptimisticLockPlan {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.versionColumn === 'string' &&
+    record.versionColumn.trim().length > 0 &&
+    typeof record.expectedVersionParameter === 'string' &&
+    record.expectedVersionParameter.trim().length > 0;
 }
 
 function resolveQueryTestMetadata(
@@ -1090,7 +1121,7 @@ function buildMetadataBackedResultTypeOverrides(rootDir: string, metadata: Query
     return undefined;
   }
   const table = loadDdlTable(rootDir, metadata.table);
-  const actionPlan = buildActionPlan(metadata.action, table, metadata.primaryKeyColumn, metadata.returningMode ?? 'all');
+  const actionPlan = buildActionPlan(metadata.action, table, metadata.primaryKeyColumn, metadata.returningMode ?? 'all', configFromOptimisticLockMetadata(metadata.optimisticLock));
   return Object.fromEntries(actionPlan.rows.map((column) => [column.name, toTsType(column)]));
 }
 
@@ -1576,10 +1607,11 @@ function buildQueryFiles(
   action: FeatureAction,
   table: DdlTable,
   primaryKeyColumn: string,
-  returningMode: InsertReturningMode = 'all'
+  returningMode: InsertReturningMode = 'all',
+  optimisticLockConfig?: OptimisticLockScaffoldConfig
 ): GeneratedFile[] {
   const queryDir = `${boundary}/queries/${queryName}`;
-  const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode);
+  const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode, optimisticLockConfig);
   const sql = renderActionSql(actionPlan, table, primaryKeyColumn, rootDir);
   return [
     ...buildSharedFiles(),
@@ -1772,9 +1804,16 @@ function buildExpectedGeneratedMappingTestFiles(
     table: metadata.table,
     primaryKeyColumn: metadata.primaryKeyColumn,
     ...(metadata.returningMode ? { returningMode: metadata.returningMode } : {}),
+    ...(metadata.optimisticLock ? { optimisticLock: metadata.optimisticLock } : {}),
   };
   const table = loadDdlTable(rootDir, scaffoldMetadata.table);
-  const actionPlan = buildActionPlan(scaffoldMetadata.action, table, scaffoldMetadata.primaryKeyColumn, scaffoldMetadata.returningMode ?? 'all');
+  const actionPlan = buildActionPlan(
+    scaffoldMetadata.action,
+    table,
+    scaffoldMetadata.primaryKeyColumn,
+    scaffoldMetadata.returningMode ?? 'all',
+    configFromOptimisticLockMetadata(scaffoldMetadata.optimisticLock),
+  );
   return buildGeneratedMappingTestFiles(relativeFeatureDir, scaffoldMetadata, table, actionPlan);
 }
 
@@ -2083,12 +2122,19 @@ function formatValue(value: ValueComponent): string {
   return formatted.match(/^"([A-Za-z_][A-Za-z0-9_$]*)"$/)?.[1] ?? formatted;
 }
 
-function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColumn: string, returningMode: InsertReturningMode = 'all'): {
+function buildActionPlan(
+  action: FeatureAction,
+  table: DdlTable,
+  primaryKeyColumn: string,
+  returningMode: InsertReturningMode = 'all',
+  optimisticLockConfig: OptimisticLockScaffoldConfig = { versionColumn: 'version_key', scaffold: 'off' },
+): {
   action: FeatureAction;
   params: DdlColumn[];
   rows: DdlColumn[];
   writeColumns: DdlColumn[];
   returningMode: InsertReturningMode;
+  optimisticLock?: OptimisticLockPlan;
 } {
   const primaryKey = requireColumn(table, primaryKeyColumn);
   if (action === 'insert') {
@@ -2097,7 +2143,12 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
     return { action, params: writeColumns, rows, writeColumns, returningMode };
   }
   if (action === 'update') {
-    const writeColumns = table.columns.filter((column) => column.name !== primaryKeyColumn && !isGeneratedInsertColumn(column, primaryKeyColumn));
+    const optimisticLockColumn = resolveOptimisticLockColumn(table, optimisticLockConfig, primaryKeyColumn);
+    const writeColumns = table.columns.filter((column) =>
+      column.name !== primaryKeyColumn &&
+      column.name !== optimisticLockColumn?.name &&
+      !isGeneratedInsertColumn(column, primaryKeyColumn),
+    );
     if (writeColumns.length === 0) {
       throw invalidCliInputError(
         'ASHIBA_FEATURE_UPDATE_REQUIRES_MUTABLE_COLUMN',
@@ -2105,6 +2156,20 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
         'Add a mutable non-primary-key column to the DDL table or choose a different scaffold action.',
         { table: table.canonicalName },
       );
+    }
+    if (optimisticLockColumn) {
+      const optimisticLock = {
+        versionColumn: optimisticLockColumn.name,
+        expectedVersionParameter: `expected_${optimisticLockColumn.name}`,
+      };
+      return {
+        action,
+        params: [primaryKey, toExpectedVersionParameter(optimisticLockColumn, optimisticLock.expectedVersionParameter), ...writeColumns],
+        rows: table.columns,
+        writeColumns,
+        returningMode: 'all',
+        optimisticLock,
+      };
     }
     return { action, params: [primaryKey, ...writeColumns], rows: table.columns, writeColumns, returningMode: 'all' };
   }
@@ -2122,6 +2187,33 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
     primaryKey: false,
   };
   return { action, params: [limitColumn], rows: table.columns, writeColumns: [], returningMode: 'all' };
+}
+
+function resolveOptimisticLockColumn(
+  table: DdlTable,
+  config: OptimisticLockScaffoldConfig,
+  primaryKeyColumn: string,
+): DdlColumn | undefined {
+  if (config.scaffold === 'off') return undefined;
+  if (!config.versionColumn || config.versionColumn === primaryKeyColumn) return undefined;
+  return table.columns.find((column) => column.name === config.versionColumn);
+}
+
+function toExpectedVersionParameter(column: DdlColumn, name: string): DdlColumn {
+  return {
+    ...column,
+    name,
+    nullable: false,
+    generated: false,
+    primaryKey: false,
+    defaultValue: undefined,
+  };
+}
+
+function configFromOptimisticLockMetadata(metadata: OptimisticLockPlan | undefined): OptimisticLockScaffoldConfig {
+  return metadata
+    ? { versionColumn: metadata.versionColumn, scaffold: 'when-column-exists' }
+    : { versionColumn: 'version_key', scaffold: 'off' };
 }
 
 function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTable, primaryKeyColumn: string, rootDir: string): string {
@@ -2145,12 +2237,24 @@ function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTab
   }
   if (plan.action === 'update') {
     const returningColumns = plan.rows.map((column) => quoteIdentifier(column.name)).join(', ');
+    const setLines = [
+      ...plan.writeColumns.map((column) => `  ${quoteIdentifier(column.name)} = :${column.name}`),
+      ...(plan.optimisticLock
+        ? [`  ${quoteIdentifier(plan.optimisticLock.versionColumn)} = ${quoteIdentifier(plan.optimisticLock.versionColumn)} + 1`]
+        : []),
+    ];
+    const whereLines = [
+      `  ${pk} = :${primaryKeyColumn}`,
+      ...(plan.optimisticLock
+        ? [`  ${quoteIdentifier(plan.optimisticLock.versionColumn)} = :${plan.optimisticLock.expectedVersionParameter}`]
+        : []),
+    ];
     sql = [
       `update ${tableName}`,
       'set',
-      plan.writeColumns.map((column) => `  ${quoteIdentifier(column.name)} = :${column.name}`).join(',\n'),
+      setLines.join(',\n'),
       'where',
-      `  ${pk} = :${primaryKeyColumn}`,
+      whereLines.join('\nand\n'),
       `returning ${returningColumns};`,
       '',
     ].join('\n');
@@ -2518,6 +2622,7 @@ function renderImportedQueryBoundary(
   parameters: string[],
   parameterTypes: Record<string, string>,
   resultColumnContracts: SqlResultColumnContract[],
+  enablesOptionalConditionCompression: boolean,
 ): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
@@ -2538,7 +2643,7 @@ function renderImportedQueryBoundary(
     `  sqlPath: '${queryName}.sql',`,
     `  sql: ${camel}Sql,`,
     '  queryModel,',
-    ...(parameters.length > 0 ? ['  optionalConditionCompression: true,'] : []),
+    ...(enablesOptionalConditionCompression ? ['  optionalConditionCompression: true,'] : []),
     '  metadata: {',
     `    sqlId: '${queryName}',`,
     `    queryId: '${queryName}',`,
@@ -3173,6 +3278,7 @@ function renderGeneratedTestAnalysis(
     table: table.canonicalName,
     primaryKeyColumn,
     returningMode: actionPlan.returningMode,
+    ...(actionPlan.optimisticLock ? { optimisticLock: actionPlan.optimisticLock } : {}),
     mappingCaseSignature: buildMappingCaseSignature(queryName, actionPlan, table, primaryKeyColumn),
     status: 'generated',
   }, null, 2)}\n`;
@@ -3568,6 +3674,7 @@ function buildMappingCaseSignature(
     table: table.canonicalName,
     primaryKeyColumn,
     returningMode: actionPlan.returningMode,
+    ...(actionPlan.optimisticLock ? { optimisticLock: actionPlan.optimisticLock } : {}),
     params: actionPlan.params.map((column) => columnSignature(column)),
     rows: actionPlan.rows.map((column) => columnSignature(column)),
     writeColumns: actionPlan.writeColumns.map((column) => columnSignature(column)),
