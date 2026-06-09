@@ -3,8 +3,8 @@ import type { Hono } from 'hono';
 
 import { logApiRequest } from '#adapters/logger/appLogger.js';
 import { createPgSqlClient, withPgTransaction } from '#adapters/pg/pool.js';
-import { createSupportTicket, listTicketCustomerOptions } from '#features/support-inbox/create-ticket.js';
-import { OptimisticConcurrencyConflict, updateTicketStatus } from '#features/support-inbox/update-ticket-status.js';
+import { createSupportTicket, listTicketCustomerOptions } from '#features/support-inbox/create-ticket/create-ticket.js';
+import { OptimisticConcurrencyConflict, updateTicketStatus } from '#features/support-inbox/update-ticket-status/update-ticket-status.js';
 import type { WebAppDependencies } from '../../../../app.js';
 import { parseTicketFilters } from '../request/tickets.request.js';
 import { renderCreateTicketPage, renderError, renderSupportInbox } from '../view/tickets.page.js';
@@ -123,8 +123,10 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
           },
         },
       );
+      const fallbackLocation = `/tickets?ticketId=${encodeURIComponent(String(result.ticket_id ?? ticketId))}#ticket-detail`;
+      const location = readInternalTicketsReturnTo(body.return_to) ?? fallbackLocation;
       logApiRequest({ ...requestContext, phase: 'end', status: 303, elapsedMs: Date.now() - startedAt });
-      return c.redirect(`/tickets?ticketId=${encodeURIComponent(String(result.ticket_id ?? ticketId))}#ticket-detail`, 303);
+      return c.redirect(location, 303);
     } catch (error) {
       const status = error instanceof OptimisticConcurrencyConflict ? 409 : 400;
       c.status(status);
@@ -132,4 +134,14 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       return c.html(renderError(error));
     }
   });
+}
+
+function readInternalTicketsReturnTo(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  if (value === '/tickets' || value.startsWith('/tickets?')) {
+    return value;
+  }
+  return undefined;
 }

@@ -40,33 +40,33 @@ In this demo:
 
 The Create flow is also a scaffold recipe for a common header/detail mutation.
 
-In this demo, the header row is `tickets` and the first detail row is `ticket_messages`. They are separate SQL assets and separate generated query boundaries inside the same `support-inbox` feature:
+In this demo, `support-inbox` is a subsystem feature root, not a single feature. The header row is `tickets` and the first detail row is `ticket_messages`. They are separate SQL assets and separate generated query boundaries inside the `create-ticket` feature:
 
 ```text
-src/features/support-inbox/queries/create-ticket/create-ticket.sql
-src/features/support-inbox/queries/create-ticket-message/create-ticket-message.sql
+src/features/support-inbox/create-ticket/queries/create-ticket/create-ticket.sql
+src/features/support-inbox/create-ticket/queries/create-ticket-message/create-ticket-message.sql
 ```
 
-The boundaries can be added to an existing feature with `feature query scaffold`:
+The boundaries can be added to the `create-ticket` feature with `feature query scaffold`:
 
 ```sh
-npx ashiba feature query scaffold support-inbox create-ticket --table tickets --action insert
-npx ashiba feature query scaffold support-inbox create-ticket-message --table ticket_messages --action insert
+npx ashiba feature query scaffold create-ticket create-ticket --table tickets --action insert
+npx ashiba feature query scaffold create-ticket create-ticket-message --table ticket_messages --action insert
 ```
 
 If a mutation only needs the primary key from `RETURNING`, use `--returning minimal` when scaffolding:
 
 ```sh
-npx ashiba feature query scaffold support-inbox create-ticket --table tickets --action insert --returning minimal
+npx ashiba feature query scaffold create-ticket create-ticket --table tickets --action insert --returning minimal
 ```
 
 After editing the generated SQL, refresh metadata and mapper fixtures for each query boundary:
 
 ```sh
-npx ashiba feature query refresh support-inbox create-ticket
-npx ashiba feature query refresh support-inbox create-ticket-message
-npx ashiba feature tests check support-inbox --query create-ticket --fix
-npx ashiba feature tests check support-inbox --query create-ticket-message --fix
+npx ashiba feature query refresh create-ticket create-ticket
+npx ashiba feature query refresh create-ticket create-ticket-message
+npx ashiba feature tests check create-ticket --query create-ticket --fix
+npx ashiba feature tests check create-ticket --query create-ticket-message --fix
 ```
 
 The workflow code then composes the generated boundaries with normal application code. `createSupportTicket` validates the input, looks up the selected customer, inserts the ticket header, inserts the first message detail, and returns the new ticket id. The web route owns HTTP parsing, redirect/error rendering, and the transaction scope.
@@ -137,12 +137,12 @@ This is intentional: Ashiba keeps SQL boundaries generated and reviewable, while
 ## Files To Inspect
 
 - `db/ddl/public.sql` defines the demo schema.
-- `src/features/support-inbox/queries/list-tickets/list-tickets.sql` is the main demo SQL.
-- `src/features/support-inbox/queries/create-ticket/create-ticket.sql` and `src/features/support-inbox/queries/create-ticket-message/create-ticket-message.sql` are the visible mutation SQL files.
-- `src/features/support-inbox/create-ticket.ts` composes the ticket header insert and first message detail insert.
-- `src/features/support-inbox/queries/update-ticket-status/update-ticket-status.sql` is the optimistic update SQL.
-- `src/features/support-inbox/update-ticket-status.ts` converts zero updated rows into an application-level conflict.
-- `src/features/support-inbox/queries/list-tickets/generated/query.meta.ts` shows safe sort and optional-condition metadata.
+- `src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql` is the main demo SQL.
+- `src/features/support-inbox/create-ticket/queries/create-ticket/create-ticket.sql` and `src/features/support-inbox/create-ticket/queries/create-ticket-message/create-ticket-message.sql` are the visible mutation SQL files.
+- `src/features/support-inbox/create-ticket/create-ticket.ts` composes the ticket header insert and first message detail insert.
+- `src/features/support-inbox/update-ticket-status/queries/update-ticket-status/update-ticket-status.sql` is the optimistic update SQL.
+- `src/features/support-inbox/update-ticket-status/update-ticket-status.ts` converts zero updated rows into an application-level conflict.
+- `src/features/support-inbox/list-tickets/queries/list-tickets/generated/query.meta.ts` shows safe sort and optional-condition metadata.
 - `src/adapters/web/modules/support-inbox/tickets/request/tickets.request.ts` maps public UI filters, preset sort choices, and grid-header sort choices to safe Ashiba inputs.
 - `src/adapters/web/modules/support-inbox/tickets/view/tickets.presenter.ts` wires the generated query functions to the application-owned `pg` pool and captures SQL inspection events for the demo panel.
 - `src/adapters/web/modules/support-inbox/tickets/route/tickets.route.e2e.test.ts` verifies the real HTTP route with seeded PostgreSQL data, filtered search parameters, pagination, SQL inspection, and safe sort requests.

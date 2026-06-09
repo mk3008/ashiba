@@ -367,11 +367,12 @@ describeDb('support inbox HTTP filters', () => {
       body: new URLSearchParams({
         status: 'resolved',
         expected_version_key: String(ticket.version_key),
+        return_to: `/tickets?status=waiting_agent&sort=priority-high&ticketId=${ticket.ticket_id}#ticket-detail`,
       }),
     });
 
     expect(updateResponse.status).toBe(303);
-    expect(updateResponse.headers.get('location')).toBe(`/tickets?ticketId=${ticket.ticket_id}#ticket-detail`);
+    expect(updateResponse.headers.get('location')).toBe(`/tickets?status=waiting_agent&sort=priority-high&ticketId=${ticket.ticket_id}#ticket-detail`);
 
     const updated = await pool.query<{ status: string; version_key: number }>(
       `select status, version_key

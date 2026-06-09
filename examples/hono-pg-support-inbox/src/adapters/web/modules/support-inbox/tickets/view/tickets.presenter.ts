@@ -2,8 +2,8 @@ import type { Pool } from 'pg';
 
 import { logSqlExecution } from '#adapters/logger/appLogger.js';
 import { createPgSqlClient } from '#adapters/pg/pool.js';
-import { executeGetTicketDetailQuery, type GetTicketDetailQueryResult } from '#features/support-inbox/queries/get-ticket-detail/query.js';
-import { executeListTicketsQuery, type ListTicketsQueryResult } from '#features/support-inbox/queries/list-tickets/query.js';
+import { executeGetTicketDetailQuery, type GetTicketDetailQueryResult } from '#features/support-inbox/list-tickets/queries/get-ticket-detail/query.js';
+import { executeListTicketsQuery, type ListTicketsQueryResult } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
 import type { TicketFilters } from '../request/tickets.request.js';
 import { toListTicketsParams, toTicketSort } from '../request/tickets.request.js';
 
@@ -107,7 +107,7 @@ async function loadTicketDetail(pool: Pool, ticketId: string, context: SupportIn
 function buildSqlInspection(filters: TicketFilters, rowCount: number, events: readonly SqlInspectionEvent[], context: SupportInboxRequestContext): SqlInspection {
   const executed = [...events].reverse().find((event) => event.phase === 'end' || event.phase === 'start');
   return {
-    sqlPath: 'src/features/support-inbox/queries/list-tickets/list-tickets.sql',
+    sqlPath: 'src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql',
     apiRoute: context.apiRoute,
     selectedSort: filters.sort,
     safeSortKeys:

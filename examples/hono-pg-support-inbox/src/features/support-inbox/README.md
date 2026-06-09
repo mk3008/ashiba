@@ -1,57 +1,65 @@
 # support-inbox
 
-Imported query: list-tickets
+`support-inbox` is the subsystem feature root for this example.
 
-Mutation queries:
+It is not treated as one large feature boundary. Reviewable behavior is split into smaller use-case features:
 
-- create-ticket
-- create-ticket-message
+- `list-tickets`: ticket list and selected ticket detail read model.
+- `create-ticket`: header/detail ticket creation workflow.
+- `update-ticket-status`: optimistic status update workflow.
 
-Support queries:
+The example config sets:
 
-- get-ticket-detail
-- list-customers-for-ticket
+```json
+{
+  "featureRoot": "src/features/support-inbox",
+  "sqlRoots": ["src/features/support-inbox"]
+}
+```
 
-This feature was scaffolded from an existing visible SQL file.
-Generated code is editable after import. Keep SQL visible, named, and directly runnable in a SQL client.
-Generated mapper cases prove that representative DB result values can map into the generated DTO shape.
-Human/AI-owned SQL logic cases belong under the query-local `tests/cases/` directory.
-Mutation mapper cases prove `RETURNING` row compatibility. Route/integration tests prove that the application-owned transaction creates the expected ticket and first message.
+With that configuration, Ashiba CLI commands treat the directories above as feature boundaries while still keeping them grouped under the support inbox subsystem.
+
+## Query Boundaries
+
+```text
+list-tickets/
+  queries/list-tickets/
+  queries/get-ticket-detail/
+
+create-ticket/
+  queries/list-customers-for-ticket/
+  queries/create-ticket/
+  queries/create-ticket-message/
+
+update-ticket-status/
+  queries/update-ticket-status/
+```
 
 ## Header/detail create scaffold
 
-This feature uses multiple mutation query boundaries to create one ticket header and one initial message detail.
-
-- `create-ticket` inserts the `tickets` header row.
-- `create-ticket-message` inserts the first `ticket_messages` detail row.
-
-Both boundaries can be scaffolded into the existing feature:
+The Create feature uses multiple mutation query boundaries to create one ticket header and one initial message detail.
 
 ```sh
-npx ashiba feature query scaffold support-inbox create-ticket --table tickets --action insert
-npx ashiba feature query scaffold support-inbox create-ticket-message --table ticket_messages --action insert
+npx ashiba feature query scaffold create-ticket create-ticket --table tickets --action insert
+npx ashiba feature query scaffold create-ticket create-ticket-message --table ticket_messages --action insert
 ```
-
-Use `--returning minimal` when the application only needs the primary key from a new row. Keep the broader default when the workflow or review surface benefits from the returned row shape.
 
 After SQL edits, refresh each query boundary and update mapper fixtures:
 
 ```sh
-npx ashiba feature query refresh support-inbox create-ticket
-npx ashiba feature query refresh support-inbox create-ticket-message
-npx ashiba feature tests check support-inbox --query create-ticket --fix
-npx ashiba feature tests check support-inbox --query create-ticket-message --fix
+npx ashiba feature query refresh create-ticket create-ticket
+npx ashiba feature query refresh create-ticket create-ticket-message
+npx ashiba feature tests check create-ticket --query create-ticket --fix
+npx ashiba feature tests check create-ticket --query create-ticket-message --fix
 ```
-
-The workflow code owns the business sequence. It passes the same executor to both generated query functions, so the SQL stays visible and generated support stays local to each boundary.
 
 ## Transaction composition
 
-This feature does not own transaction policy.
+Feature/query code does not own transaction policy.
 
 The web adapter starts the transaction with `withPgTransaction`, then passes the same `FeatureQueryExecutor` into the Create workflow. The workflow passes that executor to `create-ticket` and `create-ticket-message`, so both SQL boundaries run on the same borrowed PostgreSQL client.
 
-Keep `begin`, `commit`, `rollback`, isolation level, retry policy, and failure reporting at the application or adapter boundary. Feature/query code should accept an executor and stay unaware of whether it is running inside a transaction.
+Keep `begin`, `commit`, `rollback`, isolation level, retry policy, and failure reporting at the application or adapter boundary.
 
 ## Mutation test scope
 

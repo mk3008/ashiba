@@ -1,6 +1,6 @@
-import type { GetTicketDetailQueryResult } from '#features/support-inbox/queries/get-ticket-detail/query.js';
-import type { ListTicketsQueryResult } from '#features/support-inbox/queries/list-tickets/query.js';
-import type { TicketCustomerOption } from '#features/support-inbox/create-ticket.js';
+import type { GetTicketDetailQueryResult } from '#features/support-inbox/list-tickets/queries/get-ticket-detail/query.js';
+import type { ListTicketsQueryResult } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
+import type { TicketCustomerOption } from '#features/support-inbox/create-ticket/create-ticket.js';
 import {
   ticketColumnSortInputs,
   type TicketColumnSortKey,
@@ -105,7 +105,7 @@ export function renderSupportInbox(filters: TicketFilters, viewModel: SupportInb
       </section>
       ${renderFilterForm(filters)}
       ${renderTicketTable(filters, viewModel)}
-      ${renderDetail(viewModel.selectedTicket?.summary, viewModel.selectedTicket?.messages ?? [])}
+      ${renderDetail(filters, viewModel.selectedTicket?.summary, viewModel.selectedTicket?.messages ?? [])}
     </main>
     ${renderQueryConsole(filters, viewModel.inspection)}
   </div>
@@ -397,7 +397,7 @@ function renderTicketRow(filters: TicketFilters, ticket: ListTicketsQueryResult)
   </tr>`;
 }
 
-function renderDetail(summary: GetTicketDetailQueryResult | undefined, messages: GetTicketDetailQueryResult[]): string {
+function renderDetail(filters: TicketFilters, summary: GetTicketDetailQueryResult | undefined, messages: GetTicketDetailQueryResult[]): string {
   if (!summary) {
     return `<section id="ticket-detail" class="panel detailPanel"><p>表示するチケットがありません。</p></section>`;
   }
@@ -416,26 +416,23 @@ function renderDetail(summary: GetTicketDetailQueryResult | undefined, messages:
         <div><dt>更新日時</dt><dd>${formatDate(summary.updated_at)}</dd></div>
         <div><dt>version_key</dt><dd>${summary.version_key ?? '-'}</dd></div>
       </dl>
-      ${renderStatusUpdateForm(summary)}
+      ${renderStatusUpdateForm(summary, withTicketId(filters, summary.ticket_id))}
     </div>
     <div class="messages">
       <h3>メッセージ履歴</h3>
       ${messages.map(renderMessage).join('')}
-      <form class="replyBox">
-        <input disabled placeholder="メッセージを入力...">
-        <button disabled>送信</button>
-      </form>
     </div>
   </section>`;
 }
 
-function renderStatusUpdateForm(summary: GetTicketDetailQueryResult): string {
+function renderStatusUpdateForm(summary: GetTicketDetailQueryResult, returnTo: string): string {
   const ticketId = summary.ticket_id;
   if (ticketId === null || summary.version_key === null) {
     return '';
   }
   return `<form class="statusUpdateForm" method="post" action="/tickets/${ticketId}/status">
     <input type="hidden" name="expected_version_key" value="${summary.version_key}">
+    <input type="hidden" name="return_to" value="${escapeHtml(returnTo)}">
     ${select('status', 'ステータス更新', statusOptions.filter((option) => option.value !== ''), text(summary.status))}
     <button type="submit">更新</button>
   </form>`;
@@ -868,8 +865,6 @@ function styles(): string {
     .messageCard { border: 1px solid #edf0f5; border-radius: 8px; padding: 12px; background: #fff; }
     .messageCard div { display: flex; gap: 10px; align-items: center; color: #667085; font-size: 12px; }
     .messageCard p { margin: 8px 0 0; line-height: 1.6; }
-    .replyBox { display: grid; grid-template-columns: 1fr 72px; gap: 8px; }
-    .replyBox button { border: 0; border-radius: 6px; background: #1459b8; color: #fff; font-weight: 700; }
     .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 14px; height: 100vh; min-height: 0; overflow: hidden; }
     .consoleHeader { display: flex; justify-content: space-between; gap: 14px; align-items: start; padding-bottom: 14px; border-bottom: 1px solid #1e2d44; }
     .consoleHeader div { display: grid; gap: 5px; min-width: 0; }

@@ -2041,7 +2041,9 @@ describe('@ashiba-ts/cli smoke', () => {
         ddl: { sourceDir: 'db/ddl' },
       }, null, 2), 'utf8');
       writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
-      writeFileSync(path.join(rootDir, 'src', 'usecases', 'users-search', 'queries', 'search', 'search.sql'), 'select user_id, email from public.users where email = :email;', 'utf8');
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'tmp', 'search.sql'), 'select user_id, email from public.users where email = :email;', 'utf8');
+      runFeatureImport({ rootDir, feature: 'users-search', queryName: 'search', sql: 'tmp/search.sql', force: true });
       writeFileSync(path.join(rootDir, 'src', 'shared-sql', 'broken.sql'), 'select missing_id from public.users;', 'utf8');
 
       const result = runProjectCheck({ rootDir });
@@ -2059,6 +2061,8 @@ describe('@ashiba-ts/cli smoke', () => {
           },
         },
       });
+      expect(result.coverage.mapperQueries).toBe(1);
+      expect(result.checks.contract.mapperCheck.checked[0]?.queryFile).toBe('src/usecases/users-search/queries/search/query.ts');
       expect(result.errors).toEqual(expect.arrayContaining([
         expect.objectContaining({
           code: 'ASHIBA_PROJECT_SQL_LINT_FAILED',

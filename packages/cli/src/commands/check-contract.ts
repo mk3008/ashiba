@@ -20,6 +20,7 @@ import { normalizeSqlSource } from '../sql-source.js';
 export interface CheckContractOptions {
   rootDir?: string;
   feature?: string;
+  featureRoot?: string;
   query?: string;
   scopeDir?: string;
   sqlRoot?: string;
@@ -77,6 +78,7 @@ export function registerCheckContractCommand(program: Command): void {
     .description('Check visible SQL contracts against editable generated mapper boundaries')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--feature <name>', 'Limit check to one feature')
+    .option('--feature-root <path>', 'Feature root directory', 'src/features')
     .option('--query <name>', 'Limit check to one query boundary')
     .option('--scope-dir <path>', 'Limit QuerySpec-like catalog checks to one subtree')
     .option('--sql-root <path>', 'Fallback root for shared sqlFile layouts')
@@ -100,6 +102,7 @@ export function runCheckContract(options: CheckContractOptions = {}): CheckContr
   const mapperCheck = runOptionalFeatureGeneratedMapperCheck({
     rootDir: options.rootDir,
     feature: options.feature,
+    featureRoot: options.featureRoot,
     query: options.query,
   });
   const catalogCheck = runCatalogContractCheck({
@@ -328,6 +331,7 @@ function buildCheckContractNextActions(
 function runOptionalFeatureGeneratedMapperCheck(options: {
   rootDir?: string;
   feature?: string;
+  featureRoot?: string;
   query?: string;
 }): FeatureGeneratedMapperCheckResult {
   try {

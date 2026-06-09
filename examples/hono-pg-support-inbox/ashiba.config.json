@@ -1,8 +1,8 @@
 {
   "$schema": "https://ashiba.dev/schema/ashiba-config.json",
-  "featureRoot": "src/features",
+  "featureRoot": "src/features/support-inbox",
   "sqlRoots": [
-    "src/features"
+    "src/features/support-inbox"
   ],
   "defaultSchema": "public",
   "searchPath": [

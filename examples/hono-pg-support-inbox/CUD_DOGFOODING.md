@@ -62,8 +62,8 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 
 ### 2026-06-09: Query scaffold の観察
 
-- `ashiba feature query scaffold support-inbox create-ticket --table tickets --action insert` で、既存 feature 配下に `INSERT ... RETURNING` SQL、metadata、mapper tests が生成された。
-- `ashiba feature query scaffold support-inbox create-ticket-message --table ticket_messages --action insert` でも、初回 message 登録用の同様の query boundary が生成された。
+- `ashiba feature query scaffold create-ticket create-ticket --table tickets --action insert` で、既存 feature 配下に `INSERT ... RETURNING` SQL、metadata、mapper tests が生成された。
+- `ashiba feature query scaffold create-ticket create-ticket-message --table ticket_messages --action insert` でも、初回 message 登録用の同様の query boundary が生成された。
 - これにより、Ashiba は read query だけの道具ではなく、mutation boundary でも SQL asset を見える形で保持できることが確認できた。
 - 生成された insert SQL は table columns を広く `RETURNING` する。scaffold default としては妥当だが、demo response に不要な列まで返すので、将来的には review-relevant な `RETURNING` へ絞る選択肢があるとよい。
 - 2つの insert を1つの transaction で組み合わせる workflow code は customer-owned code として必要だった。これは妥当で、transaction policy は Ashiba runtime ではなく application boundary の責務である。
@@ -135,6 +135,14 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - route-level E2E で、成功時に `version_key` が進むことと、stale version で 409 を返して DB 状態を変えないことを確認した。
 - `feature import` が update SQL にも `optionalConditionCompression: true` を付けると adapter 側で失敗した。これは non-select imported query では不要なので、CLI generator 側で付けないように修正した。
 
+### 2026-06-09: feature root / subsystem 構造の見直し
+
+- `support-inbox` を feature と呼ぶのは誤りだった。実態は subsystem / feature group / product area であり、reviewable feature は `list-tickets`、`create-ticket`、`update-ticket-status` である。
+- example は `src/features/support-inbox` を configured `featureRoot` とし、その直下に use-case feature boundary を置く構造へ変更した。
+- CLI に `subsystem` という新概念はまだ追加しない。まずは既存の `featureRoot` 設定で subsystem 配下を feature root として扱う。
+- この変更により、`support-inbox` は親グループ、`create-ticket` 等は Ashiba CLI が扱う feature として整理できる。
+- dogfooding中に、project check の contract mapper lane が configured `featureRoot` を generated mapper check へ渡しておらず、`mapperQueries=0` になる漏れを発見した。CLI 側で `featureRoot` を渡すよう修正し、smoke test に regression を追加した。
+
 ## 検証結果
 
 2026-06-09 時点:
@@ -167,9 +175,12 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - example README と feature README に、既存 feature へ `feature query scaffold` で `create-ticket` / `create-ticket-message` を追加し、ヘッダー + 明細の初回作成を組み立てる導線を追加した。
 - example に optimistic update lane を追加した。`version_key` を DDL/config/SQL/UI に出し、stale version を route-level E2E で 409 として検証した。
 - update scaffold は config の optimistic lock column を見て、該当列がある場合に `expected_version_key` と `version_key = version_key + 1` を生成するようにした。
+- example の feature root を `src/features/support-inbox` に変更し、`list-tickets`、`create-ticket`、`update-ticket-status` を個別の reviewable feature boundary として整理した。
+- project check / check-contract が configured `featureRoot` を generated mapper check に渡すようにし、subsystem配下のfeature boundaryでも mapper coverage が落ちないようにした。
 
 ### 今後の改善候補
 
+- P1: CLI に `subsystem` 概念を optional で入れるかは継続検討する。現時点では configured `featureRoot` で subsystem 配下を feature root として扱えるため、example 側はこの方式を採用する。
 - P1: 既存 feature に mutation query を追加する exercise は、必要になったら追加する。Create flow 自体は README / feature README でヘッダー + 明細の scaffold recipe として説明済み。
 - P1: optimistic update exercise は追加価値がある。SQL上で `version_key` 条件を見せ、stale update を AI にテストさせる課題にできる。
 - P1: 生成後に `RETURNING` をさらに業務都合の shape へ調整する導線はまだ弱い。`--returning minimal` は primary key だけを返す初期 scaffold option であり、任意の returned columns を指定する機能ではない。
