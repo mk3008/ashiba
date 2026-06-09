@@ -298,10 +298,11 @@ function preparePostgresExecution(
   compiledRewriteRanges: readonly TextEdit[];
   compiledRenumberRanges: readonly TextEdit[];
 } {
-  const sourceSql = query.sql;
-  const precomputed = validatePostgresBindingMetadata(query);
+  const sourceSql = normalizeSqlSource(query.sql);
+  const normalizedQuery = query.sql === sourceSql ? query : { ...query, sql: sourceSql };
+  const precomputed = validatePostgresBindingMetadata(normalizedQuery);
   const compression = options.optionalConditionCompression === true
-    ? applyOptionalConditionCompression(query, precomputed, params)
+    ? applyOptionalConditionCompression(normalizedQuery, precomputed, params)
     : undefined;
   const compiled = compression
     ? {
@@ -717,7 +718,7 @@ function getSortInsertion(
   orderBy: string;
 } | undefined {
   if (!options.sort || options.sort.length === 0) return undefined;
-  const sql = query.sql;
+  const sql = normalizeSqlSource(query.sql);
   const queryModel = query.queryModel;
   if (!queryModel?.analysis) {
     throw new AshibaSortError(
@@ -815,7 +816,11 @@ function resolveSortProfile(
 }
 
 function hashSql(sql: string): string {
-  return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+  return `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`;
+}
+
+function normalizeSqlSource(sql: string): string {
+  return sql.replace(/\r\n?/g, '\n');
 }
 
 function describeQueryModelErrorCause(code: AshibaPostgresQueryModelError['code']): string {

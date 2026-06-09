@@ -77,3 +77,51 @@ jobs:
         if: always()
         working-directory: examples/hono-pg-support-inbox
         run: docker compose down --volumes
+
+  support-inbox-example-autocrlf:
+    runs-on: windows-latest
+    steps:
+      - name: Configure Windows checkout line endings
+        run: git config --global core.autocrlf true
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        with:
+          version: 10.19.0
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages used by drift check
+        run: pnpm build
+
+      - name: Verify clean Windows checkout drift
+        run: pnpm --dir examples/hono-pg-support-inbox check:drift
+
+      - name: Verify CRLF-only SQL drift tolerance
+        shell: pwsh
+        run: |
+          $files = @(
+            'examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/list-tickets.sql',
+            'examples/hono-pg-support-inbox/src/features/support-inbox/queries/get-ticket-detail/get-ticket-detail.sql'
+          )
+          foreach ($file in $files) {
+            $path = Resolve-Path $file
+            $text = [System.IO.File]::ReadAllText($path)
+            $lf = $text -replace "`r`n", "`n"
+            $crlf = $lf -replace "`n", "`r`n"
+            [System.IO.File]::WriteAllText($path, $crlf, [System.Text.UTF8Encoding]::new($false))
+          }
+          git ls-files --eol -- $files
+          pnpm --dir examples/hono-pg-support-inbox check:drift

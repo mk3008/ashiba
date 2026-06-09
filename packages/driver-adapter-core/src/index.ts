@@ -10,6 +10,18 @@ export type AshibaSqlExecutionMetadata = {
   sqlId?: string;
   queryId?: string;
   requestId?: string;
+  apiMethod?: string;
+  apiPath?: string;
+  apiRoute?: string;
+  operation?: string;
+  filterKeys?: readonly string[];
+  sortKeys?: readonly string[];
+  queryVariant?: string;
+  queryModelSourceHash?: string;
+  queryModelStatementKind?: string;
+  queryModelRootQueryShape?: string;
+  queryModelOptionalConditionCompression?: boolean;
+  queryModelSafeSortInsertionStatus?: string;
   sqlFile?: string;
   sqlPath?: string;
   dialect?: string;

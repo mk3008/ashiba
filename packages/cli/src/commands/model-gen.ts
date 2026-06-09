@@ -16,6 +16,7 @@ import { inferSqlParameterTypes } from './sql-parameter-types.js';
 import { loadProjectPathConfig } from './config.js';
 import { normalizeIdentifier, resolveSchemaPathTable, type SchemaPathConfig } from './schema-path.js';
 import { astParseUserError, requiredCliValueError } from '../errors.js';
+import { normalizeSqlSource } from '../sql-source.js';
 
 export interface ModelGenOptions {
   sqlFile?: string;
@@ -150,7 +151,7 @@ export function registerModelGenCommand(program: Command): void {
 export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
   const sqlPath = path.resolve(rootDir, requireValue(options.sqlFile, '<sqlFile>'));
-  const sql = readFileSync(sqlPath, 'utf8');
+  const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const postgresBinding = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
   const mysql2Binding = compileNamedParameters(sql, { placeholderStyle: 'question' });
   const mssqlBinding = compileNamedParameters(sql, { placeholderStyle: 'named-at' });
@@ -615,7 +616,7 @@ function hasOrderByClause(value: unknown): value is { orderByClause: unknown } {
 }
 
 function hashSql(sql: string): string {
-  return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+  return `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`;
 }
 
 function renderParamsInterface(parameters: string[], parameterTypes: Record<string, string> | undefined): string {

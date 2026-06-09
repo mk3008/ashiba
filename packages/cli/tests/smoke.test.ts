@@ -200,6 +200,10 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('createPgFeatureQueryExecutor');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('query -> feature -> sqlClient -> logger');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('../logger/sqlLogger.ts');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelSourceHash');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelStatementKind');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelOptionalConditionCompression');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelSafeSortInsertionStatus');
       expect(readFileSync(path.join(rootDir, 'src/adapters/logger/sqlLogger.ts'), 'utf8')).toContain('This is the intended hole for your application logger.');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgFeatureQueryExecutor');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgTransaction');
@@ -212,6 +216,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('renderBeginTransactionSql');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Standard path:');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Use this across feature/usecase boundaries');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Ashiba does not own transaction policy');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('passes the same FeatureQueryExecutor');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Feature/query code should not call begin/commit/rollback');
       expect(existsSync(path.join(rootDir, 'src/features/smoke'))).toBe(false);
       expect(result.files.some((file) => file.relativePath === 'package.json')).toBe(false);
       expect(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).toContain('"name": "starter"');
@@ -606,6 +613,7 @@ describe('@ashiba-ts/cli smoke', () => {
       });
 
       const featureBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/boundary.ts'), 'utf8');
+      const featureReadme = readFileSync(path.join(rootDir, 'src/features/users-insert/README.md'), 'utf8');
       const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/query.ts'), 'utf8');
       const getByIdQueryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/get-user/query.ts'), 'utf8');
       const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.meta.ts'), 'utf8');
@@ -620,6 +628,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.featureName).toBe('users-insert');
       expect(query.queryName).toBe('get-user');
       expect(featureBoundary).toContain('parseRequest');
+      expect(featureReadme).toContain('Generated mapper cases prove DB-to-TypeScript result contracts.');
+      expect(featureReadme).toContain('passing the same FeatureQueryExecutor');
+      expect(featureReadme).toContain('TypeScript-to-DB inputs');
       expect(featureBoundary).toContain('executeWorkflow');
       expect(featureBoundary).toContain('buildResult');
       expect(existsSync(path.join(rootDir, 'src/features/users-insert/input.ts'))).toBe(true);
@@ -647,6 +658,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryZtdTest).not.toContain('existsSync');
       expect(queryZtdTypes).toContain("from '#tests/support/ztd/case-types.js'");
       expect(queryTestPlan).toContain('Unit tests are mapping-contract tests');
+      expect(queryTestPlan).toContain('RETURNING row compatibility only');
+      expect(queryTestPlan).toContain('TypeScript-to-DB inputs');
       expect(queryTestPlan).toContain('DDL is loaded from the configured DDL source directory');
       expect(queryMappingCases).toContain('mapperProbe');
       expect(queryMappingCases).toContain('maps insert-users DB result values into the DTO');
@@ -658,6 +671,86 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(querySql).toContain('returning\n    user_id\n    , email\n    , display_name');
       expect(updateSql).toContain('returning\n    user_id\n    , email\n    , display_name');
       expect(deleteSql).toContain('returning\n    user_id\n    , email\n    , display_name');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('generates DB-valid mapping probe literals for timestamp and json columns', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-mapping-literals-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.event_logs (',
+        '  event_log_id serial primary key,',
+        '  created_at timestamptz not null,',
+        "  payload jsonb not null default '{}'::jsonb",
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureScaffold({ rootDir, table: 'event_logs', action: 'insert' });
+
+      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/event-logs-insert/queries/insert-event-logs/tests/generated/mapping.cases.ts'), 'utf8');
+
+      expect(queryMappingCases).toContain("cast('2026-01-01T00:00:00.000Z' as timestamptz)");
+      expect(queryMappingCases).toContain('as jsonb');
+      expect(queryMappingCases).toContain('sample');
+      expect(queryMappingCases).not.toContain('created_at-boundary-value');
+      expect(queryMappingCases).not.toContain('payload-boundary-value');
+      expect(queryMappingCases).not.toContain('[object Object]');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('scaffolds insert queries with minimal RETURNING when requested', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-insert-minimal-returning-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id serial primary key,',
+        '  email text not null,',
+        '  display_name text,',
+        "  created_at timestamptz not null default now()",
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureScaffold({ rootDir, table: 'users', action: 'insert', returning: 'minimal' });
+
+      const sqlPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql');
+      const queryPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/query.ts');
+      const mappingPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/mapping.cases.ts');
+      const analysisPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/analysis.json');
+
+      const sql = readFileSync(sqlPath, 'utf8');
+      const queryBoundary = readFileSync(queryPath, 'utf8');
+      const queryMappingCases = readFileSync(mappingPath, 'utf8');
+      const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as { returningMode?: string };
+
+      expect(sql).toContain('returning\n    user_id');
+      expect(sql).toContain(':email');
+      expect(sql).toContain(':display_name');
+      expect(sql.split('returning')[1]).not.toContain('email');
+      expect(sql.split('returning')[1]).not.toContain('display_name');
+      expect(sql.split('returning')[1]).not.toContain('created_at');
+      expect(queryBoundary).toContain('export interface InsertUsersQueryResult');
+      expect(queryBoundary).toContain('user_id: number;');
+      const resultContract = queryBoundary.split('export interface InsertUsersQueryResult')[1]?.split('}')[0] ?? '';
+      expect(resultContract).not.toContain('email: string;');
+      expect(resultContract).not.toContain('display_name: string');
+      expect(queryMappingCases).toContain('as \\"user_id\\"');
+      expect(queryMappingCases).not.toContain('as \\"email\\"');
+      expect(queryMappingCases).not.toContain('as \\"display_name\\"');
+      expect(analysis.returningMode).toBe('minimal');
+
+      const check = runFeatureTestsCheck({ rootDir, feature: 'users-insert', query: 'insert-users', fix: true });
+      expect(check.ok).toBe(true);
+      expect(readFileSync(mappingPath, 'utf8')).not.toContain('as \\"email\\"');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -2358,6 +2451,39 @@ describe('@ashiba-ts/cli smoke', () => {
       ]));
       expect(fail.attainment.nextActions).toContain('Regenerate query model metadata from the current visible SQL.');
       expect(fail.catalogCheck.checked[0]?.missingInSpec).toEqual(['status']);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not treat SQL line-ending changes as query model drift', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-contract-query-model-eol-'));
+
+    try {
+      const queryDir = path.join(rootDir, 'src/features/users/queries/list');
+      const sqlPath = path.join(queryDir, 'list.sql');
+      mkdirSync(queryDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id',
+        'from public.users',
+        'where email = :email',
+        'order by user_id;',
+        '',
+      ].join('\n'), 'utf8');
+      runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/list/list.sql',
+        out: 'src/features/users/queries/list/list.query.ts',
+      });
+
+      expect(runCheckContract({ rootDir, scopeDir: 'src/features/users/queries/list' }).ok).toBe(true);
+
+      const lfSql = readFileSync(sqlPath, 'utf8').replace(/\r\n/g, '\n');
+      writeFileSync(sqlPath, lfSql.replace(/\n/g, '\r\n'), 'utf8');
+      const crlf = runCheckContract({ rootDir, scopeDir: 'src/features/users/queries/list' });
+
+      expect(crlf.ok).toBe(true);
+      expect(crlf.catalogCheck.checked[0]?.issues).toEqual([]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

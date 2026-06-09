@@ -38,6 +38,7 @@ import { DEFAULT_SQL_FORMAT_OPTIONS, resolveGeneratedSqlFormatOptions } from '..
 import { areTypeScriptTypesCompatible, inferSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
 import { collectTableReferences } from './table-resolution.js';
+import { normalizeSqlSource } from '../sql-source.js';
 
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
 const FEATURE_SHARED_LOAD_SQL_RESOURCE_IMPORT_PATH = '#features/_shared/loadSqlResource.js';
@@ -46,11 +47,14 @@ const TEST_ZTD_HARNESS_IMPORT_PATH = '#tests/support/ztd/harness.js';
 
 const FEATURE_ACTIONS = ['insert', 'update', 'delete', 'get-by-id', 'list'] as const;
 type FeatureAction = (typeof FEATURE_ACTIONS)[number];
+const INSERT_RETURNING_MODES = ['all', 'minimal'] as const;
+type InsertReturningMode = (typeof INSERT_RETURNING_MODES)[number];
 const defaultSqlFormatter = new SqlFormatter(DEFAULT_SQL_FORMAT_OPTIONS);
 
 export interface FeatureScaffoldOptions {
   table?: string;
   action?: string;
+  returning?: string;
   featureName?: string;
   rootDir?: string;
   dryRun?: boolean;
@@ -60,6 +64,7 @@ export interface FeatureScaffoldOptions {
 export interface FeatureQueryScaffoldOptions {
   table?: string;
   action?: string;
+  returning?: string;
   queryName?: string;
   feature?: string;
   boundaryDir?: string;
@@ -236,6 +241,7 @@ interface QueryTestMetadata {
   action?: FeatureAction;
   table?: string;
   primaryKeyColumn?: string;
+  returningMode?: InsertReturningMode;
   anchorSource?: string | null;
   anchorTable?: string | null;
   physicalTables?: string[];
@@ -268,6 +274,7 @@ export function registerFeatureCommand(program: Command): void {
     .description('Scaffold a feature-local CRUD or SELECT boundary from DDL metadata')
     .requiredOption('--table <table>', 'Target table name')
     .requiredOption('--action <action>', 'Action: insert, update, delete, get-by-id, or list')
+    .option('--returning <mode>', 'Insert RETURNING shape: all or minimal. Defaults to all.', 'all')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--dry-run', 'Print the files that would be created without writing them', false)
     .option('--force', 'Overwrite scaffold-owned files when they already exist', false)
@@ -291,6 +298,7 @@ export function registerFeatureCommand(program: Command): void {
     .description('Scaffold one additive query boundary without rewriting parent orchestration')
     .requiredOption('--table <table>', 'Target table name')
     .requiredOption('--action <action>', 'Action: insert, update, delete, get-by-id, or list')
+    .option('--returning <mode>', 'Insert RETURNING shape: all or minimal. Defaults to all.', 'all')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--dry-run', 'Print the files that would be created without writing them', false)
     .option('--force', 'Overwrite scaffold-owned query files when they already exist', false)
@@ -384,11 +392,12 @@ function withConfiguredFeatureRoot<T extends { rootDir?: string; featureRoot?: s
 export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaffoldResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
   const action = normalizeFeatureAction(options.action);
+  const returningMode = normalizeInsertReturningMode(options.returning, action);
   const table = loadDdlTable(rootDir, requireValue(options.table, '--table'));
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
   const featureName = normalizeFeatureName(options.featureName ?? `${toKebab(table.name)}-${action}`);
   const queryName = deriveQueryName(table.name, action);
-  const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn);
+  const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn, returningMode);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
 
   return {
@@ -408,6 +417,7 @@ export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaf
 export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): FeatureScaffoldResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
   const action = normalizeFeatureAction(options.action);
+  const returningMode = normalizeInsertReturningMode(options.returning, action);
   const table = loadDdlTable(rootDir, requireValue(options.table, '--table'));
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
   const queryName = normalizeQueryName(options.queryName);
@@ -423,7 +433,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
     );
   }
 
-  const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn);
+  const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn, returningMode);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
   const featureName = path.basename(boundaryDir);
 
@@ -546,7 +556,7 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
     );
   }
 
-  const sql = readFileSync(sqlPath, 'utf8');
+  const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const queryModel = buildFeatureQueryModel(sql, rootDir);
   const refreshedSource = renderQueryMetadata(queryModel);
   const existingSource = existsSync(metadataPath) ? readFileSync(metadataPath, 'utf8') : '';
@@ -786,8 +796,8 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       if (!existsSync(sqlFile) || !existsSync(queryFile)) {
         continue;
       }
-      const sqlParameters = [...new Set(compileNamedParameters(readFileSync(sqlFile, 'utf8')).orderedNames)].sort();
-      const sql = readFileSync(sqlFile, 'utf8');
+      const sql = normalizeSqlSource(readFileSync(sqlFile, 'utf8'));
+      const sqlParameters = [...new Set(compileNamedParameters(sql).orderedNames)].sort();
       const querySource = readFileSync(queryFile, 'utf8');
       const mapperParameters = extractMapperParameters(querySource, queryName).sort();
       const mapperParameterTypes = extractMapperParameterTypes(querySource, queryName);
@@ -926,10 +936,11 @@ function buildFeatureFiles(
   queryName: string,
   action: FeatureAction,
   table: DdlTable,
-  primaryKeyColumn: string
+  primaryKeyColumn: string,
+  returningMode: InsertReturningMode = 'all'
 ): GeneratedFile[] {
   const boundary = `src/features/${featureName}`;
-  const actionPlan = buildActionPlan(action, table, primaryKeyColumn);
+  const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode);
   return [
     ...buildSharedFiles(),
     { relativePath: boundary, kind: 'directory' },
@@ -965,7 +976,7 @@ function buildFeatureFiles(
       kind: 'file',
       contents: renderFeatureBoundaryTest(featureName, queryName, actionPlan),
     },
-    ...buildQueryFiles(rootDir, boundary, queryName, action, table, primaryKeyColumn),
+    ...buildQueryFiles(rootDir, boundary, queryName, action, table, primaryKeyColumn, returningMode),
   ];
 }
 
@@ -1028,6 +1039,9 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
           : {}),
         ...(typeof parsed.table === 'string' ? { table: parsed.table } : {}),
         ...(typeof parsed.primaryKeyColumn === 'string' ? { primaryKeyColumn: parsed.primaryKeyColumn } : {}),
+        ...(typeof parsed.returningMode === 'string' && INSERT_RETURNING_MODES.includes(parsed.returningMode as InsertReturningMode)
+          ? { returningMode: parsed.returningMode as InsertReturningMode }
+          : {}),
         ...(typeof parsed.anchorSource === 'string' || parsed.anchorSource === null ? { anchorSource: parsed.anchorSource } : {}),
         ...(typeof parsed.anchorTable === 'string' || parsed.anchorTable === null ? { anchorTable: parsed.anchorTable } : {}),
         ...(Array.isArray(parsed.physicalTables)
@@ -1048,6 +1062,9 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
         action: parsed.action as FeatureAction,
         table: parsed.table,
         primaryKeyColumn: parsed.primaryKeyColumn,
+        ...(typeof parsed.returningMode === 'string' && INSERT_RETURNING_MODES.includes(parsed.returningMode as InsertReturningMode)
+          ? { returningMode: parsed.returningMode as InsertReturningMode }
+          : {}),
       };
     }
   } catch {
@@ -1073,7 +1090,7 @@ function buildMetadataBackedResultTypeOverrides(rootDir: string, metadata: Query
     return undefined;
   }
   const table = loadDdlTable(rootDir, metadata.table);
-  const actionPlan = buildActionPlan(metadata.action, table, metadata.primaryKeyColumn);
+  const actionPlan = buildActionPlan(metadata.action, table, metadata.primaryKeyColumn, metadata.returningMode ?? 'all');
   return Object.fromEntries(actionPlan.rows.map((column) => [column.name, toTsType(column)]));
 }
 
@@ -1091,7 +1108,7 @@ function inferQueryTestMetadataFromSql(
 ): QueryTestMetadata | undefined {
   const sqlPath = path.join(queryDir, `${queryName}.sql`);
   if (!existsSync(sqlPath)) return undefined;
-  const sql = readFileSync(sqlPath, 'utf8');
+  const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const statement = parseFeatureQuerySql(sql);
   const action = inferFeatureAction(statement, queryName);
   const imported = inferImportedQueryTestMetadata(rootDir, featureName, queryName, sql);
@@ -1558,10 +1575,11 @@ function buildQueryFiles(
   queryName: string,
   action: FeatureAction,
   table: DdlTable,
-  primaryKeyColumn: string
+  primaryKeyColumn: string,
+  returningMode: InsertReturningMode = 'all'
 ): GeneratedFile[] {
   const queryDir = `${boundary}/queries/${queryName}`;
-  const actionPlan = buildActionPlan(action, table, primaryKeyColumn);
+  const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode);
   const sql = renderActionSql(actionPlan, table, primaryKeyColumn, rootDir);
   return [
     ...buildSharedFiles(),
@@ -1730,7 +1748,7 @@ function buildExpectedGeneratedMappingTestFiles(
 ): GeneratedFile[] {
   if (metadata.importSource === 'existing-sql') {
     const sqlPath = path.join(queryDir, `${queryName}.sql`);
-    const sql = readFileSync(sqlPath, 'utf8');
+    const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
     const queryModel = buildFeatureQueryModel(sql, rootDir);
     const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
     return buildImportedMappingTestFiles(
@@ -1753,9 +1771,10 @@ function buildExpectedGeneratedMappingTestFiles(
     action: metadata.action,
     table: metadata.table,
     primaryKeyColumn: metadata.primaryKeyColumn,
+    ...(metadata.returningMode ? { returningMode: metadata.returningMode } : {}),
   };
   const table = loadDdlTable(rootDir, scaffoldMetadata.table);
-  const actionPlan = buildActionPlan(scaffoldMetadata.action, table, scaffoldMetadata.primaryKeyColumn);
+  const actionPlan = buildActionPlan(scaffoldMetadata.action, table, scaffoldMetadata.primaryKeyColumn, scaffoldMetadata.returningMode ?? 'all');
   return buildGeneratedMappingTestFiles(relativeFeatureDir, scaffoldMetadata, table, actionPlan);
 }
 
@@ -2064,16 +2083,18 @@ function formatValue(value: ValueComponent): string {
   return formatted.match(/^"([A-Za-z_][A-Za-z0-9_$]*)"$/)?.[1] ?? formatted;
 }
 
-function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColumn: string): {
+function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColumn: string, returningMode: InsertReturningMode = 'all'): {
   action: FeatureAction;
   params: DdlColumn[];
   rows: DdlColumn[];
   writeColumns: DdlColumn[];
+  returningMode: InsertReturningMode;
 } {
   const primaryKey = requireColumn(table, primaryKeyColumn);
   if (action === 'insert') {
     const writeColumns = table.columns.filter((column) => !isGeneratedInsertColumn(column, primaryKeyColumn) && column.defaultValue == null);
-    return { action, params: writeColumns, rows: table.columns, writeColumns };
+    const rows = returningMode === 'minimal' ? [primaryKey] : table.columns;
+    return { action, params: writeColumns, rows, writeColumns, returningMode };
   }
   if (action === 'update') {
     const writeColumns = table.columns.filter((column) => column.name !== primaryKeyColumn && !isGeneratedInsertColumn(column, primaryKeyColumn));
@@ -2085,13 +2106,13 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
         { table: table.canonicalName },
       );
     }
-    return { action, params: [primaryKey, ...writeColumns], rows: table.columns, writeColumns };
+    return { action, params: [primaryKey, ...writeColumns], rows: table.columns, writeColumns, returningMode: 'all' };
   }
   if (action === 'delete') {
-    return { action, params: [primaryKey], rows: table.columns, writeColumns: [] };
+    return { action, params: [primaryKey], rows: table.columns, writeColumns: [], returningMode: 'all' };
   }
   if (action === 'get-by-id') {
-    return { action, params: [primaryKey], rows: table.columns, writeColumns: [] };
+    return { action, params: [primaryKey], rows: table.columns, writeColumns: [], returningMode: 'all' };
   }
   const limitColumn: DdlColumn = {
     name: 'limit',
@@ -2100,7 +2121,7 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
     generated: false,
     primaryKey: false,
   };
-  return { action, params: [limitColumn], rows: table.columns, writeColumns: [] };
+  return { action, params: [limitColumn], rows: table.columns, writeColumns: [], returningMode: 'all' };
 }
 
 function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTable, primaryKeyColumn: string, rootDir: string): string {
@@ -2562,6 +2583,7 @@ function renderImportedFeatureReadme(featureName: string, queryName: string): st
     'Generated code is editable after import. Keep SQL visible, named, and directly runnable in a SQL client.',
     'Generated mapper cases prove that representative DB result values can map into the generated DTO shape.',
     'Human/AI-owned SQL logic cases belong under the query-local `tests/cases/` directory.',
+    'For mutation queries, generated mapper cases prove `RETURNING` result compatibility. Use route or integration tests for TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior.',
     '',
   ].join('\n');
 }
@@ -2825,7 +2847,7 @@ function makeConservativeNullableType(typeScriptType: string): string {
 }
 
 function hashSql(sql: string): string {
-  return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+  return `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`;
 }
 
 function formatImportedSqlSafely(sql: string, rootDir: string): { sql: string; formatted: boolean; reason?: string } {
@@ -3121,6 +3143,8 @@ function renderGeneratedTestPlan(featureName: string, queryName: string): string
     '',
     '- Unit tests are mapping-contract tests, not database state management or SQL logic tests.',
     '- Generated mapper cases use lightweight synthetic DB result SQL, usually a SELECT without a FROM clause, to prove DB-to-TypeScript DTO mapping.',
+    '- For INSERT/UPDATE/DELETE queries, generated mapper cases prove RETURNING row compatibility only.',
+    '- TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior belong in route/integration/traditional DB-backed tests.',
     '- Generated mapper cases do not prove source SQL business logic, parameter business meaning, row cardinality, affected-row counts, business mutation targets, transaction isolation, locking, or final database state.',
     '- Ashiba does not infer or check single-row cardinality after scaffolding; row handling in `query.ts` is customer-owned code.',
     '- DTOs are customer-owned after scaffolding. Ashiba may report drift and expected column/type/nullability, but it should not silently rewrite customer-owned DTOs.',
@@ -3148,6 +3172,7 @@ function renderGeneratedTestAnalysis(
     action,
     table: table.canonicalName,
     primaryKeyColumn,
+    returningMode: actionPlan.returningMode,
     mappingCaseSignature: buildMappingCaseSignature(queryName, actionPlan, table, primaryKeyColumn),
     status: 'generated',
   }, null, 2)}\n`;
@@ -3266,6 +3291,9 @@ function buildSyntheticContractRow(
   return Object.fromEntries(fields.map((field) => {
     const column = findDdlColumnForField(table, field.name);
     if (mode === 'nullable' && field.nullability === 'nullable') return [field.name, null];
+    if (column && /^(json|jsonb)$/.test(column.typeName.toLowerCase())) {
+      return [field.name, sampleColumnValueByMode(column, mode)];
+    }
     if (column) return [field.name, coerceSampleToContractType(sampleColumnValueByMode(column, mode), field.typeScriptType)];
     return [field.name, sampleValueForType(field.typeScriptType)];
   }));
@@ -3336,6 +3364,7 @@ function sqlLiteral(value: unknown): string {
   if (value === null || value === undefined) return 'null';
   if (typeof value === 'number') return Number.isFinite(value) ? String(value) : '0';
   if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
@@ -3468,6 +3497,9 @@ function sampleColumnValue(column: DdlColumn, rowNumber: number): unknown {
   if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) {
     return `2026-01-0${rowNumber}T00:00:00.000Z`;
   }
+  if (/^(json|jsonb)$/.test(type)) {
+    return { sample: rowNumber };
+  }
   if (/^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(type)) {
     return rowNumber;
   }
@@ -3498,6 +3530,8 @@ function sampleBoundaryColumnValue(column: DdlColumn): unknown {
   if (/^(real|float|float4|float8|double precision)$/.test(type)) return 123456.5;
   if (/^(numeric|decimal)$/.test(type)) return '1234567890.12345';
   if (/^(boolean|bool)$/.test(type)) return true;
+  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) return '2026-01-02T00:00:00.000Z';
+  if (/^(json|jsonb)$/.test(type)) return { case: 'boundary' };
   if (name.includes('email')) return 'boundary@example.com';
   return `${column.name}-boundary-value`;
 }
@@ -3511,6 +3545,8 @@ function sampleNegativeBoundaryColumnValue(column: DdlColumn): unknown {
   if (/^(real|float|float4|float8|double precision)$/.test(type)) return -123456.5;
   if (/^(numeric|decimal)$/.test(type)) return '-1234567890.12345';
   if (/^(boolean|bool)$/.test(type)) return false;
+  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) return '2026-01-03T00:00:00.000Z';
+  if (/^(json|jsonb)$/.test(type)) return { case: 'negative-boundary' };
   if (name.includes('email')) return 'negative-boundary@example.com';
   return `${column.name}-negative-boundary-value`;
 }
@@ -3531,6 +3567,7 @@ function buildMappingCaseSignature(
     action: actionPlan.action,
     table: table.canonicalName,
     primaryKeyColumn,
+    returningMode: actionPlan.returningMode,
     params: actionPlan.params.map((column) => columnSignature(column)),
     rows: actionPlan.rows.map((column) => columnSignature(column)),
     writeColumns: actionPlan.writeColumns.map((column) => columnSignature(column)),
@@ -3557,7 +3594,7 @@ function columnSignature(column: DdlColumn): Record<string, unknown> {
 function renderTsValue(value: unknown): string {
   return JSON.stringify(value, null, 2)
     .replace(/\n/g, '\n')
-    .replace(/"([^"]+)":/g, (_match, key: string) => `${renderPropertyKey(key)}:`);
+    .replace(/^(\s*)"([^"\\]+)":/gm, (_match, indent: string, key: string) => `${indent}${renderPropertyKey(key)}:`);
 }
 
 function renderTsExpression(value: unknown, continuationIndent: number): string {
@@ -3583,7 +3620,8 @@ function renderFeatureReadme(featureName: string, queryName: string, action: Fea
     '',
     'Generated code is editable after scaffolding. Keep SQL visible, named, and directly runnable in a SQL client.',
     'A feature may contain multiple query boundaries; use feature query scaffold when the behavior needs another SQL access point.',
-    'Transaction policy and feature orchestration belong to application code, not Ashiba.',
+    'Transaction policy and feature orchestration belong to application code, not Ashiba. Compose multiple query boundaries by passing the same FeatureQueryExecutor inside an application-owned transaction callback.',
+    'Generated mapper cases prove DB-to-TypeScript result contracts. For mutations, use route or integration tests for TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior.',
     '',
   ].join('\n');
 }
@@ -3641,6 +3679,27 @@ function normalizeFeatureAction(action: string | undefined): FeatureAction {
     'Use --action insert, update, delete, get-by-id, or list.',
     { action, supported: FEATURE_ACTIONS },
   );
+}
+
+function normalizeInsertReturningMode(value: string | undefined, action: FeatureAction): InsertReturningMode {
+  const normalized = (value ?? 'all').trim().toLowerCase();
+  if (!INSERT_RETURNING_MODES.includes(normalized as InsertReturningMode)) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_RETURNING_MODE_UNSUPPORTED',
+      `Unsupported --returning value: ${value}.`,
+      'Use --returning all or --returning minimal.',
+      { value, supported: INSERT_RETURNING_MODES },
+    );
+  }
+  if (action !== 'insert' && normalized !== 'all') {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_RETURNING_MODE_INSERT_ONLY',
+      '--returning minimal is only supported for insert scaffolds.',
+      'Use --returning minimal with --action insert, or omit --returning for other actions.',
+      { action, returning: normalized },
+    );
+  }
+  return normalized as InsertReturningMode;
 }
 
 function normalizeFeatureName(value: string): string {

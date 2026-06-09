@@ -62,6 +62,42 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(calls).toEqual([{ sql: 'select * from users where id = $1 and status = $2', values: [1, 'active'] }]);
   });
 
+  test('does not reject precomputed query model binding for CRLF-only source changes', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const sourceSql = [
+      'select *',
+      'from users',
+      'where id = :id',
+      '',
+    ].join('\n');
+    const crlfSourceSql = sourceSql.replace(/\n/g, '\r\n');
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+
+    await adapter.execute(querySource(crlfSourceSql, {
+      analysis: {
+        astParse: 'ok',
+        statementKind: 'select',
+        hasTopLevelOrderBy: false,
+        sourceHash: hashSql(sourceSql),
+      },
+      bindings: {
+        postgres: {
+          sourceHash: hashSql(sourceSql),
+          sql: 'select *\nfrom users\nwhere id = $1\n',
+          orderedNames: ['id'],
+        },
+      },
+    }), { id: 1 }, {});
+
+    expect(calls).toEqual([{ sql: 'select *\nfrom users\nwhere id = $1\n', values: [1] }]);
+  });
+
   test('rejects stale precomputed query model binding', async () => {
     let called = false;
     const sourceSql = 'select * from users where id = :id';
@@ -2049,7 +2085,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 });
 
 function hashSql(sql: string): string {
-  return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+  return `sha256:${createHash('sha256').update(sql.replace(/\r\n?/g, '\n')).digest('hex')}`;
 }
 
 function querySource(sourceSql: string, queryModel: AshibaPostgresQueryModel = queryModelFor(sourceSql)) {

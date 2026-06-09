@@ -197,11 +197,15 @@ export const COMMANDS: readonly CommandSpec[] = [
     options: [
       { flags: '--table <table>', description: 'Target table name. Required.' },
       { flags: '--action <action>', description: 'Action: insert, update, delete, get-by-id, or list. Required.' },
+      { flags: '--returning <mode>', description: 'Insert RETURNING shape: all or minimal. Defaults to all.' },
       commonRoot,
       commonDryRun,
       commonForce,
     ],
-    examples: ['npx ashiba feature scaffold users-list --table users --action list'],
+    examples: [
+      'npx ashiba feature scaffold users-list --table users --action list',
+      'npx ashiba feature scaffold users-insert --table users --action insert --returning minimal',
+    ],
   },
   {
     name: 'feature import',
@@ -237,11 +241,15 @@ export const COMMANDS: readonly CommandSpec[] = [
     options: [
       { flags: '--table <table>', description: 'Target table name. Required.' },
       { flags: '--action <action>', description: 'Action: insert, update, delete, get-by-id, or list. Required.' },
+      { flags: '--returning <mode>', description: 'Insert RETURNING shape: all or minimal. Defaults to all.' },
       commonRoot,
       commonDryRun,
       commonForce,
     ],
-    examples: ['npx ashiba feature query scaffold users get-by-id --table users --action get-by-id'],
+    examples: [
+      'npx ashiba feature query scaffold users get-by-id --table users --action get-by-id',
+      'npx ashiba feature query scaffold users create-user --table users --action insert --returning minimal',
+    ],
   },
   {
     name: 'feature query refresh',

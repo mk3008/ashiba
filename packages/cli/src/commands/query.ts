@@ -30,6 +30,7 @@ import {
   buildPostgresSafeSortBindingMetadata,
   buildQueryResultColumnContracts,
 } from './model-gen.js';
+import { normalizeSqlSource } from '../sql-source.js';
 
 export interface QueryUsesOptions {
   format?: 'text' | 'json';
@@ -673,6 +674,7 @@ function looksLikeFeatureQuerySql(sqlPath: string): boolean {
 }
 
 function renderQueryMetadataForSql(sql: string, rootDir: string, ddlDir?: string): string {
+  sql = normalizeSqlSource(sql);
   const postgres = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, ddlDir);
   const parameters = [...new Set(postgres.orderedNames)];
@@ -780,7 +782,7 @@ function refreshOptionalConditionQueryMetadata(
   }
   const rootDir = path.resolve(options.rootDir ?? process.cwd());
   const sqlPath = path.resolve(report.output_file);
-  const sql = readFileSync(sqlPath, 'utf8');
+  const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const metadataPath = path.join(path.dirname(sqlPath), 'generated', 'query.meta.ts');
   mkdirSync(path.dirname(metadataPath), { recursive: true });
   writeFileSync(metadataPath, renderQueryMetadataForSql(sql, rootDir, options.ddlDir), 'utf8');
@@ -795,7 +797,7 @@ function resolveOptionalConditionSubqueryInput(sqlText: string | undefined, sqlF
       { options: ['--query', '--query-file'] },
     );
   }
-  return sqlText ?? (sqlFile ? readFileSync(sqlFile, 'utf8') : undefined);
+  return sqlText ?? (sqlFile ? normalizeSqlSource(readFileSync(sqlFile, 'utf8')) : undefined);
 }
 
 function requireOption(value: string | undefined, label: string): string {

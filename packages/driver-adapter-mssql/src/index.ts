@@ -230,5 +230,9 @@ function bindCompiledNamedParameters(
 }
 
 function hashSql(sql: string): string {
-  return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+  return `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`;
+}
+
+function normalizeSqlSource(sql: string): string {
+  return sql.replace(/\r\n?/g, '\n');
 }

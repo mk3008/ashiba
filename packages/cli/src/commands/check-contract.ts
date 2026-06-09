@@ -15,6 +15,7 @@ import {
   type LoadedSqlCatalogSpec,
 } from '../sqlgrep/utils/sqlCatalogDiscovery.js';
 import { invalidCliInputError } from '../errors.js';
+import { normalizeSqlSource } from '../sql-source.js';
 
 export interface CheckContractOptions {
   rootDir?: string;
@@ -402,7 +403,7 @@ function runCatalogContractCheck(options: {
       } else if (!resolvedSql) {
         issues.push(`SQL file does not exist: ${sqlFileValue}.`);
       } else {
-        const sql = readFileSync(resolvedSql, 'utf8');
+        const sql = normalizeSqlSource(readFileSync(resolvedSql, 'utf8'));
         const compiled = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
         const orderedUniqueSqlParameters = [...new Set(compiled.orderedNames)];
         sqlParameters = [...orderedUniqueSqlParameters].sort();
@@ -758,7 +759,7 @@ function extractStringArray(block: string, propertyName: string): string[] {
 }
 
 function hashSql(sql: string): string {
-  return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+  return `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`;
 }
 
 function readDeclaredParameters(loaded: LoadedSqlCatalogSpec): string[] {
