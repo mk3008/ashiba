@@ -93,8 +93,8 @@ These concepts are extension capabilities outside the core `@ashiba-ts/cli` Runt
 
 | ID | Display name | Status | Target package |
 |---|---|---|---|
-| `pipeline-expansion` | Pipeline Expansion | mostly done | Dev-time CTE structure, graph, slice, and plan support is folded into `@ashiba-ts/cli` query commands because it supports Runtime Zero review and has no separate runtime consumer. |
-| `scalar-expansion` | Scalar Expansion | deferred | Extension capability planned from `rawsql-ts` / `ztd-cli` optional-condition tooling; deferred for the current pass. |
+| `pipeline-expansion` | Pipeline Expansion | mostly done | Dev-time CTE structure, graph, slice, and plan support is folded into `@ashiba-ts/cli` query commands because it supports Runtime Zero review and has no separate runtime consumer. Historical `rawsql-ts` / `ztd-cli` pipeline execution notes are preserved in `docs/internal/references/rawsql-query-pipeline-reference.md` as reference material, not product documentation. |
+| `scalar-expansion` | Scalar Expansion | deferred | Extension capability planned from `rawsql-ts` / `ztd-cli` optional-condition tooling; deferred for the current pass. Historical scalar-filter candidate analysis notes are preserved in `docs/internal/references/rawsql-query-pipeline-reference.md`. |
 
 Future `@ashiba-ts/extension-*` packages are reserved until a plugin mechanism exists.
 
