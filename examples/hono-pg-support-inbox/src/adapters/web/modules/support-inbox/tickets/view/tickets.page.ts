@@ -222,6 +222,18 @@ type DemoErrorDiagnosis = {
 function diagnoseDemoError(error: unknown): DemoErrorDiagnosis {
   const code = readErrorCode(error);
   const message = error instanceof Error ? error.message : String(error);
+  const name = error instanceof Error ? error.name : '';
+
+  if (name === 'OptimisticConcurrencyConflict') {
+    return {
+      code: 'OPTIMISTIC_CONCURRENCY_CONFLICT',
+      summary: 'The ticket was changed before this update could be applied.',
+      actions: [
+        'Reload the ticket detail and retry with the latest version_key.',
+        'Review the update-ticket-status SQL to see the version_key condition.',
+      ],
+    };
+  }
 
   if (
     code === 'ASHIBA_QUERY_MODEL_STALE' ||
@@ -402,7 +414,9 @@ function renderDetail(summary: GetTicketDetailQueryResult | undefined, messages:
         <div><dt>言語</dt><dd>${languageLabel(summary.language)}</dd></div>
         <div><dt>チャネル</dt><dd>${channelLabel(summary.channel)}</dd></div>
         <div><dt>更新日時</dt><dd>${formatDate(summary.updated_at)}</dd></div>
+        <div><dt>version_key</dt><dd>${summary.version_key ?? '-'}</dd></div>
       </dl>
+      ${renderStatusUpdateForm(summary)}
     </div>
     <div class="messages">
       <h3>メッセージ履歴</h3>
@@ -413,6 +427,18 @@ function renderDetail(summary: GetTicketDetailQueryResult | undefined, messages:
       </form>
     </div>
   </section>`;
+}
+
+function renderStatusUpdateForm(summary: GetTicketDetailQueryResult): string {
+  const ticketId = summary.ticket_id;
+  if (ticketId === null || summary.version_key === null) {
+    return '';
+  }
+  return `<form class="statusUpdateForm" method="post" action="/tickets/${ticketId}/status">
+    <input type="hidden" name="expected_version_key" value="${summary.version_key}">
+    ${select('status', 'ステータス更新', statusOptions.filter((option) => option.value !== ''), text(summary.status))}
+    <button type="submit">更新</button>
+  </form>`;
 }
 
 function renderQueryConsole(_filters: TicketFilters, inspection: SupportInboxViewModel['inspection']): string {
@@ -836,6 +862,8 @@ function styles(): string {
     dl div { display: grid; grid-template-columns: 90px 1fr; gap: 12px; }
     dt { color: #667085; font-weight: 700; }
     dd { margin: 0; }
+    .statusUpdateForm { display: grid; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #edf0f5; }
+    .statusUpdateForm button { min-height: 36px; border: 0; border-radius: 6px; background: #1459b8; color: #fff; font-weight: 800; cursor: pointer; }
     .messages { padding: 18px; display: grid; gap: 12px; align-content: start; }
     .messageCard { border: 1px solid #edf0f5; border-radius: 8px; padding: 12px; background: #fff; }
     .messageCard div { display: flex; gap: 10px; align-items: center; color: #667085; font-size: 12px; }

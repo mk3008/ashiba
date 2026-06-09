@@ -14,6 +14,7 @@ export type CreateTicketBeforeDb = {
       sla_due_at?: unknown;
       created_at?: unknown;
       updated_at?: unknown;
+      version_key?: unknown;
       metadata?: unknown;
     }[];
   };

@@ -6,11 +6,11 @@ export const queryModel = {
     "statementKind": "select",
     "rootQueryShape": "simple-select",
     "hasTopLevelOrderBy": true,
-    "sourceHash": "sha256:57b7018d4bdf25b627c4249e8ed5564a8e3088495ed2df57f3f22768c2bcb293",
+    "sourceHash": "sha256:681381ec5695d3bb3ec855297ca77ebc8d2dcd49dd66135fbdf3f6d50df55cbf",
     "safeSort": {
       "insertion": {
         "status": "ready",
-        "index": 524,
+        "index": 543,
         "mode": "prepend-comma"
       },
       "sortable": {
@@ -40,6 +40,9 @@ export const queryModel = {
         },
         "updated_at": {
           "sql": "t.updated_at"
+        },
+        "version_key": {
+          "sql": "t.version_key"
         },
         "customer_name": {
           "sql": "c.name"
@@ -84,7 +87,8 @@ export const queryModel = {
       "status",
       "subject",
       "ticket_id",
-      "updated_at"
+      "updated_at",
+      "version_key"
     ],
     "resultColumnTypes": {
       "channel": "string",
@@ -102,7 +106,8 @@ export const queryModel = {
       "status": "string",
       "subject": "string",
       "ticket_id": "number",
-      "updated_at": "unknown"
+      "updated_at": "unknown",
+      "version_key": "number"
     },
     "namedParameters": [
       "ticketId"
@@ -113,13 +118,13 @@ export const queryModel = {
   },
   "bindings": {
     "postgres": {
-      "sourceHash": "sha256:57b7018d4bdf25b627c4249e8ed5564a8e3088495ed2df57f3f22768c2bcb293",
-      "sql": "select\n    t.ticket_id,\n    t.subject,\n    t.status,\n    t.priority,\n    t.language,\n    t.channel,\n    t.sla_due_at,\n    t.created_at,\n    t.updated_at,\n    c.name as customer_name,\n    c.tier as customer_tier,\n    tm.message_id,\n    tm.sender_name,\n    tm.sender_role,\n    tm.body as message_body,\n    tm.created_at as message_created_at\nfrom public.tickets t\njoin public.customers c on c.customer_id = t.customer_id\nleft join public.ticket_messages tm on tm.ticket_id = t.ticket_id\nwhere t.ticket_id = $1\norder by tm.created_at asc, tm.message_id asc\n",
+      "sourceHash": "sha256:681381ec5695d3bb3ec855297ca77ebc8d2dcd49dd66135fbdf3f6d50df55cbf",
+      "sql": "select\n    t.ticket_id,\n    t.subject,\n    t.status,\n    t.priority,\n    t.language,\n    t.channel,\n    t.sla_due_at,\n    t.created_at,\n    t.updated_at,\n    t.version_key,\n    c.name as customer_name,\n    c.tier as customer_tier,\n    tm.message_id,\n    tm.sender_name,\n    tm.sender_role,\n    tm.body as message_body,\n    tm.created_at as message_created_at\nfrom public.tickets t\njoin public.customers c on c.customer_id = t.customer_id\nleft join public.ticket_messages tm on tm.ticket_id = t.ticket_id\nwhere t.ticket_id = $1\norder by tm.created_at asc, tm.message_id asc\n",
       "orderedNames": [
         "ticketId"
       ],
       "safeSortInsertion": {
-        "index": 517
+        "index": 536
       },
       "optionalConditionCompression": {
         "branches": []

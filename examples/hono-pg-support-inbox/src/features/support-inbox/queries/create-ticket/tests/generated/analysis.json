@@ -167,6 +167,14 @@
         "primaryKey": false
       },
       {
+        "name": "version_key",
+        "typeName": "integer",
+        "nullable": false,
+        "defaultValue": "1",
+        "generated": false,
+        "primaryKey": false
+      },
+      {
         "name": "metadata",
         "typeName": "jsonb",
         "nullable": false,

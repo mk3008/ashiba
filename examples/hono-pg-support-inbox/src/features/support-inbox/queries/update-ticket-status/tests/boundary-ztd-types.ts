@@ -1,7 +1,7 @@
 import type { QuerySpecZtdCase } from '#tests/support/ztd/case-types.js';
-import type { ListTicketsQueryParams, ListTicketsQueryResult } from '../query.js';
+import type { UpdateTicketStatusQueryParams, UpdateTicketStatusQueryResult } from '../query.js';
 
-export type ListTicketsBeforeDb = {
+export type UpdateTicketStatusBeforeDb = {
   public: {
     tickets: readonly {
       ticket_id?: unknown;
@@ -20,15 +20,15 @@ export type ListTicketsBeforeDb = {
   };
 };
 
-export type ListTicketsQueryBoundaryZtdCase = QuerySpecZtdCase<
-  ListTicketsBeforeDb,
-  ListTicketsQueryParams,
-  ListTicketsQueryResult[]
+export type UpdateTicketStatusQueryBoundaryZtdCase = QuerySpecZtdCase<
+  UpdateTicketStatusBeforeDb,
+  UpdateTicketStatusQueryParams,
+  UpdateTicketStatusQueryResult[]
 >;
 
-export type ListTicketsQueryMappingZtdCase = QuerySpecZtdCase<
-  ListTicketsBeforeDb,
-  ListTicketsQueryParams,
+export type UpdateTicketStatusQueryMappingZtdCase = QuerySpecZtdCase<
+  UpdateTicketStatusBeforeDb,
+  UpdateTicketStatusQueryParams,
   unknown
 >;
 

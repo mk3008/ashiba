@@ -1,16 +1,18 @@
 # Ashiba Hono PostgreSQL Support Inbox Demo
 
-This example is a read-heavy web application demo for Ashiba with a minimal Create flow.
+This example is a read-heavy web application demo for Ashiba with small Create and optimistic Update flows.
 
 It shows a support inbox built with Hono, PostgreSQL, `pg`, Ashiba feature query boundaries, optional-condition compression, safe sort, mapper tests, and drift checks.
 
-The goal is not to prove every CRUD path. The main demo focuses on the `R` side: a real list screen where SQL remains visible, reviewable, and directly runnable while TypeScript support is generated around it. A small ticket registration flow is included to show that mutation boundaries can also stay visible, generated, mapper-tested, and transaction-owned by the application.
+The goal is not to prove every CRUD path. The main demo focuses on the `R` side: a real list screen where SQL remains visible, reviewable, and directly runnable while TypeScript support is generated around it. Small ticket registration and status-update flows are included to show that mutation boundaries can also stay visible, generated, mapper-tested, optimistic-lock aware, and transaction-owned by the application.
 
 ## What This Demo Shows
 
 - `GET /tickets` renders a practical support inbox list.
 - `GET /tickets/new` and `POST /tickets` create a ticket plus its first message through visible `INSERT ... RETURNING` SQL.
 - The Create flow composes two generated mutation query boundaries inside the application-owned `withPgTransaction` helper.
+- `POST /tickets/:ticketId/status` updates ticket status through visible optimistic-concurrency SQL.
+- The Update flow uses `version_key` as a configured optimistic-lock column: the SQL checks `version_key = :expected_version_key`, increments `version_key`, and treats zero updated rows as a conflict.
 - Filters are passed as SQL parameters and handled by Ashiba optional-condition compression.
 - The list SQL applies source-proximal filtering: ticket, customer, and tag scope are narrowed before latest-message lookup, customer-reply aggregation, and tag aggregation.
 - Keyword search stays in a PostgreSQL-natural SSSQL shape such as `(:keyword is null or subject ilike '%' || :keyword || '%')`; when `keyword` is present, the adapter executes the predicate without the null guard.
@@ -71,6 +73,43 @@ The workflow code then composes the generated boundaries with normal application
 
 This is the point of the pattern: Ashiba does not hide the mutation behind an ORM runtime, but the repetitive SQL boundary, DTO, mapper fixture, metadata, and drift-check work can still be scaffolded.
 
+## Optimistic Update Pattern
+
+The status update flow shows the complementary mutation pattern: a user edits a row that may have changed since the page was rendered.
+
+The demo config declares a conventional lock column:
+
+```json
+{
+  "mutation": {
+    "optimisticLock": {
+      "versionColumn": "version_key",
+      "scaffold": "when-column-exists"
+    }
+  }
+}
+```
+
+The visible SQL keeps the concurrency rule reviewable:
+
+```sql
+update public.tickets
+set
+    status = :status
+    , updated_at = :updated_at
+    , version_key = version_key + 1
+where
+    ticket_id = :ticket_id
+    and version_key = :expected_version_key
+returning
+    ticket_id
+    , status
+    , updated_at
+    , version_key;
+```
+
+The generated query boundary returns zero rows when the expected version is stale. Application-owned workflow code converts that into `OptimisticConcurrencyConflict`, and the route returns `409`.
+
 ## Transaction Composition
 
 Ashiba query boundaries do not begin, commit, or roll back transactions by themselves. Keep transaction policy at the application or adapter boundary.
@@ -101,6 +140,8 @@ This is intentional: Ashiba keeps SQL boundaries generated and reviewable, while
 - `src/features/support-inbox/queries/list-tickets/list-tickets.sql` is the main demo SQL.
 - `src/features/support-inbox/queries/create-ticket/create-ticket.sql` and `src/features/support-inbox/queries/create-ticket-message/create-ticket-message.sql` are the visible mutation SQL files.
 - `src/features/support-inbox/create-ticket.ts` composes the ticket header insert and first message detail insert.
+- `src/features/support-inbox/queries/update-ticket-status/update-ticket-status.sql` is the optimistic update SQL.
+- `src/features/support-inbox/update-ticket-status.ts` converts zero updated rows into an application-level conflict.
 - `src/features/support-inbox/queries/list-tickets/generated/query.meta.ts` shows safe sort and optional-condition metadata.
 - `src/adapters/web/modules/support-inbox/tickets/request/tickets.request.ts` maps public UI filters, preset sort choices, and grid-header sort choices to safe Ashiba inputs.
 - `src/adapters/web/modules/support-inbox/tickets/view/tickets.presenter.ts` wires the generated query functions to the application-owned `pg` pool and captures SQL inspection events for the demo panel.
@@ -257,7 +298,7 @@ Each edit exercise keeps a verified `solution.patch` and a verification script s
 
 ## Demo Boundary
 
-This is still primarily a list/read demo. It includes a minimal Create lane to prove the mutation boundary, but it does not claim to cover the full CUD surface.
+This is still primarily a list/read demo. It includes minimal Create and optimistic Update lanes to prove the mutation boundary, but it does not claim to cover the full CUD surface.
 
 Future demo lanes should cover:
 

@@ -22,4 +22,5 @@ returning
     , sla_due_at
     , created_at
     , updated_at
+    , version_key
     , metadata;

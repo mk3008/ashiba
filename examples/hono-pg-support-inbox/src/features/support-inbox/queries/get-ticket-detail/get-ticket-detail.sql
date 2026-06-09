@@ -8,6 +8,7 @@ select
     t.sla_due_at,
     t.created_at,
     t.updated_at,
+    t.version_key,
     c.name as customer_name,
     c.tier as customer_tier,
     tm.message_id,

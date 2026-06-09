@@ -4,6 +4,7 @@ import type { Hono } from 'hono';
 import { logApiRequest } from '#adapters/logger/appLogger.js';
 import { createPgSqlClient, withPgTransaction } from '#adapters/pg/pool.js';
 import { createSupportTicket, listTicketCustomerOptions } from '#features/support-inbox/create-ticket.js';
+import { OptimisticConcurrencyConflict, updateTicketStatus } from '#features/support-inbox/update-ticket-status.js';
 import type { WebAppDependencies } from '../../../../app.js';
 import { parseTicketFilters } from '../request/tickets.request.js';
 import { renderCreateTicketPage, renderError, renderSupportInbox } from '../view/tickets.page.js';
@@ -96,6 +97,39 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       });
       const customers = await listTicketCustomerOptions(executor);
       return c.html(renderCreateTicketPage({ customers, error }));
+    }
+  });
+
+  app.post('/tickets/:ticketId/status', async (c) => {
+    const ticketId = c.req.param('ticketId');
+    const requestId = c.req.header('x-request-id') ?? randomUUID();
+    const requestContext = {
+      requestId,
+      apiMethod: 'POST',
+      apiPath: '/tickets/:ticketId/status',
+      apiRoute: 'POST /tickets/:ticketId/status',
+      operation: 'support-inbox.update-status',
+    };
+    const startedAt = Date.now();
+    c.header('x-request-id', requestId);
+    logApiRequest({ ...requestContext, phase: 'start' });
+    try {
+      const body = await c.req.parseBody();
+      const result = await withPgTransaction(dependencies.pool, (executor) =>
+        updateTicketStatus(executor, { ...body, ticket_id: ticketId }),
+        {
+          executeOptions: {
+            metadata: requestContext,
+          },
+        },
+      );
+      logApiRequest({ ...requestContext, phase: 'end', status: 303, elapsedMs: Date.now() - startedAt });
+      return c.redirect(`/tickets?ticketId=${encodeURIComponent(String(result.ticket_id ?? ticketId))}#ticket-detail`, 303);
+    } catch (error) {
+      const status = error instanceof OptimisticConcurrencyConflict ? 409 : 400;
+      c.status(status);
+      logApiRequest({ ...requestContext, phase: 'error', status, elapsedMs: Date.now() - startedAt, error });
+      return c.html(renderError(error));
     }
   });
 }

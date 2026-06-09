@@ -43,6 +43,7 @@ export interface GetTicketDetailQueryResult {
   subject: string | null;
   ticket_id: number | null;
   updated_at: unknown;
+  version_key: number | null;
 }
 
 type QueryRow = GetTicketDetailQueryResult;

@@ -1,6 +1,6 @@
 # Support Inbox CUD Dogfooding Log
 
-このファイルは、Support Inbox demo に Create flow を追加したときの dogfooding 記録です。
+このファイルは、Support Inbox demo に Create flow と optimistic Update flow を追加したときの dogfooding 記録です。
 
 目的は「Ashiba は R だけでなく CUD / mutation でも実用できるのか」を確認し、実装中に見つかった摩擦、改善点、比較材料を残すことです。
 
@@ -19,7 +19,7 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - transaction policy を Ashiba runtime ではなく application boundary に置ける
 - ORM runtime に隠れないため、変更後に人間が review すべき範囲が見えやすい
 
-これは仮説です。今回の Create 実装では、実際に楽だった点、つらかった点、誤解しやすい点、改善すべき点を記録します。
+これは仮説です。今回の Create / optimistic Update 実装では、実際に楽だった点、つらかった点、誤解しやすい点、改善すべき点を記録します。
 
 ## 対象フロー
 
@@ -124,6 +124,17 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - example の route-level E2E に、Create後のDB行を直接確認するテストを追加した。
 - 同じく route-level E2E に、初回message insertをDB triggerで失敗させ、先に実行されたticket insertがtransaction rollbackされることを確認するテストを追加した。
 
+### 2026-06-09: optimistic update の観察
+
+- `tickets.version_key integer not null default 1` を追加した。
+- `ashiba.config.json` に `mutation.optimisticLock.versionColumn = "version_key"` と `scaffold = "when-column-exists"` を追加した。
+- `update-ticket-status` は visible SQL として、`where ticket_id = :ticket_id and version_key = :expected_version_key` を持つ。
+- 更新成功時は `version_key = version_key + 1` し、`returning ticket_id, status, updated_at, version_key` を返す。
+- query boundary は 0 rows を例外化しない。これは SQL 実行結果として自然である。
+- application-owned workflow の `updateTicketStatus` が 0 rows を `OptimisticConcurrencyConflict` に変換する。
+- route-level E2E で、成功時に `version_key` が進むことと、stale version で 409 を返して DB 状態を変えないことを確認した。
+- `feature import` が update SQL にも `optionalConditionCompression: true` を付けると adapter 側で失敗した。これは non-select imported query では不要なので、CLI generator 側で付けないように修正した。
+
 ## 検証結果
 
 2026-06-09 時点:
@@ -134,10 +145,10 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - `pnpm --dir examples/hono-pg-support-inbox verify` passed
 - `pnpm --dir examples/hono-pg-support-inbox ashiba:verify` passed
 
-`ashiba:verify` では warning が1件残る。
+`ashiba:verify` / `check:drift` では warning が2件残る。
 
 - `ASHIBA_PROJECT_INSERT_DEFAULT_COLUMN_OMITTED`
-- 対象は `public.tickets.metadata`
+- 対象は `public.tickets.version_key` と `public.tickets.metadata`
 - 今回の demo では DB default を意図的に使っているため許容する
 
 ## 改善点
@@ -154,10 +165,13 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - Generated feature README と generated TEST_PLAN に、CUD の mapper test が `RETURNING` result contract を証明し、TS -> DB / transaction / persisted state は route / integration / traditional DB-backed test で見る、という役割分担を追加した。
 - `ashiba init` の generated `withPgTransaction` コメント、example README、feature README に transaction composition の説明を追加した。同じ `FeatureQueryExecutor` を application-owned transaction callback 内で複数 query boundary に渡す、という形を明示した。
 - example README と feature README に、既存 feature へ `feature query scaffold` で `create-ticket` / `create-ticket-message` を追加し、ヘッダー + 明細の初回作成を組み立てる導線を追加した。
+- example に optimistic update lane を追加した。`version_key` を DDL/config/SQL/UI に出し、stale version を route-level E2E で 409 として検証した。
+- update scaffold は config の optimistic lock column を見て、該当列がある場合に `expected_version_key` と `version_key = version_key + 1` を生成するようにした。
 
 ### 今後の改善候補
 
 - P1: 既存 feature に mutation query を追加する exercise は、必要になったら追加する。Create flow 自体は README / feature README でヘッダー + 明細の scaffold recipe として説明済み。
+- P1: optimistic update exercise は追加価値がある。SQL上で `version_key` 条件を見せ、stale update を AI にテストさせる課題にできる。
 - P1: 生成後に `RETURNING` をさらに業務都合の shape へ調整する導線はまだ弱い。`--returning minimal` は primary key だけを返す初期 scaffold option であり、任意の returned columns を指定する機能ではない。
 - P1: write columns を SQL-side default / literal / `now()` に寄せる mutation customization の導線はまだ弱い。これは params、query.ts、analysis.json、mapper cases、drift check に影響するため、設計してから入れる。
 - P1: lightweight app logger scaffold は検討価値がある。ただし万人向け初期生成としては重くなりやすいので、現時点では no-op hook + richer metadata に留める。
@@ -166,7 +180,7 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 
 ## 暫定評価
 
-今回の Create lane では、Ashiba が CUD でも成立することは確認できた。
+今回の Create / optimistic Update lane では、Ashiba が CUD でも成立することは確認できた。
 
 ただし、Ashiba の価値は「CRUD scaffold が一発で終わる」ことではない。むしろ、scaffold 後に SQL、DTO、mapper tests、drift check、route-level tests を通じて、変更の影響範囲を見える形で保てることにある。
 

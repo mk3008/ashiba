@@ -126,6 +126,12 @@
         "typeScriptType": "unknown",
         "sqlType": "text",
         "nullability": "unknown"
+      },
+      {
+        "name": "version_key",
+        "typeScriptType": "number | null",
+        "sqlType": "integer",
+        "nullability": "unknown"
       }
     ],
     "generatedCaseNames": [

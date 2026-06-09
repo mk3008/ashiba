@@ -6,7 +6,7 @@ export const queryModel = {
     "statementKind": "insert",
     "rootQueryShape": "non-select",
     "hasTopLevelOrderBy": false,
-    "sourceHash": "sha256:a558569040a1c8620e483637c5c3b39a9a8ede95a91586c67d2ad0965e306bb3",
+    "sourceHash": "sha256:f771de57cf96def923df9ff11460deb9c1230bb216d5dbea5e35ea153612daf2",
     "safeSort": {
       "insertion": {
         "status": "unresolved",
@@ -25,7 +25,8 @@ export const queryModel = {
       "status",
       "subject",
       "ticket_id",
-      "updated_at"
+      "updated_at",
+      "version_key"
     ],
     "resultColumnTypes": {
       "channel": "string",
@@ -38,7 +39,8 @@ export const queryModel = {
       "status": "string",
       "subject": "string",
       "ticket_id": "number",
-      "updated_at": "unknown"
+      "updated_at": "unknown",
+      "version_key": "number"
     },
     "namedParameters": [
       "customer_id",
@@ -65,8 +67,8 @@ export const queryModel = {
   },
   "bindings": {
     "postgres": {
-      "sourceHash": "sha256:a558569040a1c8620e483637c5c3b39a9a8ede95a91586c67d2ad0965e306bb3",
-      "sql": "insert into public.tickets(\n    customer_id\n    , subject\n    , status\n    , priority\n    , language\n    , channel\n    , sla_due_at\n    , created_at\n    , updated_at\n)\nvalues\n    ($1, $2, $3, $4, $5, $6, $7, $8, $9)\nreturning\n    ticket_id\n    , customer_id\n    , subject\n    , status\n    , priority\n    , language\n    , channel\n    , sla_due_at\n    , created_at\n    , updated_at\n    , metadata;\n",
+      "sourceHash": "sha256:f771de57cf96def923df9ff11460deb9c1230bb216d5dbea5e35ea153612daf2",
+      "sql": "insert into public.tickets(\n    customer_id\n    , subject\n    , status\n    , priority\n    , language\n    , channel\n    , sla_due_at\n    , created_at\n    , updated_at\n)\nvalues\n    ($1, $2, $3, $4, $5, $6, $7, $8, $9)\nreturning\n    ticket_id\n    , customer_id\n    , subject\n    , status\n    , priority\n    , language\n    , channel\n    , sla_due_at\n    , created_at\n    , updated_at\n    , version_key\n    , metadata;\n",
       "orderedNames": [
         "customer_id",
         "subject",

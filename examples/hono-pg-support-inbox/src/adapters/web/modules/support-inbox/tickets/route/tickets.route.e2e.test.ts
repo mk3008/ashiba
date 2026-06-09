@@ -258,9 +258,10 @@ describeDb('support inbox HTTP filters', () => {
       language: string;
       channel: string;
       sla_due_at: Date | null;
+      version_key: number;
       metadata: Record<string, unknown>;
     }>(
-      `select ticket_id, customer_id, subject, status, priority, language, channel, sla_due_at, metadata
+      `select ticket_id, customer_id, subject, status, priority, language, channel, sla_due_at, version_key, metadata
        from public.tickets
        where ticket_id = $1`,
       [ticketId],
@@ -273,6 +274,7 @@ describeDb('support inbox HTTP filters', () => {
       language: 'ja',
       channel: 'email',
       sla_due_at: null,
+      version_key: 1,
       metadata: {},
     })]);
 
@@ -346,6 +348,82 @@ describeDb('support inbox HTTP filters', () => {
       [subject],
     );
     expect(remainingTickets.rows[0]?.count).toBe('0');
+  });
+
+  test('updates ticket status with optimistic concurrency control', async () => {
+    const initial = await pool.query<{ ticket_id: string; version_key: number }>(
+      `select ticket_id, version_key
+       from public.tickets
+       where status = 'waiting_agent'
+       order by ticket_id
+       limit 1`,
+    );
+    const ticket = initial.rows[0];
+    expect(ticket).toBeTruthy();
+
+    const updateResponse = await app.request(`/tickets/${ticket.ticket_id}/status`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        status: 'resolved',
+        expected_version_key: String(ticket.version_key),
+      }),
+    });
+
+    expect(updateResponse.status).toBe(303);
+    expect(updateResponse.headers.get('location')).toBe(`/tickets?ticketId=${ticket.ticket_id}#ticket-detail`);
+
+    const updated = await pool.query<{ status: string; version_key: number }>(
+      `select status, version_key
+       from public.tickets
+       where ticket_id = $1`,
+      [ticket.ticket_id],
+    );
+    expect(updated.rows[0]).toEqual({
+      status: 'resolved',
+      version_key: ticket.version_key + 1,
+    });
+  });
+
+  test('returns 409 when ticket status update uses a stale version_key', async () => {
+    const initial = await pool.query<{ ticket_id: string; version_key: number; status: string }>(
+      `select ticket_id, version_key, status
+       from public.tickets
+       where status = 'waiting_agent'
+       order by ticket_id
+       limit 1`,
+    );
+    const ticket = initial.rows[0];
+    expect(ticket).toBeTruthy();
+
+    await pool.query(
+      `update public.tickets
+       set version_key = version_key + 1
+       where ticket_id = $1`,
+      [ticket.ticket_id],
+    );
+
+    const conflictResponse = await app.request(`/tickets/${ticket.ticket_id}/status`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        status: 'resolved',
+        expected_version_key: String(ticket.version_key),
+      }),
+    });
+    const html = await conflictResponse.text();
+
+    expect(conflictResponse.status).toBe(409);
+    expect(html).toContain('OPTIMISTIC_CONCURRENCY_CONFLICT');
+    expect(html).toContain('version_key');
+
+    const unchanged = await pool.query<{ status: string }>(
+      `select status
+       from public.tickets
+       where ticket_id = $1`,
+      [ticket.ticket_id],
+    );
+    expect(unchanged.rows[0]?.status).toBe(ticket.status);
   });
 });
 
