@@ -1,0 +1,12 @@
+diff --git a/examples/hono-pg-support-inbox/db/ddl/public.sql b/examples/hono-pg-support-inbox/db/ddl/public.sql
+index 7b1d5c9..0d7e7c4 100644
+--- a/examples/hono-pg-support-inbox/db/ddl/public.sql
++++ b/examples/hono-pg-support-inbox/db/ddl/public.sql
+@@ -3,6 +3,7 @@ create table public.customers (
+     name text not null,
+     tier text not null check (tier in ('vip', 'standard')),
+     locale text not null default 'ja',
++    timezone text not null default 'Asia/Tokyo',
+     created_at timestamptz not null default now()
+ );
+ 

@@ -1,22 +1,101 @@
 import { randomUUID } from 'node:crypto';
 import type { Hono } from 'hono';
 
+import { logApiRequest } from '#adapters/logger/appLogger.js';
+import { createPgSqlClient, withPgTransaction } from '#adapters/pg/pool.js';
+import { createSupportTicket, listTicketCustomerOptions } from '#features/support-inbox/create-ticket.js';
 import type { WebAppDependencies } from '../../../../app.js';
 import { parseTicketFilters } from '../request/tickets.request.js';
-import { renderError, renderSupportInbox } from '../view/tickets.page.js';
+import { renderCreateTicketPage, renderError, renderSupportInbox } from '../view/tickets.page.js';
 import { loadSupportInbox } from '../view/tickets.presenter.js';
 
 export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies): void {
+  app.get('/tickets/new', async (c) => {
+    const requestId = c.req.header('x-request-id') ?? randomUUID();
+    const requestContext = {
+      requestId,
+      apiMethod: 'GET',
+      apiPath: '/tickets/new',
+      apiRoute: 'GET /tickets/new',
+      operation: 'support-inbox.create.form',
+    };
+    const startedAt = Date.now();
+    c.header('x-request-id', requestId);
+    logApiRequest({ ...requestContext, phase: 'start' });
+    try {
+      const executor = createPgSqlClient(dependencies.pool, {
+        executeOptions: {
+          metadata: requestContext,
+        },
+      });
+      const customers = await listTicketCustomerOptions(executor);
+      logApiRequest({ ...requestContext, phase: 'end', status: 200, elapsedMs: Date.now() - startedAt });
+      return c.html(renderCreateTicketPage({ customers }));
+    } catch (error) {
+      c.status(503);
+      logApiRequest({ ...requestContext, phase: 'error', status: 503, elapsedMs: Date.now() - startedAt, error });
+      return c.html(renderError(error));
+    }
+  });
+
   app.get('/tickets', async (c) => {
     const filters = parseTicketFilters(new URL(c.req.url));
     const requestId = c.req.header('x-request-id') ?? randomUUID();
+    const requestContext = {
+      requestId,
+      apiMethod: 'GET',
+      apiPath: '/tickets',
+      apiRoute: 'GET /tickets',
+      operation: 'support-inbox.list',
+    };
+    const startedAt = Date.now();
     c.header('x-request-id', requestId);
+    logApiRequest({ ...requestContext, phase: 'start' });
     try {
-      const viewModel = await loadSupportInbox(dependencies.pool, filters, { requestId });
+      const viewModel = await loadSupportInbox(dependencies.pool, filters, requestContext);
+      logApiRequest({ ...requestContext, phase: 'end', status: 200, elapsedMs: Date.now() - startedAt });
       return c.html(renderSupportInbox(filters, viewModel));
     } catch (error) {
       c.status(503);
+      logApiRequest({ ...requestContext, phase: 'error', status: 503, elapsedMs: Date.now() - startedAt, error });
       return c.html(renderError(error));
+    }
+  });
+
+  app.post('/tickets', async (c) => {
+    const requestId = c.req.header('x-request-id') ?? randomUUID();
+    const requestContext = {
+      requestId,
+      apiMethod: 'POST',
+      apiPath: '/tickets',
+      apiRoute: 'POST /tickets',
+      operation: 'support-inbox.create',
+    };
+    const startedAt = Date.now();
+    c.header('x-request-id', requestId);
+    logApiRequest({ ...requestContext, phase: 'start' });
+    try {
+      const body = await c.req.parseBody();
+      const result = await withPgTransaction(dependencies.pool, (executor) =>
+        createSupportTicket(executor, body),
+        {
+          executeOptions: {
+            metadata: requestContext,
+          },
+        },
+      );
+      logApiRequest({ ...requestContext, phase: 'end', status: 303, elapsedMs: Date.now() - startedAt });
+      return c.redirect(`/tickets?ticketId=${encodeURIComponent(result.ticket.ticket_id)}#ticket-detail`, 303);
+    } catch (error) {
+      c.status(400);
+      logApiRequest({ ...requestContext, phase: 'error', status: 400, elapsedMs: Date.now() - startedAt, error });
+      const executor = createPgSqlClient(dependencies.pool, {
+        executeOptions: {
+          metadata: requestContext,
+        },
+      });
+      const customers = await listTicketCustomerOptions(executor);
+      return c.html(renderCreateTicketPage({ customers, error }));
     }
   });
 }

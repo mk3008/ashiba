@@ -1,0 +1,155 @@
+{
+  "feature": "support-inbox",
+  "query": "create-ticket-message",
+  "action": "insert",
+  "table": "public.ticket_messages",
+  "primaryKeyColumn": "message_id",
+  "returningMode": "all",
+  "mappingCaseSignature": {
+    "query": "create-ticket-message",
+    "action": "insert",
+    "table": "public.ticket_messages",
+    "primaryKeyColumn": "message_id",
+    "returningMode": "all",
+    "params": [
+      {
+        "name": "ticket_id",
+        "typeName": "bigint",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "sender_name",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "sender_role",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "body",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "created_at",
+        "typeName": "timestamptz",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      }
+    ],
+    "rows": [
+      {
+        "name": "message_id",
+        "typeName": "bigserial",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": true
+      },
+      {
+        "name": "ticket_id",
+        "typeName": "bigint",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "sender_name",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "sender_role",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "body",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "created_at",
+        "typeName": "timestamptz",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      }
+    ],
+    "writeColumns": [
+      {
+        "name": "ticket_id",
+        "typeName": "bigint",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "sender_name",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "sender_role",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "body",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "created_at",
+        "typeName": "timestamptz",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      }
+    ],
+    "generatedCaseNames": [
+      "db-type-mapping: maps create-ticket-message DB result values into the DTO",
+      "boundary-value-mapping: maps create-ticket-message DB result values into the DTO",
+      "negative-boundary-value-mapping: maps create-ticket-message DB result values into the DTO"
+    ]
+  },
+  "status": "generated"
+}

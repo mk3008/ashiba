@@ -1,4 +1,4 @@
-# support-inbox/get-ticket-detail Test Plan
+# support-inbox/create-ticket Test Plan
 
 This generated file is library-owned and may be refreshed by Ashiba.
 

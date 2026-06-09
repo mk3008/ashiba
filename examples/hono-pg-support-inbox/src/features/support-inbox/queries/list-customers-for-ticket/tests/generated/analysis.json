@@ -1,0 +1,74 @@
+{
+  "feature": "support-inbox",
+  "query": "list-customers-for-ticket",
+  "action": "list",
+  "table": "public.customers",
+  "primaryKeyColumn": "customer_id",
+  "returningMode": "all",
+  "mappingCaseSignature": {
+    "query": "list-customers-for-ticket",
+    "action": "list",
+    "table": "public.customers",
+    "primaryKeyColumn": "customer_id",
+    "returningMode": "all",
+    "params": [
+      {
+        "name": "limit",
+        "typeName": "integer",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      }
+    ],
+    "rows": [
+      {
+        "name": "customer_id",
+        "typeName": "bigserial",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": true
+      },
+      {
+        "name": "name",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "tier",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": null,
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "locale",
+        "typeName": "text",
+        "nullable": false,
+        "defaultValue": "'ja'",
+        "generated": false,
+        "primaryKey": false
+      },
+      {
+        "name": "created_at",
+        "typeName": "timestamptz",
+        "nullable": false,
+        "defaultValue": "now()",
+        "generated": false,
+        "primaryKey": false
+      }
+    ],
+    "writeColumns": [],
+    "generatedCaseNames": [
+      "db-type-mapping: maps list-customers-for-ticket DB result values into the DTO",
+      "boundary-value-mapping: maps list-customers-for-ticket DB result values into the DTO",
+      "negative-boundary-value-mapping: maps list-customers-for-ticket DB result values into the DTO"
+    ]
+  },
+  "status": "generated"
+}

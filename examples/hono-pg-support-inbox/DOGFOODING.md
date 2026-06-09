@@ -189,6 +189,23 @@ Product note:
 - CLI DDL-aware lint now carries outer CTE names into nested CTE queries, so CTE-to-CTE references are not mistaken for missing physical DDL tables.
 - CLI Postgres binding metadata now compiles grouped optional-condition removal text with full SQL placeholder context, so runtime optional compression does not reject valid refreshed metadata when earlier parameters appear before the grouped `where`.
 
+### Windows clean clone exposed line-ending-sensitive drift
+
+The 2026-06-09 external example evaluation found that a fresh Windows clone with `core.autocrlf=true` could still fail `check:drift` before any user edit. The reported drift was mainly `sourceHash` and source offset changes after refreshing query metadata, which strongly suggests that SQL source hashing and range metadata are still sensitive to CRLF vs LF working-tree line endings.
+
+Resolution in this demo:
+
+- Resolved for the reproduced local customer-test path.
+- Added repository line-ending policy so Ashiba's own example checkout keeps SQL and generated metadata assets on stable line endings.
+- Normalized SQL source line endings at the Ashiba CLI and driver metadata-validation boundaries, so CRLF-only checkout differences do not create false `sourceHash`, safe sort, optional compression, or Postgres binding drift.
+- Re-ran the failing customer scenario by temporarily converting the support inbox SQL files to CRLF; `check:drift` now passes without refreshing generated assets.
+
+Product note:
+
+- The demo promises that `check:drift` must pass in a clean clone. This should hold even when a customer checkout or editor uses CRLF for visible SQL.
+- Ashiba should not try to own every customer repository's Git policy. It should canonicalize SQL line endings only at metadata-sensitive boundaries where CRLF vs LF has no SQL meaning.
+- The GitHub workflow now includes a Windows `core.autocrlf=true` drift job. Keep the dogfooding status partial until that job has passed on GitHub Actions.
+
 ## Current Verification
 
 - `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox db:seed`: passed
@@ -204,7 +221,7 @@ This report is treated as customer-style dogfooding feedback. It covers a fresh 
 
 | Priority | Status | Task | Notes |
 | --- | --- | --- | --- |
-| P0 | done | Ship the support inbox demo in a clone-to-green state. | The report found `check:drift` failures and `/tickets` HTTP 503 from stale query metadata. The example now documents `typecheck`, `test`, `check:drift`, and `verify`; current dogfooding verification records those checks as passing. Keep this as a release-blocking demo invariant. |
+| P0 | partial | Ship the support inbox demo in a clone-to-green state. | The first report's stale metadata and `/tickets` HTTP 503 issues were fixed for the verified local path. The 2026-06-09 example evaluation reopened this invariant because Windows clean clone with `core.autocrlf=true` could fail `check:drift` from line-ending-sensitive metadata. The CRLF SQL customer-test reproduction now passes after line-ending normalization, and CI now has a Windows autocrlf drift job. Keep this partial until the GitHub Actions job passes. |
 | P0 | done | Add CI coverage for the example drift and HTTP route path. | The GitHub workflow `.github/workflows/verify.yml` starts PostgreSQL directly from the example directory, seeds the DB, and runs `pnpm --dir examples/hono-pg-support-inbox verify`, which includes `check:drift` and route-level Vitest coverage. |
 | P0 | done | Separate metadata drift from database-startup failures on the demo error page. | The `/tickets` error page now identifies query metadata drift separately and points to `check:drift` / `ashiba:generate`; PostgreSQL startup failures point to `db:up` and direct `docker compose up -d`. Route E2E covers both messages. |
 | P0 | done | Cover adapter composition where optional-condition compression and safe sort interact. | The report found `where and ...` and safe-sort insertion-position failures after compression and placeholder renumbering. Driver-adapter regression coverage now covers this composition, and route-level E2E exercises public filters plus safe sort. |
@@ -214,6 +231,21 @@ This report is treated as customer-style dogfooding feedback. It covers a fresh 
 | P1 | partial | Strengthen project-level checks so runtime composition issues are caught before browser dogfooding. | The example CI now runs route-level tests, and adapter unit tests cover the known composition bug. Remaining question: whether `ashiba check --full`, generated verification, or example CI should own full HTTP route execution for future examples. |
 | P1 | done | Improve the performance demonstration for source-proximal filtering. | `list-tickets.sql` now narrows ticket/customer/tag scope before latest-message lookup, customer-reply aggregation, and tag aggregation, while preserving visible SQL, paging, count, safe sort, keyword semantics, and full tag display. This also dogfooded refresh, DDL-aware lint, generated mapper contracts, and route-level SQL inspection. |
 | P2 | open | Add a separate CUD / mutation dogfooding lane. | The report could not evaluate CUD, transaction boundaries, mutation mapper tests, optimistic locking, audit, or affected-row behavior. This should be a separate adoption demo or clearly scoped extension, not hidden inside the read-heavy demo. |
+
+## External Example Evaluation Report Dogfooding Tasks
+
+Source: `ashiba-example-evaluation-report.md`, dated 2026-06-09.
+
+This report is treated as customer-style dogfooding feedback focused on the shipped `examples/hono-pg-support-inbox` experience. It confirmed that the demo now builds, seeds PostgreSQL, serves `/tickets`, and passes DB-backed route tests when the environment is prepared. It also found a remaining Windows clean-clone drift path.
+
+| Priority | Status | Task | Notes |
+| --- | --- | --- | --- |
+| P0 | partial | Make Windows clean clone pass `check:drift`. | CRLF-only SQL changes are now tolerated by `check:drift` in the reproduced customer-test path. A Windows `core.autocrlf=true` CI job now checks clean checkout drift; keep partial until CI evidence is available. |
+| P0 | done | Add a repository line-ending policy for source SQL and generated Ashiba assets. | Root `.gitattributes` now pins SQL, TypeScript, JSON, Markdown, YAML, and related source assets intentionally for Ashiba's own checkout experience. |
+| P0 | done | Decide and implement line-ending normalization for `sourceHash` and source ranges. | Ashiba now normalizes SQL line endings at CLI metadata generation/check boundaries and driver metadata-validation boundaries. This avoids false drift without taking ownership of the customer's whole Git policy. |
+| P1 | done | Add an autocrlf/CRLF regression check. | CI now runs a Windows `core.autocrlf=true` checkout, checks clean drift, then forces the support inbox SQL files to CRLF and reruns `check:drift`. This covers the regression shape; the broader clone-to-green invariant remains partial until the CI job has passed. |
+| P1 | done | Reconfirm `verify` includes DB-backed route coverage in the public path. | `verify` runs `pnpm test`; the example CI copies `.env.example`, starts PostgreSQL, seeds the DB, and then runs `verify`. `tests/support/setup-env.ts` derives `ASHIBA_TEST_DATABASE_URL` from `.env`, so the route-level E2E tests are included in the public CI path when the DB-backed environment is prepared. |
+| P2 | open | Preserve browser-visual verification as optional evidence. | The report could not use Codex Browser control and only confirmed HTTP 200. This is not a product blocker, but visual smoke screenshots remain useful for demo polish. |
 
 ## Remaining Product Questions
 
@@ -227,7 +259,7 @@ This report is treated as customer-style dogfooding feedback. It covers a fresh 
 | P1 | done | Preserve required predicates after leading optional branch removal. | Fixed in the PostgreSQL driver adapter. `where (:email is null or email = :email) and tenant_id = :tenant_id` now compresses to `where tenant_id = $1` when `email` is null, so `where true` is no longer required for correctness. |
 | P1 | done | Provide a user-facing safe sort surface. | The demo page shows the public sort labels, the safe sort key sequence each label maps to, and the fixed `ticket_id asc` stable suffix. A future CLI/helper could still reduce app-owned display wiring, but the adoption demo surface is present. |
 | P1 | done | Add a SQL inspection panel to the demo. | The demo page shows the selected sort, safe sort keys, stable suffix, bound parameter names, and compiled SQL captured from the Ashiba PostgreSQL adapter observer. Users can see the visible SQL story without reading terminal logs. |
-| P1 | open | Add README AI edit exercise. | The planning doc calls for a 5-10 minute edit exercise, but the example README currently focuses on running and verifying the demo. |
+| P1 | done | Add README AI edit exercise entrypoint. | The exercises already existed under `examples/hono-pg-support-inbox/exercises/`; the README now points users to the review and patch-backed edit exercises. |
 | P2 | open | Add a separate CUD demo lane. | The support inbox demo intentionally proves the read-heavy path only. The external evaluation report also flags CUD, transactions, mutation mapper tests, optimistic locking, audit, and affected-row behavior as unevaluated. |
 | P2 | open | Decide whether CUD belongs in the same example app. | Keeping it separate protects the read demo's focus; sharing the same domain may make the adoption story easier to compare. This needs human product judgment. |
 | P2 | partial | Decide the standard owner for full runtime composition checks. | Optional compression and safe sort now have direct regression coverage, and example CI runs the route-level demo tests. Remaining question: whether `ashiba check --full`, generated verification, or per-example CI should own this pattern for future examples and customer projects. |

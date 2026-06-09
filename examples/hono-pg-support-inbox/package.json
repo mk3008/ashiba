@@ -9,7 +9,7 @@
     "test": "vitest run",
     "verify": "pnpm typecheck && pnpm check:drift && pnpm test",
     "test:mapper": "vitest run src/features -t ZTD",
-    "ashiba:generate": "node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox list-tickets && node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox get-ticket-detail",
+    "ashiba:generate": "node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox list-tickets && node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox get-ticket-detail && node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox list-customers-for-ticket && node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox create-ticket && node node_modules/@ashiba-ts/cli/dist/index.js feature query refresh support-inbox create-ticket-message",
     "check:drift": "node node_modules/@ashiba-ts/cli/dist/index.js check",
     "ashiba:verify": "node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command \"vitest run\"",
     "db:up": "docker compose up -d",

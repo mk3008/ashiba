@@ -38,6 +38,7 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('href="/tickets?sort=customer_name.asc#ticket-list"');
     expect(html).toContain('請求書のダウンロードができない');
     expect(html).toContain('Live Query Console');
+    expect(html).toContain('GET /tickets');
     expect(html).toContain('<td>$1</td><td>limit</td><td>10</td>');
     expect(html).toContain('<td>$2</td><td>offset</td><td>0</td>');
     expect(html).toContain('with tag_matched_tickets as');
@@ -53,6 +54,18 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('並び順: 未指定');
     expect(html).toContain('order by st.ticket_id');
     expect(html).not.toContain('order by case when t.sla_due_at is not null');
+  });
+
+  test('renders the new ticket form', async () => {
+    const response = await app.request('/tickets/new');
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expectReadyHtml(html);
+    expect(html).toContain('新規チケット');
+    expect(html).toContain('action="/tickets" method="post"');
+    expect(html).toContain('山田 太郎');
+    expect(html).toContain('初回メッセージ');
   });
 
   test('preserves inbound request id for log correlation', async () => {
@@ -203,6 +216,136 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('order by cast(st.customer_name as text) asc, st.updated_at desc, st.ticket_id');
     expect(html).toContain('data-sort-key="customer_name">顧客<span class="sortMarker">↑</span>');
     expect(html).toContain('data-sort-key="updated_at">更新日時<span class="sortMarker">↓2</span>');
+  });
+
+  test('creates a ticket and initial customer message through the HTTP route', async () => {
+    const body = new URLSearchParams({
+      customer_id: '1',
+      subject: 'CUDデモから登録した問い合わせ',
+      priority: 'high',
+      language: 'ja',
+      channel: 'email',
+      sla_due_at: '',
+      message_body: 'Create flowで登録された初回メッセージです。',
+    });
+    const createResponse = await app.request('/tickets', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+
+    expect(createResponse.status).toBe(303);
+    const location = createResponse.headers.get('location');
+    expect(location).toMatch(/^\/tickets\?ticketId=\d+#ticket-detail$/);
+    const ticketId = location?.match(/ticketId=(\d+)/)?.[1];
+    expect(ticketId).toBeTruthy();
+
+    const detailResponse = await app.request(location ?? '/tickets');
+    const html = await detailResponse.text();
+
+    expect(detailResponse.status).toBe(200);
+    expectReadyHtml(html);
+    expect(html).toContain('CUDデモから登録した問い合わせ');
+    expect(html).toContain('Create flowで登録された初回メッセージです。');
+    expect(html).toContain('山田 太郎');
+
+    const ticketResult = await pool.query<{
+      ticket_id: string;
+      customer_id: string;
+      subject: string;
+      status: string;
+      priority: string;
+      language: string;
+      channel: string;
+      sla_due_at: Date | null;
+      metadata: Record<string, unknown>;
+    }>(
+      `select ticket_id, customer_id, subject, status, priority, language, channel, sla_due_at, metadata
+       from public.tickets
+       where ticket_id = $1`,
+      [ticketId],
+    );
+    expect(ticketResult.rows).toEqual([expect.objectContaining({
+      customer_id: '1',
+      subject: 'CUDデモから登録した問い合わせ',
+      status: 'waiting_agent',
+      priority: 'high',
+      language: 'ja',
+      channel: 'email',
+      sla_due_at: null,
+      metadata: {},
+    })]);
+
+    const messageResult = await pool.query<{
+      sender_name: string;
+      sender_role: string;
+      body: string;
+    }>(
+      `select sender_name, sender_role, body
+       from public.ticket_messages
+       where ticket_id = $1
+       order by message_id`,
+      [ticketId],
+    );
+    expect(messageResult.rows).toEqual([{
+      sender_name: '山田 太郎',
+      sender_role: 'customer',
+      body: 'Create flowで登録された初回メッセージです。',
+    }]);
+  });
+
+  test('rolls back the ticket insert when the initial message insert fails', async () => {
+    const subject = 'rollbackされるCreateテスト';
+    const forcedFailureBody = 'forced message insert rollback probe';
+
+    try {
+      await pool.query(`
+        create or replace function public.fail_ticket_message_insert_for_test()
+        returns trigger
+        language plpgsql
+        as $$
+        begin
+          if new.body = 'forced message insert rollback probe' then
+            raise exception 'forced message insert failure';
+          end if;
+          return new;
+        end;
+        $$;
+      `);
+      await pool.query(`
+        create trigger fail_ticket_message_insert_for_test
+        before insert on public.ticket_messages
+        for each row
+        execute function public.fail_ticket_message_insert_for_test();
+      `);
+
+      const createResponse = await app.request('/tickets', {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          customer_id: '1',
+          subject,
+          priority: 'medium',
+          language: 'ja',
+          channel: 'web',
+          sla_due_at: '',
+          message_body: forcedFailureBody,
+        }),
+      });
+      const html = await createResponse.text();
+
+      expect(createResponse.status).toBe(400);
+      expect(html).toContain('forced message insert failure');
+    } finally {
+      await pool.query('drop trigger if exists fail_ticket_message_insert_for_test on public.ticket_messages');
+      await pool.query('drop function if exists public.fail_ticket_message_insert_for_test()');
+    }
+
+    const remainingTickets = await pool.query<{ count: string }>(
+      'select count(*)::text as count from public.tickets where subject = $1',
+      [subject],
+    );
+    expect(remainingTickets.rows[0]?.count).toBe('0');
   });
 });
 
