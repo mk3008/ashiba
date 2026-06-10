@@ -1,6 +1,5 @@
 import type { GetTicketDetailQueryResult } from '#features/support-inbox/list-tickets/queries/get-ticket-detail/query.js';
 import type { ListTicketsQueryResult } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
-import type { TicketCustomerOption } from '#features/support-inbox/create-ticket/create-ticket.js';
 import {
   ticketColumnSortInputs,
   type TicketColumnSortKey,
@@ -14,6 +13,13 @@ import type { SupportInboxViewModel } from './tickets.presenter.js';
 type Option = {
   value: string;
   label: string;
+};
+
+type TicketCustomerOption = {
+  customer_id: string;
+  name: string;
+  tier: string;
+  locale: string;
 };
 
 const statusOptions: Option[] = [

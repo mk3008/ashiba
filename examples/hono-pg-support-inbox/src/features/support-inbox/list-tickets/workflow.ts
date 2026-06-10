@@ -2,9 +2,9 @@ import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecuto
 import type { SupportInboxRequest } from './input.js';
 import { executeListTicketsQuery, type ListTicketsQueryParams, type ListTicketsQueryResult } from './queries/list-tickets/query.js';
 
-export type SupportInboxWorkflowResult = ListTicketsQueryResult[];
+type SupportInboxWorkflowResult = ListTicketsQueryResult[];
 
-export interface SupportInboxQueries {
+interface SupportInboxQueries {
   executeListTickets: (
     executor: FeatureQueryExecutor,
     params: ListTicketsQueryParams,

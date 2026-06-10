@@ -1,41 +1,10 @@
-import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
-import {
-  executeUpdateTicketStatusQuery,
-  type UpdateTicketStatusQueryResult,
-} from './queries/update-ticket-status/query.js';
-
 export type UpdateTicketStatusRequest = {
   ticket_id: string;
   status: string;
   expected_version_key: number;
 };
 
-export class OptimisticConcurrencyConflict extends Error {
-  constructor(ticketId: string, expectedVersionKey: number) {
-    super(`Ticket ${ticketId} was changed before this update could be applied. Expected version_key ${expectedVersionKey}.`);
-    this.name = 'OptimisticConcurrencyConflict';
-  }
-}
-
-export async function updateTicketStatus(
-  executor: FeatureQueryExecutor,
-  rawRequest: unknown,
-): Promise<UpdateTicketStatusQueryResult> {
-  const request = parseUpdateTicketStatusRequest(rawRequest);
-  const rows = await executeUpdateTicketStatusQuery(executor, {
-    ticket_id: request.ticket_id,
-    status: request.status,
-    updated_at: new Date().toISOString(),
-    expected_version_key: request.expected_version_key,
-  });
-  const row = rows[0];
-  if (!row) {
-    throw new OptimisticConcurrencyConflict(request.ticket_id, request.expected_version_key);
-  }
-  return row;
-}
-
-function parseUpdateTicketStatusRequest(raw: unknown): UpdateTicketStatusRequest {
+export function parseRequest(raw: unknown): UpdateTicketStatusRequest {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
     throw new Error('Update ticket status request must be an object.');
   }

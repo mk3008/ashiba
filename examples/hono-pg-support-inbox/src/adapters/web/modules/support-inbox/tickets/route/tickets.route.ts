@@ -3,8 +3,9 @@ import type { Hono } from 'hono';
 
 import { logApiRequest } from '#adapters/logger/appLogger.js';
 import { createPgSqlClient, withPgTransaction } from '#adapters/pg/pool.js';
-import { createSupportTicket, listTicketCustomerOptions } from '#features/support-inbox/create-ticket/create-ticket.js';
-import { OptimisticConcurrencyConflict, updateTicketStatus } from '#features/support-inbox/update-ticket-status/update-ticket-status.js';
+import { execute as executeCreateTicket } from '#features/support-inbox/create-ticket/boundary.js';
+import { execute as executeListTicketCustomerOptions } from '#features/support-inbox/list-ticket-customer-options/boundary.js';
+import { execute as executeUpdateTicketStatus } from '#features/support-inbox/update-ticket-status/boundary.js';
 import type { WebAppDependencies } from '../../../../app.js';
 import { parseTicketFilters } from '../request/tickets.request.js';
 import { renderCreateTicketPage, renderError, renderSupportInbox } from '../view/tickets.page.js';
@@ -29,7 +30,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
           metadata: requestContext,
         },
       });
-      const customers = await listTicketCustomerOptions(executor);
+      const customers = (await executeListTicketCustomerOptions(executor, {})).items;
       logApiRequest({ ...requestContext, phase: 'end', status: 200, elapsedMs: Date.now() - startedAt });
       return c.html(renderCreateTicketPage({ customers }));
     } catch (error) {
@@ -78,7 +79,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
     try {
       const body = await c.req.parseBody();
       const result = await withPgTransaction(dependencies.pool, (executor) =>
-        createSupportTicket(executor, body),
+        executeCreateTicket(executor, body),
         {
           executeOptions: {
             metadata: requestContext,
@@ -95,7 +96,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
           metadata: requestContext,
         },
       });
-      const customers = await listTicketCustomerOptions(executor);
+      const customers = (await executeListTicketCustomerOptions(executor, {})).items;
       return c.html(renderCreateTicketPage({ customers, error }));
     }
   });
@@ -116,7 +117,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
     try {
       const body = await c.req.parseBody();
       const result = await withPgTransaction(dependencies.pool, (executor) =>
-        updateTicketStatus(executor, { ...body, ticket_id: ticketId }),
+        executeUpdateTicketStatus(executor, { ...body, ticket_id: ticketId }),
         {
           executeOptions: {
             metadata: requestContext,
@@ -128,7 +129,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       logApiRequest({ ...requestContext, phase: 'end', status: 303, elapsedMs: Date.now() - startedAt });
       return c.redirect(location, 303);
     } catch (error) {
-      const status = error instanceof OptimisticConcurrencyConflict ? 409 : 400;
+      const status = error instanceof Error && error.name === 'OptimisticConcurrencyConflict' ? 409 : 400;
       c.status(status);
       logApiRequest({ ...requestContext, phase: 'error', status, elapsedMs: Date.now() - startedAt, error });
       return c.html(renderError(error));

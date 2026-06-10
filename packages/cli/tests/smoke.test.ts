@@ -4548,10 +4548,53 @@ describe('@ashiba-ts/cli smoke', () => {
         path: 'src/features/users-list/boundary.ts',
         exists: true,
       });
+      expect(rfba.features[0]?.standard).toEqual({
+        status: 'standard',
+        warnings: [],
+      });
       expect(rfba.features[0]?.queries[0]?.sql).toEqual({
         path: 'src/features/users-list/queries/list/list.sql',
         exists: true,
       });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('reports RFBA standard drift as warnings without failing ownership checks', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-rfba-standard-warning-'));
+
+    try {
+      const featureDir = path.join(rootDir, 'src/features/users-list');
+      const queryDir = path.join(featureDir, 'queries/list');
+      mkdirSync(queryDir, { recursive: true });
+      writeFileSync(path.join(featureDir, 'boundary.ts'), [
+        'export type { UsersListRequest } from \'./input.js\';',
+        'export async function execute(): Promise<void> {}',
+        'export async function customEntrypoint(): Promise<void> {}',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(featureDir, 'input.ts'), 'export function parseInput(raw: unknown): unknown { return raw; }\n', 'utf8');
+      writeFileSync(path.join(featureDir, 'workflow.ts'), 'export async function executeWorkflow(raw: unknown): Promise<unknown> { return raw; }\n', 'utf8');
+      writeFileSync(path.join(featureDir, 'output.ts'), 'export function buildOutput(value: unknown): unknown { return value; }\n', 'utf8');
+      writeFileSync(path.join(queryDir, 'query.ts'), 'export {};\n', 'utf8');
+      writeFileSync(path.join(queryDir, 'list.sql'), 'select 1;\n', 'utf8');
+
+      const rfba = runRfbaInspect({ rootDir });
+
+      expect(rfba.attainment).toMatchObject({
+        overall: 'done',
+        issueCount: 0,
+        nextActions: [],
+      });
+      expect(rfba.features[0]?.standard.status).toBe('custom');
+      expect(rfba.features[0]?.standard.warnings).toEqual([
+        'Boundary exposes multiple runtime entrypoints (execute, customEntrypoint); RFBA expects one primary function entrypoint, usually execute. Split the boundary or mark this as custom-owned code if the extra entrypoints are intentional.',
+        'Input boundary should expose parseRequest(raw: unknown): src/features/users-list/input.ts.',
+        'Workflow should expose a Queries interface so query dependencies stay injectable: src/features/users-list/workflow.ts.',
+        'Workflow should receive parsed input, not raw unknown input: src/features/users-list/workflow.ts.',
+        'Output boundary should expose buildResult(...): src/features/users-list/output.ts.',
+      ]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

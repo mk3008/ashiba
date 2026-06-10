@@ -69,7 +69,7 @@ npx ashiba feature tests check create-ticket --query create-ticket --fix
 npx ashiba feature tests check create-ticket --query create-ticket-message --fix
 ```
 
-The workflow code then composes the generated boundaries with normal application code. `createSupportTicket` validates the input, looks up the selected customer, inserts the ticket header, inserts the first message detail, and returns the new ticket id. The web route owns HTTP parsing, redirect/error rendering, and the transaction scope.
+The workflow code then composes the generated boundaries with normal application code. The `create-ticket` feature exposes `execute` as its boundary entrypoint; inside the feature, `input.ts`, `workflow.ts`, and `output.ts` keep parsing, orchestration, and response shaping reviewable. The workflow validates the input, looks up the selected customer, inserts the ticket header, inserts the first message detail, and returns the new ticket id. The web route owns HTTP parsing, redirect/error rendering, and the transaction scope.
 
 This is the point of the pattern: Ashiba does not hide the mutation behind an ORM runtime, but the repetitive SQL boundary, DTO, mapper fixture, metadata, and drift-check work can still be scaffolded.
 
@@ -118,12 +118,12 @@ The Create flow uses this shape:
 
 ```ts
 await withPgTransaction(pool, async (executor) => {
-  const result = await createSupportTicket(executor, body);
+  const result = await executeCreateTicket(executor, body);
   return result;
 });
 ```
 
-Inside `createSupportTicket`, the same `FeatureQueryExecutor` is passed to both mutation query boundaries:
+Inside the `create-ticket` workflow, the same `FeatureQueryExecutor` is passed to both mutation query boundaries:
 
 ```text
 create-ticket
@@ -133,6 +133,28 @@ create-ticket-message
 Because both calls share the same borrowed PostgreSQL client, they commit or roll back together. The route-level tests verify both the successful persisted state and the rollback path when the second insert fails.
 
 This is intentional: Ashiba keeps SQL boundaries generated and reviewable, while customer-owned application code decides where transactions start, which isolation level to use, and how workflow failures should be reported.
+
+## RFBA Shape Inspection
+
+This demo keeps each use-case feature in the Ashiba scaffold standard shape:
+
+```text
+boundary.ts  -> exposes execute as the feature entrypoint
+input.ts     -> parses and normalizes caller input
+workflow.ts  -> composes query boundaries through injectable Queries
+output.ts    -> shapes the caller-facing result
+queries/     -> visible SQL, query metadata, and mapper tests
+```
+
+Run RFBA inspection after hand edits:
+
+```sh
+npx ashiba rfba inspect
+```
+
+The inspection uses `ashiba.config.json` `featureRoot`, so this example's subsystem root `src/features/support-inbox` is handled directly. Non-standard shapes are reported as warnings, not errors; customer-owned code can intentionally diverge, but the divergence stays visible during review.
+
+RFBA treats boundary files as module closure points. A boundary may expose more than one contract type, but it should usually expose only one runtime function entrypoint. Multiple exported functions are a review signal: either the feature boundary is too broad, or implementation details are leaking through over-export.
 
 ## Files To Inspect
 

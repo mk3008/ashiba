@@ -3,9 +3,6 @@ import { parseRequest, type SupportInboxRequest } from './input.js';
 import { buildResult, type SupportInboxResponse } from './output.js';
 import { executeWorkflow } from './workflow.js';
 
-export type { SupportInboxRequest } from './input.js';
-export type { SupportInboxResponse } from './output.js';
-
 /**
  * Executes the support-inbox feature boundary.
  *
