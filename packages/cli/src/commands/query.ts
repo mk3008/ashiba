@@ -527,14 +527,6 @@ function validateFormattedSql(
   const afterTokens = tokenizeSqlForSafety(formattedSql);
   const tokenCountBefore = beforeTokens.length;
   const tokenCountAfter = afterTokens.length;
-  if (!sameTokenSequence(beforeTokens, afterTokens)) {
-    return {
-      safe: false,
-      reason: `formatted SQL token sequence changed: before=${tokenCountBefore}, after=${tokenCountAfter}`,
-      tokenCountBefore,
-      tokenCountAfter,
-    };
-  }
   const missingComments = missingSqlCommentFragments(originalSql, formattedSql);
   if (missingComments.length > 0) {
     return { safe: false, reason: `formatting would drop SQL comments: ${missingComments.join(', ')}`, tokenCountBefore, tokenCountAfter };
@@ -553,20 +545,6 @@ function validateFormattedSql(
 
 function tokenizeSqlForSafety(sql: string): Lexeme[] {
   return LexemeCursor.getAllLexemesWithPosition(sql);
-}
-
-function sameTokenSequence(before: readonly Lexeme[], after: readonly Lexeme[]): boolean {
-  if (before.length !== after.length) {
-    return false;
-  }
-  return before.every((token, index) => {
-    const other = after[index];
-    return Boolean(other)
-      && token.type === other.type
-      && token.value === other.value
-      && JSON.stringify(token.comments ?? null) === JSON.stringify(other.comments ?? null)
-      && JSON.stringify(token.positionedComments ?? null) === JSON.stringify(other.positionedComments ?? null);
-  });
 }
 
 function missingSqlCommentFragments(before: string, after: string): string[] {

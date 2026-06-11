@@ -78,6 +78,7 @@ export interface FeatureQueryScaffoldOptions {
   queryName?: string;
   feature?: string;
   boundaryDir?: string;
+  featureRoot?: string;
   rootDir?: string;
   workingDir?: string;
   dryRun?: boolean;
@@ -97,6 +98,7 @@ export interface FeatureQueryMetadataRefreshOptions {
   query?: string;
   feature?: string;
   boundaryDir?: string;
+  featureRoot?: string;
   rootDir?: string;
   dryRun?: boolean;
   format?: 'text' | 'json';
@@ -328,7 +330,7 @@ export function registerFeatureCommand(program: Command): void {
     .option('--dry-run', 'Print the refresh result without writing generated query metadata', false)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((featureName: string, queryName: string, options: FeatureQueryMetadataRefreshOptions) => {
-      const result = runFeatureQueryMetadataRefresh({ ...options, feature: featureName, query: queryName });
+      const result = runFeatureQueryMetadataRefresh(withConfiguredFeatureRoot({ ...options, feature: featureName, query: queryName }));
       if (options.format === 'json') {
         process.stdout.write(`${JSON.stringify({ kind: 'feature-query-refresh', ...result }, null, 2)}\n`);
         return;
@@ -409,7 +411,7 @@ export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaf
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
   const featureName = normalizeFeatureName(options.featureName ?? `${toKebab(table.name)}-${action}`);
   const queryName = deriveQueryName(table.name, action);
-  const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock);
+  const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock, projectConfig.featureRoot);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
 
   return {
@@ -434,7 +436,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
   const table = loadDdlTable(rootDir, requireValue(options.table, '--table'));
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
   const queryName = normalizeQueryName(options.queryName);
-  const boundaryDir = resolveBoundaryDir(rootDir, options);
+  const boundaryDir = resolveBoundaryDir(rootDir, { ...options, featureRoot: projectConfig.featureRoot });
   const relativeBoundary = toProjectPath(rootDir, boundaryDir);
 
   if (!existsSync(path.join(boundaryDir, 'boundary.ts'))) {
@@ -551,7 +553,8 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
  */
 export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefreshOptions): FeatureQueryMetadataRefreshResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
-  const boundaryDir = resolveExplicitFeatureBoundaryDir(rootDir, options.feature, options.boundaryDir, 'feature query refresh');
+  const featureRoot = options.featureRoot ?? loadProjectPathConfig(rootDir).featureRoot;
+  const boundaryDir = resolveExplicitFeatureBoundaryDir(rootDir, options.feature, options.boundaryDir, 'feature query refresh', featureRoot);
   const featureName = path.basename(boundaryDir);
   const queryName = normalizeQueryName(requireValue(options.query, '--query'));
   const queryDir = path.join(boundaryDir, 'queries', queryName);
@@ -957,12 +960,13 @@ function buildFeatureFiles(
   table: DdlTable,
   primaryKeyColumn: string,
   returningMode: InsertReturningMode = 'all',
-  optimisticLockConfig?: OptimisticLockScaffoldConfig
+  optimisticLockConfig?: OptimisticLockScaffoldConfig,
+  featureRoot = 'src/features',
 ): GeneratedFile[] {
-  const boundary = `src/features/${featureName}`;
+  const boundary = `${featureRoot}/${featureName}`;
   const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode, optimisticLockConfig);
   return [
-    ...buildSharedFiles(),
+    ...buildSharedFiles(featureRoot),
     { relativePath: boundary, kind: 'directory' },
     { relativePath: `${boundary}/queries/${queryName}`, kind: 'directory' },
     { relativePath: `${boundary}/tests`, kind: 'directory' },
@@ -3845,12 +3849,12 @@ function resolveBoundaryDir(rootDir: string, options: FeatureQueryScaffoldOption
       { options: ['<feature>', '--boundary-dir'] },
     );
   }
-  if (options.feature) return path.join(rootDir, 'src', 'features', normalizeFeatureName(options.feature));
+  if (options.feature) return path.join(rootDir, options.featureRoot ?? 'src/features', normalizeFeatureName(options.feature));
   if (options.boundaryDir) return path.resolve(rootDir, options.boundaryDir);
   return options.workingDir ? path.resolve(options.workingDir) : process.cwd();
 }
 
-function resolveExplicitFeatureBoundaryDir(rootDir: string, feature: string | undefined, boundaryDir: string | undefined, commandLabel: string): string {
+function resolveExplicitFeatureBoundaryDir(rootDir: string, feature: string | undefined, boundaryDir: string | undefined, commandLabel: string, featureRoot = 'src/features'): string {
   if (feature && boundaryDir) {
     throw invalidCliInputError(
       'ASHIBA_FEATURE_BOUNDARY_INPUT_CONFLICT',
@@ -3860,7 +3864,7 @@ function resolveExplicitFeatureBoundaryDir(rootDir: string, feature: string | un
     );
   }
   if (boundaryDir) return path.resolve(rootDir, boundaryDir);
-  if (feature) return path.join(rootDir, 'src', 'features', normalizeFeatureName(feature));
+  if (feature) return path.join(rootDir, featureRoot, normalizeFeatureName(feature));
   throw invalidCliInputError(
     'ASHIBA_FEATURE_BOUNDARY_REQUIRED',
     `${commandLabel} requires a feature name or --boundary-dir.`,

@@ -75,6 +75,9 @@ describe('@ashiba-ts/cli smoke', () => {
     expect(formatDefaultConfig()).toContain('"identifierEscape": "quote"');
     expect(formatDefaultConfig()).toContain('"identifierEscapeTarget": "minimal"');
     expect(formatDefaultConfig()).toContain('"commaBreak": "before"');
+    expect(formatDefaultConfig()).toContain('"cteCommaBreak": "after"');
+    expect(formatDefaultConfig()).toContain('"joinOnBreak": "before"');
+    expect(formatDefaultConfig()).toContain('"oneLineMaxLength": 100');
     expect(formatDefaultConfig({ pretty: false })).not.toContain('\n  ');
   });
 
@@ -190,6 +193,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"identifierEscapeTarget": "minimal"');
       expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"parameterSymbol": ":"');
       expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"commaBreak": "before"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"cteCommaBreak": "after"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"joinOnBreak": "before"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"oneLineMaxLength": 100');
       expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"joinConditionOrderByDeclaration": false');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('${ASHIBA_TEST_DB_PORT:-5432}:5432');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('network_mode: bridge');
@@ -1390,6 +1396,41 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(refresh.metadataFile).toBe('src/features/users-list/queries/list/generated/query.meta.ts');
 
       const fresh = runCheckContract({ rootDir, feature: 'users-list' });
+      expect(fresh.ok).toBe(true);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('refreshes query metadata under configured featureRoot', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-query-refresh-config-root-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: 'src/usecases',
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      const sqlPath = path.join(rootDir, 'src/usecases/users-list/queries/list/list.sql');
+      writeFileSync(sqlPath, `${readFileSync(sqlPath, 'utf8')}\n-- SQL-only metadata refresh under configured featureRoot\n`, 'utf8');
+
+      const stale = runCheckContract({ rootDir, featureRoot: 'src/usecases', feature: 'users-list' });
+      expect(stale.ok).toBe(false);
+      expect(stale.catalogCheck.checked[0]?.issues).toContain('queryModel.analysis.sourceHash is stale.');
+
+      const refresh = runFeatureQueryMetadataRefresh({ rootDir, feature: 'users-list', query: 'list' });
+      expect(refresh.changed).toBe(true);
+      expect(refresh.queryFile).toBe('src/usecases/users-list/queries/list/query.ts');
+      expect(refresh.metadataFile).toBe('src/usecases/users-list/queries/list/generated/query.meta.ts');
+
+      const fresh = runCheckContract({ rootDir, featureRoot: 'src/usecases', feature: 'users-list' });
       expect(fresh.ok).toBe(true);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -4706,7 +4747,6 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(report.safe).toBe(true);
       expect(report.changed).toBe(true);
-      expect(report.tokenCountBefore).toBe(report.tokenCountAfter);
       expect(report.sql).toContain('select\n    id\n    , email');
       expect(report.sql).toContain('where\n    active = :active\n    and email = :email');
 
@@ -4715,9 +4755,28 @@ describe('@ashiba-ts/cli smoke', () => {
       const commented = runQueryFormat(commentedPath, { rootDir, write: true });
 
       expect(commented.safe).toBe(false);
-      expect(commented.tokenCountBefore).toBe(commented.tokenCountAfter);
       expect(commented.written).toBe(false);
       expect(readFileSync(commentedPath, 'utf8')).toContain('-- keep this review note');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('allows formatter-owned token normalization when AST round-trip is stable', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-format-token-normalization-'));
+
+    try {
+      const sqlPath = path.join(rootDir, 'users.sql');
+      writeFileSync(sqlPath, 'select id::bigint as id from public.users u order by u.created_at asc\n', 'utf8');
+
+      const report = runQueryFormat(sqlPath, { rootDir, write: true });
+
+      expect(report.safe).toBe(true);
+      expect(report.written).toBe(true);
+      expect(report.tokenCountBefore).not.toBe(report.tokenCountAfter);
+      const formattedSql = readFileSync(sqlPath, 'utf8');
+      expect(formattedSql).toContain('cast(id as bigint) as id');
+      expect(formattedSql).toContain('order by\n    u.created_at;');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

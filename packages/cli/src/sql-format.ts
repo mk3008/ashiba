@@ -456,9 +456,12 @@ export const DEFAULT_SQL_FORMAT_OPTIONS = {
   newline: 'lf',
   keywordCase: 'lower',
   commaBreak: 'before',
+  cteCommaBreak: 'after',
   valuesCommaBreak: 'before',
   andBreak: 'before',
   orBreak: 'before',
+  joinOnBreak: 'before',
+  joinConditionContinuationIndent: false,
   exportComment: true,
   commentStyle: 'block',
   withClauseStyle: 'standard',
@@ -469,6 +472,7 @@ export const DEFAULT_SQL_FORMAT_OPTIONS = {
   joinOneLine: true,
   caseOneLine: false,
   subqueryOneLine: false,
+  oneLineMaxLength: 100,
   joinConditionOrderByDeclaration: false,
 } as const satisfies SqlFormatterOptions;
 

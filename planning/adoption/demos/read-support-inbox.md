@@ -14,6 +14,8 @@ Prisma、Drizzle、sqlc はそれぞれ CRUD や単純 query の導入体験が�
 
 一方で、R 特化 demo だけを出すと「Ashiba は CUD ができないのではないか」という疑問が出る可能性がある。そのため、この demo は R lane の代表として位置づけ、CUD は別途計画することを明記する。
 
+CUD lane の評価では、ORM / ORM ecosystem が UI や単純 CRUD scaffold の初速で強いことを前提にする。Ashiba は UI 生成で勝つ道具ではない。比較すべきなのは、業務仕様変更後に SQL、生成物、mapper test、drift check、route / integration test を通じて、変更の影響範囲をどれだけ reviewable に保てるかである。この観察は `examples/hono-pg-support-inbox/CUD_DOGFOODING.md` に記録する。
+
 ## Customer
 
 - TypeScript web アプリで PostgreSQL を使う開発者。

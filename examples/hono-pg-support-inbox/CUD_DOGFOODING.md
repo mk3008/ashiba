@@ -6,7 +6,7 @@
 
 ## 仮説
 
-ORM が強いのは、主に初期 CRUD scaffold です。
+ORM が強いのは、初期 CRUD scaffold と、UI / admin surface を含む導入直後の開発体験です。
 
 ただし、schema や workflow が変わったあとも「ORM だから常に楽」とは限りません。定義変更後は、DTO、mapper、query shape、test、migration、transaction 境界、画面/API との接続を見直す必要があります。
 
@@ -19,7 +19,7 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - transaction policy を Ashiba runtime ではなく application boundary に置ける
 - ORM runtime に隠れないため、変更後に人間が review すべき範囲が見えやすい
 
-これは仮説です。今回の Create / optimistic Update 実装では、実際に楽だった点、つらかった点、誤解しやすい点、改善すべき点を記録します。
+これは仮説です。ORM を過小評価するためではなく、比較軸を分けるための仮説として扱います。今回の Create / optimistic Update 実装では、実際に楽だった点、つらかった点、誤解しやすい点、改善すべき点を記録します。
 
 ## 対象フロー
 
@@ -74,7 +74,7 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - これは `code is yours` の思想と合っている。Ashiba は customer-owned TypeScript を黙って所有しない。
 - 一方で、ユーザーには「次にどの診断を見ればよいか」が分かりやすい必要がある。
 - `feature tests check --fix` は generated mapper test asset を更新する。`check:drift` / generated mapper check は editable contract のずれを示すべきである。
-- これは「ORM なら scaffold 後も常に楽」という単純な主張への反証材料になる。Ashiba は変更を見える状態で検知できるが、追従作業そのものは実在する。
+- これは「ORM なら scaffold 後も常に楽」という単純な主張への反証材料になる。Ashiba は変更を見える状態で検知できるが、SQL、workflow、input/output、route code の編集そのものを消すわけではない。
 - より鋭い摩擦として、action scaffold された mutation query では、`feature tests check --fix` が action plan の DDL write columns と full returning shape を強く保持した。
 - write columns を literal / `now()` に置き換えたり、`RETURNING` から列を外したりするカスタマイズは、現状では自然に追従しづらい。
 - 今回の Create lane では、まず生成 mutation shape に近い形へ戻し、mapper cases が退屈に通る状態を優先した。
@@ -143,6 +143,42 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - この変更により、`support-inbox` は親グループ、`create-ticket` 等は Ashiba CLI が扱う feature として整理できる。
 - dogfooding中に、project check の contract mapper lane が configured `featureRoot` を generated mapper check へ渡しておらず、`mapperQueries=0` になる漏れを発見した。CLI 側で `featureRoot` を渡すよう修正し、smoke test に regression を追加した。
 
+### 2026-06-10: ORM 初速と仕様変更後の比較軸
+
+ORM / query builder / SQL code generator の比較は、段階を分けないと誤解しやすい。
+
+初期段階では、ORM が強い。特に model 定義から単純 CRUD、relation access、admin / studio 的な UI、basic form / API までを素早く立ち上げる体験では、Ashiba は勝つべき領域ではない。Ashiba は UI scaffold に踏み込まないため、画面を含む初速で ORM / ORM ecosystem に勝てないのは自然である。
+
+一方で、業務仕様が変わり始めた後は比較軸が変わる。実務では、生成直後の CRUD がそのまま製品コードとして残るのは、マスタメンテや単純な管理画面に寄りがちである。状態遷移、ヘッダー + 明細登録、transaction、権限、監査、SLA、通知、楽観的排他、複雑な一覧、業務固有 sort / filter が入ると、ORM であっても Ashiba であっても product code の編集は避けられない。
+
+この段階で見るべきなのは「どちらが最初にファイルを少なく作るか」だけではない。見るべきなのは、変更後に次をどれだけ明示できるかである。
+
+- 変更された SQL / query shape を人間が review できるか
+- schema 変更と query / mapper のずれを runtime 前に検知できるか
+- TypeScript の型だけでなく、DB-backed な検証を置けるか
+- transaction boundary と application workflow が隠れすぎないか
+- mutation の affected rows、persisted state、rollback、optimistic lock failure をテストできるか
+- AI や人間が編集した後、どの差分を確認すればよいかが狭くなるか
+
+この観点では、Ashiba の「生成ファイルが多い」こと自体は弱点とは限らない。手書きで大量に増えるなら負担だが、自動生成され、customer-owned code として読めて、drift check / mapper test / integration test と結びつくなら、むしろ review boundary を明示する資産になり得る。
+
+ただし、これは無条件の優位ではない。`code is yours` の範囲では、SQL、workflow、input/output、route code はマジックなしに好きなように編集できる。一方で、生成メタデータ、query analysis、mapper test assets、drift 前提の整合は CLI 管理対象であり、CLI を使わずに手で辻褄を合わせ続けるのは現実的ではない。ここを「scaffold 後の更新手順を覚える負担」と雑に言うべきではない。正確には、自由に編集できるコードと、`refresh` / `feature tests check --fix` / `check:drift` で再同期すべき生成・検証資産の境界を理解する必要がある。
+
+この境界が docs や CLI output で曖昧だと、ファイル数はそのまま認知負荷になる。今回の dogfooding では、CUD の mapper test と route-level DB-backed test の役割分担に加えて、どの変更後にどの CLI check / regeneration を走らせるべきかを明示する必要があることが分かった。
+
+外部 tool の現行ドキュメントを見ても、この評価は極端ではない。Prisma は production では migration を CI/CD pipeline で適用する導線を持ち、Drizzle は dynamic query building のために `.$dynamic()` mode を提供し、sqlc は schema changes に対して existing queries を verify する機能を持つ。つまり、現代の ORM / SQL tooling でも、変更後の query shape、migration、verification は独立した関心として扱われている。型安全や scaffold だけで終わる問題ではない。
+
+参考:
+
+- Prisma: `migrate deploy` を CI/CD pipeline で使う production migration docs
+  - https://www.prisma.io/docs/orm/prisma-client/deployment/deploy-database-changes-with-prisma-migrate
+- Drizzle: dynamic query building docs
+  - https://orm.drizzle.team/docs/dynamic-query-building
+- Drizzle: migration docs
+  - https://orm.drizzle.team/docs/migrations
+- sqlc: verifying schema changes docs
+  - https://docs.sqlc.dev/en/latest/howto/verify.html
+
 ## 検証結果
 
 2026-06-09 時点:
@@ -186,13 +222,15 @@ Ashiba は初期 scaffold だけで勝つ道具ではありません。むしろ
 - P1: 生成後に `RETURNING` をさらに業務都合の shape へ調整する導線はまだ弱い。`--returning minimal` は primary key だけを返す初期 scaffold option であり、任意の returned columns を指定する機能ではない。
 - P1: write columns を SQL-side default / literal / `now()` に寄せる mutation customization の導線はまだ弱い。これは params、query.ts、analysis.json、mapper cases、drift check に影響するため、設計してから入れる。
 - P1: lightweight app logger scaffold は検討価値がある。ただし万人向け初期生成としては重くなりやすいので、現時点では no-op hook + richer metadata に留める。
-- P2: `feature query refresh` 後の CLI output は、editable `query.ts` を上書きしないことと、次に確認すべき drift / mapper diagnostics をもっと明示した方がよい。
+- P2: `feature query refresh` 後の CLI output は、editable code は customer-owned で自由に編集してよいこと、ただし generated metadata / mapper test assets / drift baseline は CLI で再同期すべきことをもっと明示した方がよい。
 - P2: update / delete lane は別途必要。CUD 全体の比較材料にするなら、特に update は schema 変更後の追従体験を示しやすい。
 
 ## 暫定評価
 
 今回の Create / optimistic Update lane では、Ashiba が CUD でも成立することは確認できた。
 
-ただし、Ashiba の価値は「CRUD scaffold が一発で終わる」ことではない。むしろ、scaffold 後に SQL、DTO、mapper tests、drift check、route-level tests を通じて、変更の影響範囲を見える形で保てることにある。
+ただし、Ashiba の価値は「UI つき CRUD scaffold が一発で終わる」ことではない。この初速は ORM / ORM ecosystem の方が強い場面が多い。Ashiba が評価されるべきなのは、scaffold 後に SQL、DTO、mapper tests、drift check、route-level tests を通じて、変更の影響範囲を見える形で保てるかどうかである。
 
-ORM と比べるなら、初期 scaffold だけではなく、定義変更後、SQL 変更後、RETURNING shape 変更後、test 更新後の体験まで比較すべきである。
+ORM と比べるなら、初期 scaffold だけではなく、定義変更後、SQL 変更後、RETURNING shape 変更後、test 更新後、transaction / rollback / optimistic lock を含む mutation semantics の確認まで比較すべきである。
+
+現時点の結論は「Ashiba は ORM より常に速い」ではない。より正確には、Ashiba は UI や単純 CRUD の初速では ORM に譲るが、SQL を資産として残し、生成物と検証で変更後のレビュー範囲を狭める設計では差別化できる可能性がある。
