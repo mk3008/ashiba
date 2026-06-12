@@ -123,6 +123,31 @@ If `/tickets` renders `Demo is not ready`, read the diagnosis on the page first:
 
 If you set `DATABASE_URL`, the dev server and seed script will use it instead of the `ASHIBA_TEST_DB_*` values. For the standard demo flow, prefer the `.env.example` settings.
 
+## Try an AI Edit
+
+After the demo is running, try asking an AI agent to make a small product change instead of editing every layer by hand.
+
+Recommended first exercise:
+
+```text
+Add a priority filter to the support inbox.
+Keep the SQL reviewable, refresh Ashiba-generated assets, and run the example verification gate.
+```
+
+The goal is to see the review shape, not just the final UI. A good change should keep the main list logic in `src/features/support-inbox/queries/list-tickets/list-tickets.sql`, update the narrow web request/UI boundary, refresh generated query assets with `ashiba:generate`, and pass:
+
+```sh
+pnpm --dir examples/hono-pg-support-inbox verify
+```
+
+The patch-backed version of this exercise is stored in:
+
+```text
+examples/hono-pg-support-inbox/exercises/optional-priority-filter/
+```
+
+That exercise preserves the starter demo unchanged while proving the change remains implementable after Ashiba and adapter upgrades.
+
 ## Demo Boundary
 
 This is intentionally a list/read demo. It does not yet answer the CUD question.
