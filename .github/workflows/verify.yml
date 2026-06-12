@@ -113,8 +113,8 @@ jobs:
         shell: pwsh
         run: |
           $files = @(
-            'examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/list-tickets.sql',
-            'examples/hono-pg-support-inbox/src/features/support-inbox/queries/get-ticket-detail/get-ticket-detail.sql'
+            'examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql',
+            'examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/get-ticket-detail/get-ticket-detail.sql'
           )
           foreach ($file in $files) {
             $path = Resolve-Path $file
