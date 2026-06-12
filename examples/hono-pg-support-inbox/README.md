@@ -298,13 +298,33 @@ If `/tickets` renders `Demo is not ready`, read the diagnosis on the page first:
 
 If you set `DATABASE_URL`, the dev server and seed script will use it instead of the `ASHIBA_TEST_DB_*` values. For the standard demo flow, prefer the `.env.example` settings.
 
-## AI Edit Exercises
+## Try an AI Edit
 
-The demo includes patch-backed exercises under `examples/hono-pg-support-inbox/exercises/`.
+After the demo is running, try asking an AI agent to make a small product change instead of editing every layer by hand.
 
-Use them when you want to ask an AI coding assistant to make a realistic change while keeping the starter demo unchanged:
+Recommended first exercise:
+
+```text
+Add a priority filter to the support inbox.
+Keep the SQL reviewable, refresh Ashiba-generated assets, and run the example verification gate.
+```
+
+The goal is to see the review shape, not just the final UI. A good change should keep the main list logic in `src/features/support-inbox/queries/list-tickets/list-tickets.sql`, update the narrow web request/UI boundary, refresh generated query assets with `ashiba:generate`, and pass:
+
+```sh
+pnpm --dir examples/hono-pg-support-inbox verify
+```
+
+The patch-backed version of this exercise is stored in:
+
+```text
+examples/hono-pg-support-inbox/exercises/optional-priority-filter/
+```
+
+The demo also includes patch-backed exercises under `examples/hono-pg-support-inbox/exercises/`:
 
 - `sql-inspection-review/` reviews the Live Query Console and explains why dynamic filters and dynamic safe sort still leave SQL reviewable.
+- `contract-boundary-narrowing/` narrows conservative generated request contracts from `unknown` to application-owned types and verifies the edit loop.
 - `optional-priority-filter/` adds a new optional filter and follows the SQL, metadata refresh, typecheck, and route-test trail.
 - `add-customer-locale-column/` adds a list column from SQL and follows the generated metadata, DTO, mapper, and UI changes.
 - `ddl-migration-script-from-git/` adds a DDL column and generates reviewable migration SQL from the committed Git snapshot.
@@ -312,7 +332,7 @@ Use them when you want to ask an AI coding assistant to make a realistic change 
 
 Start with the exercise index:
 
-```sh
+```text
 examples/hono-pg-support-inbox/exercises/README.md
 ```
 
