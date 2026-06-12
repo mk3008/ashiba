@@ -269,6 +269,24 @@ starter の受け入れ条件:
 * 性能競争への早期巻き込まれ: Ashiba の本筋が SQL 可視性、生成物、drift check であることを見失う可能性がある。
 * 比較記事の攻撃化: Prisma / Drizzle / sqlc の価値を理解しない比較になると信用を失う。
 
+## 外部評価レポート由来の追加タスク
+
+Source: `C:\Users\mssgm\Downloads\ashiba_REPORT.md`, dated 2026-06-12.
+
+このレポートは、採用前の外部評価者が Ashiba をどう見るかを示す dogfooding 入力として扱う。
+
+ただし、指摘をそのまま機能欠陥として受け取るのではなく、Ashiba の `code is yours`、SQL 可視性、generated code の顧客所有、drift / mapper test による検証という思想を踏まえて補正する。
+
+| 優先度 | 状態 | タスク | 意図 / 補正 |
+| --- | --- | --- | --- |
+| P0 | open | `unknown` をなくす、ではなく、DTO / parameter / mapper の初期生成品質と編集後検証を強化する。 | PostgreSQL には独自型、domain、extension、json、集約式、関数、ビューがあり、完全自動型推論を約束すると Ashiba の `code is yours` と衝突する。初期成功体験として `unknown` を減らしつつ、顧客が編集でき、mapper test / drift check で検証できる導線を示す。 |
+| P0 | open | `code is yours` と「ライブラリ未対応でも詰まない」価値を外部向けに説明する。 | Ashiba は generated code を顧客所有にするため、ライブラリがすべての型・業務ルール・DB 方言を完全に所有しない。未対応時に customer-owned code を編集できること、ただし generated metadata / mapper test / drift baseline は CLI で再同期する必要があることを説明する。 |
+| P0 | open | 初期成功体験として、生成直後の DTO / mapper / test がどこまで実用的かをデモと docs で示す。 | 完全自動ではなくても、最初の scaffold が `unknown` だらけに見えると採用意欲が落ちる。生成初期値の質、編集ポイント、検証コマンドを1本の成功体験として見せる。 |
+| P0 | open | 外部向けコピーでは独自用語を減らし、一般語彙へ翻訳する。 | RFBA / ZTD / SSSQL / Runtime Zero などは内部原本では有用だが、README 冒頭や比較記事で前面に出すと学習コストになる。外部向けには `review-friendly generated boundaries`、`mapper tests`、`safe optional filters`、`whitelisted dynamic sorting`、`no ORM runtime` などへ翻訳する。 |
+| P1 | open | ファイル数の多さを「レビュー境界」として説明し、編集対象 / 生成物 / 検証資産を見分けられるようにする。 | VSA / Review First の思想では、input / output / SQL / mapper / metadata / tests が分かれていることは人間レビューの利点になり得る。ただし初見者や AI には散らばって見えるため、どのファイルを編集し、どのファイルを再生成し、どの差分を見るべきかを示す必要がある。 |
+| P1 | open | `ashiba review plan` または同等の docs / generated README で、変更後に見るべきファイルと実行すべきコマンドを明示する。 | `in の仕様は変えたが out は変えていない` のような境界が見えることが Ashiba の価値。PR レビューで見るべき差分を人間に伝える仕組みを検討する。 |
+| P1 | open | rawsql-ts 依存について、致命性ではなく「詰むケース / degrade できるケース」を説明する。 | rawsql-ts は主に開発時・生成時・検査時の依存であり、ORM runtime 依存とは性質が違う。SSSQL 圧縮や safe sort など一部 runtime-adjacent な機能を使う場合の前提と、使わない場合の影響範囲を分けて説明する。 |
+
 ## 必要なドキュメント / テスト / Changeset
 
 * 現時点で必要: この普及計画。
@@ -308,4 +326,3 @@ starter の受け入れ条件:
 * 既存コマンドだけで、どの主張をすぐ実証できるか。
 * 最初のデザインパートナー候補は誰か。
 * 最初の30日で qualified trial をどう記録するか。
-

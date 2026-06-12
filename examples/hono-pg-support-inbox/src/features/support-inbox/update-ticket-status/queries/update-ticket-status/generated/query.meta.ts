@@ -22,8 +22,8 @@ export const queryModel = {
     ],
     "resultColumnTypes": {
       "status": "string",
-      "ticket_id": "number",
-      "updated_at": "unknown",
+      "ticket_id": "string",
+      "updated_at": "string",
       "version_key": "number"
     },
     "namedParameters": [

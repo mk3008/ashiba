@@ -10,7 +10,7 @@ test('update-ticket-status applies parsed boundary input and returns the updated
       calls.push({ id: query.id, params });
       return [
         {
-          ticket_id: 10420,
+          ticket_id: '10420',
           status: params.status,
           updated_at: params.updated_at,
           version_key: 3,
@@ -26,7 +26,7 @@ test('update-ticket-status applies parsed boundary input and returns the updated
       expected_version_key: '2',
     }),
   ).resolves.toMatchObject({
-    ticket_id: 10420,
+    ticket_id: '10420',
     status: 'resolved',
     version_key: 3,
   });

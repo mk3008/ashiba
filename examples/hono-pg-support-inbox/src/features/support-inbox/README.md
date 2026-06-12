@@ -35,6 +35,48 @@ update-ticket-status/
   queries/update-ticket-status/
 ```
 
+## Generated contracts are yours
+
+Ashiba starts conservatively when SQL result types depend on PostgreSQL driver policy, expression output, JSON shape, or aggregate shape.
+
+In this example, generated query metadata can infer more result types than before, including timestamp/date-like SQL types as `string`, PostgreSQL `bigint`/`numeric` values as `string`, safe JS numeric SQL types such as `integer`/`double precision` as `number`, and simple text arrays as `string[]`.
+
+Some generated query contracts can still contain `unknown` fields:
+
+- `jsonb` outputs such as `metadata`
+- custom/domain/extension-specific outputs
+- complex expression outputs where SQL ownership is clearer than automatic TypeScript ownership
+- imported-query filter parameters before the feature input boundary narrows them
+
+That is not a promise that application code must stay untyped. It means the generated boundary is customer-owned code.
+
+When the domain policy is known, narrow the editable contract where the application owns it:
+
+- `input.ts` for adapter/request parsing and validation
+- `output.ts` for the feature response shape
+- `queries/*/query.ts` when the query boundary should expose a narrower app contract
+- route or integration tests for HTTP/API behavior
+- generated mapper tests for DB-to-TypeScript result contracts
+
+After editing SQL or query contracts, refresh generated assets and run checks:
+
+```sh
+npx ashiba feature query refresh <feature> <query>
+npx ashiba feature tests check <feature> --query <query> --fix
+npx ashiba check:drift
+pnpm test
+```
+
+For this demo, useful review questions are:
+
+- Did the input boundary change?
+- Did the output contract change?
+- Did the SQL shape change?
+- Did generated metadata or mapper evidence change because of a SQL/contract edit?
+- Did route-level tests still prove the customer-visible workflow?
+
+The matching exercise is `examples/hono-pg-support-inbox/exercises/contract-boundary-narrowing/`.
+
 ## Header/detail create scaffold
 
 The Create feature uses multiple mutation query boundaries to create one ticket header and one initial message detail.

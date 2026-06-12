@@ -41,9 +41,9 @@ export interface CreateTicketQueryResult {
   priority: string;
   language: string;
   channel: string;
-  sla_due_at: unknown;
-  created_at: unknown;
-  updated_at: unknown;
+  sla_due_at: string | null;
+  created_at: string;
+  updated_at: string;
   version_key: number;
   metadata: unknown;
 }

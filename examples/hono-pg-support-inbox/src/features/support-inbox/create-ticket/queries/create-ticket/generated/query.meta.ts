@@ -30,16 +30,16 @@ export const queryModel = {
     ],
     "resultColumnTypes": {
       "channel": "string",
-      "created_at": "unknown",
-      "customer_id": "number",
+      "created_at": "string",
+      "customer_id": "string",
       "language": "string",
       "metadata": "unknown",
       "priority": "string",
-      "sla_due_at": "unknown",
+      "sla_due_at": "string",
       "status": "string",
       "subject": "string",
-      "ticket_id": "number",
-      "updated_at": "unknown",
+      "ticket_id": "string",
+      "updated_at": "string",
       "version_key": "number"
     },
     "namedParameters": [

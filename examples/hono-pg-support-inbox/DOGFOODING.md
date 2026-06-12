@@ -247,6 +247,42 @@ This report is treated as customer-style dogfooding feedback focused on the ship
 | P1 | done | Reconfirm `verify` includes DB-backed route coverage in the public path. | `verify` runs `pnpm test`; the example CI copies `.env.example`, starts PostgreSQL, seeds the DB, and then runs `verify`. `tests/support/setup-env.ts` derives `ASHIBA_TEST_DATABASE_URL` from `.env`, so the route-level E2E tests are included in the public CI path when the DB-backed environment is prepared. |
 | P2 | open | Preserve browser-visual verification as optional evidence. | The report could not use Codex Browser control and only confirmed HTTP 200. This is not a product blocker, but visual smoke screenshots remain useful for demo polish. |
 
+## External Product Evaluation Report Dogfooding Tasks
+
+Source: `C:\Users\mssgm\Downloads\ashiba_REPORT.md`, dated 2026-06-12.
+
+This report is treated as customer-style adoption feedback. The report correctly identifies adoption risks around type inference, rawsql-ts dependency, terminology, and generated-file footprint. The dogfooding interpretation is adjusted for Ashiba's `code is yours` position: generated code is customer-owned and editable, but generated metadata, mapper tests, and drift baselines still need CLI-managed synchronization.
+
+| Priority | Status | Task | Notes |
+| --- | --- | --- | --- |
+| P0 | open | Classify rawsql-ts unsupported-SQL paths into blocked vs degraded vs unaffected. | rawsql-ts is not an ORM runtime dependency, so an unsupported parse does not automatically mean production runtime is blocked. Validate where users truly get stuck: scaffold/import/check metadata, SSSQL compression, safe sort metadata, SQL formatting, query uses/outline/slice, and generated tests. |
+| P0 | open | Document the no-runtime-dependency nuance of rawsql-ts. | Explain that many Ashiba paths use rawsql-ts at development/generation/check time. If users do not use SSSQL compression or safe-sort adapter features, rawsql-ts limitations may affect tooling rather than application runtime. |
+| P0 | partial | Improve initial generated contract quality without promising perfect automatic type ownership. | CLI result type inference now handles timestamp/date-like SQL types as `string`, PostgreSQL `bigint`/`numeric` values as `string`, safe JS numeric SQL types such as `integer`/`double precision` as `number`, simple typed arrays such as `text[]` as `string[]`, `array_agg`, `min`/`max` argument types, CTE aliases, and derived subquery aliases. PostgreSQL custom/domain/extension/json/expression types still require customer-owned edits. |
+| P1 | done | Add a dogfooding case for editing generated DTO/mapper types after scaffold. | Added `exercises/contract-boundary-narrowing/`, a patch-backed exercise that narrows conservative `unknown` request params into customer-owned types and verifies the feature boundary with typecheck/tests. SQL and mapper assets intentionally stay unchanged in this exercise because the SQL shape does not change. |
+| P1 | open | Make review-boundary value visible in the example docs. | File count is not automatically bad when files represent stable review boundaries. Show which files are human-edited, generated metadata, mapper tests, and route/integration tests so reviewers can see whether input, output, SQL, mapper, or workflow changed. |
+| P1 | open | Reduce external terminology in the demo and README path. | Keep internal terms such as RFBA/ZTD/SSSQL in planning docs where useful, but translate public surfaces to review-friendly boundaries, mapper tests, safe optional filters, whitelisted dynamic sort, and no ORM runtime. |
+
+### Generated contract quality snapshot
+
+2026-06-12 snapshot of the support inbox generated contracts:
+
+| Area | Current observation | Classification | Follow-up |
+| --- | --- | --- | --- |
+| External feature boundary input | `boundary.ts` and `parseRequest(raw: unknown)` accept unknown raw input. | Expected. HTTP, CLI, or automation adapters are untrusted boundaries. | Keep `raw: unknown`; make validation responsibility visible in `input.ts`. |
+| `list-tickets` request / query params | `SupportInboxRequest = ListTicketsQueryParams`, and all public filters, `limit`, and `offset` are `unknown`. | Weak initial success experience. The raw adapter input can be unknown, but the feature request and query params should be easier to understand after parsing. | Covered by `exercises/contract-boundary-narrowing/`, which turns request fields into explicit app-owned types such as `string | null` and `number`, then proves the feature boundary with typecheck/tests. |
+| Timestamp result columns | CLI metadata generation now infers timestamp/date-like SQL types as `string`, including columns propagated through simple CTE and derived-table aliases. Existing customer-owned `query.ts` files are not overwritten by metadata refresh. | Improved initial generation. Customer-owned edit remains valid when an app chooses `Date` or value objects instead of ISO strings. | Keep the example policy explicit: generated mapper probes use ISO strings, and existing editable contracts may be narrowed manually when desired. |
+| JSONB result columns | `tickets.metadata` is generated as `unknown`. | Customer-owned type is expected. JSON shape is application-specific and cannot be fully owned by Ashiba. | Demonstrate editing `metadata` to a narrow app type or `Record<string, unknown>` and prove it with mapper tests. |
+| Aggregated array columns | CLI metadata generation now infers `array_agg(text)` / `cast(array[] as text[])` style expressions as `string[]` when the element type is known. | Improved initial generation. More complex JSON/custom aggregate shapes still stay customer-owned. | Keep exercising array output through mapper tests and visible SQL casts. |
+| Bigint / bigserial identity columns | CLI metadata generation now infers PostgreSQL `bigint`, `int8`, `bigserial`, and `serial8` as `string`, including read contracts. | Improved initial generation. Node PostgreSQL returns int8 as string by default, and this avoids silent precision loss in TypeScript. | Keep `integer`/`int4` as `number`; keep `bigint` IDs as strings across public demo contracts. |
+| Generated test boundary types | `tests/boundary-ztd-types.ts` intentionally uses broad `unknown`-friendly type probes. | Mostly expected for generated evidence plumbing. | Do not treat generated test helper `unknown` as the same problem as public feature/query contract `unknown`. |
+
+The main product lesson is not "remove every `unknown`." The target is a better first scaffold plus a clear customer-owned edit loop:
+
+1. Ashiba generates a conservative contract.
+2. The customer narrows app-owned `input.ts`, `output.ts`, and query boundary types where the domain policy is known.
+3. Generated metadata and mapper test assets are refreshed with CLI commands.
+4. `check:drift`, mapper tests, and route/integration tests prove that the edit remains aligned with SQL and DDL.
+
 ## Remaining Product Questions
 
 | Priority | Status | Task | Notes |

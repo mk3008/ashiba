@@ -3,8 +3,8 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { compileNamedParameters } from '../parameter-metadata.js';
-import { BinarySelectQuery, ColumnReference, DeleteQuery, InsertQuery, SimpleSelectQuery, SqlParser, TableSource, UpdateQuery, ValuesQuery, type SourceExpression } from 'rawsql-ts';
-import { loadDdlSchemaModel, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
+import { BinarySelectQuery, ColumnReference, DeleteQuery, FunctionCall, InsertQuery, SimpleSelectQuery, SqlParser, SubQuerySource, TableSource, UpdateQuery, ValuesQuery, type SelectItem, type SourceExpression } from 'rawsql-ts';
+import { loadDdlSchemaModel, type DdlSchemaColumn, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
 import { extractSqlResultColumnAstItems, extractSqlResultColumnContracts, type SqlResultColumnContract } from './sql-result-columns.js';
 import { buildSqlSafeSortMetadata, type SqlSafeSortMetadata } from './sql-safe-sort-metadata.js';
 import {
@@ -526,18 +526,42 @@ function extractTopLevelRelations(
   ddlModel: DdlSchemaModel,
   schemaPath: Partial<SchemaPathConfig>,
 ): Array<{ alias?: string; table: DdlSchemaTable }> {
+  const parsed = SqlParser.parse(sql);
+  const cteTables = buildCteTables(parsed, ddlModel, schemaPath);
+  return extractRelationsFromParsed(parsed, ddlModel, schemaPath, cteTables);
+}
+
+function extractRelationsFromParsed(
+  parsed: ReturnType<typeof SqlParser.parse> | unknown,
+  ddlModel: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+  cteTables: Map<string, DdlSchemaTable>,
+): Array<{ alias?: string; table: DdlSchemaTable }> {
   const relations: Array<{ alias?: string; table: DdlSchemaTable }> = [];
   const addRelation = (rawName: string, rawAlias?: string | null) => {
     const alias = normalizeIdentifier(rawAlias ?? '');
-    const table = resolveDdlTable(rawName, ddlModel, schemaPath);
+    const table = resolveRelationTable(rawName, ddlModel, schemaPath, cteTables);
     if (table) {
       relations.push({ ...(alias ? { alias } : {}), table });
     }
   };
 
   const addSource = (source: SourceExpression | null | undefined) => {
-    if (!source || !(source.datasource instanceof TableSource)) return;
-    addRelation(source.datasource.qualifiedName.toString(), source.getAliasName());
+    if (!source) return;
+    if (source.datasource instanceof TableSource) {
+      addRelation(source.datasource.qualifiedName.toString(), source.getAliasName());
+      return;
+    }
+    if (source.datasource instanceof SubQuerySource) {
+      const alias = normalizeIdentifier(source.getAliasName() ?? '');
+      if (!alias) return;
+      const nestedCteTables = buildCteTables(source.datasource.query, ddlModel, schemaPath, cteTables);
+      const subqueryRelations = extractRelationsFromParsed(source.datasource.query, ddlModel, schemaPath, nestedCteTables);
+      relations.push({
+        alias,
+        table: buildSyntheticCteTable(alias, source.datasource.query, subqueryRelations),
+      });
+    }
   };
 
   const addSelectRelations = (query: unknown) => {
@@ -553,7 +577,6 @@ function extractTopLevelRelations(
     }
   };
 
-  const parsed = SqlParser.parse(sql);
   if (parsed instanceof SimpleSelectQuery || parsed instanceof BinarySelectQuery) {
     addSelectRelations(parsed);
   } else if (parsed instanceof InsertQuery) {
@@ -573,12 +596,107 @@ function extractTopLevelRelations(
   return relations;
 }
 
+function buildCteTables(
+  parsed: ReturnType<typeof SqlParser.parse> | unknown,
+  ddlModel: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+  inheritedCteTables: Map<string, DdlSchemaTable> = new Map(),
+): Map<string, DdlSchemaTable> {
+  const cteTables = new Map(inheritedCteTables);
+  const addFromSelect = (query: unknown) => {
+    if (query instanceof BinarySelectQuery) {
+      addFromSelect(query.left);
+      addFromSelect(query.right);
+      return;
+    }
+    if (!(query instanceof SimpleSelectQuery)) return;
+    for (const cte of query.withClause?.tables ?? []) {
+      const nestedCteTables = buildCteTables(cte.query, ddlModel, schemaPath, cteTables);
+      for (const [name, table] of nestedCteTables) {
+        cteTables.set(name, table);
+      }
+      const cteName = normalizeIdentifier(cte.aliasExpression.table.name);
+      const relations = extractRelationsFromParsed(cte.query, ddlModel, schemaPath, cteTables);
+      const table = buildSyntheticCteTable(cteName, cte.query, relations);
+      cteTables.set(cteName.toLowerCase(), table);
+    }
+  };
+
+  addFromSelect(parsed);
+  return cteTables;
+}
+
+function buildSyntheticCteTable(
+  name: string,
+  query: unknown,
+  relations: Array<{ alias?: string; table: DdlSchemaTable }>,
+): DdlSchemaTable {
+  const columns = new Map<string, DdlSchemaColumn>();
+  for (const item of extractSelectItemsFromParsed(query)) {
+    const columnName = inferSyntheticColumnName(item);
+    if (!columnName) continue;
+    const type = inferSqlExpressionContractType(item.value, {
+      resolveColumnType: (reference) => resolveDdlColumnType(reference, relations),
+    });
+    columns.set(columnName.toLowerCase(), {
+      name: columnName,
+      typeName: type,
+      nullable: true,
+      generated: false,
+      primaryKey: false,
+    });
+  }
+
+  return {
+    schema: '__cte__',
+    name,
+    canonicalName: `__cte__.${name}`,
+    columns,
+  };
+}
+
+function extractSelectItemsFromParsed(query: unknown): SelectItem[] {
+  if (query instanceof SimpleSelectQuery) {
+    return query.selectClause.items;
+  }
+  if (query instanceof BinarySelectQuery) {
+    return extractSelectItemsFromParsed(query.left);
+  }
+  if (query instanceof InsertQuery || query instanceof UpdateQuery || query instanceof DeleteQuery) {
+    return query.returningClause?.items ?? [];
+  }
+  return [];
+}
+
+function inferSyntheticColumnName(item: SelectItem): string | undefined {
+  if (item.identifier) {
+    return normalizeIdentifier(item.identifier.name);
+  }
+  if (item.value instanceof ColumnReference) {
+    return normalizeIdentifier(item.value.column.name);
+  }
+  if (item.value instanceof FunctionCall) {
+    return normalizeIdentifier(item.value.qualifiedName.name.toString());
+  }
+  return undefined;
+}
+
 function resolveDdlTable(
   rawName: string,
   ddlModel: DdlSchemaModel,
   schemaPath: Partial<SchemaPathConfig>,
 ): DdlSchemaTable | undefined {
   return resolveSchemaPathTable(ddlModel, rawName, schemaPath);
+}
+
+function resolveRelationTable(
+  rawName: string,
+  ddlModel: DdlSchemaModel,
+  schemaPath: Partial<SchemaPathConfig>,
+  cteTables: Map<string, DdlSchemaTable>,
+): DdlSchemaTable | undefined {
+  const normalized = normalizeIdentifier(rawName).toLowerCase();
+  return cteTables.get(normalized) ?? resolveDdlTable(rawName, ddlModel, schemaPath);
 }
 
 function resolveDdlColumnType(reference: ColumnReference, relations: Array<{ alias?: string; table: DdlSchemaTable }>): string | undefined {

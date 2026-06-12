@@ -1055,7 +1055,8 @@ describe('@ashiba-ts/cli smoke', () => {
         'create table public.tickets (',
         '  ticket_id integer primary key,',
         '  customer_id integer not null,',
-        '  subject text not null',
+        '  subject text not null,',
+        '  created_at timestamptz not null',
         ');',
         'create table public.customers (',
         '  customer_id integer primary key,',
@@ -1068,6 +1069,7 @@ describe('@ashiba-ts/cli smoke', () => {
         '  select',
         '    t.ticket_id,',
         '    t.subject,',
+        '    t.created_at,',
         '    c.display_name as customer_name',
         '  from public.tickets t',
         '  inner join public.customers c on c.customer_id = t.customer_id',
@@ -1076,10 +1078,11 @@ describe('@ashiba-ts/cli smoke', () => {
         '  select',
         '    ticket_id,',
         '    subject,',
+        '    created_at,',
         '    customer_name',
         '  from ticket_base',
         ')',
-        'select ticket_id, subject, customer_name',
+        'select ticket_id, subject, created_at, customer_name',
         'from ticket_view',
         'order by ticket_id;',
         '',
@@ -1093,6 +1096,7 @@ describe('@ashiba-ts/cli smoke', () => {
       });
 
       const importedSql = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/list-tickets.sql'), 'utf8');
+      const queryContract = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/query.ts'), 'utf8');
       const analysisPath = path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json');
       const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as {
         anchorSource?: string;
@@ -1111,6 +1115,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.formatSkippedReason).toBeUndefined();
       expect(importedSql).toContain('from\n            public.tickets as t');
       expect(importedSql).toContain('inner join public.customers as c');
+      expect(queryContract).toContain('created_at: string | null;');
+      expect(queryContract).toContain('customer_name: string | null;');
+      expect(queryContract).toContain('subject: string | null;');
       expect(analysis).toMatchObject({
         anchorSource: 'ticket_view',
         anchorTable: 'public.tickets',
@@ -1328,14 +1335,16 @@ describe('@ashiba-ts/cli smoke', () => {
       const ztdTypes = readFileSync(ztdTypesPath, 'utf8');
       const mappingCases = readFileSync(mappingPath, 'utf8');
 
-      expect(queryBoundary).toContain('status_code: number;');
-      expect(queryBoundary).toContain('ratio: number | null;');
+      expect(queryBoundary).toContain('status_code: string;');
+      expect(queryBoundary).toContain('ratio: string | null;');
       expect(queryBoundary).toContain('message: string | null;');
       expect(ztdTypes).toContain('Record<string, unknown>');
       expect(mappingCases).toContain('mapperProbe');
       expect(mappingCases).toContain('beforeDb: {}');
-      expect(mappingCases).toContain('cast(1 as bigint) as \\"status_code\\"');
-      expect(mappingCases).toContain('cast(1 as numeric(10, 2)) as \\"ratio\\"');
+      expect(mappingCases).toContain('cast(\'1\' as bigint) as \\"status_code\\"');
+      expect(mappingCases).toContain('cast(\'1.25\' as numeric(10, 2)) as \\"ratio\\"');
+      expect(mappingCases).not.toContain('cast(\'value\' as bigint)');
+      expect(mappingCases).not.toContain('cast(\'value\' as numeric');
       expect(mappingCases).toContain('cast(null as text) as \\"message\\"');
 
       rmSync(mappingPath, { force: true });
@@ -3402,11 +3411,11 @@ describe('@ashiba-ts/cli smoke', () => {
         account_id: 'string',
       });
       expect(result.analysis.resultColumnTypes).toEqual({
-        account_id: 'number',
+        account_id: 'string',
         email: 'string',
       });
       expect(result.contents).toContain('account_id: string;');
-      expect(result.contents).toContain('account_id: number;');
+      expect(result.contents).toContain('account_id: string;');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -3893,7 +3902,7 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runModelGen({ rootDir, sqlFile: 'src/features/health/queries/check/check.sql' });
 
       expect(result.resultColumns).toEqual(['checked_at', 'enabled', 'label', 'ok']);
-      expect(result.contents).toContain('checked_at: unknown');
+      expect(result.contents).toContain('checked_at: string');
       expect(result.contents).toContain('enabled: boolean');
       expect(result.contents).toContain('label: string');
       expect(result.contents).toContain('ok: number');
@@ -3957,6 +3966,48 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.contents).toContain('id: number');
       expect(result.contents).toContain('label: string');
       expect(result.contents).toContain('enabled: boolean');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('infers query contract result column types from timestamp and array casts', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-timestamp-array-types-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/cast-array');
+      const sqlPath = path.join(sqlDir, 'cast-array.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select',
+        "  cast('2026-01-01T00:00:00.000Z' as timestamptz) as created_at,",
+        '  cast(array[] as text[]) as tag_slugs,',
+        '  cast(array[] as bigint[]) as big_ids,',
+        '  cast(array[] as float8[]) as scores,',
+        '  cast(1 as bigint) as big_id,',
+        '  cast(2.5 as numeric(10, 2)) as amount,',
+        '  cast(3.5 as double precision) as ratio;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/cast-array/cast-array.sql' });
+
+      expect(result.analysis.resultColumnTypes).toEqual({
+        amount: 'string',
+        big_ids: 'string[]',
+        big_id: 'string',
+        created_at: 'string',
+        ratio: 'number',
+        scores: 'number[]',
+        tag_slugs: 'string[]',
+      });
+      expect(result.contents).toContain('amount: string');
+      expect(result.contents).toContain('big_ids: string[]');
+      expect(result.contents).toContain('big_id: string');
+      expect(result.contents).toContain('created_at: string');
+      expect(result.contents).toContain('ratio: number');
+      expect(result.contents).toContain('scores: number[]');
+      expect(result.contents).toContain('tag_slugs: string[]');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -4114,12 +4165,93 @@ describe('@ashiba-ts/cli smoke', () => {
         external_id: 'string',
         lifecycle: 'string',
         shipped: 'boolean',
-        total_amount: 'number',
+        total_amount: 'string',
       });
-      expect(result.contents).toContain('total_amount: number');
+      expect(result.contents).toContain('total_amount: string');
       expect(result.contents).toContain('shipped: boolean');
       expect(result.contents).toContain('lifecycle: string');
       expect(result.contents).toContain('external_id: string');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('propagates DDL-backed result types through CTE aliases', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-cte-result-types-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db/ddl/public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id bigint primary key,',
+        '  subject text not null,',
+        '  sla_due_at timestamptz,',
+        '  created_at timestamptz not null',
+        ');',
+        'create table public.ticket_tags (',
+        '  ticket_id bigint not null,',
+        '  slug text not null',
+        ');',
+        'create table public.ticket_messages (',
+        '  ticket_id bigint not null,',
+        '  body text not null,',
+        '  created_at timestamptz not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      const sqlDir = path.join(rootDir, 'src/features/tickets/queries/list');
+      const sqlPath = path.join(sqlDir, 'list.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'with filtered_tickets as (',
+        '  select',
+        '    t.ticket_id,',
+        '    t.subject,',
+        '    t.sla_due_at,',
+        '    t.created_at',
+        '  from public.tickets t',
+        '),',
+        'aggregated_tags as (',
+        '  select',
+        '    tt.ticket_id,',
+        '    array_agg(tt.slug order by tt.slug) as tag_slugs',
+        '  from public.ticket_tags tt',
+        '  group by tt.ticket_id',
+        '),',
+        'latest_message as (',
+        '  select ranked.ticket_id, ranked.body, ranked.created_at',
+        '  from (',
+        '    select tm.ticket_id, tm.body, tm.created_at',
+        '    from public.ticket_messages tm',
+        '  ) ranked',
+        ')',
+        'select',
+        '  ft.ticket_id,',
+        '  ft.subject,',
+        '  ft.sla_due_at,',
+        '  ft.created_at,',
+        '  lm.body as latest_message_body,',
+        '  lm.created_at as latest_message_at,',
+        '  coalesce(tags.tag_slugs, cast(array[] as text[])) as tag_slugs',
+        'from filtered_tickets ft',
+        'left join aggregated_tags tags on tags.ticket_id = ft.ticket_id',
+        'left join latest_message lm on lm.ticket_id = ft.ticket_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/tickets/queries/list/list.sql' });
+
+      expect(result.analysis.resultColumnTypes).toEqual({
+        created_at: 'string',
+        latest_message_at: 'string',
+        latest_message_body: 'string',
+        sla_due_at: 'string',
+        subject: 'string',
+        tag_slugs: 'string[]',
+        ticket_id: 'string',
+      });
+      expect(result.contents).toContain('created_at: string');
+      expect(result.contents).toContain('tag_slugs: string[]');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

@@ -17,12 +17,12 @@ const cases: readonly UpdateTicketStatusQueryMappingZtdCase[] = [
       expected_version_key: 1
     },
     mapperProbe: {
-      sql: "select\n    cast('active' as text) as \"status\"\n    , cast(1 as bigint) as \"ticket_id\"\n    , cast('2026-01-01T00:00:00.000Z' as timestamptz) as \"updated_at\"\n    , cast(1 as integer) as \"version_key\"\n;"
+      sql: "select\n    cast('active' as text) as \"status\"\n    , cast('1' as bigint) as \"ticket_id\"\n    , cast('2026-01-01T00:00:00.000Z' as timestamptz) as \"updated_at\"\n    , cast(1 as integer) as \"version_key\"\n;"
     },
     output: [
       {
         status: "active",
-        ticket_id: 1,
+        ticket_id: "1",
         updated_at: "2026-01-01T00:00:00.000Z",
         version_key: 1
       }

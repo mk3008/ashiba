@@ -24,11 +24,11 @@ export const queryModel = {
     ],
     "resultColumnTypes": {
       "body": "string",
-      "created_at": "unknown",
-      "message_id": "number",
+      "created_at": "string",
+      "message_id": "string",
       "sender_name": "string",
       "sender_role": "string",
-      "ticket_id": "number"
+      "ticket_id": "string"
     },
     "namedParameters": [
       "ticket_id",

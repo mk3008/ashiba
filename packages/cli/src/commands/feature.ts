@@ -3402,7 +3402,7 @@ function buildSyntheticContractRow(
       return [field.name, sampleColumnValueByMode(column, mode)];
     }
     if (column) return [field.name, coerceSampleToContractType(sampleColumnValueByMode(column, mode), field.typeScriptType)];
-    return [field.name, sampleValueForType(field.typeScriptType)];
+    return [field.name, sampleValueForSqlType(field.sqlType, field.typeScriptType, mode)];
   }));
 }
 
@@ -3596,6 +3596,34 @@ function sampleValueForType(typeScriptType: string): unknown {
   if (normalized === 'string') return 'value';
   if (normalized === 'unknown') return 'value';
   return 'value';
+}
+
+function sampleValueForSqlType(
+  sqlType: string,
+  typeScriptType: string,
+  mode: 'sample' | 'nullable' | 'boundary' | 'negative-boundary',
+): unknown {
+  const normalized = sqlType.toLowerCase().replace(/\([^)]*\)/g, '').trim();
+  if (/^(bigint|int8|bigserial|serial8)$/.test(normalized)) {
+    if (mode === 'boundary') return '9223372036854775807';
+    if (mode === 'negative-boundary') return '-9223372036854775808';
+    return '1';
+  }
+  if (/^(numeric|decimal)$/.test(normalized)) {
+    if (mode === 'boundary') return '1234567890.12345';
+    if (mode === 'negative-boundary') return '-1234567890.12345';
+    return '1.25';
+  }
+  if (/^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(normalized)) {
+    return mode === 'negative-boundary' ? -1 : 1;
+  }
+  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz|date|time|time without time zone|time with time zone|timetz)$/.test(normalized)) {
+    if (mode === 'boundary') return '2026-01-02T00:00:00.000Z';
+    if (mode === 'negative-boundary') return '2026-01-03T00:00:00.000Z';
+    return '2026-01-01T00:00:00.000Z';
+  }
+  if (/^(boolean|bool)$/.test(normalized)) return mode !== 'negative-boundary';
+  return sampleValueForType(typeScriptType);
 }
 
 function sampleColumnValue(column: DdlColumn, rowNumber: number): unknown {

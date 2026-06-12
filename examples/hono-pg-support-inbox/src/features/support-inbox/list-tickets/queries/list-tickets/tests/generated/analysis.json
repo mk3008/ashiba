@@ -81,7 +81,7 @@
       },
       {
         "name": "created_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
@@ -105,31 +105,31 @@
       },
       {
         "name": "last_customer_reply_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
       {
         "name": "latest_message_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
       {
         "name": "latest_message_body",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
       {
         "name": "latest_sender_name",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
       {
         "name": "latest_sender_role",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
@@ -147,7 +147,7 @@
       },
       {
         "name": "sla_due_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "nullable"
       },
@@ -171,13 +171,13 @@
       },
       {
         "name": "tag_slugs",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string[] | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
       {
         "name": "ticket_id",
-        "typeScriptType": "number | null",
+        "typeScriptType": "string | null",
         "sqlType": "bigint",
         "nullability": "unknown"
       },
@@ -189,7 +189,7 @@
       },
       {
         "name": "updated_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },

@@ -43,8 +43,8 @@ export const queryModel = {
       "tier"
     ],
     "resultColumnTypes": {
-      "created_at": "unknown",
-      "customer_id": "number",
+      "created_at": "string",
+      "customer_id": "string",
       "locale": "string",
       "name": "string",
       "tier": "string"

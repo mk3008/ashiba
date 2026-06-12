@@ -28,21 +28,21 @@ export interface GetTicketDetailQueryParams {
 
 export interface GetTicketDetailQueryResult {
   channel: string | null;
-  created_at: unknown;
+  created_at: string | null;
   customer_name: string | null;
   customer_tier: string | null;
   language: string | null;
   message_body: string | null;
-  message_created_at: unknown;
-  message_id: number | null;
+  message_created_at: string | null;
+  message_id: string | null;
   priority: string | null;
   sender_name: string | null;
   sender_role: string | null;
-  sla_due_at: unknown;
+  sla_due_at: string | null;
   status: string | null;
   subject: string | null;
-  ticket_id: number | null;
-  updated_at: unknown;
+  ticket_id: string | null;
+  updated_at: string | null;
   version_key: number | null;
 }
 

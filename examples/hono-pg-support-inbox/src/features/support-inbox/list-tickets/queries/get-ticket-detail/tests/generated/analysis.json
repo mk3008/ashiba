@@ -39,7 +39,7 @@
       },
       {
         "name": "created_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
@@ -69,14 +69,14 @@
       },
       {
         "name": "message_created_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },
       {
         "name": "message_id",
-        "typeScriptType": "number | null",
-        "sqlType": "integer",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
         "nullability": "unknown"
       },
       {
@@ -99,7 +99,7 @@
       },
       {
         "name": "sla_due_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "nullable"
       },
@@ -117,13 +117,13 @@
       },
       {
         "name": "ticket_id",
-        "typeScriptType": "number | null",
-        "sqlType": "integer",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
         "nullability": "unknown"
       },
       {
         "name": "updated_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },

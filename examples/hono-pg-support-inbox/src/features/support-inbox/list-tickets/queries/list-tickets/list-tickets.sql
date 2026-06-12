@@ -1,4 +1,6 @@
 with
+    /* タグ条件だけを先に解決し、後続の一覧本体では ticket_id だけで絞り込めるようにする。 */
+    /* :tag が未指定なら全チケットを通し、指定された場合だけ該当タグを持つチケットに限定する。 */
     tag_matched_tickets as (
         select distinct
             t.ticket_id
@@ -9,6 +11,9 @@ with
         where
             (cast(:tag as text) is null or tt.slug = :tag)
     ),
+    /* 一覧の主対象となるチケット集合をここで確定する。 */
+    /* チケット、顧客、タグ、SLA、言語、チャネルなど、後続の集計前に適用できる条件はここで寄せる。 */
+    /* safe sort 用の action_required、priority_rank、vip_rank もこの段階で算出する。 */
     filtered_tickets as (
         select
             t.ticket_id
@@ -81,6 +86,8 @@ with
             and (cast(:language as text) is null or t.language = :language)
             and (cast(:channel as text) is null or t.channel = :channel)
     ),
+    /* 各チケットの最新メッセージだけを取り出す。 */
+    /* filtered_tickets に結合してから rank することで、一覧対象外のメッセージを読まない。 */
     latest_message as (
         select
             ranked.ticket_id
@@ -110,6 +117,8 @@ with
         where
             ranked.message_rank = 1
     ),
+    /* キーワード検索を最新メッセージ取得後に適用する。 */
+    /* 件名、顧客名、最新メッセージ本文を横断して検索するため、この段階で検索可能な一覧行を作る。 */
     searchable_tickets as (
         select
             ft.ticket_id
@@ -142,6 +151,8 @@ with
                 or lm.latest_message_body ilike '%' || :keyword || '%'
             )
     ),
+    /* 顧客からの最新返信日時を集計する。 */
+    /* safe sort の「顧客からの返信: 新しい順」で使う補助値。 */
     last_customer_reply as (
         select
             tm.ticket_id
@@ -154,6 +165,8 @@ with
         group by
             tm.ticket_id
     ),
+    /* 表示用のタグ slug をチケット単位でまとめる。 */
+    /* タグ検索自体は tag_matched_tickets で済ませ、ここは表示値の集約に限定する。 */
     aggregated_tags as (
         select
             ttl.ticket_id
@@ -167,6 +180,8 @@ with
         group by
             ttl.ticket_id
     )
+/* 最終 select は UI と generated mapper の境界。 */
+/* DB固有の型推論に寄りすぎないよう、表示・DTOで使う値は必要に応じて明示 cast する。 */
 select
     count(*) over() as total_count
     , cast(st.ticket_id as bigint) as ticket_id

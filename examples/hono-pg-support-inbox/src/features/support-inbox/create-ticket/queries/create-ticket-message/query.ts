@@ -35,7 +35,7 @@ export interface CreateTicketMessageQueryResult {
   sender_name: string;
   sender_role: string;
   body: string;
-  created_at: unknown;
+  created_at: string;
 }
 
 type QueryRow = CreateTicketMessageQueryResult;

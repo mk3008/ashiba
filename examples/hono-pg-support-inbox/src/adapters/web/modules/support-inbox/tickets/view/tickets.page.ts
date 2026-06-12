@@ -497,7 +497,7 @@ function badge(label: string, className: string): string {
   return `<span class="badge ${escapeHtml(className)}">${escapeHtml(label)}</span>`;
 }
 
-function withTicketId(filters: TicketFilters, ticketId: number | null): string {
+function withTicketId(filters: TicketFilters, ticketId: string | null): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(filters)) {
     if (key !== 'selectedTicketId' && value) {

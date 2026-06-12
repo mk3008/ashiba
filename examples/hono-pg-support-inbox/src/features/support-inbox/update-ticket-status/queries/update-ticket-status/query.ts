@@ -30,8 +30,8 @@ export interface UpdateTicketStatusQueryParams {
 
 export interface UpdateTicketStatusQueryResult {
   status: string | null;
-  ticket_id: number | null;
-  updated_at: unknown;
+  ticket_id: string | null;
+  updated_at: string | null;
   version_key: number | null;
 }
 

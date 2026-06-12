@@ -37,25 +37,25 @@ export interface ListTicketsQueryParams {
 export interface ListTicketsQueryResult {
   action_required: number | null;
   channel: string | null;
-  created_at: unknown;
+  created_at: string | null;
   customer_name: string | null;
   customer_tier: string | null;
   language: string | null;
-  last_customer_reply_at: unknown;
-  latest_message_at: unknown;
-  latest_message_body: unknown;
-  latest_sender_name: unknown;
-  latest_sender_role: unknown;
+  last_customer_reply_at: string | null;
+  latest_message_at: string | null;
+  latest_message_body: string | null;
+  latest_sender_name: string | null;
+  latest_sender_role: string | null;
   priority: string | null;
   priority_rank: number | null;
-  sla_due_at: unknown;
+  sla_due_at: string | null;
   sla_state: string | null;
   status: string | null;
   subject: string | null;
-  tag_slugs: unknown;
-  ticket_id: number | null;
+  tag_slugs: string[] | null;
+  ticket_id: string | null;
   total_count: number | null;
-  updated_at: unknown;
+  updated_at: string | null;
   vip_rank: number | null;
 }
 

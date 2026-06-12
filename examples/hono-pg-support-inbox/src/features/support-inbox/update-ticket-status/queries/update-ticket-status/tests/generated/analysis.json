@@ -47,13 +47,13 @@
       },
       {
         "name": "ticket_id",
-        "typeScriptType": "number | null",
-        "sqlType": "integer",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
         "nullability": "unknown"
       },
       {
         "name": "updated_at",
-        "typeScriptType": "unknown",
+        "typeScriptType": "string | null",
         "sqlType": "text",
         "nullability": "unknown"
       },

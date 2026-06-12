@@ -31,7 +31,7 @@ export interface ListCustomersForTicketQueryResult {
   name: string;
   tier: string;
   locale: string;
-  created_at: unknown;
+  created_at: string;
 }
 
 type QueryRow = ListCustomersForTicketQueryResult;
