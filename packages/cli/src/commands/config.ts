@@ -18,6 +18,12 @@ export type AshibaConfig = {
   sql: {
     parameterStyle: 'colon' | 'at' | 'both';
   };
+  mutation: {
+    optimisticLock: {
+      versionColumn: string;
+      scaffold: 'off' | 'when-column-exists';
+    };
+  };
   format: {
     sql: Partial<SqlFormatterOptions>;
   };
@@ -36,6 +42,12 @@ export type ProjectPathConfig = {
   sqlRoots: string[];
   defaultSchema: string;
   searchPath: string[];
+  mutation: {
+    optimisticLock: {
+      versionColumn: string;
+      scaffold: 'off' | 'when-column-exists';
+    };
+  };
 };
 
 export function createDefaultConfig(): AshibaConfig {
@@ -50,6 +62,12 @@ export function createDefaultConfig(): AshibaConfig {
     },
     sql: {
       parameterStyle: 'both',
+    },
+    mutation: {
+      optimisticLock: {
+        versionColumn: 'version_key',
+        scaffold: 'when-column-exists',
+      },
     },
     format: {
       sql: DEFAULT_SQL_FORMAT_OPTIONS,
@@ -69,6 +87,12 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
       sqlRoots: ['src/features'],
       defaultSchema: 'public',
       searchPath: ['public'],
+      mutation: {
+        optimisticLock: {
+          versionColumn: 'version_key',
+          scaffold: 'when-column-exists',
+        },
+      },
     };
   }
 
@@ -78,6 +102,12 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
     features?: { sourceDir?: unknown };
     defaultSchema?: unknown;
     searchPath?: unknown;
+    mutation?: {
+      optimisticLock?: {
+        versionColumn?: unknown;
+        scaffold?: unknown;
+      };
+    };
   };
   try {
     parsed = JSON.parse(readFileSync(configPath, 'utf8')) as typeof parsed;
@@ -112,6 +142,12 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
     sqlRoots: sqlRoots.length > 0 ? sqlRoots : [featureRoot],
     defaultSchema,
     searchPath,
+    mutation: {
+      optimisticLock: {
+        versionColumn: nonEmptyString(parsed.mutation?.optimisticLock?.versionColumn) ?? 'version_key',
+        scaffold: parsed.mutation?.optimisticLock?.scaffold === 'off' ? 'off' : 'when-column-exists',
+      },
+    },
   };
 }
 

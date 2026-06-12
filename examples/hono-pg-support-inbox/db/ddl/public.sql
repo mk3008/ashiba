@@ -17,6 +17,7 @@ create table public.tickets (
     sla_due_at timestamptz,
     created_at timestamptz not null,
     updated_at timestamptz not null,
+    version_key integer not null default 1,
     metadata jsonb not null default '{}'::jsonb
 );
 

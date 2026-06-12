@@ -107,10 +107,10 @@ index df00b31..8dc9f04 100644
      customerTier: record["customerTier"] as unknown,
      slaState: record["slaState"] as unknown,
      language: record["language"] as unknown,
-diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/generated/query.meta.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/generated/query.meta.ts
+diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/generated/query.meta.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/generated/query.meta.ts
 index 12086f7..ee6142b 100644
---- a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/generated/query.meta.ts
-+++ b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/generated/query.meta.ts
+--- a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/generated/query.meta.ts
++++ b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/generated/query.meta.ts
 @@ -6,11 +6,11 @@ export const queryModel = {
      "statementKind": "select",
      "rootQueryShape": "simple-select",
@@ -446,10 +446,10 @@ index 12086f7..ee6142b 100644
              }
            }
          ]
-diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/list-tickets.sql b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/list-tickets.sql
+diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql
 index 77c1a9a..77e914c 100644
---- a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/list-tickets.sql
-+++ b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/list-tickets.sql
+--- a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql
++++ b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql
 @@ -80,6 +80,7 @@ left join latest_message lm on lm.ticket_id = t.ticket_id
  left join last_customer_reply lcr on lcr.ticket_id = t.ticket_id
  left join aggregated_tags tags on tags.ticket_id = t.ticket_id
@@ -458,10 +458,10 @@ index 77c1a9a..77e914c 100644
    and (cast(:customerTier as text) is null or c.tier = :customerTier)
    and (
        cast(:slaState as text) is null
-diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/query.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/query.ts
+diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/query.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/query.ts
 index 1582793..a31dd08 100644
---- a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/query.ts
-+++ b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/query.ts
+--- a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/query.ts
++++ b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/query.ts
 @@ -24,6 +24,7 @@ export const listTicketsQuery = {
  
  export interface ListTicketsQueryParams {
@@ -470,10 +470,10 @@ index 1582793..a31dd08 100644
    customerTier: unknown;
    slaState: unknown;
    language: unknown;
-diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json
+diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/tests/generated/analysis.json b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/tests/generated/analysis.json
 index f26b7c1..ef324e3 100644
---- a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json
-+++ b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json
+--- a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/tests/generated/analysis.json
++++ b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/tests/generated/analysis.json
 @@ -33,6 +33,10 @@
          "name": "status",
          "typeScriptType": "unknown"
@@ -485,10 +485,10 @@ index f26b7c1..ef324e3 100644
        {
          "name": "customerTier",
          "typeScriptType": "unknown"
-diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/tests/generated/mapping.cases.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/tests/generated/mapping.cases.ts
+diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/tests/generated/mapping.cases.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/tests/generated/mapping.cases.ts
 index c6d2ce7..36dda4f 100644
---- a/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/tests/generated/mapping.cases.ts
-+++ b/examples/hono-pg-support-inbox/src/features/support-inbox/queries/list-tickets/tests/generated/mapping.cases.ts
+--- a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/tests/generated/mapping.cases.ts
++++ b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/tests/generated/mapping.cases.ts
 @@ -12,6 +12,7 @@ const cases: readonly ListTicketsQueryMappingZtdCase[] = [
      },
      input: {

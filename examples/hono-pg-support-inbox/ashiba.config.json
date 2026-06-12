@@ -1,8 +1,8 @@
 {
   "$schema": "https://ashiba.dev/schema/ashiba-config.json",
-  "featureRoot": "src/features",
+  "featureRoot": "src/features/support-inbox",
   "sqlRoots": [
-    "src/features"
+    "src/features/support-inbox"
   ],
   "defaultSchema": "public",
   "searchPath": [
@@ -13,6 +13,12 @@
   },
   "sql": {
     "parameterStyle": "both"
+  },
+  "mutation": {
+    "optimisticLock": {
+      "versionColumn": "version_key",
+      "scaffold": "when-column-exists"
+    }
   },
   "format": {
     "sql": {
@@ -25,9 +31,12 @@
       "newline": "lf",
       "keywordCase": "lower",
       "commaBreak": "before",
+      "cteCommaBreak": "after",
       "valuesCommaBreak": "before",
       "andBreak": "before",
       "orBreak": "before",
+      "joinOnBreak": "before",
+      "joinConditionContinuationIndent": false,
       "exportComment": true,
       "commentStyle": "block",
       "withClauseStyle": "standard",
@@ -38,6 +47,7 @@
       "joinOneLine": true,
       "caseOneLine": false,
       "subqueryOneLine": false,
+      "oneLineMaxLength": 100,
       "joinConditionOrderByDeclaration": false
     }
   },

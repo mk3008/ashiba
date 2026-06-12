@@ -1,6 +1,6 @@
 import type { AshibaPostgresExecuteOptions } from '@ashiba-ts/driver-adapter-pg';
 
-import type { ListTicketsQueryParams } from '#features/support-inbox/queries/list-tickets/query.js';
+import type { ListTicketsQueryParams } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
 
 export type TicketSortKey =
   | 'action-required'

@@ -1,8 +1,9 @@
 import type { Pool } from 'pg';
 
+import { logSqlExecution } from '#adapters/logger/appLogger.js';
 import { createPgSqlClient } from '#adapters/pg/pool.js';
-import { executeGetTicketDetailQuery, type GetTicketDetailQueryResult } from '#features/support-inbox/queries/get-ticket-detail/query.js';
-import { executeListTicketsQuery, type ListTicketsQueryResult } from '#features/support-inbox/queries/list-tickets/query.js';
+import { executeGetTicketDetailQuery, type GetTicketDetailQueryResult } from '#features/support-inbox/list-tickets/queries/get-ticket-detail/query.js';
+import { executeListTicketsQuery, type ListTicketsQueryResult } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
 import type { TicketFilters } from '../request/tickets.request.js';
 import { toListTicketsParams, toTicketSort } from '../request/tickets.request.js';
 
@@ -29,6 +30,7 @@ export type Pagination = {
 
 export type SqlInspection = {
   sqlPath: string;
+  apiRoute: string;
   selectedSort: string;
   safeSortKeys: string;
   stableOrder: string;
@@ -47,6 +49,7 @@ export type BoundParam = {
 
 type SqlInspectionEvent = {
   phase: 'start' | 'end' | 'error';
+  executionId?: string;
   compiledSql?: string;
   orderedNames?: readonly string[];
   params?: readonly unknown[];
@@ -54,32 +57,46 @@ type SqlInspectionEvent = {
   rowCount?: number;
 };
 
-export async function loadSupportInbox(pool: Pool, filters: TicketFilters): Promise<SupportInboxViewModel> {
+export type SupportInboxRequestContext = {
+  requestId: string;
+  apiMethod: string;
+  apiPath: string;
+  apiRoute: string;
+  operation: string;
+};
+
+export async function loadSupportInbox(pool: Pool, filters: TicketFilters, context: SupportInboxRequestContext): Promise<SupportInboxViewModel> {
   const listEvents: SqlInspectionEvent[] = [];
   const listExecutor = createPgSqlClient(pool, {
     includeUnmaskedParamsInEvents: true,
     observer: {
       emit(event) {
+        logSqlExecution(event);
         listEvents.push(event);
       },
     },
     executeOptions: {
+      metadata: toSqlMetadata(context, filters, 'list'),
       sort: toTicketSort(filters),
     },
   });
   const tickets = await executeListTicketsQuery(listExecutor, toListTicketsParams(filters));
   const selectedTicketId = filters.selectedTicketId ?? tickets[0]?.ticket_id?.toString();
-  const selectedTicket = selectedTicketId ? await loadTicketDetail(pool, selectedTicketId) : undefined;
+  const selectedTicket = selectedTicketId ? await loadTicketDetail(pool, selectedTicketId, context) : undefined;
   return {
     tickets,
     selectedTicket,
-    inspection: buildSqlInspection(filters, tickets.length, listEvents),
+    inspection: buildSqlInspection(filters, tickets.length, listEvents, context),
     pagination: buildPagination(filters, tickets),
   };
 }
 
-async function loadTicketDetail(pool: Pool, ticketId: string): Promise<TicketDetail> {
-  const executor = createPgSqlClient(pool);
+async function loadTicketDetail(pool: Pool, ticketId: string, context: SupportInboxRequestContext): Promise<TicketDetail> {
+  const executor = createPgSqlClient(pool, {
+    executeOptions: {
+      metadata: toSqlMetadata(context, undefined, 'detail'),
+    },
+  });
   const messages = await executeGetTicketDetailQuery(executor, { ticketId });
   return {
     summary: messages[0],
@@ -87,10 +104,11 @@ async function loadTicketDetail(pool: Pool, ticketId: string): Promise<TicketDet
   };
 }
 
-function buildSqlInspection(filters: TicketFilters, rowCount: number, events: readonly SqlInspectionEvent[]): SqlInspection {
+function buildSqlInspection(filters: TicketFilters, rowCount: number, events: readonly SqlInspectionEvent[], context: SupportInboxRequestContext): SqlInspection {
   const executed = [...events].reverse().find((event) => event.phase === 'end' || event.phase === 'start');
   return {
-    sqlPath: 'src/features/support-inbox/queries/list-tickets/list-tickets.sql',
+    sqlPath: 'src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql',
+    apiRoute: context.apiRoute,
     selectedSort: filters.sort,
     safeSortKeys:
       toTicketSort(filters)
@@ -103,6 +121,24 @@ function buildSqlInspection(filters: TicketFilters, rowCount: number, events: re
     rowCount: executed?.rowCount ?? rowCount,
     elapsedMs: executed?.elapsedMs,
   };
+}
+
+function toSqlMetadata(context: SupportInboxRequestContext, filters?: TicketFilters, queryVariant?: string) {
+  return {
+    requestId: context.requestId,
+    apiMethod: context.apiMethod,
+    apiPath: context.apiPath,
+    apiRoute: context.apiRoute,
+    operation: context.operation,
+    filterKeys: filters ? activeFilterKeys(filters) : [],
+    sortKeys: filters ? toTicketSort(filters).map((item) => `${item.key}.${item.direction ?? 'asc'}`) : [],
+    queryVariant,
+  };
+}
+
+function activeFilterKeys(filters: TicketFilters): string[] {
+  return (['status', 'customerTier', 'slaState', 'language', 'channel', 'tag', 'keyword'] as const)
+    .filter((key) => filters[key] !== '');
 }
 
 function buildBoundParams(orderedNames: readonly string[], params: readonly unknown[]): BoundParam[] {

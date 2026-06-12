@@ -189,6 +189,23 @@ Product note:
 - CLI DDL-aware lint now carries outer CTE names into nested CTE queries, so CTE-to-CTE references are not mistaken for missing physical DDL tables.
 - CLI Postgres binding metadata now compiles grouped optional-condition removal text with full SQL placeholder context, so runtime optional compression does not reject valid refreshed metadata when earlier parameters appear before the grouped `where`.
 
+### Windows clean clone exposed line-ending-sensitive drift
+
+The 2026-06-09 external example evaluation found that a fresh Windows clone with `core.autocrlf=true` could still fail `check:drift` before any user edit. The reported drift was mainly `sourceHash` and source offset changes after refreshing query metadata, which strongly suggests that SQL source hashing and range metadata are still sensitive to CRLF vs LF working-tree line endings.
+
+Resolution in this demo:
+
+- Resolved for the reproduced local customer-test path.
+- Added repository line-ending policy so Ashiba's own example checkout keeps SQL and generated metadata assets on stable line endings.
+- Normalized SQL source line endings at the Ashiba CLI and driver metadata-validation boundaries, so CRLF-only checkout differences do not create false `sourceHash`, safe sort, optional compression, or Postgres binding drift.
+- Re-ran the failing customer scenario by temporarily converting the support inbox SQL files to CRLF; `check:drift` now passes without refreshing generated assets.
+
+Product note:
+
+- The demo promises that `check:drift` must pass in a clean clone. This should hold even when a customer checkout or editor uses CRLF for visible SQL.
+- Ashiba should not try to own every customer repository's Git policy. It should canonicalize SQL line endings only at metadata-sensitive boundaries where CRLF vs LF has no SQL meaning.
+- The GitHub workflow now includes a Windows `core.autocrlf=true` drift job. Keep the dogfooding status partial until that job has passed on GitHub Actions.
+
 ## Current Verification
 
 - `ASHIBA_TEST_DB_PORT=55433 pnpm --dir examples/hono-pg-support-inbox db:seed`: passed
@@ -204,16 +221,67 @@ This report is treated as customer-style dogfooding feedback. It covers a fresh 
 
 | Priority | Status | Task | Notes |
 | --- | --- | --- | --- |
-| P0 | done | Ship the support inbox demo in a clone-to-green state. | The report found `check:drift` failures and `/tickets` HTTP 503 from stale query metadata. The example now documents `typecheck`, `test`, `check:drift`, and `verify`; current dogfooding verification records those checks as passing. Keep this as a release-blocking demo invariant. |
+| P0 | partial | Ship the support inbox demo in a clone-to-green state. | The first report's stale metadata and `/tickets` HTTP 503 issues were fixed for the verified local path. The 2026-06-09 example evaluation reopened this invariant because Windows clean clone with `core.autocrlf=true` could fail `check:drift` from line-ending-sensitive metadata. The CRLF SQL customer-test reproduction now passes after line-ending normalization, and CI now has a Windows autocrlf drift job. Keep this partial until the GitHub Actions job passes. |
 | P0 | done | Add CI coverage for the example drift and HTTP route path. | The GitHub workflow `.github/workflows/verify.yml` starts PostgreSQL directly from the example directory, seeds the DB, and runs `pnpm --dir examples/hono-pg-support-inbox verify`, which includes `check:drift` and route-level Vitest coverage. |
 | P0 | done | Separate metadata drift from database-startup failures on the demo error page. | The `/tickets` error page now identifies query metadata drift separately and points to `check:drift` / `ashiba:generate`; PostgreSQL startup failures point to `db:up` and direct `docker compose up -d`. Route E2E covers both messages. |
 | P0 | done | Cover adapter composition where optional-condition compression and safe sort interact. | The report found `where and ...` and safe-sort insertion-position failures after compression and placeholder renumbering. Driver-adapter regression coverage now covers this composition, and route-level E2E exercises public filters plus safe sort. |
 | P1 | done | Document Windows / sandbox Docker fallback. | The example README now documents direct `docker compose up -d` from the example directory for restricted Windows, sandbox, or Docker pipe environments. |
 | P1 | done | Make the workspace build prerequisite explicit. | The example README now tells users to run `pnpm install` and `pnpm build` from the repository root before running the workspace-backed example. |
-| P1 | partial | Make adapter behavior visible enough that it is not a black box. | The SQL inspection panel shows compiled SQL, bound parameters, selected safe sort, and stable suffix. Remaining improvement: factor this into reusable adapter/debug guidance so future demos do not reimplement the visibility surface ad hoc. |
+| P1 | done | Make adapter behavior visible enough that it is not a black box. | The SQL inspection panel shows compiled SQL, bound parameters, selected safe sort, and stable suffix. `docs/debug-visibility.md` now captures the reusable adapter observer, safe logging, local demo console, telemetry, and storage guidance so future demos do not reimplement the visibility surface ad hoc. |
 | P1 | partial | Strengthen project-level checks so runtime composition issues are caught before browser dogfooding. | The example CI now runs route-level tests, and adapter unit tests cover the known composition bug. Remaining question: whether `ashiba check --full`, generated verification, or example CI should own full HTTP route execution for future examples. |
 | P1 | done | Improve the performance demonstration for source-proximal filtering. | `list-tickets.sql` now narrows ticket/customer/tag scope before latest-message lookup, customer-reply aggregation, and tag aggregation, while preserving visible SQL, paging, count, safe sort, keyword semantics, and full tag display. This also dogfooded refresh, DDL-aware lint, generated mapper contracts, and route-level SQL inspection. |
 | P2 | open | Add a separate CUD / mutation dogfooding lane. | The report could not evaluate CUD, transaction boundaries, mutation mapper tests, optimistic locking, audit, or affected-row behavior. This should be a separate adoption demo or clearly scoped extension, not hidden inside the read-heavy demo. |
+
+## External Example Evaluation Report Dogfooding Tasks
+
+Source: `ashiba-example-evaluation-report.md`, dated 2026-06-09.
+
+This report is treated as customer-style dogfooding feedback focused on the shipped `examples/hono-pg-support-inbox` experience. It confirmed that the demo now builds, seeds PostgreSQL, serves `/tickets`, and passes DB-backed route tests when the environment is prepared. It also found a remaining Windows clean-clone drift path.
+
+| Priority | Status | Task | Notes |
+| --- | --- | --- | --- |
+| P0 | partial | Make Windows clean clone pass `check:drift`. | CRLF-only SQL changes are now tolerated by `check:drift` in the reproduced customer-test path. A Windows `core.autocrlf=true` CI job now checks clean checkout drift; keep partial until CI evidence is available. |
+| P0 | done | Add a repository line-ending policy for source SQL and generated Ashiba assets. | Root `.gitattributes` now pins SQL, TypeScript, JSON, Markdown, YAML, and related source assets intentionally for Ashiba's own checkout experience. |
+| P0 | done | Decide and implement line-ending normalization for `sourceHash` and source ranges. | Ashiba now normalizes SQL line endings at CLI metadata generation/check boundaries and driver metadata-validation boundaries. This avoids false drift without taking ownership of the customer's whole Git policy. |
+| P1 | done | Add an autocrlf/CRLF regression check. | CI now runs a Windows `core.autocrlf=true` checkout, checks clean drift, then forces the support inbox SQL files to CRLF and reruns `check:drift`. This covers the regression shape; the broader clone-to-green invariant remains partial until the CI job has passed. |
+| P1 | done | Reconfirm `verify` includes DB-backed route coverage in the public path. | `verify` runs `pnpm test`; the example CI copies `.env.example`, starts PostgreSQL, seeds the DB, and then runs `verify`. `tests/support/setup-env.ts` derives `ASHIBA_TEST_DATABASE_URL` from `.env`, so the route-level E2E tests are included in the public CI path when the DB-backed environment is prepared. |
+| P2 | open | Preserve browser-visual verification as optional evidence. | The report could not use Codex Browser control and only confirmed HTTP 200. This is not a product blocker, but visual smoke screenshots remain useful for demo polish. |
+
+## External Product Evaluation Report Dogfooding Tasks
+
+Source: `C:\Users\mssgm\Downloads\ashiba_REPORT.md`, dated 2026-06-12.
+
+This report is treated as customer-style adoption feedback. The report correctly identifies adoption risks around type inference, rawsql-ts dependency, terminology, and generated-file footprint. The dogfooding interpretation is adjusted for Ashiba's `code is yours` position: generated code is customer-owned and editable, but generated metadata, mapper tests, and drift baselines still need CLI-managed synchronization.
+
+| Priority | Status | Task | Notes |
+| --- | --- | --- | --- |
+| P0 | open | Classify rawsql-ts unsupported-SQL paths into blocked vs degraded vs unaffected. | rawsql-ts is not an ORM runtime dependency, so an unsupported parse does not automatically mean production runtime is blocked. Validate where users truly get stuck: scaffold/import/check metadata, SSSQL compression, safe sort metadata, SQL formatting, query uses/outline/slice, and generated tests. |
+| P0 | open | Document the no-runtime-dependency nuance of rawsql-ts. | Explain that many Ashiba paths use rawsql-ts at development/generation/check time. If users do not use SSSQL compression or safe-sort adapter features, rawsql-ts limitations may affect tooling rather than application runtime. |
+| P0 | partial | Improve initial generated contract quality without promising perfect automatic type ownership. | CLI result type inference now handles timestamp/date-like SQL types as `string`, PostgreSQL `bigint`/`numeric` values as `string`, safe JS numeric SQL types such as `integer`/`double precision` as `number`, simple typed arrays such as `text[]` as `string[]`, `array_agg`, `min`/`max` argument types, CTE aliases, and derived subquery aliases. PostgreSQL custom/domain/extension/json/expression types still require customer-owned edits. |
+| P1 | done | Add a dogfooding case for editing generated DTO/mapper types after scaffold. | Added `exercises/contract-boundary-narrowing/`, a patch-backed exercise that narrows conservative `unknown` request params into customer-owned types and verifies the feature boundary with typecheck/tests. SQL and mapper assets intentionally stay unchanged in this exercise because the SQL shape does not change. |
+| P1 | open | Make review-boundary value visible in the example docs. | File count is not automatically bad when files represent stable review boundaries. Show which files are human-edited, generated metadata, mapper tests, and route/integration tests so reviewers can see whether input, output, SQL, mapper, or workflow changed. |
+| P1 | open | Reduce external terminology in the demo and README path. | Keep internal terms such as RFBA/ZTD/SSSQL in planning docs where useful, but translate public surfaces to review-friendly boundaries, mapper tests, safe optional filters, whitelisted dynamic sort, and no ORM runtime. |
+
+### Generated contract quality snapshot
+
+2026-06-12 snapshot of the support inbox generated contracts:
+
+| Area | Current observation | Classification | Follow-up |
+| --- | --- | --- | --- |
+| External feature boundary input | `boundary.ts` and `parseRequest(raw: unknown)` accept unknown raw input. | Expected. HTTP, CLI, or automation adapters are untrusted boundaries. | Keep `raw: unknown`; make validation responsibility visible in `input.ts`. |
+| `list-tickets` request / query params | `SupportInboxRequest = ListTicketsQueryParams`, and all public filters, `limit`, and `offset` are `unknown`. | Weak initial success experience. The raw adapter input can be unknown, but the feature request and query params should be easier to understand after parsing. | Covered by `exercises/contract-boundary-narrowing/`, which turns request fields into explicit app-owned types such as `string | null` and `number`, then proves the feature boundary with typecheck/tests. |
+| Timestamp result columns | CLI metadata generation now infers timestamp/date-like SQL types as `string`, including columns propagated through simple CTE and derived-table aliases. Existing customer-owned `query.ts` files are not overwritten by metadata refresh. | Improved initial generation. Customer-owned edit remains valid when an app chooses `Date` or value objects instead of ISO strings. | Keep the example policy explicit: generated mapper probes use ISO strings, and existing editable contracts may be narrowed manually when desired. |
+| JSONB result columns | `tickets.metadata` is generated as `unknown`. | Customer-owned type is expected. JSON shape is application-specific and cannot be fully owned by Ashiba. | Demonstrate editing `metadata` to a narrow app type or `Record<string, unknown>` and prove it with mapper tests. |
+| Aggregated array columns | CLI metadata generation now infers `array_agg(text)` / `cast(array[] as text[])` style expressions as `string[]` when the element type is known. | Improved initial generation. More complex JSON/custom aggregate shapes still stay customer-owned. | Keep exercising array output through mapper tests and visible SQL casts. |
+| Bigint / bigserial identity columns | CLI metadata generation now infers PostgreSQL `bigint`, `int8`, `bigserial`, and `serial8` as `string`, including read contracts. | Improved initial generation. Node PostgreSQL returns int8 as string by default, and this avoids silent precision loss in TypeScript. | Keep `integer`/`int4` as `number`; keep `bigint` IDs as strings across public demo contracts. |
+| Generated test boundary types | `tests/boundary-ztd-types.ts` intentionally uses broad `unknown`-friendly type probes. | Mostly expected for generated evidence plumbing. | Do not treat generated test helper `unknown` as the same problem as public feature/query contract `unknown`. |
+
+The main product lesson is not "remove every `unknown`." The target is a better first scaffold plus a clear customer-owned edit loop:
+
+1. Ashiba generates a conservative contract.
+2. The customer narrows app-owned `input.ts`, `output.ts`, and query boundary types where the domain policy is known.
+3. Generated metadata and mapper test assets are refreshed with CLI commands.
+4. `check:drift`, mapper tests, and route/integration tests prove that the edit remains aligned with SQL and DDL.
 
 ## Remaining Product Questions
 
@@ -227,7 +295,7 @@ This report is treated as customer-style dogfooding feedback. It covers a fresh 
 | P1 | done | Preserve required predicates after leading optional branch removal. | Fixed in the PostgreSQL driver adapter. `where (:email is null or email = :email) and tenant_id = :tenant_id` now compresses to `where tenant_id = $1` when `email` is null, so `where true` is no longer required for correctness. |
 | P1 | done | Provide a user-facing safe sort surface. | The demo page shows the public sort labels, the safe sort key sequence each label maps to, and the fixed `ticket_id asc` stable suffix. A future CLI/helper could still reduce app-owned display wiring, but the adoption demo surface is present. |
 | P1 | done | Add a SQL inspection panel to the demo. | The demo page shows the selected sort, safe sort keys, stable suffix, bound parameter names, and compiled SQL captured from the Ashiba PostgreSQL adapter observer. Users can see the visible SQL story without reading terminal logs. |
-| P1 | done | Add README AI edit exercise. | README now includes a short "Try an AI Edit" entry point that points to the patch-backed optional priority filter exercise and the example verification gate. |
+| P1 | done | Add README AI edit exercise entrypoint. | README now includes a short "Try an AI Edit" entry point for the optional priority filter exercise and links to the patch-backed exercise index, including SQL inspection, contract-boundary narrowing, list-column, migration-script, and grid-header sort exercises. |
 | P2 | open | Add a separate CUD demo lane. | The support inbox demo intentionally proves the read-heavy path only. The external evaluation report also flags CUD, transactions, mutation mapper tests, optimistic locking, audit, and affected-row behavior as unevaluated. |
 | P2 | open | Decide whether CUD belongs in the same example app. | Keeping it separate protects the read demo's focus; sharing the same domain may make the adoption story easier to compare. This needs human product judgment. |
 | P2 | partial | Decide the standard owner for full runtime composition checks. | Optional compression and safe sort now have direct regression coverage, and example CI runs the route-level demo tests. Remaining question: whether `ashiba check --full`, generated verification, or per-example CI should own this pattern for future examples and customer projects. |

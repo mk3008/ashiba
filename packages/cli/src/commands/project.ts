@@ -244,7 +244,7 @@ function runOptionalContractCheck(rootDir: string, config: ProjectPathConfig): C
       ok: true,
     };
   }
-  return runCheckContract({ rootDir, scopeDir: config.featureRoot });
+  return runCheckContract({ rootDir, featureRoot: config.featureRoot, scopeDir: config.featureRoot });
 }
 
 function runOptionalFeatureTestsCheck(rootDir: string, config: ProjectPathConfig): FeatureTestsCheckResult | undefined {

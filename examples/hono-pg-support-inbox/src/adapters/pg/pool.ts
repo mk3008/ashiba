@@ -1,7 +1,7 @@
 import { Pool, type PoolConfig } from 'pg';
 import { createPostgresAdapter, type AshibaPostgresAdapterOptions, type AshibaPostgresExecuteOptions } from '@ashiba-ts/driver-adapter-pg';
 
-import { logSqlExecution } from '#adapters/logger/sqlLogger.js';
+import { logSqlExecution } from '#adapters/logger/appLogger.js';
 import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 
 export type PgConnectionSettings = {
@@ -48,7 +48,7 @@ export function createPgPool(settings: PgConnectionSettings = {}): Pool {
  * Natural wiring:
  *   query -> feature -> sqlClient -> logger
  *
- * SQL logging is intentionally delegated to ../logger/sqlLogger.ts. Fill that
+ * SQL logging is intentionally delegated to ../logger/appLogger.ts. Fill that
  * file with your application logger (pino, winston, console, etc.). Feature code
  * should receive only FeatureQueryExecutor; it should not import pg, pino,
  * the Ashiba driver adapter, or logger code directly.
@@ -64,6 +64,10 @@ export function createPgSqlClient(
   });
   return {
     async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+      const queryAnalysis = query.queryModel.analysis as FeatureQuerySource['queryModel']['analysis'] & {
+        optionalConditionCompression?: { enabled?: boolean };
+        safeSort?: { insertion?: { status?: string } };
+      };
       const result = await adapter.execute<T>(
         {
           sql: query.sql,
@@ -74,6 +78,11 @@ export function createPgSqlClient(
             sqlId: query.metadata?.sqlId ?? query.id,
             queryId: query.metadata?.queryId ?? query.id,
             sqlPath: query.metadata?.sqlPath ?? query.sqlPath,
+            queryModelSourceHash: queryAnalysis.sourceHash,
+            queryModelStatementKind: queryAnalysis.statementKind,
+            queryModelRootQueryShape: queryAnalysis.rootQueryShape,
+            queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
+            queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
           },
         },
         params,

@@ -38,6 +38,7 @@ import { DEFAULT_SQL_FORMAT_OPTIONS, resolveGeneratedSqlFormatOptions } from '..
 import { areTypeScriptTypesCompatible, inferSqlParameterTypes } from './sql-parameter-types.js';
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
 import { collectTableReferences } from './table-resolution.js';
+import { normalizeSqlSource } from '../sql-source.js';
 
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
 const FEATURE_SHARED_LOAD_SQL_RESOURCE_IMPORT_PATH = '#features/_shared/loadSqlResource.js';
@@ -46,11 +47,24 @@ const TEST_ZTD_HARNESS_IMPORT_PATH = '#tests/support/ztd/harness.js';
 
 const FEATURE_ACTIONS = ['insert', 'update', 'delete', 'get-by-id', 'list'] as const;
 type FeatureAction = (typeof FEATURE_ACTIONS)[number];
+const INSERT_RETURNING_MODES = ['all', 'minimal'] as const;
+type InsertReturningMode = (typeof INSERT_RETURNING_MODES)[number];
 const defaultSqlFormatter = new SqlFormatter(DEFAULT_SQL_FORMAT_OPTIONS);
+
+type OptimisticLockScaffoldConfig = {
+  versionColumn: string;
+  scaffold: 'off' | 'when-column-exists';
+};
+
+type OptimisticLockPlan = {
+  versionColumn: string;
+  expectedVersionParameter: string;
+};
 
 export interface FeatureScaffoldOptions {
   table?: string;
   action?: string;
+  returning?: string;
   featureName?: string;
   rootDir?: string;
   dryRun?: boolean;
@@ -60,9 +74,11 @@ export interface FeatureScaffoldOptions {
 export interface FeatureQueryScaffoldOptions {
   table?: string;
   action?: string;
+  returning?: string;
   queryName?: string;
   feature?: string;
   boundaryDir?: string;
+  featureRoot?: string;
   rootDir?: string;
   workingDir?: string;
   dryRun?: boolean;
@@ -82,6 +98,7 @@ export interface FeatureQueryMetadataRefreshOptions {
   query?: string;
   feature?: string;
   boundaryDir?: string;
+  featureRoot?: string;
   rootDir?: string;
   dryRun?: boolean;
   format?: 'text' | 'json';
@@ -236,6 +253,8 @@ interface QueryTestMetadata {
   action?: FeatureAction;
   table?: string;
   primaryKeyColumn?: string;
+  returningMode?: InsertReturningMode;
+  optimisticLock?: OptimisticLockPlan;
   anchorSource?: string | null;
   anchorTable?: string | null;
   physicalTables?: string[];
@@ -268,6 +287,7 @@ export function registerFeatureCommand(program: Command): void {
     .description('Scaffold a feature-local CRUD or SELECT boundary from DDL metadata')
     .requiredOption('--table <table>', 'Target table name')
     .requiredOption('--action <action>', 'Action: insert, update, delete, get-by-id, or list')
+    .option('--returning <mode>', 'Insert RETURNING shape: all or minimal. Defaults to all.', 'all')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--dry-run', 'Print the files that would be created without writing them', false)
     .option('--force', 'Overwrite scaffold-owned files when they already exist', false)
@@ -291,6 +311,7 @@ export function registerFeatureCommand(program: Command): void {
     .description('Scaffold one additive query boundary without rewriting parent orchestration')
     .requiredOption('--table <table>', 'Target table name')
     .requiredOption('--action <action>', 'Action: insert, update, delete, get-by-id, or list')
+    .option('--returning <mode>', 'Insert RETURNING shape: all or minimal. Defaults to all.', 'all')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--dry-run', 'Print the files that would be created without writing them', false)
     .option('--force', 'Overwrite scaffold-owned query files when they already exist', false)
@@ -309,7 +330,7 @@ export function registerFeatureCommand(program: Command): void {
     .option('--dry-run', 'Print the refresh result without writing generated query metadata', false)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((featureName: string, queryName: string, options: FeatureQueryMetadataRefreshOptions) => {
-      const result = runFeatureQueryMetadataRefresh({ ...options, feature: featureName, query: queryName });
+      const result = runFeatureQueryMetadataRefresh(withConfiguredFeatureRoot({ ...options, feature: featureName, query: queryName }));
       if (options.format === 'json') {
         process.stdout.write(`${JSON.stringify({ kind: 'feature-query-refresh', ...result }, null, 2)}\n`);
         return;
@@ -384,11 +405,13 @@ function withConfiguredFeatureRoot<T extends { rootDir?: string; featureRoot?: s
 export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaffoldResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
   const action = normalizeFeatureAction(options.action);
+  const returningMode = normalizeInsertReturningMode(options.returning, action);
+  const projectConfig = loadProjectPathConfig(rootDir);
   const table = loadDdlTable(rootDir, requireValue(options.table, '--table'));
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
   const featureName = normalizeFeatureName(options.featureName ?? `${toKebab(table.name)}-${action}`);
   const queryName = deriveQueryName(table.name, action);
-  const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn);
+  const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock, projectConfig.featureRoot);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
 
   return {
@@ -408,10 +431,12 @@ export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaf
 export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): FeatureScaffoldResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
   const action = normalizeFeatureAction(options.action);
+  const returningMode = normalizeInsertReturningMode(options.returning, action);
+  const projectConfig = loadProjectPathConfig(rootDir);
   const table = loadDdlTable(rootDir, requireValue(options.table, '--table'));
   const primaryKeyColumn = resolvePrimaryKeyColumn(table);
   const queryName = normalizeQueryName(options.queryName);
-  const boundaryDir = resolveBoundaryDir(rootDir, options);
+  const boundaryDir = resolveBoundaryDir(rootDir, { ...options, featureRoot: projectConfig.featureRoot });
   const relativeBoundary = toProjectPath(rootDir, boundaryDir);
 
   if (!existsSync(path.join(boundaryDir, 'boundary.ts'))) {
@@ -423,7 +448,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
     );
   }
 
-  const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn);
+  const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
   const featureName = path.basename(boundaryDir);
 
@@ -477,7 +502,13 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
     {
       relativePath: `${relativeQueryDir}/query.ts`,
       kind: 'file',
-      contents: renderImportedQueryBoundary(queryName, parameters, parameterTypes, resultColumnContracts),
+      contents: renderImportedQueryBoundary(
+        queryName,
+        parameters,
+        parameterTypes,
+        resultColumnContracts,
+        queryModel.analysis.optionalConditionCompression?.enabled === true,
+      ),
     },
     { relativePath: `${relativeQueryDir}/generated`, kind: 'directory' },
     {
@@ -522,7 +553,8 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
  */
 export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefreshOptions): FeatureQueryMetadataRefreshResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
-  const boundaryDir = resolveExplicitFeatureBoundaryDir(rootDir, options.feature, options.boundaryDir, 'feature query refresh');
+  const featureRoot = options.featureRoot ?? loadProjectPathConfig(rootDir).featureRoot;
+  const boundaryDir = resolveExplicitFeatureBoundaryDir(rootDir, options.feature, options.boundaryDir, 'feature query refresh', featureRoot);
   const featureName = path.basename(boundaryDir);
   const queryName = normalizeQueryName(requireValue(options.query, '--query'));
   const queryDir = path.join(boundaryDir, 'queries', queryName);
@@ -546,7 +578,7 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
     );
   }
 
-  const sql = readFileSync(sqlPath, 'utf8');
+  const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const queryModel = buildFeatureQueryModel(sql, rootDir);
   const refreshedSource = renderQueryMetadata(queryModel);
   const existingSource = existsSync(metadataPath) ? readFileSync(metadataPath, 'utf8') : '';
@@ -786,8 +818,8 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       if (!existsSync(sqlFile) || !existsSync(queryFile)) {
         continue;
       }
-      const sqlParameters = [...new Set(compileNamedParameters(readFileSync(sqlFile, 'utf8')).orderedNames)].sort();
-      const sql = readFileSync(sqlFile, 'utf8');
+      const sql = normalizeSqlSource(readFileSync(sqlFile, 'utf8'));
+      const sqlParameters = [...new Set(compileNamedParameters(sql).orderedNames)].sort();
       const querySource = readFileSync(queryFile, 'utf8');
       const mapperParameters = extractMapperParameters(querySource, queryName).sort();
       const mapperParameterTypes = extractMapperParameterTypes(querySource, queryName);
@@ -926,12 +958,15 @@ function buildFeatureFiles(
   queryName: string,
   action: FeatureAction,
   table: DdlTable,
-  primaryKeyColumn: string
+  primaryKeyColumn: string,
+  returningMode: InsertReturningMode = 'all',
+  optimisticLockConfig?: OptimisticLockScaffoldConfig,
+  featureRoot = 'src/features',
 ): GeneratedFile[] {
-  const boundary = `src/features/${featureName}`;
-  const actionPlan = buildActionPlan(action, table, primaryKeyColumn);
+  const boundary = `${featureRoot}/${featureName}`;
+  const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode, optimisticLockConfig);
   return [
-    ...buildSharedFiles(),
+    ...buildSharedFiles(featureRoot),
     { relativePath: boundary, kind: 'directory' },
     { relativePath: `${boundary}/queries/${queryName}`, kind: 'directory' },
     { relativePath: `${boundary}/tests`, kind: 'directory' },
@@ -965,7 +1000,7 @@ function buildFeatureFiles(
       kind: 'file',
       contents: renderFeatureBoundaryTest(featureName, queryName, actionPlan),
     },
-    ...buildQueryFiles(rootDir, boundary, queryName, action, table, primaryKeyColumn),
+    ...buildQueryFiles(rootDir, boundary, queryName, action, table, primaryKeyColumn, returningMode, optimisticLockConfig),
   ];
 }
 
@@ -1028,6 +1063,10 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
           : {}),
         ...(typeof parsed.table === 'string' ? { table: parsed.table } : {}),
         ...(typeof parsed.primaryKeyColumn === 'string' ? { primaryKeyColumn: parsed.primaryKeyColumn } : {}),
+        ...(typeof parsed.returningMode === 'string' && INSERT_RETURNING_MODES.includes(parsed.returningMode as InsertReturningMode)
+          ? { returningMode: parsed.returningMode as InsertReturningMode }
+          : {}),
+        ...(isOptimisticLockMetadata(parsed.optimisticLock) ? { optimisticLock: parsed.optimisticLock } : {}),
         ...(typeof parsed.anchorSource === 'string' || parsed.anchorSource === null ? { anchorSource: parsed.anchorSource } : {}),
         ...(typeof parsed.anchorTable === 'string' || parsed.anchorTable === null ? { anchorTable: parsed.anchorTable } : {}),
         ...(Array.isArray(parsed.physicalTables)
@@ -1048,12 +1087,25 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
         action: parsed.action as FeatureAction,
         table: parsed.table,
         primaryKeyColumn: parsed.primaryKeyColumn,
+        ...(typeof parsed.returningMode === 'string' && INSERT_RETURNING_MODES.includes(parsed.returningMode as InsertReturningMode)
+          ? { returningMode: parsed.returningMode as InsertReturningMode }
+          : {}),
+        ...(isOptimisticLockMetadata(parsed.optimisticLock) ? { optimisticLock: parsed.optimisticLock } : {}),
       };
     }
   } catch {
     return undefined;
   }
   return undefined;
+}
+
+function isOptimisticLockMetadata(value: unknown): value is OptimisticLockPlan {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.versionColumn === 'string' &&
+    record.versionColumn.trim().length > 0 &&
+    typeof record.expectedVersionParameter === 'string' &&
+    record.expectedVersionParameter.trim().length > 0;
 }
 
 function resolveQueryTestMetadata(
@@ -1073,7 +1125,7 @@ function buildMetadataBackedResultTypeOverrides(rootDir: string, metadata: Query
     return undefined;
   }
   const table = loadDdlTable(rootDir, metadata.table);
-  const actionPlan = buildActionPlan(metadata.action, table, metadata.primaryKeyColumn);
+  const actionPlan = buildActionPlan(metadata.action, table, metadata.primaryKeyColumn, metadata.returningMode ?? 'all', configFromOptimisticLockMetadata(metadata.optimisticLock));
   return Object.fromEntries(actionPlan.rows.map((column) => [column.name, toTsType(column)]));
 }
 
@@ -1091,7 +1143,7 @@ function inferQueryTestMetadataFromSql(
 ): QueryTestMetadata | undefined {
   const sqlPath = path.join(queryDir, `${queryName}.sql`);
   if (!existsSync(sqlPath)) return undefined;
-  const sql = readFileSync(sqlPath, 'utf8');
+  const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const statement = parseFeatureQuerySql(sql);
   const action = inferFeatureAction(statement, queryName);
   const imported = inferImportedQueryTestMetadata(rootDir, featureName, queryName, sql);
@@ -1558,10 +1610,12 @@ function buildQueryFiles(
   queryName: string,
   action: FeatureAction,
   table: DdlTable,
-  primaryKeyColumn: string
+  primaryKeyColumn: string,
+  returningMode: InsertReturningMode = 'all',
+  optimisticLockConfig?: OptimisticLockScaffoldConfig
 ): GeneratedFile[] {
   const queryDir = `${boundary}/queries/${queryName}`;
-  const actionPlan = buildActionPlan(action, table, primaryKeyColumn);
+  const actionPlan = buildActionPlan(action, table, primaryKeyColumn, returningMode, optimisticLockConfig);
   const sql = renderActionSql(actionPlan, table, primaryKeyColumn, rootDir);
   return [
     ...buildSharedFiles(),
@@ -1730,7 +1784,7 @@ function buildExpectedGeneratedMappingTestFiles(
 ): GeneratedFile[] {
   if (metadata.importSource === 'existing-sql') {
     const sqlPath = path.join(queryDir, `${queryName}.sql`);
-    const sql = readFileSync(sqlPath, 'utf8');
+    const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
     const queryModel = buildFeatureQueryModel(sql, rootDir);
     const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
     return buildImportedMappingTestFiles(
@@ -1753,9 +1807,17 @@ function buildExpectedGeneratedMappingTestFiles(
     action: metadata.action,
     table: metadata.table,
     primaryKeyColumn: metadata.primaryKeyColumn,
+    ...(metadata.returningMode ? { returningMode: metadata.returningMode } : {}),
+    ...(metadata.optimisticLock ? { optimisticLock: metadata.optimisticLock } : {}),
   };
   const table = loadDdlTable(rootDir, scaffoldMetadata.table);
-  const actionPlan = buildActionPlan(scaffoldMetadata.action, table, scaffoldMetadata.primaryKeyColumn);
+  const actionPlan = buildActionPlan(
+    scaffoldMetadata.action,
+    table,
+    scaffoldMetadata.primaryKeyColumn,
+    scaffoldMetadata.returningMode ?? 'all',
+    configFromOptimisticLockMetadata(scaffoldMetadata.optimisticLock),
+  );
   return buildGeneratedMappingTestFiles(relativeFeatureDir, scaffoldMetadata, table, actionPlan);
 }
 
@@ -2064,19 +2126,33 @@ function formatValue(value: ValueComponent): string {
   return formatted.match(/^"([A-Za-z_][A-Za-z0-9_$]*)"$/)?.[1] ?? formatted;
 }
 
-function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColumn: string): {
+function buildActionPlan(
+  action: FeatureAction,
+  table: DdlTable,
+  primaryKeyColumn: string,
+  returningMode: InsertReturningMode = 'all',
+  optimisticLockConfig: OptimisticLockScaffoldConfig = { versionColumn: 'version_key', scaffold: 'off' },
+): {
   action: FeatureAction;
   params: DdlColumn[];
   rows: DdlColumn[];
   writeColumns: DdlColumn[];
+  returningMode: InsertReturningMode;
+  optimisticLock?: OptimisticLockPlan;
 } {
   const primaryKey = requireColumn(table, primaryKeyColumn);
   if (action === 'insert') {
     const writeColumns = table.columns.filter((column) => !isGeneratedInsertColumn(column, primaryKeyColumn) && column.defaultValue == null);
-    return { action, params: writeColumns, rows: table.columns, writeColumns };
+    const rows = returningMode === 'minimal' ? [primaryKey] : table.columns;
+    return { action, params: writeColumns, rows, writeColumns, returningMode };
   }
   if (action === 'update') {
-    const writeColumns = table.columns.filter((column) => column.name !== primaryKeyColumn && !isGeneratedInsertColumn(column, primaryKeyColumn));
+    const optimisticLockColumn = resolveOptimisticLockColumn(table, optimisticLockConfig, primaryKeyColumn);
+    const writeColumns = table.columns.filter((column) =>
+      column.name !== primaryKeyColumn &&
+      column.name !== optimisticLockColumn?.name &&
+      !isGeneratedInsertColumn(column, primaryKeyColumn),
+    );
     if (writeColumns.length === 0) {
       throw invalidCliInputError(
         'ASHIBA_FEATURE_UPDATE_REQUIRES_MUTABLE_COLUMN',
@@ -2085,13 +2161,27 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
         { table: table.canonicalName },
       );
     }
-    return { action, params: [primaryKey, ...writeColumns], rows: table.columns, writeColumns };
+    if (optimisticLockColumn) {
+      const optimisticLock = {
+        versionColumn: optimisticLockColumn.name,
+        expectedVersionParameter: `expected_${optimisticLockColumn.name}`,
+      };
+      return {
+        action,
+        params: [primaryKey, toExpectedVersionParameter(optimisticLockColumn, optimisticLock.expectedVersionParameter), ...writeColumns],
+        rows: table.columns,
+        writeColumns,
+        returningMode: 'all',
+        optimisticLock,
+      };
+    }
+    return { action, params: [primaryKey, ...writeColumns], rows: table.columns, writeColumns, returningMode: 'all' };
   }
   if (action === 'delete') {
-    return { action, params: [primaryKey], rows: table.columns, writeColumns: [] };
+    return { action, params: [primaryKey], rows: table.columns, writeColumns: [], returningMode: 'all' };
   }
   if (action === 'get-by-id') {
-    return { action, params: [primaryKey], rows: table.columns, writeColumns: [] };
+    return { action, params: [primaryKey], rows: table.columns, writeColumns: [], returningMode: 'all' };
   }
   const limitColumn: DdlColumn = {
     name: 'limit',
@@ -2100,7 +2190,34 @@ function buildActionPlan(action: FeatureAction, table: DdlTable, primaryKeyColum
     generated: false,
     primaryKey: false,
   };
-  return { action, params: [limitColumn], rows: table.columns, writeColumns: [] };
+  return { action, params: [limitColumn], rows: table.columns, writeColumns: [], returningMode: 'all' };
+}
+
+function resolveOptimisticLockColumn(
+  table: DdlTable,
+  config: OptimisticLockScaffoldConfig,
+  primaryKeyColumn: string,
+): DdlColumn | undefined {
+  if (config.scaffold === 'off') return undefined;
+  if (!config.versionColumn || config.versionColumn === primaryKeyColumn) return undefined;
+  return table.columns.find((column) => column.name === config.versionColumn);
+}
+
+function toExpectedVersionParameter(column: DdlColumn, name: string): DdlColumn {
+  return {
+    ...column,
+    name,
+    nullable: false,
+    generated: false,
+    primaryKey: false,
+    defaultValue: undefined,
+  };
+}
+
+function configFromOptimisticLockMetadata(metadata: OptimisticLockPlan | undefined): OptimisticLockScaffoldConfig {
+  return metadata
+    ? { versionColumn: metadata.versionColumn, scaffold: 'when-column-exists' }
+    : { versionColumn: 'version_key', scaffold: 'off' };
 }
 
 function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTable, primaryKeyColumn: string, rootDir: string): string {
@@ -2124,12 +2241,24 @@ function renderActionSql(plan: ReturnType<typeof buildActionPlan>, table: DdlTab
   }
   if (plan.action === 'update') {
     const returningColumns = plan.rows.map((column) => quoteIdentifier(column.name)).join(', ');
+    const setLines = [
+      ...plan.writeColumns.map((column) => `  ${quoteIdentifier(column.name)} = :${column.name}`),
+      ...(plan.optimisticLock
+        ? [`  ${quoteIdentifier(plan.optimisticLock.versionColumn)} = ${quoteIdentifier(plan.optimisticLock.versionColumn)} + 1`]
+        : []),
+    ];
+    const whereLines = [
+      `  ${pk} = :${primaryKeyColumn}`,
+      ...(plan.optimisticLock
+        ? [`  ${quoteIdentifier(plan.optimisticLock.versionColumn)} = :${plan.optimisticLock.expectedVersionParameter}`]
+        : []),
+    ];
     sql = [
       `update ${tableName}`,
       'set',
-      plan.writeColumns.map((column) => `  ${quoteIdentifier(column.name)} = :${column.name}`).join(',\n'),
+      setLines.join(',\n'),
       'where',
-      `  ${pk} = :${primaryKeyColumn}`,
+      whereLines.join('\nand\n'),
       `returning ${returningColumns};`,
       '',
     ].join('\n');
@@ -2175,9 +2304,6 @@ function renderFeatureBoundary(featureName: string): string {
     "import { parseRequest, type " + pascal + "Request } from './input.js';",
     "import { buildResult, type " + pascal + "Response } from './output.js';",
     "import { executeWorkflow } from './workflow.js';",
-    '',
-    `export type { ${pascal}Request } from './input.js';`,
-    `export type { ${pascal}Response } from './output.js';`,
     '',
     '/**',
     ` * Executes the ${featureName} feature boundary.`,
@@ -2497,6 +2623,7 @@ function renderImportedQueryBoundary(
   parameters: string[],
   parameterTypes: Record<string, string>,
   resultColumnContracts: SqlResultColumnContract[],
+  enablesOptionalConditionCompression: boolean,
 ): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
@@ -2517,7 +2644,7 @@ function renderImportedQueryBoundary(
     `  sqlPath: '${queryName}.sql',`,
     `  sql: ${camel}Sql,`,
     '  queryModel,',
-    ...(parameters.length > 0 ? ['  optionalConditionCompression: true,'] : []),
+    ...(enablesOptionalConditionCompression ? ['  optionalConditionCompression: true,'] : []),
     '  metadata: {',
     `    sqlId: '${queryName}',`,
     `    queryId: '${queryName}',`,
@@ -2562,6 +2689,7 @@ function renderImportedFeatureReadme(featureName: string, queryName: string): st
     'Generated code is editable after import. Keep SQL visible, named, and directly runnable in a SQL client.',
     'Generated mapper cases prove that representative DB result values can map into the generated DTO shape.',
     'Human/AI-owned SQL logic cases belong under the query-local `tests/cases/` directory.',
+    'For mutation queries, generated mapper cases prove `RETURNING` result compatibility. Use route or integration tests for TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior.',
     '',
   ].join('\n');
 }
@@ -2825,7 +2953,7 @@ function makeConservativeNullableType(typeScriptType: string): string {
 }
 
 function hashSql(sql: string): string {
-  return `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+  return `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`;
 }
 
 function formatImportedSqlSafely(sql: string, rootDir: string): { sql: string; formatted: boolean; reason?: string } {
@@ -3121,6 +3249,8 @@ function renderGeneratedTestPlan(featureName: string, queryName: string): string
     '',
     '- Unit tests are mapping-contract tests, not database state management or SQL logic tests.',
     '- Generated mapper cases use lightweight synthetic DB result SQL, usually a SELECT without a FROM clause, to prove DB-to-TypeScript DTO mapping.',
+    '- For INSERT/UPDATE/DELETE queries, generated mapper cases prove RETURNING row compatibility only.',
+    '- TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior belong in route/integration/traditional DB-backed tests.',
     '- Generated mapper cases do not prove source SQL business logic, parameter business meaning, row cardinality, affected-row counts, business mutation targets, transaction isolation, locking, or final database state.',
     '- Ashiba does not infer or check single-row cardinality after scaffolding; row handling in `query.ts` is customer-owned code.',
     '- DTOs are customer-owned after scaffolding. Ashiba may report drift and expected column/type/nullability, but it should not silently rewrite customer-owned DTOs.',
@@ -3148,6 +3278,8 @@ function renderGeneratedTestAnalysis(
     action,
     table: table.canonicalName,
     primaryKeyColumn,
+    returningMode: actionPlan.returningMode,
+    ...(actionPlan.optimisticLock ? { optimisticLock: actionPlan.optimisticLock } : {}),
     mappingCaseSignature: buildMappingCaseSignature(queryName, actionPlan, table, primaryKeyColumn),
     status: 'generated',
   }, null, 2)}\n`;
@@ -3266,8 +3398,11 @@ function buildSyntheticContractRow(
   return Object.fromEntries(fields.map((field) => {
     const column = findDdlColumnForField(table, field.name);
     if (mode === 'nullable' && field.nullability === 'nullable') return [field.name, null];
+    if (column && /^(json|jsonb)$/.test(column.typeName.toLowerCase())) {
+      return [field.name, sampleColumnValueByMode(column, mode)];
+    }
     if (column) return [field.name, coerceSampleToContractType(sampleColumnValueByMode(column, mode), field.typeScriptType)];
-    return [field.name, sampleValueForType(field.typeScriptType)];
+    return [field.name, sampleValueForSqlType(field.sqlType, field.typeScriptType, mode)];
   }));
 }
 
@@ -3336,6 +3471,7 @@ function sqlLiteral(value: unknown): string {
   if (value === null || value === undefined) return 'null';
   if (typeof value === 'number') return Number.isFinite(value) ? String(value) : '0';
   if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
@@ -3462,11 +3598,42 @@ function sampleValueForType(typeScriptType: string): unknown {
   return 'value';
 }
 
+function sampleValueForSqlType(
+  sqlType: string,
+  typeScriptType: string,
+  mode: 'sample' | 'nullable' | 'boundary' | 'negative-boundary',
+): unknown {
+  const normalized = sqlType.toLowerCase().replace(/\([^)]*\)/g, '').trim();
+  if (/^(bigint|int8|bigserial|serial8)$/.test(normalized)) {
+    if (mode === 'boundary') return '9223372036854775807';
+    if (mode === 'negative-boundary') return '-9223372036854775808';
+    return '1';
+  }
+  if (/^(numeric|decimal)$/.test(normalized)) {
+    if (mode === 'boundary') return '1234567890.12345';
+    if (mode === 'negative-boundary') return '-1234567890.12345';
+    return '1.25';
+  }
+  if (/^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(normalized)) {
+    return mode === 'negative-boundary' ? -1 : 1;
+  }
+  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz|date|time|time without time zone|time with time zone|timetz)$/.test(normalized)) {
+    if (mode === 'boundary') return '2026-01-02T00:00:00.000Z';
+    if (mode === 'negative-boundary') return '2026-01-03T00:00:00.000Z';
+    return '2026-01-01T00:00:00.000Z';
+  }
+  if (/^(boolean|bool)$/.test(normalized)) return mode !== 'negative-boundary';
+  return sampleValueForType(typeScriptType);
+}
+
 function sampleColumnValue(column: DdlColumn, rowNumber: number): unknown {
   const type = column.typeName.toLowerCase();
   const name = column.name.toLowerCase();
   if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) {
     return `2026-01-0${rowNumber}T00:00:00.000Z`;
+  }
+  if (/^(json|jsonb)$/.test(type)) {
+    return { sample: rowNumber };
   }
   if (/^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(type)) {
     return rowNumber;
@@ -3498,6 +3665,8 @@ function sampleBoundaryColumnValue(column: DdlColumn): unknown {
   if (/^(real|float|float4|float8|double precision)$/.test(type)) return 123456.5;
   if (/^(numeric|decimal)$/.test(type)) return '1234567890.12345';
   if (/^(boolean|bool)$/.test(type)) return true;
+  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) return '2026-01-02T00:00:00.000Z';
+  if (/^(json|jsonb)$/.test(type)) return { case: 'boundary' };
   if (name.includes('email')) return 'boundary@example.com';
   return `${column.name}-boundary-value`;
 }
@@ -3511,6 +3680,8 @@ function sampleNegativeBoundaryColumnValue(column: DdlColumn): unknown {
   if (/^(real|float|float4|float8|double precision)$/.test(type)) return -123456.5;
   if (/^(numeric|decimal)$/.test(type)) return '-1234567890.12345';
   if (/^(boolean|bool)$/.test(type)) return false;
+  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) return '2026-01-03T00:00:00.000Z';
+  if (/^(json|jsonb)$/.test(type)) return { case: 'negative-boundary' };
   if (name.includes('email')) return 'negative-boundary@example.com';
   return `${column.name}-negative-boundary-value`;
 }
@@ -3531,6 +3702,8 @@ function buildMappingCaseSignature(
     action: actionPlan.action,
     table: table.canonicalName,
     primaryKeyColumn,
+    returningMode: actionPlan.returningMode,
+    ...(actionPlan.optimisticLock ? { optimisticLock: actionPlan.optimisticLock } : {}),
     params: actionPlan.params.map((column) => columnSignature(column)),
     rows: actionPlan.rows.map((column) => columnSignature(column)),
     writeColumns: actionPlan.writeColumns.map((column) => columnSignature(column)),
@@ -3557,7 +3730,7 @@ function columnSignature(column: DdlColumn): Record<string, unknown> {
 function renderTsValue(value: unknown): string {
   return JSON.stringify(value, null, 2)
     .replace(/\n/g, '\n')
-    .replace(/"([^"]+)":/g, (_match, key: string) => `${renderPropertyKey(key)}:`);
+    .replace(/^(\s*)"([^"\\]+)":/gm, (_match, indent: string, key: string) => `${indent}${renderPropertyKey(key)}:`);
 }
 
 function renderTsExpression(value: unknown, continuationIndent: number): string {
@@ -3583,7 +3756,8 @@ function renderFeatureReadme(featureName: string, queryName: string, action: Fea
     '',
     'Generated code is editable after scaffolding. Keep SQL visible, named, and directly runnable in a SQL client.',
     'A feature may contain multiple query boundaries; use feature query scaffold when the behavior needs another SQL access point.',
-    'Transaction policy and feature orchestration belong to application code, not Ashiba.',
+    'Transaction policy and feature orchestration belong to application code, not Ashiba. Compose multiple query boundaries by passing the same FeatureQueryExecutor inside an application-owned transaction callback.',
+    'Generated mapper cases prove DB-to-TypeScript result contracts. For mutations, use route or integration tests for TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior.',
     '',
   ].join('\n');
 }
@@ -3643,6 +3817,27 @@ function normalizeFeatureAction(action: string | undefined): FeatureAction {
   );
 }
 
+function normalizeInsertReturningMode(value: string | undefined, action: FeatureAction): InsertReturningMode {
+  const normalized = (value ?? 'all').trim().toLowerCase();
+  if (!INSERT_RETURNING_MODES.includes(normalized as InsertReturningMode)) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_RETURNING_MODE_UNSUPPORTED',
+      `Unsupported --returning value: ${value}.`,
+      'Use --returning all or --returning minimal.',
+      { value, supported: INSERT_RETURNING_MODES },
+    );
+  }
+  if (action !== 'insert' && normalized !== 'all') {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_RETURNING_MODE_INSERT_ONLY',
+      '--returning minimal is only supported for insert scaffolds.',
+      'Use --returning minimal with --action insert, or omit --returning for other actions.',
+      { action, returning: normalized },
+    );
+  }
+  return normalized as InsertReturningMode;
+}
+
 function normalizeFeatureName(value: string): string {
   const normalized = value.trim().toLowerCase();
   if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$/.test(normalized)) {
@@ -3682,12 +3877,12 @@ function resolveBoundaryDir(rootDir: string, options: FeatureQueryScaffoldOption
       { options: ['<feature>', '--boundary-dir'] },
     );
   }
-  if (options.feature) return path.join(rootDir, 'src', 'features', normalizeFeatureName(options.feature));
+  if (options.feature) return path.join(rootDir, options.featureRoot ?? 'src/features', normalizeFeatureName(options.feature));
   if (options.boundaryDir) return path.resolve(rootDir, options.boundaryDir);
   return options.workingDir ? path.resolve(options.workingDir) : process.cwd();
 }
 
-function resolveExplicitFeatureBoundaryDir(rootDir: string, feature: string | undefined, boundaryDir: string | undefined, commandLabel: string): string {
+function resolveExplicitFeatureBoundaryDir(rootDir: string, feature: string | undefined, boundaryDir: string | undefined, commandLabel: string, featureRoot = 'src/features'): string {
   if (feature && boundaryDir) {
     throw invalidCliInputError(
       'ASHIBA_FEATURE_BOUNDARY_INPUT_CONFLICT',
@@ -3697,7 +3892,7 @@ function resolveExplicitFeatureBoundaryDir(rootDir: string, feature: string | un
     );
   }
   if (boundaryDir) return path.resolve(rootDir, boundaryDir);
-  if (feature) return path.join(rootDir, 'src', 'features', normalizeFeatureName(feature));
+  if (feature) return path.join(rootDir, featureRoot, normalizeFeatureName(feature));
   throw invalidCliInputError(
     'ASHIBA_FEATURE_BOUNDARY_REQUIRED',
     `${commandLabel} requires a feature name or --boundary-dir.`,

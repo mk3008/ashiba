@@ -75,6 +75,9 @@ describe('@ashiba-ts/cli smoke', () => {
     expect(formatDefaultConfig()).toContain('"identifierEscape": "quote"');
     expect(formatDefaultConfig()).toContain('"identifierEscapeTarget": "minimal"');
     expect(formatDefaultConfig()).toContain('"commaBreak": "before"');
+    expect(formatDefaultConfig()).toContain('"cteCommaBreak": "after"');
+    expect(formatDefaultConfig()).toContain('"joinOnBreak": "before"');
+    expect(formatDefaultConfig()).toContain('"oneLineMaxLength": 100');
     expect(formatDefaultConfig({ pretty: false })).not.toContain('\n  ');
   });
 
@@ -92,6 +95,12 @@ describe('@ashiba-ts/cli smoke', () => {
         sqlRoots: ['src/usecases', 'src/repositories'],
         defaultSchema: 'public',
         searchPath: ['public'],
+        mutation: {
+          optimisticLock: {
+            versionColumn: 'version_key',
+            scaffold: 'when-column-exists',
+          },
+        },
       });
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -184,6 +193,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"identifierEscapeTarget": "minimal"');
       expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"parameterSymbol": ":"');
       expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"commaBreak": "before"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"cteCommaBreak": "after"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"joinOnBreak": "before"');
+      expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"oneLineMaxLength": 100');
       expect(readFileSync(path.join(rootDir, 'ashiba.config.json'), 'utf8')).toContain('"joinConditionOrderByDeclaration": false');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('${ASHIBA_TEST_DB_PORT:-5432}:5432');
       expect(readFileSync(path.join(rootDir, 'compose.yaml'), 'utf8')).toContain('network_mode: bridge');
@@ -200,6 +212,10 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('createPgFeatureQueryExecutor');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('query -> feature -> sqlClient -> logger');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('../logger/sqlLogger.ts');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelSourceHash');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelStatementKind');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelOptionalConditionCompression');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelSafeSortInsertionStatus');
       expect(readFileSync(path.join(rootDir, 'src/adapters/logger/sqlLogger.ts'), 'utf8')).toContain('This is the intended hole for your application logger.');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgFeatureQueryExecutor');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgTransaction');
@@ -212,6 +228,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('renderBeginTransactionSql');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Standard path:');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Use this across feature/usecase boundaries');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Ashiba does not own transaction policy');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('passes the same FeatureQueryExecutor');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('Feature/query code should not call begin/commit/rollback');
       expect(existsSync(path.join(rootDir, 'src/features/smoke'))).toBe(false);
       expect(result.files.some((file) => file.relativePath === 'package.json')).toBe(false);
       expect(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).toContain('"name": "starter"');
@@ -606,6 +625,7 @@ describe('@ashiba-ts/cli smoke', () => {
       });
 
       const featureBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/boundary.ts'), 'utf8');
+      const featureReadme = readFileSync(path.join(rootDir, 'src/features/users-insert/README.md'), 'utf8');
       const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/query.ts'), 'utf8');
       const getByIdQueryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/get-user/query.ts'), 'utf8');
       const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.meta.ts'), 'utf8');
@@ -620,6 +640,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.featureName).toBe('users-insert');
       expect(query.queryName).toBe('get-user');
       expect(featureBoundary).toContain('parseRequest');
+      expect(featureReadme).toContain('Generated mapper cases prove DB-to-TypeScript result contracts.');
+      expect(featureReadme).toContain('passing the same FeatureQueryExecutor');
+      expect(featureReadme).toContain('TypeScript-to-DB inputs');
       expect(featureBoundary).toContain('executeWorkflow');
       expect(featureBoundary).toContain('buildResult');
       expect(existsSync(path.join(rootDir, 'src/features/users-insert/input.ts'))).toBe(true);
@@ -647,6 +670,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryZtdTest).not.toContain('existsSync');
       expect(queryZtdTypes).toContain("from '#tests/support/ztd/case-types.js'");
       expect(queryTestPlan).toContain('Unit tests are mapping-contract tests');
+      expect(queryTestPlan).toContain('RETURNING row compatibility only');
+      expect(queryTestPlan).toContain('TypeScript-to-DB inputs');
       expect(queryTestPlan).toContain('DDL is loaded from the configured DDL source directory');
       expect(queryMappingCases).toContain('mapperProbe');
       expect(queryMappingCases).toContain('maps insert-users DB result values into the DTO');
@@ -658,6 +683,140 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(querySql).toContain('returning\n    user_id\n    , email\n    , display_name');
       expect(updateSql).toContain('returning\n    user_id\n    , email\n    , display_name');
       expect(deleteSql).toContain('returning\n    user_id\n    , email\n    , display_name');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('generates DB-valid mapping probe literals for timestamp and json columns', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-mapping-literals-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.event_logs (',
+        '  event_log_id serial primary key,',
+        '  created_at timestamptz not null,',
+        "  payload jsonb not null default '{}'::jsonb",
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureScaffold({ rootDir, table: 'event_logs', action: 'insert' });
+
+      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/event-logs-insert/queries/insert-event-logs/tests/generated/mapping.cases.ts'), 'utf8');
+
+      expect(queryMappingCases).toContain("cast('2026-01-01T00:00:00.000Z' as timestamptz)");
+      expect(queryMappingCases).toContain('as jsonb');
+      expect(queryMappingCases).toContain('sample');
+      expect(queryMappingCases).not.toContain('created_at-boundary-value');
+      expect(queryMappingCases).not.toContain('payload-boundary-value');
+      expect(queryMappingCases).not.toContain('[object Object]');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('scaffolds insert queries with minimal RETURNING when requested', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-insert-minimal-returning-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id serial primary key,',
+        '  email text not null,',
+        '  display_name text,',
+        "  created_at timestamptz not null default now()",
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureScaffold({ rootDir, table: 'users', action: 'insert', returning: 'minimal' });
+
+      const sqlPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql');
+      const queryPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/query.ts');
+      const mappingPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/mapping.cases.ts');
+      const analysisPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/analysis.json');
+
+      const sql = readFileSync(sqlPath, 'utf8');
+      const queryBoundary = readFileSync(queryPath, 'utf8');
+      const queryMappingCases = readFileSync(mappingPath, 'utf8');
+      const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as { returningMode?: string };
+
+      expect(sql).toContain('returning\n    user_id');
+      expect(sql).toContain(':email');
+      expect(sql).toContain(':display_name');
+      expect(sql.split('returning')[1]).not.toContain('email');
+      expect(sql.split('returning')[1]).not.toContain('display_name');
+      expect(sql.split('returning')[1]).not.toContain('created_at');
+      expect(queryBoundary).toContain('export interface InsertUsersQueryResult');
+      expect(queryBoundary).toContain('user_id: number;');
+      const resultContract = queryBoundary.split('export interface InsertUsersQueryResult')[1]?.split('}')[0] ?? '';
+      expect(resultContract).not.toContain('email: string;');
+      expect(resultContract).not.toContain('display_name: string');
+      expect(queryMappingCases).toContain('as \\"user_id\\"');
+      expect(queryMappingCases).not.toContain('as \\"email\\"');
+      expect(queryMappingCases).not.toContain('as \\"display_name\\"');
+      expect(analysis.returningMode).toBe('minimal');
+
+      const check = runFeatureTestsCheck({ rootDir, feature: 'users-insert', query: 'insert-users', fix: true });
+      expect(check.ok).toBe(true);
+      expect(readFileSync(mappingPath, 'utf8')).not.toContain('as \\"email\\"');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('scaffolds update queries with configured optimistic lock columns', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-update-optimistic-lock-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: 'src/features',
+        sqlRoots: ['src/features'],
+        mutation: {
+          optimisticLock: {
+            versionColumn: 'version_key',
+            scaffold: 'when-column-exists',
+          },
+        },
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id bigserial primary key,',
+        '  status text not null,',
+        '  subject text not null,',
+        '  version_key integer not null default 1',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureScaffold({ rootDir, table: 'tickets', action: 'update' });
+
+      const sql = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/update-tickets.sql'), 'utf8');
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/query.ts'), 'utf8');
+      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/tests/generated/analysis.json'), 'utf8')) as {
+        optimisticLock?: { versionColumn?: string; expectedVersionParameter?: string };
+      };
+
+      expect(sql).toContain('status = :status');
+      expect(sql).toContain('subject = :subject');
+      expect(sql).toContain('version_key = version_key + 1');
+      expect(sql).toContain('and version_key = :expected_version_key');
+      expect(sql).not.toContain('version_key = :version_key');
+      expect(queryBoundary).toContain('expected_version_key: number;');
+      const paramsBlock = queryBoundary.split('export interface UpdateTicketsQueryParams')[1]?.split('}')[0] ?? '';
+      expect(paramsBlock).not.toMatch(/^\s+version_key: number;/m);
+      expect(queryBoundary).toContain('version_key: number;');
+      expect(analysis.optimisticLock).toEqual({
+        versionColumn: 'version_key',
+        expectedVersionParameter: 'expected_version_key',
+      });
+
+      const check = runFeatureTestsCheck({ rootDir, feature: 'tickets-update', query: 'update-tickets', fix: false });
+      expect(check.ok).toBe(true);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -753,6 +912,48 @@ describe('@ashiba-ts/cli smoke', () => {
         'user_id: mapper string | null / SQL number | null',
       ]);
       expect(typeDrift.checked[0]?.warningResultTypeMismatches).toEqual([]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not enable optional-condition compression for imported non-select queries', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-update-sql-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id integer primary key,',
+        '  status text not null,',
+        '  version_key integer not null default 1',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'tmp', 'update-ticket-status.sql'), [
+        'update public.tickets',
+        'set status = :status,',
+        '    version_key = version_key + 1',
+        'where ticket_id = :ticket_id',
+        '  and version_key = :expected_version_key',
+        'returning ticket_id, status, version_key;',
+        '',
+      ].join('\n'), 'utf8');
+
+      runFeatureImport({
+        rootDir,
+        feature: 'tickets-update',
+        queryName: 'update-ticket-status',
+        sql: 'tmp/update-ticket-status.sql',
+      });
+
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-ticket-status/query.ts'), 'utf8');
+      const queryMeta = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-ticket-status/generated/query.meta.ts'), 'utf8');
+
+      expect(queryBoundary).not.toContain('optionalConditionCompression: true');
+      expect(queryMeta).toContain('"statementKind": "update"');
+      expect(queryMeta).not.toContain('"optionalConditionCompression"');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -854,7 +1055,8 @@ describe('@ashiba-ts/cli smoke', () => {
         'create table public.tickets (',
         '  ticket_id integer primary key,',
         '  customer_id integer not null,',
-        '  subject text not null',
+        '  subject text not null,',
+        '  created_at timestamptz not null',
         ');',
         'create table public.customers (',
         '  customer_id integer primary key,',
@@ -867,6 +1069,7 @@ describe('@ashiba-ts/cli smoke', () => {
         '  select',
         '    t.ticket_id,',
         '    t.subject,',
+        '    t.created_at,',
         '    c.display_name as customer_name',
         '  from public.tickets t',
         '  inner join public.customers c on c.customer_id = t.customer_id',
@@ -875,10 +1078,11 @@ describe('@ashiba-ts/cli smoke', () => {
         '  select',
         '    ticket_id,',
         '    subject,',
+        '    created_at,',
         '    customer_name',
         '  from ticket_base',
         ')',
-        'select ticket_id, subject, customer_name',
+        'select ticket_id, subject, created_at, customer_name',
         'from ticket_view',
         'order by ticket_id;',
         '',
@@ -892,6 +1096,7 @@ describe('@ashiba-ts/cli smoke', () => {
       });
 
       const importedSql = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/list-tickets.sql'), 'utf8');
+      const queryContract = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/query.ts'), 'utf8');
       const analysisPath = path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json');
       const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as {
         anchorSource?: string;
@@ -910,6 +1115,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.formatSkippedReason).toBeUndefined();
       expect(importedSql).toContain('from\n            public.tickets as t');
       expect(importedSql).toContain('inner join public.customers as c');
+      expect(queryContract).toContain('created_at: string | null;');
+      expect(queryContract).toContain('customer_name: string | null;');
+      expect(queryContract).toContain('subject: string | null;');
       expect(analysis).toMatchObject({
         anchorSource: 'ticket_view',
         anchorTable: 'public.tickets',
@@ -1127,14 +1335,16 @@ describe('@ashiba-ts/cli smoke', () => {
       const ztdTypes = readFileSync(ztdTypesPath, 'utf8');
       const mappingCases = readFileSync(mappingPath, 'utf8');
 
-      expect(queryBoundary).toContain('status_code: number;');
-      expect(queryBoundary).toContain('ratio: number | null;');
+      expect(queryBoundary).toContain('status_code: string;');
+      expect(queryBoundary).toContain('ratio: string | null;');
       expect(queryBoundary).toContain('message: string | null;');
       expect(ztdTypes).toContain('Record<string, unknown>');
       expect(mappingCases).toContain('mapperProbe');
       expect(mappingCases).toContain('beforeDb: {}');
-      expect(mappingCases).toContain('cast(1 as bigint) as \\"status_code\\"');
-      expect(mappingCases).toContain('cast(1 as numeric(10, 2)) as \\"ratio\\"');
+      expect(mappingCases).toContain('cast(\'1\' as bigint) as \\"status_code\\"');
+      expect(mappingCases).toContain('cast(\'1.25\' as numeric(10, 2)) as \\"ratio\\"');
+      expect(mappingCases).not.toContain('cast(\'value\' as bigint)');
+      expect(mappingCases).not.toContain('cast(\'value\' as numeric');
       expect(mappingCases).toContain('cast(null as text) as \\"message\\"');
 
       rmSync(mappingPath, { force: true });
@@ -1195,6 +1405,41 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(refresh.metadataFile).toBe('src/features/users-list/queries/list/generated/query.meta.ts');
 
       const fresh = runCheckContract({ rootDir, feature: 'users-list' });
+      expect(fresh.ok).toBe(true);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('refreshes query metadata under configured featureRoot', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-query-refresh-config-root-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        featureRoot: 'src/usecases',
+      }, null, 2), 'utf8');
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      const sqlPath = path.join(rootDir, 'src/usecases/users-list/queries/list/list.sql');
+      writeFileSync(sqlPath, `${readFileSync(sqlPath, 'utf8')}\n-- SQL-only metadata refresh under configured featureRoot\n`, 'utf8');
+
+      const stale = runCheckContract({ rootDir, featureRoot: 'src/usecases', feature: 'users-list' });
+      expect(stale.ok).toBe(false);
+      expect(stale.catalogCheck.checked[0]?.issues).toContain('queryModel.analysis.sourceHash is stale.');
+
+      const refresh = runFeatureQueryMetadataRefresh({ rootDir, feature: 'users-list', query: 'list' });
+      expect(refresh.changed).toBe(true);
+      expect(refresh.queryFile).toBe('src/usecases/users-list/queries/list/query.ts');
+      expect(refresh.metadataFile).toBe('src/usecases/users-list/queries/list/generated/query.meta.ts');
+
+      const fresh = runCheckContract({ rootDir, featureRoot: 'src/usecases', feature: 'users-list' });
       expect(fresh.ok).toBe(true);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -1846,7 +2091,9 @@ describe('@ashiba-ts/cli smoke', () => {
         ddl: { sourceDir: 'db/ddl' },
       }, null, 2), 'utf8');
       writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
-      writeFileSync(path.join(rootDir, 'src', 'usecases', 'users-search', 'queries', 'search', 'search.sql'), 'select user_id, email from public.users where email = :email;', 'utf8');
+      mkdirSync(path.join(rootDir, 'tmp'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'tmp', 'search.sql'), 'select user_id, email from public.users where email = :email;', 'utf8');
+      runFeatureImport({ rootDir, feature: 'users-search', queryName: 'search', sql: 'tmp/search.sql', force: true });
       writeFileSync(path.join(rootDir, 'src', 'shared-sql', 'broken.sql'), 'select missing_id from public.users;', 'utf8');
 
       const result = runProjectCheck({ rootDir });
@@ -1857,7 +2104,15 @@ describe('@ashiba-ts/cli smoke', () => {
         sqlRoots: ['src/usecases', 'src/shared-sql'],
         defaultSchema: 'public',
         searchPath: ['public'],
+        mutation: {
+          optimisticLock: {
+            versionColumn: 'version_key',
+            scaffold: 'when-column-exists',
+          },
+        },
       });
+      expect(result.coverage.mapperQueries).toBe(1);
+      expect(result.checks.contract.mapperCheck.checked[0]?.queryFile).toBe('src/usecases/users-search/queries/search/query.ts');
       expect(result.errors).toEqual(expect.arrayContaining([
         expect.objectContaining({
           code: 'ASHIBA_PROJECT_SQL_LINT_FAILED',
@@ -2358,6 +2613,39 @@ describe('@ashiba-ts/cli smoke', () => {
       ]));
       expect(fail.attainment.nextActions).toContain('Regenerate query model metadata from the current visible SQL.');
       expect(fail.catalogCheck.checked[0]?.missingInSpec).toEqual(['status']);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not treat SQL line-ending changes as query model drift', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-contract-query-model-eol-'));
+
+    try {
+      const queryDir = path.join(rootDir, 'src/features/users/queries/list');
+      const sqlPath = path.join(queryDir, 'list.sql');
+      mkdirSync(queryDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select user_id',
+        'from public.users',
+        'where email = :email',
+        'order by user_id;',
+        '',
+      ].join('\n'), 'utf8');
+      runModelGen({
+        rootDir,
+        sqlFile: 'src/features/users/queries/list/list.sql',
+        out: 'src/features/users/queries/list/list.query.ts',
+      });
+
+      expect(runCheckContract({ rootDir, scopeDir: 'src/features/users/queries/list' }).ok).toBe(true);
+
+      const lfSql = readFileSync(sqlPath, 'utf8').replace(/\r\n/g, '\n');
+      writeFileSync(sqlPath, lfSql.replace(/\n/g, '\r\n'), 'utf8');
+      const crlf = runCheckContract({ rootDir, scopeDir: 'src/features/users/queries/list' });
+
+      expect(crlf.ok).toBe(true);
+      expect(crlf.catalogCheck.checked[0]?.issues).toEqual([]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -3123,11 +3411,11 @@ describe('@ashiba-ts/cli smoke', () => {
         account_id: 'string',
       });
       expect(result.analysis.resultColumnTypes).toEqual({
-        account_id: 'number',
+        account_id: 'string',
         email: 'string',
       });
       expect(result.contents).toContain('account_id: string;');
-      expect(result.contents).toContain('account_id: number;');
+      expect(result.contents).toContain('account_id: string;');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -3614,7 +3902,7 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runModelGen({ rootDir, sqlFile: 'src/features/health/queries/check/check.sql' });
 
       expect(result.resultColumns).toEqual(['checked_at', 'enabled', 'label', 'ok']);
-      expect(result.contents).toContain('checked_at: unknown');
+      expect(result.contents).toContain('checked_at: string');
       expect(result.contents).toContain('enabled: boolean');
       expect(result.contents).toContain('label: string');
       expect(result.contents).toContain('ok: number');
@@ -3678,6 +3966,48 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.contents).toContain('id: number');
       expect(result.contents).toContain('label: string');
       expect(result.contents).toContain('enabled: boolean');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('infers query contract result column types from timestamp and array casts', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-timestamp-array-types-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/cast-array');
+      const sqlPath = path.join(sqlDir, 'cast-array.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select',
+        "  cast('2026-01-01T00:00:00.000Z' as timestamptz) as created_at,",
+        '  cast(array[] as text[]) as tag_slugs,',
+        '  cast(array[] as bigint[]) as big_ids,',
+        '  cast(array[] as float8[]) as scores,',
+        '  cast(1 as bigint) as big_id,',
+        '  cast(2.5 as numeric(10, 2)) as amount,',
+        '  cast(3.5 as double precision) as ratio;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/cast-array/cast-array.sql' });
+
+      expect(result.analysis.resultColumnTypes).toEqual({
+        amount: 'string',
+        big_ids: 'string[]',
+        big_id: 'string',
+        created_at: 'string',
+        ratio: 'number',
+        scores: 'number[]',
+        tag_slugs: 'string[]',
+      });
+      expect(result.contents).toContain('amount: string');
+      expect(result.contents).toContain('big_ids: string[]');
+      expect(result.contents).toContain('big_id: string');
+      expect(result.contents).toContain('created_at: string');
+      expect(result.contents).toContain('ratio: number');
+      expect(result.contents).toContain('scores: number[]');
+      expect(result.contents).toContain('tag_slugs: string[]');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -3835,12 +4165,93 @@ describe('@ashiba-ts/cli smoke', () => {
         external_id: 'string',
         lifecycle: 'string',
         shipped: 'boolean',
-        total_amount: 'number',
+        total_amount: 'string',
       });
-      expect(result.contents).toContain('total_amount: number');
+      expect(result.contents).toContain('total_amount: string');
       expect(result.contents).toContain('shipped: boolean');
       expect(result.contents).toContain('lifecycle: string');
       expect(result.contents).toContain('external_id: string');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('propagates DDL-backed result types through CTE aliases', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-cte-result-types-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db/ddl/public.sql'), [
+        'create table public.tickets (',
+        '  ticket_id bigint primary key,',
+        '  subject text not null,',
+        '  sla_due_at timestamptz,',
+        '  created_at timestamptz not null',
+        ');',
+        'create table public.ticket_tags (',
+        '  ticket_id bigint not null,',
+        '  slug text not null',
+        ');',
+        'create table public.ticket_messages (',
+        '  ticket_id bigint not null,',
+        '  body text not null,',
+        '  created_at timestamptz not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      const sqlDir = path.join(rootDir, 'src/features/tickets/queries/list');
+      const sqlPath = path.join(sqlDir, 'list.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'with filtered_tickets as (',
+        '  select',
+        '    t.ticket_id,',
+        '    t.subject,',
+        '    t.sla_due_at,',
+        '    t.created_at',
+        '  from public.tickets t',
+        '),',
+        'aggregated_tags as (',
+        '  select',
+        '    tt.ticket_id,',
+        '    array_agg(tt.slug order by tt.slug) as tag_slugs',
+        '  from public.ticket_tags tt',
+        '  group by tt.ticket_id',
+        '),',
+        'latest_message as (',
+        '  select ranked.ticket_id, ranked.body, ranked.created_at',
+        '  from (',
+        '    select tm.ticket_id, tm.body, tm.created_at',
+        '    from public.ticket_messages tm',
+        '  ) ranked',
+        ')',
+        'select',
+        '  ft.ticket_id,',
+        '  ft.subject,',
+        '  ft.sla_due_at,',
+        '  ft.created_at,',
+        '  lm.body as latest_message_body,',
+        '  lm.created_at as latest_message_at,',
+        '  coalesce(tags.tag_slugs, cast(array[] as text[])) as tag_slugs',
+        'from filtered_tickets ft',
+        'left join aggregated_tags tags on tags.ticket_id = ft.ticket_id',
+        'left join latest_message lm on lm.ticket_id = ft.ticket_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/tickets/queries/list/list.sql' });
+
+      expect(result.analysis.resultColumnTypes).toEqual({
+        created_at: 'string',
+        latest_message_at: 'string',
+        latest_message_body: 'string',
+        sla_due_at: 'string',
+        subject: 'string',
+        tag_slugs: 'string[]',
+        ticket_id: 'string',
+      });
+      expect(result.contents).toContain('created_at: string');
+      expect(result.contents).toContain('tag_slugs: string[]');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -4310,10 +4721,53 @@ describe('@ashiba-ts/cli smoke', () => {
         path: 'src/features/users-list/boundary.ts',
         exists: true,
       });
+      expect(rfba.features[0]?.standard).toEqual({
+        status: 'standard',
+        warnings: [],
+      });
       expect(rfba.features[0]?.queries[0]?.sql).toEqual({
         path: 'src/features/users-list/queries/list/list.sql',
         exists: true,
       });
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('reports RFBA standard drift as warnings without failing ownership checks', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-rfba-standard-warning-'));
+
+    try {
+      const featureDir = path.join(rootDir, 'src/features/users-list');
+      const queryDir = path.join(featureDir, 'queries/list');
+      mkdirSync(queryDir, { recursive: true });
+      writeFileSync(path.join(featureDir, 'boundary.ts'), [
+        'export type { UsersListRequest } from \'./input.js\';',
+        'export async function execute(): Promise<void> {}',
+        'export async function customEntrypoint(): Promise<void> {}',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(featureDir, 'input.ts'), 'export function parseInput(raw: unknown): unknown { return raw; }\n', 'utf8');
+      writeFileSync(path.join(featureDir, 'workflow.ts'), 'export async function executeWorkflow(raw: unknown): Promise<unknown> { return raw; }\n', 'utf8');
+      writeFileSync(path.join(featureDir, 'output.ts'), 'export function buildOutput(value: unknown): unknown { return value; }\n', 'utf8');
+      writeFileSync(path.join(queryDir, 'query.ts'), 'export {};\n', 'utf8');
+      writeFileSync(path.join(queryDir, 'list.sql'), 'select 1;\n', 'utf8');
+
+      const rfba = runRfbaInspect({ rootDir });
+
+      expect(rfba.attainment).toMatchObject({
+        overall: 'done',
+        issueCount: 0,
+        nextActions: [],
+      });
+      expect(rfba.features[0]?.standard.status).toBe('custom');
+      expect(rfba.features[0]?.standard.warnings).toEqual([
+        'Boundary exposes multiple runtime entrypoints (execute, customEntrypoint); RFBA expects one primary function entrypoint, usually execute. Split the boundary or mark this as custom-owned code if the extra entrypoints are intentional.',
+        'Input boundary should expose parseRequest(raw: unknown): src/features/users-list/input.ts.',
+        'Workflow should expose a Queries interface so query dependencies stay injectable: src/features/users-list/workflow.ts.',
+        'Workflow should receive parsed input, not raw unknown input: src/features/users-list/workflow.ts.',
+        'Output boundary should expose buildResult(...): src/features/users-list/output.ts.',
+      ]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -4425,7 +4879,6 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(report.safe).toBe(true);
       expect(report.changed).toBe(true);
-      expect(report.tokenCountBefore).toBe(report.tokenCountAfter);
       expect(report.sql).toContain('select\n    id\n    , email');
       expect(report.sql).toContain('where\n    active = :active\n    and email = :email');
 
@@ -4434,9 +4887,28 @@ describe('@ashiba-ts/cli smoke', () => {
       const commented = runQueryFormat(commentedPath, { rootDir, write: true });
 
       expect(commented.safe).toBe(false);
-      expect(commented.tokenCountBefore).toBe(commented.tokenCountAfter);
       expect(commented.written).toBe(false);
       expect(readFileSync(commentedPath, 'utf8')).toContain('-- keep this review note');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('allows formatter-owned token normalization when AST round-trip is stable', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-format-token-normalization-'));
+
+    try {
+      const sqlPath = path.join(rootDir, 'users.sql');
+      writeFileSync(sqlPath, 'select id::bigint as id from public.users u order by u.created_at asc\n', 'utf8');
+
+      const report = runQueryFormat(sqlPath, { rootDir, write: true });
+
+      expect(report.safe).toBe(true);
+      expect(report.written).toBe(true);
+      expect(report.tokenCountBefore).not.toBe(report.tokenCountAfter);
+      const formattedSql = readFileSync(sqlPath, 'utf8');
+      expect(formattedSql).toContain('cast(id as bigint) as id');
+      expect(formattedSql).toContain('order by\n    u.created_at;');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

@@ -1,0 +1,117 @@
+diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/input.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/input.ts
+index 5a977d8..7f1ab82 100644
+--- a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/input.ts
++++ b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/input.ts
+@@ -11,15 +11,36 @@ export function parseRequest(raw: unknown): SupportInboxRequest {
+     throw new Error('Feature request must be an object.');
+   }
+   const record = raw as Partial<Record<keyof ListTicketsQueryParams, unknown>>;
++  const limit = readRequiredNumber(record, 'limit');
++  const offset = readRequiredNumber(record, 'offset');
+   return {
+-    status: record["status"] as unknown,
+-    customerTier: record["customerTier"] as unknown,
+-    slaState: record["slaState"] as unknown,
+-    language: record["language"] as unknown,
+-    channel: record["channel"] as unknown,
+-    tag: record["tag"] as unknown,
+-    keyword: record["keyword"] as unknown,
+-    limit: record["limit"] as unknown,
+-    offset: record["offset"] as unknown,
++    status: readOptionalText(record, 'status'),
++    customerTier: readOptionalText(record, 'customerTier'),
++    slaState: readOptionalText(record, 'slaState'),
++    language: readOptionalText(record, 'language'),
++    channel: readOptionalText(record, 'channel'),
++    tag: readOptionalText(record, 'tag'),
++    keyword: readOptionalText(record, 'keyword'),
++    limit,
++    offset,
+   };
+ }
++
++function readOptionalText(record: Partial<Record<keyof ListTicketsQueryParams, unknown>>, key: keyof ListTicketsQueryParams): string | null {
++  const value = record[key];
++  if (value === null || value === undefined) {
++    return null;
++  }
++  if (typeof value !== 'string') {
++    throw new Error(`${String(key)} must be a string or null.`);
++  }
++  return value;
++}
++
++function readRequiredNumber(record: Partial<Record<keyof ListTicketsQueryParams, unknown>>, key: keyof ListTicketsQueryParams): number {
++  const value = record[key];
++  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
++    throw new Error(`${String(key)} must be a non-negative integer.`);
++  }
++  return value;
++}
+diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/query.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/query.ts
+index 2285548..87916e9 100644
+--- a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/query.ts
++++ b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/queries/list-tickets/query.ts
+@@ -22,16 +22,18 @@ export const listTicketsQuery = {
+   },
+ } as const;
+ 
++type OptionalTextFilter = string | null;
++
+ export interface ListTicketsQueryParams {
+-  tag: unknown;
+-  status: unknown;
+-  customerTier: unknown;
+-  slaState: unknown;
+-  language: unknown;
+-  channel: unknown;
+-  keyword: unknown;
+-  limit: unknown;
+-  offset: unknown;
++  tag: OptionalTextFilter;
++  status: OptionalTextFilter;
++  customerTier: OptionalTextFilter;
++  slaState: OptionalTextFilter;
++  language: OptionalTextFilter;
++  channel: OptionalTextFilter;
++  keyword: OptionalTextFilter;
++  limit: number;
++  offset: number;
+ }
+ 
+ export interface ListTicketsQueryResult {
+diff --git a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/tests/support-inbox.boundary.test.ts b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/tests/support-inbox.boundary.test.ts
+index 83386e4..f01b706 100644
+--- a/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/tests/support-inbox.boundary.test.ts
++++ b/examples/hono-pg-support-inbox/src/features/support-inbox/list-tickets/tests/support-inbox.boundary.test.ts
+@@ -1,6 +1,7 @@
+ import { expect, test } from 'vitest';
+ 
+ import { execute } from '../boundary.js';
++import { parseRequest } from '../input.js';
+ import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
+ import type { ListTicketsQueryResult } from '../queries/list-tickets/query.js';
+ 
+@@ -12,8 +13,8 @@ test('support-inbox executes imported list-tickets query boundary through injecte
+     channel: "value",
+     tag: "value",
+     keyword: "value",
+-    limit: "value",
+-    offset: "value"
++    limit: 10,
++    offset: 0
+   };
+   const row: ListTicketsQueryResult = {
+     action_required: 1,
+@@ -75,4 +76,11 @@ test('support-inbox executes imported list-tickets query boundary through injecte
+   });
+ });
+ 
++test('support-inbox rejects invalid numeric request params before query execution', () => {
++  expect(() => parseRequest({
++    limit: '10',
++    offset: 0,
++  })).toThrow('limit must be a non-negative integer.');
++});
++
+ // SupportInbox starts from imported SQL. Add boundary-level behavior cases as requirements grow.

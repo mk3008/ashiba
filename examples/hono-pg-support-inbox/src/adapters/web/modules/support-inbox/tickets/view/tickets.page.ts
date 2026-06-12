@@ -1,5 +1,5 @@
-import type { GetTicketDetailQueryResult } from '#features/support-inbox/queries/get-ticket-detail/query.js';
-import type { ListTicketsQueryResult } from '#features/support-inbox/queries/list-tickets/query.js';
+import type { GetTicketDetailQueryResult } from '#features/support-inbox/list-tickets/queries/get-ticket-detail/query.js';
+import type { ListTicketsQueryResult } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
 import {
   ticketColumnSortInputs,
   type TicketColumnSortKey,
@@ -13,6 +13,13 @@ import type { SupportInboxViewModel } from './tickets.presenter.js';
 type Option = {
   value: string;
   label: string;
+};
+
+type TicketCustomerOption = {
+  customer_id: string;
+  name: string;
+  tier: string;
+  locale: string;
 };
 
 const statusOptions: Option[] = [
@@ -104,11 +111,85 @@ export function renderSupportInbox(filters: TicketFilters, viewModel: SupportInb
       </section>
       ${renderFilterForm(filters)}
       ${renderTicketTable(filters, viewModel)}
-      ${renderDetail(viewModel.selectedTicket?.summary, viewModel.selectedTicket?.messages ?? [])}
+      ${renderDetail(filters, viewModel.selectedTicket?.summary, viewModel.selectedTicket?.messages ?? [])}
     </main>
     ${renderQueryConsole(filters, viewModel.inspection)}
   </div>
   ${renderSortScript()}
+</body>
+</html>`;
+}
+
+export type CreateTicketPageModel = {
+  customers: readonly TicketCustomerOption[];
+  error?: unknown;
+};
+
+export function renderCreateTicketPage(model: CreateTicketPageModel): string {
+  const message = model.error instanceof Error ? model.error.message : model.error ? String(model.error) : '';
+  return `<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${copy.appName}</title>
+  <style>${styles()}</style>
+</head>
+<body>
+  <div class="shell noConsole">
+    ${renderSidebar()}
+    <main class="workspace">
+      <section class="toolbar">
+        <div>
+          <h1>新規チケット</h1>
+          <p>INSERT SQL と transaction 境界を見える形で確認する Create デモ</p>
+        </div>
+      </section>
+      <section class="panel createPanel">
+        <form class="createForm" action="/tickets" method="post">
+          ${message ? `<p class="formError">${escapeHtml(message)}</p>` : ''}
+          <label class="field">
+            <span>顧客</span>
+            <select name="customer_id" required>
+              ${model.customers.map((customer) => `<option value="${escapeHtml(customer.customer_id)}">${escapeHtml(customer.name)} (${tierLabel(customer.tier)} / ${languageLabel(customer.locale)})</option>`).join('')}
+            </select>
+          </label>
+          <label class="field">
+            <span>件名</span>
+            <input name="subject" required maxlength="120" placeholder="請求書の再発行について">
+          </label>
+          <div class="formGrid">
+            ${select('priority', '優先度', [
+              { value: 'high', label: copy.values.high },
+              { value: 'medium', label: copy.values.medium },
+              { value: 'low', label: copy.values.low },
+            ], 'medium')}
+            ${select('language', '言語', [
+              { value: 'ja', label: copy.values.ja },
+              { value: 'en', label: copy.values.en },
+            ], 'ja')}
+            ${select('channel', 'チャネル', [
+              { value: 'email', label: copy.values.email },
+              { value: 'chat', label: copy.values.chat },
+              { value: 'web', label: copy.values.web },
+            ], 'email')}
+          </div>
+          <label class="field">
+            <span>SLA期限</span>
+            <input name="sla_due_at" type="datetime-local">
+          </label>
+          <label class="field">
+            <span>初回メッセージ</span>
+            <textarea name="message_body" required rows="6" placeholder="問い合わせ内容を入力"></textarea>
+          </label>
+          <div class="actions">
+            <a class="button secondary" href="/tickets">キャンセル</a>
+            <button class="button primary" type="submit">登録</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
 </body>
 </html>`;
 }
@@ -147,6 +228,18 @@ type DemoErrorDiagnosis = {
 function diagnoseDemoError(error: unknown): DemoErrorDiagnosis {
   const code = readErrorCode(error);
   const message = error instanceof Error ? error.message : String(error);
+  const name = error instanceof Error ? error.name : '';
+
+  if (name === 'OptimisticConcurrencyConflict') {
+    return {
+      code: 'OPTIMISTIC_CONCURRENCY_CONFLICT',
+      summary: 'The ticket was changed before this update could be applied.',
+      actions: [
+        'Reload the ticket detail and retry with the latest version_key.',
+        'Review the update-ticket-status SQL to see the version_key condition.',
+      ],
+    };
+  }
 
   if (
     code === 'ASHIBA_QUERY_MODEL_STALE' ||
@@ -217,6 +310,7 @@ function renderSidebar(): string {
     <nav>
       <a class="navRoot active" href="/tickets">受信箱</a>
       <div class="navChildren" aria-label="受信箱のショートカット">
+        <a href="/tickets/new">新規チケット</a>
         <a href="/tickets?status=waiting_agent">マイチケット</a>
         <a href="/tickets?status=draft">下書き</a>
       </div>
@@ -309,7 +403,7 @@ function renderTicketRow(filters: TicketFilters, ticket: ListTicketsQueryResult)
   </tr>`;
 }
 
-function renderDetail(summary: GetTicketDetailQueryResult | undefined, messages: GetTicketDetailQueryResult[]): string {
+function renderDetail(filters: TicketFilters, summary: GetTicketDetailQueryResult | undefined, messages: GetTicketDetailQueryResult[]): string {
   if (!summary) {
     return `<section id="ticket-detail" class="panel detailPanel"><p>表示するチケットがありません。</p></section>`;
   }
@@ -326,17 +420,28 @@ function renderDetail(summary: GetTicketDetailQueryResult | undefined, messages:
         <div><dt>言語</dt><dd>${languageLabel(summary.language)}</dd></div>
         <div><dt>チャネル</dt><dd>${channelLabel(summary.channel)}</dd></div>
         <div><dt>更新日時</dt><dd>${formatDate(summary.updated_at)}</dd></div>
+        <div><dt>version_key</dt><dd>${summary.version_key ?? '-'}</dd></div>
       </dl>
+      ${renderStatusUpdateForm(summary, withTicketId(filters, summary.ticket_id))}
     </div>
     <div class="messages">
       <h3>メッセージ履歴</h3>
       ${messages.map(renderMessage).join('')}
-      <form class="replyBox">
-        <input disabled placeholder="メッセージを入力...">
-        <button disabled>送信</button>
-      </form>
     </div>
   </section>`;
+}
+
+function renderStatusUpdateForm(summary: GetTicketDetailQueryResult, returnTo: string): string {
+  const ticketId = summary.ticket_id;
+  if (ticketId === null || summary.version_key === null) {
+    return '';
+  }
+  return `<form class="statusUpdateForm" method="post" action="/tickets/${ticketId}/status">
+    <input type="hidden" name="expected_version_key" value="${summary.version_key}">
+    <input type="hidden" name="return_to" value="${escapeHtml(returnTo)}">
+    ${select('status', 'ステータス更新', statusOptions.filter((option) => option.value !== ''), text(summary.status))}
+    <button type="submit">更新</button>
+  </form>`;
 }
 
 function renderQueryConsole(_filters: TicketFilters, inspection: SupportInboxViewModel['inspection']): string {
@@ -344,6 +449,7 @@ function renderQueryConsole(_filters: TicketFilters, inspection: SupportInboxVie
     <div class="consoleHeader">
       <div>
         <strong>Live Query Console</strong>
+        <span>${escapeHtml(inspection.apiRoute)}</span>
         <span>${escapeHtml(inspection.sqlPath)}</span>
       </div>
       <span class="liveBadge">LIVE</span>
@@ -391,7 +497,7 @@ function badge(label: string, className: string): string {
   return `<span class="badge ${escapeHtml(className)}">${escapeHtml(label)}</span>`;
 }
 
-function withTicketId(filters: TicketFilters, ticketId: number | null): string {
+function withTicketId(filters: TicketFilters, ticketId: string | null): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(filters)) {
     if (key !== 'selectedTicketId' && value) {
@@ -692,6 +798,7 @@ function styles(): string {
     a { color: #1459b8; text-decoration: none; }
     html, body { height: 100%; overflow: hidden; }
     .shell { display: grid; grid-template-columns: 180px minmax(0, 1fr) 470px; height: 100vh; overflow: hidden; }
+    .shell.noConsole { grid-template-columns: 180px minmax(0, 1fr); }
     .sidebar { background: #ffffff; border-right: 1px solid #d8dee9; display: flex; flex-direction: column; padding: 18px 12px; height: 100vh; overflow: hidden; }
     .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
     .brandIcon { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; display: block; border: 1px solid #d8dee9; background: #ffffff; }
@@ -713,6 +820,7 @@ function styles(): string {
     .field { display: grid; gap: 6px; min-width: 0; }
     .field span { color: #475467; font-size: 12px; font-weight: 700; }
     select, input { width: 100%; min-height: 36px; border: 1px solid #cfd7e6; border-radius: 6px; padding: 7px 10px; color: #17202f; background: #fff; }
+    textarea { width: 100%; border: 1px solid #cfd7e6; border-radius: 6px; padding: 9px 10px; color: #17202f; background: #fff; font: inherit; resize: vertical; }
     .keyword { grid-column: span 2; }
     .actions { display: flex; gap: 8px; }
     .sortForm { display: flex; justify-content: flex-end; }
@@ -722,6 +830,10 @@ function styles(): string {
     .button.primary { background: #1459b8; color: #fff; border-color: #1459b8; }
     .button.secondary { background: #fff; color: #344054; }
     .panel { background: #fff; border: 1px solid #d8dee9; border-radius: 8px; box-shadow: 0 8px 24px rgba(20, 40, 80, 0.05); min-width: 0; overflow: hidden; }
+    .createPanel { max-width: 760px; }
+    .createForm { display: grid; gap: 14px; padding: 18px; }
+    .formGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .formError { margin: 0; border: 1px solid #fecdd3; background: #fff1f2; color: #be123c; border-radius: 6px; padding: 10px 12px; }
     .listPanel { display: block; }
     .panelHeader { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; color: #475467; }
     .panelHeader strong { color: #17202f; }
@@ -753,12 +865,12 @@ function styles(): string {
     dl div { display: grid; grid-template-columns: 90px 1fr; gap: 12px; }
     dt { color: #667085; font-weight: 700; }
     dd { margin: 0; }
+    .statusUpdateForm { display: grid; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #edf0f5; }
+    .statusUpdateForm button { min-height: 36px; border: 0; border-radius: 6px; background: #1459b8; color: #fff; font-weight: 800; cursor: pointer; }
     .messages { padding: 18px; display: grid; gap: 12px; align-content: start; }
     .messageCard { border: 1px solid #edf0f5; border-radius: 8px; padding: 12px; background: #fff; }
     .messageCard div { display: flex; gap: 10px; align-items: center; color: #667085; font-size: 12px; }
     .messageCard p { margin: 8px 0 0; line-height: 1.6; }
-    .replyBox { display: grid; grid-template-columns: 1fr 72px; gap: 8px; }
-    .replyBox button { border: 0; border-radius: 6px; background: #1459b8; color: #fff; font-weight: 700; }
     .queryConsole { background: #0b1220; color: #d8e4f6; border-left: 1px solid #1c2b42; padding: 18px; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 14px; height: 100vh; min-height: 0; overflow: hidden; }
     .consoleHeader { display: flex; justify-content: space-between; gap: 14px; align-items: start; padding-bottom: 14px; border-bottom: 1px solid #1e2d44; }
     .consoleHeader div { display: grid; gap: 5px; min-width: 0; }

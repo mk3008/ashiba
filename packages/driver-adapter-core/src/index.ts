@@ -9,6 +9,19 @@ export type AshibaMaskPolicy = 'always' | 'development' | 'never';
 export type AshibaSqlExecutionMetadata = {
   sqlId?: string;
   queryId?: string;
+  requestId?: string;
+  apiMethod?: string;
+  apiPath?: string;
+  apiRoute?: string;
+  operation?: string;
+  filterKeys?: readonly string[];
+  sortKeys?: readonly string[];
+  queryVariant?: string;
+  queryModelSourceHash?: string;
+  queryModelStatementKind?: string;
+  queryModelRootQueryShape?: string;
+  queryModelOptionalConditionCompression?: boolean;
+  queryModelSafeSortInsertionStatus?: string;
   sqlFile?: string;
   sqlPath?: string;
   dialect?: string;
@@ -19,6 +32,7 @@ export type AshibaSqlExecutionMetadata = {
  */
 export type AshibaSqlExecutionEvent = {
   phase: 'start' | 'end' | 'error';
+  executionId?: string;
   metadata?: AshibaSqlExecutionMetadata;
   warnings?: readonly {
     code: string;

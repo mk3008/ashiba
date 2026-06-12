@@ -1,6 +1,7 @@
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
+import { loadProjectPathConfig } from './config.js';
 
 export interface RfbaInspectOptions {
   rootDir?: string;
@@ -17,6 +18,13 @@ export interface RfbaInspectResult {
   features: Array<{
     name: string;
     boundary: RfbaFileStatus;
+    input: RfbaFileStatus;
+    workflow: RfbaFileStatus;
+    output: RfbaFileStatus;
+    standard: {
+      status: 'standard' | 'custom';
+      warnings: string[];
+    };
     queries: Array<{
       name: string;
       query: RfbaFileStatus;
@@ -53,7 +61,8 @@ export function registerRfbaCommand(program: Command): void {
 
 export function runRfbaInspect(options: RfbaInspectOptions = {}): RfbaInspectResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
-  const featuresDir = path.join(rootDir, 'src', 'features');
+  const projectConfig = loadProjectPathConfig(rootDir);
+  const featuresDir = path.join(rootDir, projectConfig.featureRoot);
   const features = existsSync(featuresDir)
     ? readdirSync(featuresDir)
       .filter((entry) => !entry.startsWith('_'))
@@ -67,6 +76,10 @@ function inspectFeature(rootDir: string, featuresDir: string, featureName: strin
   const featureDir = path.join(featuresDir, featureName);
   const queriesDir = path.join(featureDir, 'queries');
   const boundary = fileStatus(rootDir, path.join(featureDir, 'boundary.ts'));
+  const input = fileStatus(rootDir, path.join(featureDir, 'input.ts'));
+  const workflow = fileStatus(rootDir, path.join(featureDir, 'workflow.ts'));
+  const output = fileStatus(rootDir, path.join(featureDir, 'output.ts'));
+  const standard = inspectFeatureStandard(rootDir, featureDir, { boundary, input, workflow, output });
   const queries = existsSync(queriesDir)
     ? readdirSync(queriesDir)
       .filter((entry) => statSync(path.join(queriesDir, entry)).isDirectory())
@@ -79,6 +92,10 @@ function inspectFeature(rootDir: string, featuresDir: string, featureName: strin
   return {
     name: featureName,
     boundary,
+    input,
+    workflow,
+    output,
+    standard,
     queries,
     issues,
   };
@@ -140,6 +157,80 @@ function fileStatus(rootDir: string, filePath: string): RfbaFileStatus {
   };
 }
 
+function inspectFeatureStandard(
+  rootDir: string,
+  featureDir: string,
+  files: Pick<RfbaInspectResult['features'][number], 'boundary' | 'input' | 'workflow' | 'output'>,
+): RfbaInspectResult['features'][number]['standard'] {
+  const warnings: string[] = [];
+  const boundarySource = readExistingFile(path.join(featureDir, 'boundary.ts'));
+  const inputSource = readExistingFile(path.join(featureDir, 'input.ts'));
+  const workflowSource = readExistingFile(path.join(featureDir, 'workflow.ts'));
+  const outputSource = readExistingFile(path.join(featureDir, 'output.ts'));
+
+  if (!files.input.exists) warnings.push(`RFBA standard input file is missing: ${files.input.path}.`);
+  if (!files.workflow.exists) warnings.push(`RFBA standard workflow file is missing: ${files.workflow.path}.`);
+  if (!files.output.exists) warnings.push(`RFBA standard output file is missing: ${files.output.path}.`);
+
+  if (boundarySource) {
+    const exportedRuntimeNames = collectExportedRuntimeNames(boundarySource);
+    if (!exportedRuntimeNames.includes('execute')) {
+      warnings.push(`Boundary should expose execute as the primary feature entrypoint: ${files.boundary.path}.`);
+    }
+    const extraExports = exportedRuntimeNames.filter((name) => name !== 'execute');
+    if (extraExports.length > 0) {
+      warnings.push(`Boundary exposes multiple runtime entrypoints (${exportedRuntimeNames.join(', ')}); RFBA expects one primary function entrypoint, usually execute. Split the boundary or mark this as custom-owned code if the extra entrypoints are intentional.`);
+    }
+  }
+  if (inputSource) {
+    if (!/\bfunction\s+parseRequest\b/.test(inputSource)) {
+      warnings.push(`Input boundary should expose parseRequest(raw: unknown): ${files.input.path}.`);
+    }
+    if (/\bimport\s+(?!type\b)[^;]*from\s+['"][^'"]*\/queries\//.test(inputSource)) {
+      warnings.push(`Input boundary imports query files; keep SQL/query ownership in workflow instead: ${files.input.path}.`);
+    }
+  }
+  if (workflowSource) {
+    if (!/\bfunction\s+executeWorkflow\b/.test(workflowSource)) {
+      warnings.push(`Workflow should expose executeWorkflow(...): ${files.workflow.path}.`);
+    }
+    if (!/\binterface\s+\w*Queries\b/.test(workflowSource)) {
+      warnings.push(`Workflow should expose a Queries interface so query dependencies stay injectable: ${files.workflow.path}.`);
+    }
+    if (/\braw\w*\s*:\s*unknown\b/.test(workflowSource)) {
+      warnings.push(`Workflow should receive parsed input, not raw unknown input: ${files.workflow.path}.`);
+    }
+  }
+  if (outputSource) {
+    if (!/\bfunction\s+buildResult\b/.test(outputSource)) {
+      warnings.push(`Output boundary should expose buildResult(...): ${files.output.path}.`);
+    }
+    if (/from\s+['"][^'"]*featureQueryExecutor\.js['"]/.test(outputSource)) {
+      warnings.push(`Output boundary imports FeatureQueryExecutor; keep execution concerns in workflow: ${files.output.path}.`);
+    }
+  }
+
+  return {
+    status: warnings.length === 0 ? 'standard' : 'custom',
+    warnings,
+  };
+}
+
+function readExistingFile(filePath: string): string | undefined {
+  return existsSync(filePath) && statSync(filePath).isFile() ? readFileSync(filePath, 'utf8') : undefined;
+}
+
+function collectExportedRuntimeNames(source: string): string[] {
+  const names = new Set<string>();
+  for (const match of source.matchAll(/\bexport\s+(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/g)) {
+    if (match[1]) names.add(match[1]);
+  }
+  for (const match of source.matchAll(/\bexport\s+(?:const|let|var|class)\s+([A-Za-z_$][\w$]*)/g)) {
+    if (match[1]) names.add(match[1]);
+  }
+  return [...names];
+}
+
 function formatRfbaInspect(result: RfbaInspectResult): string {
   const lines = ['RFBA boundary inspection'];
   lines.push(`- attainment: ${result.attainment.overall}`);
@@ -150,6 +241,15 @@ function formatRfbaInspect(result: RfbaInspectResult): string {
   }
   for (const feature of result.features) {
     lines.push('', `- feature: ${feature.name}`, `  boundary: ${formatFileStatus(feature.boundary)}`);
+    lines.push(
+      `  input: ${formatFileStatus(feature.input)}`,
+      `  workflow: ${formatFileStatus(feature.workflow)}`,
+      `  output: ${formatFileStatus(feature.output)}`,
+      `  standard: ${feature.standard.status}`,
+    );
+    for (const warning of feature.standard.warnings) {
+      lines.push(`  warning: ${warning}`);
+    }
     for (const issue of feature.issues) {
       lines.push(`  issue: ${issue}`);
     }

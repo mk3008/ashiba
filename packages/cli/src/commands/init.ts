@@ -320,6 +320,10 @@ export function createPgSqlClient(
   });
   return {
     async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+      const queryAnalysis = query.queryModel.analysis as FeatureQuerySource['queryModel']['analysis'] & {
+        optionalConditionCompression?: { enabled?: boolean };
+        safeSort?: { insertion?: { status?: string } };
+      };
       const result = await adapter.execute<T>(
         {
           sql: query.sql,
@@ -330,6 +334,11 @@ export function createPgSqlClient(
             sqlId: query.metadata?.sqlId ?? query.id,
             queryId: query.metadata?.queryId ?? query.id,
             sqlPath: query.metadata?.sqlPath ?? query.sqlPath,
+            queryModelSourceHash: queryAnalysis.sourceHash,
+            queryModelStatementKind: queryAnalysis.statementKind,
+            queryModelRootQueryShape: queryAnalysis.rootQueryShape,
+            queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
+            queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
           },
         },
         params,
@@ -377,8 +386,19 @@ export async function withPgFeatureQueryExecutor<T>(
 /**
  * Run application-owned work inside a pg transaction.
  *
+ * Ashiba does not own transaction policy. This helper is starter-owned
+ * application code that borrows one pg client, starts one transaction, and
+ * passes the same FeatureQueryExecutor to every query boundary in the callback.
+ *
  * Standard path:
- *   await withPgTransaction(pool, async (executor) => { ... });
+ *   await withPgTransaction(pool, async (executor) => {
+ *     const parent = await executeCreateParentQuery(executor, parentParams);
+ *     await executeCreateChildQuery(executor, { parent_id: parent.parent_id, ...childParams });
+ *   });
+ *
+ * Feature/query code should not call begin/commit/rollback. Keep transaction
+ * composition at the application or adapter boundary, then pass this executor
+ * into feature workflows.
  *
  * Advanced but frequent pg controls stay grouped under options.transaction.
  * Keep rare or application-specific policy in this customer-owned file instead

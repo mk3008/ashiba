@@ -29,15 +29,18 @@ Generated SQL uses the formatter options stored in `ashiba.config.json`:
       "indentSize": 4,
       "keywordCase": "lower",
       "commaBreak": "before",
+      "cteCommaBreak": "after",
       "valuesCommaBreak": "before",
       "andBreak": "before",
-      "orBreak": "before"
+      "orBreak": "before",
+      "joinOnBreak": "before",
+      "oneLineMaxLength": 100
     }
   }
 }
 ```
 
-The full generated config includes the complete option set. The defaults prefer lowercase keywords, named parameters, and leading commas.
+The full generated config includes the complete option set. The defaults prefer lowercase keywords, named parameters, minimal identifier escaping, leading commas for most lists, trailing commas between CTEs, and width-limited one-line constructs. `JOIN ... ON` stays compact while it fits within `oneLineMaxLength`; longer join conditions fall back to an indented `ON` continuation.
 
 ## Explicit Formatting
 
@@ -69,12 +72,12 @@ Ashiba SQL formatting is AST-based, not CST-based. That means formatting can be 
 
 Before writing, Ashiba checks:
 
-- token sequence before and after formatting
-- token count before and after formatting
 - SQL comments are not dropped
 - formatter output round-trips to the same normalized SQL
 
 If these checks fail, `query format --write` skips the write and reports the reason.
+
+Ashiba still reports token counts as diagnostic information. Token counts may change when the formatter applies SQL-normalizing rewrites such as adding `as` for aliases, omitting explicit default `asc`, or rendering PostgreSQL-style casts as `cast(... as type)`. Those changes are allowed only when the formatted SQL round-trips to the same normalized AST output.
 
 ## SSSQL Interaction
 

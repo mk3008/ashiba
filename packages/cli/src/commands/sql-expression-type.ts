@@ -13,7 +13,15 @@ import {
   type ValueComponent,
 } from 'rawsql-ts';
 
-export type SqlExpressionContractType = 'unknown' | 'string' | 'number' | 'boolean' | 'null';
+export type SqlExpressionContractType =
+  | 'unknown'
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'null'
+  | 'string[]'
+  | 'number[]'
+  | 'boolean[]';
 
 export type DdlColumnTypeResolver = (reference: ColumnReference) => string | undefined;
 
@@ -102,9 +110,9 @@ function inferBinaryExpressionType(
   if (['+', '-', '*', '/'].includes(operator)) {
     const leftType = inferSqlExpressionContractType(expression.left, options);
     const rightType = inferSqlExpressionContractType(expression.right, options);
-    return [leftType, rightType].every((type) => type === 'number' || type === 'null')
-      ? 'number'
-      : 'unknown';
+    if ([leftType, rightType].every((type) => type === 'number' || type === 'null')) return 'number';
+    if ([leftType, rightType].every((type) => type === 'number' || type === 'string' || type === 'null')) return 'string';
+    return 'unknown';
   }
 
   return 'unknown';
@@ -120,14 +128,20 @@ function inferFunctionCallType(
     return inferBinaryExpressionType(expression.argument, options);
   }
 
-  const knownType = mapKnownSqlFunctionToContractType(functionName);
-  if (knownType !== 'unknown') return knownType;
-
   const args = expression.argument instanceof ValueList
     ? expression.argument.values
     : expression.argument
       ? [expression.argument]
       : [];
+
+  if (functionName === 'array_agg') {
+    const type = args[0] ? inferSqlExpressionContractType(args[0], options) : 'unknown';
+    return toArrayContractType(type);
+  }
+
+  if (functionName === 'max' || functionName === 'min') {
+    return args[0] ? inferSqlExpressionContractType(args[0], options) : 'unknown';
+  }
 
   if (functionName === 'nullif') {
     return args[0] ? inferSqlExpressionContractType(args[0], options) : 'unknown';
@@ -139,6 +153,9 @@ function inferFunctionCallType(
       if (type !== 'unknown' && type !== 'null') return type;
     }
   }
+
+  const knownType = mapKnownSqlFunctionToContractType(functionName);
+  if (knownType !== 'unknown') return knownType;
 
   return 'unknown';
 }
@@ -182,15 +199,30 @@ function isBooleanOperator(operator: string): boolean {
 }
 
 function mapKnownSqlFunctionToContractType(functionName: string): SqlExpressionContractType {
-  if (/^(?:count|sum|avg|min|max|length|char_length|character_length)$/.test(functionName)) return 'number';
+  if (/^(?:count|sum|avg|length|char_length|character_length)$/.test(functionName)) return 'number';
   if (/^(?:lower|upper|trim|ltrim|rtrim|concat|substring|substr)$/.test(functionName)) return 'string';
+  if (/^(?:now|current_timestamp|localtimestamp)$/.test(functionName)) return 'string';
   return 'unknown';
 }
 
 export function mapSqlTypeToContractType(typeName: string): SqlExpressionContractType {
   const normalized = typeName.toLowerCase().replace(/\([^)]*\)/g, '').trim();
+  if (/^(?:string|number|boolean)(?:\[\])?$/.test(normalized)) return normalized as SqlExpressionContractType;
+  if (/^(?:text|char|character|varchar|character varying|uuid)\s*\[\]$/.test(normalized)) return 'string[]';
+  if (/^(?:bigint|int8|bigserial|serial8|decimal|numeric)\s*\[\]$/.test(normalized)) return 'string[]';
+  if (/^(?:smallint|integer|int|int2|int4|serial|serial2|serial4|real|float|float4|float8|double precision)\s*\[\]$/.test(normalized)) return 'number[]';
+  if (/^(?:boolean|bool)\s*\[\]$/.test(normalized)) return 'boolean[]';
   if (/^(?:boolean|bool)$/.test(normalized)) return 'boolean';
-  if (/^(?:smallint|integer|int|int2|int4|bigint|int8|serial|serial2|serial4|bigserial|serial8|decimal|numeric|real|float|float4|float8|double precision)$/.test(normalized)) return 'number';
+  if (/^(?:bigint|int8|bigserial|serial8|decimal|numeric)$/.test(normalized)) return 'string';
+  if (/^(?:smallint|integer|int|int2|int4|serial|serial2|serial4|real|float|float4|float8|double precision)$/.test(normalized)) return 'number';
   if (/^(?:text|char|character|varchar|character varying|uuid)$/.test(normalized)) return 'string';
+  if (/^(?:date|time|time without time zone|time with time zone|timetz|timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(normalized)) return 'string';
+  return 'unknown';
+}
+
+function toArrayContractType(type: SqlExpressionContractType): SqlExpressionContractType {
+  if (type === 'string') return 'string[]';
+  if (type === 'number') return 'number[]';
+  if (type === 'boolean') return 'boolean[]';
   return 'unknown';
 }
