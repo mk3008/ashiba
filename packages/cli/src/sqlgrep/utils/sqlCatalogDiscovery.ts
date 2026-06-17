@@ -212,15 +212,17 @@ export function loadSqlCatalogSpecsFromFile(
 }
 
 function extractFeatureLocalQuerySpec(source: string): SqlCatalogSpecLike | null {
+  const sqlPathMatch = source.match(/\bsql(?:Path|File)?\s*:\s*['"`]([^'"`]+\.sql)['"`]/);
   const sqlResourceMatch = source.match(/loadSqlResource\s*\(\s*__dirname\s*,\s*['"`]([^'"`]+\.sql)['"`]\s*\)/);
-  if (!sqlResourceMatch) {
+  const sqlFile = sqlPathMatch?.[1] ?? sqlResourceMatch?.[1];
+  if (!sqlFile) {
     return null;
   }
 
   const label = source.match(/label\s*:\s*['"`]([^'"`]+)['"`]/)?.[1];
   return {
     id: label,
-    sqlFile: `./${sqlResourceMatch[1]}`
+    sqlFile: sqlFile.startsWith('./') ? sqlFile : `./${sqlFile}`
   };
 }
 
