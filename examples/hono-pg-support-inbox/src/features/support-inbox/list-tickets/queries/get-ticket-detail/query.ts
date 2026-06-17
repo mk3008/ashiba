@@ -1,12 +1,8 @@
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
-import { loadSqlResource } from '#features/_shared/loadSqlResource.js';
 import { queryModel } from './generated/query.meta.js';
+import { querySql } from './generated/query.sql.js';
 
-const currentDir = dirname(fileURLToPath(import.meta.url));
-export const getTicketDetailSql = loadSqlResource(currentDir, 'get-ticket-detail.sql');
+export const getTicketDetailSql = querySql;
 export const getTicketDetailQuery = {
   id: 'get-ticket-detail',
   path: 'get-ticket-detail.sql',

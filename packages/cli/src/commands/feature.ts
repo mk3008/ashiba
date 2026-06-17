@@ -41,7 +41,6 @@ import { collectTableReferences } from './table-resolution.js';
 import { normalizeSqlSource } from '../sql-source.js';
 
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
-const FEATURE_SHARED_LOAD_SQL_RESOURCE_IMPORT_PATH = '#features/_shared/loadSqlResource.js';
 const TEST_ZTD_CASE_TYPES_IMPORT_PATH = '#tests/support/ztd/case-types.js';
 const TEST_ZTD_HARNESS_IMPORT_PATH = '#tests/support/ztd/harness.js';
 
@@ -160,6 +159,7 @@ export interface FeatureQueryMetadataRefreshResult {
   sqlFile: string;
   queryFile: string;
   metadataFile: string;
+  sqlSourceFile: string;
   dryRun: boolean;
   changed: boolean;
 }
@@ -517,6 +517,12 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
       contents: renderQueryMetadata(queryModel),
       overwrite: true,
     },
+    {
+      relativePath: `${relativeQueryDir}/generated/query.sql.ts`,
+      kind: 'file',
+      contents: renderQuerySqlSource(importedSql),
+      overwrite: true,
+    },
     { relativePath: `${relativeQueryDir}/tests`, kind: 'directory' },
     { relativePath: `${relativeQueryDir}/tests/cases`, kind: 'directory' },
     { relativePath: `${relativeQueryDir}/tests/generated`, kind: 'directory' },
@@ -561,6 +567,7 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
   const sqlPath = path.join(queryDir, `${queryName}.sql`);
   const queryPath = path.join(queryDir, 'query.ts');
   const metadataPath = path.join(queryDir, 'generated', 'query.meta.ts');
+  const sqlSourcePath = path.join(queryDir, 'generated', 'query.sql.ts');
   if (!existsSync(sqlPath)) {
     throw invalidCliInputError(
       'ASHIBA_FEATURE_QUERY_SQL_NOT_FOUND',
@@ -581,11 +588,18 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
   const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const queryModel = buildFeatureQueryModel(sql, rootDir);
   const refreshedSource = renderQueryMetadata(queryModel);
+  const refreshedSqlSource = renderQuerySqlSource(sql);
   const existingSource = existsSync(metadataPath) ? readFileSync(metadataPath, 'utf8') : '';
-  const changed = refreshedSource !== existingSource;
+  const existingSqlSource = existsSync(sqlSourcePath) ? readFileSync(sqlSourcePath, 'utf8') : '';
+  const changed = refreshedSource !== existingSource || refreshedSqlSource !== existingSqlSource;
   if (!options.dryRun && changed) {
     mkdirSync(path.dirname(metadataPath), { recursive: true });
-    writeFileSync(metadataPath, refreshedSource, 'utf8');
+    if (refreshedSource !== existingSource) {
+      writeFileSync(metadataPath, refreshedSource, 'utf8');
+    }
+    if (refreshedSqlSource !== existingSqlSource) {
+      writeFileSync(sqlSourcePath, refreshedSqlSource, 'utf8');
+    }
   }
 
   return {
@@ -595,6 +609,7 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
     sqlFile: toProjectPath(rootDir, sqlPath),
     queryFile: toProjectPath(rootDir, queryPath),
     metadataFile: toProjectPath(rootDir, metadataPath),
+    sqlSourceFile: toProjectPath(rootDir, sqlSourcePath),
     dryRun: options.dryRun === true,
     changed,
   };
@@ -1637,6 +1652,12 @@ function buildQueryFiles(
       contents: renderQueryMetadata(buildFeatureQueryModel(sql, rootDir)),
       overwrite: true,
     },
+    {
+      relativePath: `${queryDir}/generated/query.sql.ts`,
+      kind: 'file',
+      contents: renderQuerySqlSource(sql),
+      overwrite: true,
+    },
     { relativePath: `${queryDir}/tests`, kind: 'directory' },
     { relativePath: `${queryDir}/tests/cases`, kind: 'directory' },
     { relativePath: `${queryDir}/tests/generated`, kind: 'directory' },
@@ -1944,20 +1965,6 @@ function buildSharedFiles(featureRoot = 'src/features'): GeneratedFile[] {
         '',
         'export interface FeatureQueryExecutor {',
         '  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;',
-        '}',
-        '',
-      ].join('\n'),
-    },
-    {
-      relativePath: `${featureRoot}/_shared/loadSqlResource.ts`,
-      kind: 'file',
-      overwrite: false,
-      contents: [
-        "import { readFileSync } from 'node:fs';",
-        "import path from 'node:path';",
-        '',
-        'export function loadSqlResource(currentDir: string, relativePath: string): string {',
-        "  return readFileSync(path.join(currentDir, relativePath), 'utf8');",
         '}',
         '',
       ].join('\n'),
@@ -2576,15 +2583,11 @@ function renderQueryBoundary(
         '  return row;',
       ];
   return [
-    "import { dirname } from 'node:path';",
-    "import { fileURLToPath } from 'node:url';",
-    '',
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
-    `import { loadSqlResource } from '${FEATURE_SHARED_LOAD_SQL_RESOURCE_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
+    "import { querySql } from './generated/query.sql.js';",
     '',
-    'const currentDir = dirname(fileURLToPath(import.meta.url));',
-    `export const ${camel}Sql = loadSqlResource(currentDir, '${queryName}.sql');`,
+    `export const ${camel}Sql = querySql;`,
     `export const ${camel}Query = {`,
     `  id: '${queryName}',`,
     `  path: '${queryName}.sql',`,
@@ -2629,15 +2632,11 @@ function renderImportedQueryBoundary(
   const camel = toCamel(queryName);
   const resultFields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   return [
-    "import { dirname } from 'node:path';",
-    "import { fileURLToPath } from 'node:url';",
-    '',
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
-    `import { loadSqlResource } from '${FEATURE_SHARED_LOAD_SQL_RESOURCE_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
+    "import { querySql } from './generated/query.sql.js';",
     '',
-    'const currentDir = dirname(fileURLToPath(import.meta.url));',
-    `export const ${camel}Sql = loadSqlResource(currentDir, '${queryName}.sql');`,
+    `export const ${camel}Sql = querySql;`,
     `export const ${camel}Query = {`,
     `  id: '${queryName}',`,
     `  path: '${queryName}.sql',`,
@@ -2675,6 +2674,15 @@ function renderQueryMetadata(queryModel: ReturnType<typeof buildFeatureQueryMode
     '// Generated by Ashiba. Do not edit by hand.',
     '// Refresh with `ashiba feature query refresh` after SQL-only edits.',
     `export const queryModel = ${JSON.stringify(queryModel, null, 2)} as const;`,
+    '',
+  ].join('\n');
+}
+
+function renderQuerySqlSource(sql: string): string {
+  return [
+    '// Generated by Ashiba. Do not edit by hand.',
+    '// Refresh with `ashiba feature query refresh` after SQL-only edits.',
+    `export const querySql = ${JSON.stringify(normalizeSqlSource(sql))} as const;`,
     '',
   ].join('\n');
 }
@@ -3791,6 +3799,7 @@ function formatFeatureQueryMetadataRefresh(result: FeatureQueryMetadataRefreshRe
     `- sql: ${result.sqlFile}`,
     `- query: ${result.queryFile}`,
     `- metadata: ${result.metadataFile}`,
+    `- runtime SQL: ${result.sqlSourceFile}`,
     `- changed: ${result.changed ? 'yes' : 'no'}`,
     `- dry-run: ${result.dryRun ? 'true' : 'false'}`,
     '',
