@@ -190,8 +190,8 @@ export const COMMANDS: readonly CommandSpec[] = [
   },
   {
     name: 'feature scaffold',
-    summary: 'Scaffold editable feature-local SQL boundaries.',
-    useCase: 'Create a reviewable feature entrypoint, query.ts, SQL, DTO contracts, and mapper tests from DDL.',
+    summary: 'Scaffold a SQL-first persistence verification boundary.',
+    useCase: 'Create query.sql, editable TypeScript support, generated metadata, mapper evidence, and DB-backed tests from DDL.',
     usage: 'ashiba feature scaffold [options] <name>',
     arguments: [{ name: 'name', required: true, description: 'Feature name to create under the configured feature root.' }],
     options: [
@@ -210,7 +210,7 @@ export const COMMANDS: readonly CommandSpec[] = [
   {
     name: 'feature import',
     summary: 'Import an existing SQL file into a feature query boundary.',
-    useCase: 'Start from SQL that already exists, then generate the feature shell, DTO contracts, mapper metadata, and ZTD mapper tests around that visible SQL.',
+    useCase: 'Start from SQL that already exists, then generate editable TypeScript support, mapper metadata, and ZTD mapper tests around that visible SQL.',
     usage: 'ashiba feature import [options] <feature> <query>',
     arguments: [
       { name: 'feature', required: true, description: 'Feature name to create under the configured feature root.' },
@@ -232,7 +232,7 @@ export const COMMANDS: readonly CommandSpec[] = [
   {
     name: 'feature query scaffold',
     summary: 'Add another editable query boundary under an existing feature.',
-    useCase: 'Grow a feature by adding a second SQL behavior without regenerating or hiding existing code.',
+    useCase: 'Grow a SQL-first feature by adding a second SQL behavior without regenerating or hiding existing code.',
     usage: 'ashiba feature query scaffold [options] <feature> <query>',
     arguments: [
       { name: 'feature', required: true, description: 'Existing feature name.' },
@@ -265,8 +265,8 @@ export const COMMANDS: readonly CommandSpec[] = [
   },
   {
     name: 'feature tests scaffold',
-    summary: 'Scaffold feature-local mapper and logic test files.',
-    useCase: 'Add generated mapping cases and human-owned logic case placeholders to an existing query boundary.',
+    summary: 'Scaffold feature-local DB-backed mapper and logic test files.',
+    useCase: 'Add generated mapping cases and human-owned SQL logic case placeholders to an existing SQL-first query boundary.',
     usage: 'ashiba feature tests scaffold [options] <feature>',
     arguments: [{ name: 'feature', required: true, description: 'Feature name.' }],
     options: [

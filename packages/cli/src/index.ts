@@ -47,7 +47,7 @@ export function buildProgram(): Command {
   const program = new Command();
   program
     .name('ashiba')
-    .description('Ashiba Runtime Zero SQL scaffolder for TypeScript applications.')
+    .description('Ashiba SQL-first scaffold and verification layer for TypeScript applications.')
     .version(VERSION)
     .option('--error-format <mode>', 'Error output mode: human or ai', 'human')
     .addHelpText('after', `
@@ -56,7 +56,7 @@ Core message:
   Ashiba handles the boring parts.
 
 Status:
-  This CLI includes scaffolding, DDL review, query analysis, contract checks,
+  This CLI includes SQL-first scaffolding, DDL review, query analysis, contract checks,
   model generation, RFBA inspection, and performance evidence.
 
 Common use cases:

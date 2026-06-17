@@ -28,7 +28,7 @@ describe('@ashiba-ts/cli smoke', () => {
     const help = captureCommandHelp(program);
 
     expect(program.name()).toBe('ashiba');
-    expect(program.description()).toContain('Ashiba Runtime Zero SQL scaffolder');
+    expect(program.description()).toContain('Ashiba SQL-first scaffold and verification layer');
     expect(help).toContain('ashiba query format');
   });
 
@@ -624,37 +624,36 @@ describe('@ashiba-ts/cli smoke', () => {
         action: 'get-by-id',
       });
 
-      const featureBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/boundary.ts'), 'utf8');
       const featureReadme = readFileSync(path.join(rootDir, 'src/features/users-insert/README.md'), 'utf8');
-      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/query.ts'), 'utf8');
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/feature.ts'), 'utf8');
       const getByIdQueryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/get-user/query.ts'), 'utf8');
-      const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.meta.ts'), 'utf8');
-      const queryZtdTest = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/insert-users.boundary.ztd.test.ts'), 'utf8');
-      const queryZtdTypes = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/boundary-ztd-types.ts'), 'utf8');
-      const queryTestPlan = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/TEST_PLAN.md'), 'utf8');
-      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/mapping.cases.ts'), 'utf8');
-      const querySql = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql'), 'utf8');
-      const updateSql = readFileSync(path.join(rootDir, 'src/features/users-update/queries/update-users/update-users.sql'), 'utf8');
-      const deleteSql = readFileSync(path.join(rootDir, 'src/features/users-delete/queries/delete-users/delete-users.sql'), 'utf8');
+      const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-insert/generated/query.meta.ts'), 'utf8');
+      const queryZtdTest = readFileSync(path.join(rootDir, 'src/features/users-insert/tests/query.db.test.ts'), 'utf8');
+      const queryZtdTypes = readFileSync(path.join(rootDir, 'src/features/users-insert/tests/boundary-ztd-types.ts'), 'utf8');
+      const queryTestPlan = readFileSync(path.join(rootDir, 'src/features/users-insert/tests/generated/TEST_PLAN.md'), 'utf8');
+      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/users-insert/tests/generated/mapping.cases.ts'), 'utf8');
+      const queryAnalysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/users-insert/tests/generated/analysis.json'), 'utf8')) as {
+        layout?: string;
+        sqlFile?: string;
+        queryFile?: string;
+      };
+      const querySql = readFileSync(path.join(rootDir, 'src/features/users-insert/query.sql'), 'utf8');
+      const updateSql = readFileSync(path.join(rootDir, 'src/features/users-update/query.sql'), 'utf8');
+      const deleteSql = readFileSync(path.join(rootDir, 'src/features/users-delete/query.sql'), 'utf8');
 
       expect(result.featureName).toBe('users-insert');
       expect(query.queryName).toBe('get-user');
-      expect(featureBoundary).toContain('parseRequest');
-      expect(featureReadme).toContain('Generated mapper cases prove DB-to-TypeScript result contracts.');
-      expect(featureReadme).toContain('passing the same FeatureQueryExecutor');
-      expect(featureReadme).toContain('TypeScript-to-DB inputs');
-      expect(featureBoundary).toContain('executeWorkflow');
-      expect(featureBoundary).toContain('buildResult');
-      expect(existsSync(path.join(rootDir, 'src/features/users-insert/input.ts'))).toBe(true);
-      expect(existsSync(path.join(rootDir, 'src/features/users-insert/workflow.ts'))).toBe(true);
-      expect(existsSync(path.join(rootDir, 'src/features/users-insert/output.ts'))).toBe(true);
-      expect(readFileSync(path.join(rootDir, 'src/features/users-insert/input.ts'), 'utf8')).toContain('export interface UsersInsertRequest');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-insert/workflow.ts'), 'utf8')).toContain('function toQueryParams');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-insert/output.ts'), 'utf8')).toContain('export interface UsersInsertResponse');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-insert/workflow.ts'), 'utf8')).toContain("from '#features/_shared/featureQueryExecutor.js'");
+      expect(featureReadme).toContain('SQL is the source of truth');
+      expect(featureReadme).toContain('query.sql');
+      expect(featureReadme).toContain('feature.ts');
+      expect(existsSync(path.join(rootDir, 'src/features/users-insert/boundary.ts'))).toBe(false);
+      expect(existsSync(path.join(rootDir, 'src/features/users-insert/input.ts'))).toBe(false);
+      expect(existsSync(path.join(rootDir, 'src/features/users-insert/workflow.ts'))).toBe(false);
+      expect(existsSync(path.join(rootDir, 'src/features/users-insert/output.ts'))).toBe(false);
       expect(queryBoundary).not.toContain("from 'zod'");
       expect(queryBoundary).toContain("from '#features/_shared/featureQueryExecutor.js'");
       expect(queryBoundary).toContain("from '#features/_shared/loadSqlResource.js'");
+      expect(queryBoundary).toContain("loadSqlResource(currentDir, 'query.sql')");
       expect(queryBoundary).toContain('sqlPath');
       expect(queryBoundary).toContain('metadata');
       expect(queryBoundary).toContain('queryModel');
@@ -666,9 +665,16 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryMeta).not.toContain('"mysql2"');
       expect(queryMeta).not.toContain('"mssql"');
       expect(queryZtdTest).toContain("from '#tests/support/ztd/harness.js'");
+      expect(queryZtdTest).toContain("from '../feature.js'");
       expect(queryZtdTest).not.toContain('db/ddl/public.sql');
       expect(queryZtdTest).not.toContain('existsSync');
       expect(queryZtdTypes).toContain("from '#tests/support/ztd/case-types.js'");
+      expect(queryZtdTypes).toContain("from '../feature.js'");
+      expect(queryAnalysis).toMatchObject({
+        layout: 'root-query',
+        sqlFile: 'query.sql',
+        queryFile: 'feature.ts',
+      });
       expect(queryTestPlan).toContain('Unit tests are mapping-contract tests');
       expect(queryTestPlan).toContain('RETURNING row compatibility only');
       expect(queryTestPlan).toContain('TypeScript-to-DB inputs');
@@ -704,7 +710,7 @@ describe('@ashiba-ts/cli smoke', () => {
 
       runFeatureScaffold({ rootDir, table: 'event_logs', action: 'insert' });
 
-      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/event-logs-insert/queries/insert-event-logs/tests/generated/mapping.cases.ts'), 'utf8');
+      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/event-logs-insert/tests/generated/mapping.cases.ts'), 'utf8');
 
       expect(queryMappingCases).toContain("cast('2026-01-01T00:00:00.000Z' as timestamptz)");
       expect(queryMappingCases).toContain('as jsonb');
@@ -734,10 +740,10 @@ describe('@ashiba-ts/cli smoke', () => {
 
       runFeatureScaffold({ rootDir, table: 'users', action: 'insert', returning: 'minimal' });
 
-      const sqlPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql');
-      const queryPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/query.ts');
-      const mappingPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/mapping.cases.ts');
-      const analysisPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/analysis.json');
+      const sqlPath = path.join(rootDir, 'src/features/users-insert/query.sql');
+      const queryPath = path.join(rootDir, 'src/features/users-insert/feature.ts');
+      const mappingPath = path.join(rootDir, 'src/features/users-insert/tests/generated/mapping.cases.ts');
+      const analysisPath = path.join(rootDir, 'src/features/users-insert/tests/generated/analysis.json');
 
       const sql = readFileSync(sqlPath, 'utf8');
       const queryBoundary = readFileSync(queryPath, 'utf8');
@@ -795,9 +801,9 @@ describe('@ashiba-ts/cli smoke', () => {
 
       runFeatureScaffold({ rootDir, table: 'tickets', action: 'update' });
 
-      const sql = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/update-tickets.sql'), 'utf8');
-      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/query.ts'), 'utf8');
-      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/tests/generated/analysis.json'), 'utf8')) as {
+      const sql = readFileSync(path.join(rootDir, 'src/features/tickets-update/query.sql'), 'utf8');
+      const queryBoundary = readFileSync(path.join(rootDir, 'src/features/tickets-update/feature.ts'), 'utf8');
+      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/tickets-update/tests/generated/analysis.json'), 'utf8')) as {
         optimisticLock?: { versionColumn?: string; expectedVersionParameter?: string };
       };
 
@@ -1392,7 +1398,7 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
-      const sqlPath = path.join(rootDir, 'src/features/users-list/queries/list/list.sql');
+      const sqlPath = path.join(rootDir, 'src/features/users-list/query.sql');
       writeFileSync(sqlPath, `${readFileSync(sqlPath, 'utf8')}\n-- SQL-only metadata refresh smoke\n`, 'utf8');
 
       const stale = runCheckContract({ rootDir, feature: 'users-list' });
@@ -1401,8 +1407,8 @@ describe('@ashiba-ts/cli smoke', () => {
 
       const refresh = runFeatureQueryMetadataRefresh({ rootDir, feature: 'users-list', query: 'list' });
       expect(refresh.changed).toBe(true);
-      expect(refresh.queryFile).toBe('src/features/users-list/queries/list/query.ts');
-      expect(refresh.metadataFile).toBe('src/features/users-list/queries/list/generated/query.meta.ts');
+      expect(refresh.queryFile).toBe('src/features/users-list/feature.ts');
+      expect(refresh.metadataFile).toBe('src/features/users-list/generated/query.meta.ts');
 
       const fresh = runCheckContract({ rootDir, feature: 'users-list' });
       expect(fresh.ok).toBe(true);
@@ -1427,7 +1433,7 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
-      const sqlPath = path.join(rootDir, 'src/usecases/users-list/queries/list/list.sql');
+      const sqlPath = path.join(rootDir, 'src/usecases/users-list/query.sql');
       writeFileSync(sqlPath, `${readFileSync(sqlPath, 'utf8')}\n-- SQL-only metadata refresh under configured featureRoot\n`, 'utf8');
 
       const stale = runCheckContract({ rootDir, featureRoot: 'src/usecases', feature: 'users-list' });
@@ -1436,8 +1442,8 @@ describe('@ashiba-ts/cli smoke', () => {
 
       const refresh = runFeatureQueryMetadataRefresh({ rootDir, feature: 'users-list', query: 'list' });
       expect(refresh.changed).toBe(true);
-      expect(refresh.queryFile).toBe('src/usecases/users-list/queries/list/query.ts');
-      expect(refresh.metadataFile).toBe('src/usecases/users-list/queries/list/generated/query.meta.ts');
+      expect(refresh.queryFile).toBe('src/usecases/users-list/feature.ts');
+      expect(refresh.metadataFile).toBe('src/usecases/users-list/generated/query.meta.ts');
 
       const fresh = runCheckContract({ rootDir, featureRoot: 'src/usecases', feature: 'users-list' });
       expect(fresh.ok).toBe(true);
@@ -1465,13 +1471,10 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
 
       expect(result.featureName).toBe('users-list');
-      const listSql = readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/list.sql'), 'utf8');
+      const listSql = readFileSync(path.join(rootDir, 'src/features/users-list/query.sql'), 'utf8');
       expect(listSql).toContain('from\n    public.users');
       expect(listSql).toContain('    user_id\n    , email');
-      const boundaryTest = readFileSync(path.join(rootDir, 'src/features/users-list/tests/users-list.boundary.test.ts'), 'utf8');
-      expect(boundaryTest).toMatch(/expect\(params\)\.toEqual\(\{\n {8}limit: 1\n {6}\}\);/);
-      expect(boundaryTest).toMatch(/return \[\{\n {8}user_id: 1,\n {8}email: "email-value"/);
-      expect(boundaryTest).toMatch(/await expect\(execute\(executor, \{\n {4}limit: 1\n {2}\}\)\)\.resolves\.toEqual\(\{/);
+      expect(existsSync(path.join(rootDir, 'src/features/users-list/tests/query.db.test.ts'))).toBe(true);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1495,7 +1498,7 @@ describe('@ashiba-ts/cli smoke', () => {
 
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
 
-      const listSql = readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/list.sql'), 'utf8');
+      const listSql = readFileSync(path.join(rootDir, 'src/features/users-list/query.sql'), 'utf8');
       expect(listSql).toContain('select\n  user_id\n  , email');
       expect(listSql).toContain('from\n  public.users');
     } finally {
@@ -1520,7 +1523,7 @@ describe('@ashiba-ts/cli smoke', () => {
 
       runFeatureScaffold({ rootDir, table: 'order', action: 'list' });
 
-      const listSql = readFileSync(path.join(rootDir, 'src/features/order-list/queries/list/list.sql'), 'utf8');
+      const listSql = readFileSync(path.join(rootDir, 'src/features/order-list/query.sql'), 'utf8');
       expect(listSql).toContain('    id\n    , "select"\n    , "current_user"\n    , "UserName"');
       expect(listSql).toContain('from\n    public."order"');
       expect(listSql).toContain('order by\n    id');
@@ -1571,7 +1574,7 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
-  test('scaffolds query-local ZTD test cases and generated analysis files', () => {
+  test('scaffolds SQL-first DB-backed test cases and generated analysis files', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-tests-'));
 
     try {
@@ -1582,11 +1585,12 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runFeatureTestsScaffold({ rootDir, feature: 'users-list' });
 
       expect(result.outputs.some((output) => output.path.endsWith('generated/TEST_PLAN.md'))).toBe(true);
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/TEST_PLAN.md'), 'utf8')).toContain('library-owned');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/list.boundary.ztd.test.ts'), 'utf8')).toContain('runQuerySpecZtdCases');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('db-type-mapping');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('boundary-value-mapping');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/cases/logic.case.ts'), 'utf8')).toContain('Human/AI-owned SQL logic cases');
+      expect(result.outputs.some((output) => output.path.endsWith('users-list.boundary.test.ts'))).toBe(false);
+      expect(readFileSync(path.join(rootDir, 'src/features/users-list/tests/generated/TEST_PLAN.md'), 'utf8')).toContain('library-owned');
+      expect(readFileSync(path.join(rootDir, 'src/features/users-list/tests/query.db.test.ts'), 'utf8')).toContain('runQuerySpecZtdCases');
+      expect(readFileSync(path.join(rootDir, 'src/features/users-list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('db-type-mapping');
+      expect(readFileSync(path.join(rootDir, 'src/features/users-list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('boundary-value-mapping');
+      expect(readFileSync(path.join(rootDir, 'src/features/users-list/tests/cases/logic.case.ts'), 'utf8')).toContain('Human/AI-owned SQL logic cases');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1606,8 +1610,8 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
-      const mappingPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts');
-      const logicPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/cases/logic.case.ts');
+      const mappingPath = path.join(rootDir, 'src/features/users-list/tests/generated/mapping.cases.ts');
+      const logicPath = path.join(rootDir, 'src/features/users-list/tests/cases/logic.case.ts');
       writeFileSync(mappingPath, 'drifted\n', 'utf8');
       writeFileSync(logicPath, 'human logic stays\n', 'utf8');
 
@@ -1639,8 +1643,8 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
-      const mappingPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts');
-      const logicPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/cases/logic.case.ts');
+      const mappingPath = path.join(rootDir, 'src/features/users-list/tests/generated/mapping.cases.ts');
+      const logicPath = path.join(rootDir, 'src/features/users-list/tests/cases/logic.case.ts');
       writeFileSync(logicPath, 'human logic stays\n', 'utf8');
       expect(readFileSync(mappingPath, 'utf8')).toContain('nullable-output-mapping');
 
@@ -1678,10 +1682,10 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'insert' });
-      const generatedDir = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated');
+      const generatedDir = path.join(rootDir, 'src/features/users-insert/tests/generated');
       const mappingPath = path.join(generatedDir, 'mapping.cases.ts');
       const analysisPath = path.join(generatedDir, 'analysis.json');
-      const logicPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/cases/logic.case.ts');
+      const logicPath = path.join(rootDir, 'src/features/users-insert/tests/cases/logic.case.ts');
       writeFileSync(logicPath, 'human logic stays\n', 'utf8');
       rmSync(mappingPath, { force: true });
       rmSync(analysisPath, { force: true });
@@ -1694,7 +1698,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(failed.checked[0]?.issues.some((issue) => issue.includes('Missing generated mapping test asset'))).toBe(true);
       expect(fixed.ok).toBe(true);
       expect(readFileSync(mappingPath, 'utf8')).toContain('mapperProbe');
-      expect(readFileSync(mappingPath, 'utf8')).toContain('maps insert-users DB result values into the DTO');
+      expect(readFileSync(mappingPath, 'utf8')).toContain('DB result values into the DTO');
       expect(JSON.parse(readFileSync(analysisPath, 'utf8')).action).toBe('insert');
       expect(readFileSync(logicPath, 'utf8')).toBe('human logic stays\n');
     } finally {
@@ -1713,7 +1717,7 @@ describe('@ashiba-ts/cli smoke', () => {
       const pass = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-insert' });
       expect(pass.ok).toBe(true);
 
-      const sqlPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql');
+      const sqlPath = path.join(rootDir, 'src/features/users-insert/query.sql');
       writeFileSync(sqlPath, readFileSync(sqlPath, 'utf8').replace(':email', ':new_email'), 'utf8');
       const fail = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-insert', query: 'insert-users' });
 
@@ -1738,7 +1742,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(pass.ok).toBe(true);
       expect(pass.checked[0]?.sqlParameters).toEqual(['limit']);
 
-      const queryPath = path.join(rootDir, 'src/features/users-list/queries/list/query.ts');
+      const queryPath = path.join(rootDir, 'src/features/users-list/feature.ts');
       writeFileSync(queryPath, readFileSync(queryPath, 'utf8').replace('email: string;', 'email_address: string;'), 'utf8');
       const fail = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-list', query: 'list' });
 
@@ -1780,7 +1784,7 @@ describe('@ashiba-ts/cli smoke', () => {
       writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
 
-      const queryPath = path.join(rootDir, 'src/features/users-list/queries/list/query.ts');
+      const queryPath = path.join(rootDir, 'src/features/users-list/feature.ts');
       writeFileSync(queryPath, readFileSync(queryPath, 'utf8').replace('email: string;', 'email_address: string;'), 'utf8');
 
       const result = runCheckContract({ rootDir, feature: 'users-list', query: 'list' });
@@ -2068,9 +2072,9 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(result.ok).toBe(false);
       expect(text).toContain('ASHIBA_PROJECT_FEATURE_TESTS_FAILED');
-      expect(text).toContain('visible SQL: src/features/users-list/queries/list/list.sql');
-      expect(text).toContain('editable mapper boundary: src/features/users-list/queries/list/query.ts');
-      expect(text).toContain('library-owned generated mapping tests: src/features/users-list/queries/list/tests/generated');
+      expect(text).toContain('visible SQL: src/features/users-list/query.sql');
+      expect(text).toContain('editable mapper boundary: src/features/users-list/feature.ts');
+      expect(text).toContain('library-owned generated mapping tests: src/features/users-list/tests/generated');
       expect(text).toContain('have a human or AI update the visible SQL and editable mapper boundary first');
       expect(text).toContain('ashiba feature tests check users-list --query list --fix');
     } finally {
@@ -2175,7 +2179,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.warnings).toEqual(expect.arrayContaining([
         expect.objectContaining({
           code: 'ASHIBA_PROJECT_INSERT_DEFAULT_COLUMN_OMITTED',
-          file: 'src/features/users-insert/queries/insert-users/insert-users.sql',
+          file: 'src/features/users-insert/query.sql',
           column: 'status',
         }),
       ]));
@@ -4717,16 +4721,21 @@ describe('@ashiba-ts/cli smoke', () => {
         issueCount: 0,
         nextActions: [],
       });
-      expect(rfba.features[0]?.boundary).toEqual({
-        path: 'src/features/users-list/boundary.ts',
+      expect(rfba.features[0]?.feature).toEqual({
+        path: 'src/features/users-list/feature.ts',
         exists: true,
       });
+      expect(rfba.features[0]?.rootSql).toEqual({
+        path: 'src/features/users-list/query.sql',
+        exists: true,
+      });
+      expect(rfba.features[0]?.boundary.exists).toBe(false);
       expect(rfba.features[0]?.standard).toEqual({
         status: 'standard',
         warnings: [],
       });
       expect(rfba.features[0]?.queries[0]?.sql).toEqual({
-        path: 'src/features/users-list/queries/list/list.sql',
+        path: 'src/features/users-list/query.sql',
         exists: true,
       });
     } finally {
@@ -4786,11 +4795,11 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(rfba.attainment.overall).toBe('partial');
       expect(rfba.attainment.issueCount).toBe(2);
       expect(rfba.attainment.nextActions).toEqual([
-        'Add feature boundary.ts files so reviewers can enter through feature behavior.',
+        'Add feature.ts + query.sql for SQL-first review boundaries, or legacy boundary.ts for custom-owned feature shells.',
         'Add query.ts files that expose editable mapper/query contracts.',
       ]);
       expect(rfba.features[0]?.issues).toEqual([
-        'Feature boundary file is missing: src/features/users-list/boundary.ts.',
+        'Feature boundary file is missing: src/features/users-list/feature.ts or src/features/users-list/boundary.ts.',
       ]);
       expect(rfba.features[0]?.queries[0]?.issues).toEqual([
         'Query file is missing: src/features/users-list/queries/list/query.ts.',
@@ -4921,8 +4930,8 @@ describe('@ashiba-ts/cli smoke', () => {
       writePostgresStarterPackageJson(rootDir);
       runInit({ dir: rootDir, db: 'postgres', driver: 'pg', withDemoDdl: true });
       runFeatureScaffold({ rootDir, featureName: 'users-list', table: 'users', action: 'list' });
-      const sqlPath = path.join(rootDir, 'src/features/users-list/queries/list/list.sql');
-      const metadataPath = path.join(rootDir, 'src/features/users-list/queries/list/generated/query.meta.ts');
+      const sqlPath = path.join(rootDir, 'src/features/users-list/query.sql');
+      const metadataPath = path.join(rootDir, 'src/features/users-list/generated/query.meta.ts');
       const staleMetadata = readFileSync(metadataPath, 'utf8');
       writeFileSync(sqlPath, 'select user_id, email, display_name, login_count, external_account_id from public.users;\n', 'utf8');
 

@@ -17,6 +17,8 @@ export interface RfbaInspectResult {
   };
   features: Array<{
     name: string;
+    feature: RfbaFileStatus;
+    rootSql: RfbaFileStatus;
     boundary: RfbaFileStatus;
     input: RfbaFileStatus;
     workflow: RfbaFileStatus;
@@ -44,7 +46,7 @@ export interface RfbaFileStatus {
 export function registerRfbaCommand(program: Command): void {
   program
     .command('rfba')
-    .description('Review-first boundary inspection for Ashiba feature layouts')
+    .description('Review-first SQL persistence boundary inspection for Ashiba feature layouts')
     .command('inspect')
     .description('Inspect feature and query boundaries without writing files')
     .option('--root-dir <path>', 'Project root directory', '.')
@@ -75,22 +77,29 @@ export function runRfbaInspect(options: RfbaInspectOptions = {}): RfbaInspectRes
 function inspectFeature(rootDir: string, featuresDir: string, featureName: string): RfbaInspectResult['features'][number] {
   const featureDir = path.join(featuresDir, featureName);
   const queriesDir = path.join(featureDir, 'queries');
+  const feature = fileStatus(rootDir, path.join(featureDir, 'feature.ts'));
+  const rootSql = fileStatus(rootDir, path.join(featureDir, 'query.sql'));
   const boundary = fileStatus(rootDir, path.join(featureDir, 'boundary.ts'));
   const input = fileStatus(rootDir, path.join(featureDir, 'input.ts'));
   const workflow = fileStatus(rootDir, path.join(featureDir, 'workflow.ts'));
   const output = fileStatus(rootDir, path.join(featureDir, 'output.ts'));
-  const standard = inspectFeatureStandard(rootDir, featureDir, { boundary, input, workflow, output });
-  const queries = existsSync(queriesDir)
+  const sqlFirst = feature.exists && rootSql.exists;
+  const standard = inspectFeatureStandard(rootDir, featureDir, { feature, rootSql, boundary, input, workflow, output }, sqlFirst);
+  const rootQuery = sqlFirst ? [inspectRootQuery(rootDir, featureDir, featureName)] : [];
+  const nestedQueries = existsSync(queriesDir)
     ? readdirSync(queriesDir)
       .filter((entry) => statSync(path.join(queriesDir, entry)).isDirectory())
       .map((queryName) => inspectQuery(rootDir, queriesDir, queryName))
     : [];
+  const queries = [...rootQuery, ...nestedQueries];
   const issues = [
-    ...(!boundary.exists ? [`Feature boundary file is missing: ${boundary.path}.`] : []),
+    ...(!feature.exists && !boundary.exists ? [`Feature boundary file is missing: ${feature.path} or ${boundary.path}.`] : []),
     ...(queries.length === 0 ? [`Feature has no query review boundaries: ${featureName}.`] : []),
   ];
   return {
     name: featureName,
+    feature,
+    rootSql,
     boundary,
     input,
     workflow,
@@ -99,6 +108,36 @@ function inspectFeature(rootDir: string, featuresDir: string, featureName: strin
     queries,
     issues,
   };
+}
+
+function inspectRootQuery(rootDir: string, featureDir: string, featureName: string): RfbaInspectResult['features'][number]['queries'][number] {
+  const analysis = readRootQueryAnalysis(featureDir);
+  const queryName = analysis?.query ?? featureName;
+  const query = fileStatus(rootDir, path.join(featureDir, 'feature.ts'));
+  const sql = fileStatus(rootDir, path.join(featureDir, 'query.sql'));
+  const testsDir = path.join(featureDir, 'tests');
+  const tests = existsSync(testsDir)
+    ? readdirSync(testsDir)
+      .filter((entry) => statSync(path.join(testsDir, entry)).isFile())
+      .filter((entry) => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(entry))
+      .map((entry) => fileStatus(rootDir, path.join(testsDir, entry)))
+    : [];
+  const issues = [
+    ...(!query.exists ? [`Query file is missing: ${query.path}.`] : []),
+    ...(!sql.exists ? [`Visible SQL file is missing: ${sql.path}.`] : []),
+  ];
+  return { name: queryName, query, sql, tests, issues };
+}
+
+function readRootQueryAnalysis(featureDir: string): { query?: string } | undefined {
+  const analysisPath = path.join(featureDir, 'tests', 'generated', 'analysis.json');
+  if (!existsSync(analysisPath)) return undefined;
+  try {
+    const parsed = JSON.parse(readFileSync(analysisPath, 'utf8')) as { query?: unknown };
+    return typeof parsed.query === 'string' ? { query: parsed.query } : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function inspectQuery(rootDir: string, queriesDir: string, queryName: string): RfbaInspectResult['features'][number]['queries'][number] {
@@ -129,10 +168,10 @@ function buildRfbaAttainment(features: RfbaInspectResult['features']): RfbaInspe
   }
   for (const feature of features) {
     if (feature.issues.some((issue) => issue.includes('Feature boundary file'))) {
-      nextActions.add('Add feature boundary.ts files so reviewers can enter through feature behavior.');
+      nextActions.add('Add feature.ts + query.sql for SQL-first review boundaries, or legacy boundary.ts for custom-owned feature shells.');
     }
     if (feature.issues.some((issue) => issue.includes('no query'))) {
-      nextActions.add('Add query-local review boundaries under each feature queries directory.');
+      nextActions.add('Add query.sql + DB-backed tests at the feature root, or query-local review boundaries under queries/.');
     }
     for (const query of feature.queries) {
       if (query.issues.some((issue) => issue.includes('Query file'))) {
@@ -160,9 +199,16 @@ function fileStatus(rootDir: string, filePath: string): RfbaFileStatus {
 function inspectFeatureStandard(
   rootDir: string,
   featureDir: string,
-  files: Pick<RfbaInspectResult['features'][number], 'boundary' | 'input' | 'workflow' | 'output'>,
+  files: Pick<RfbaInspectResult['features'][number], 'feature' | 'rootSql' | 'boundary' | 'input' | 'workflow' | 'output'>,
+  sqlFirst: boolean,
 ): RfbaInspectResult['features'][number]['standard'] {
   const warnings: string[] = [];
+  if (sqlFirst) {
+    return {
+      status: 'standard',
+      warnings,
+    };
+  }
   const boundarySource = readExistingFile(path.join(featureDir, 'boundary.ts'));
   const inputSource = readExistingFile(path.join(featureDir, 'input.ts'));
   const workflowSource = readExistingFile(path.join(featureDir, 'workflow.ts'));
@@ -240,7 +286,13 @@ function formatRfbaInspect(result: RfbaInspectResult): string {
     }
   }
   for (const feature of result.features) {
-    lines.push('', `- feature: ${feature.name}`, `  boundary: ${formatFileStatus(feature.boundary)}`);
+    lines.push(
+      '',
+      `- feature: ${feature.name}`,
+      `  feature: ${formatFileStatus(feature.feature)}`,
+      `  root sql: ${formatFileStatus(feature.rootSql)}`,
+      `  boundary: ${formatFileStatus(feature.boundary)}`,
+    );
     lines.push(
       `  input: ${formatFileStatus(feature.input)}`,
       `  workflow: ${formatFileStatus(feature.workflow)}`,

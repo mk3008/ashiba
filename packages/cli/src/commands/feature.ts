@@ -199,6 +199,10 @@ export interface FeatureTestsCheckResult {
   checked: Array<{
     feature: string;
     query: string;
+    queryDir: string;
+    sqlFile: string;
+    queryFile: string;
+    generatedTestDir: string;
     ok: boolean;
     issues: string[];
     fixed: string[];
@@ -250,6 +254,9 @@ interface GeneratedFile {
 interface QueryTestMetadata {
   feature: string;
   query: string;
+  layout?: 'root-query' | 'nested-query';
+  sqlFile?: string;
+  queryFile?: string;
   action?: FeatureAction;
   table?: string;
   primaryKeyColumn?: string;
@@ -271,6 +278,17 @@ type ScaffoldQueryTestMetadata = QueryTestMetadata & {
 interface ResolvedQueryTestMetadata {
   metadata: QueryTestMetadata;
   inferred: boolean;
+}
+
+interface DiscoveredFeatureQueryBoundary {
+  queryName: string;
+  queryDir: string;
+  sqlFile: string;
+  queryFile: string;
+  relativeQueryDir: string;
+  testFile: string;
+  logicCaseFile: string;
+  layout: 'root-query' | 'nested-query';
 }
 
 /**
@@ -400,7 +418,7 @@ function withConfiguredFeatureRoot<T extends { rootDir?: string; featureRoot?: s
 }
 
 /**
- * Scaffolds an editable RFBA-style feature boundary from DDL and query metadata.
+ * Scaffolds an editable SQL-first persistence verification boundary from DDL and query metadata.
  */
 export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaffoldResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
@@ -439,10 +457,12 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
   const boundaryDir = resolveBoundaryDir(rootDir, { ...options, featureRoot: projectConfig.featureRoot });
   const relativeBoundary = toProjectPath(rootDir, boundaryDir);
 
-  if (!existsSync(path.join(boundaryDir, 'boundary.ts'))) {
+  const hasLegacyBoundary = existsSync(path.join(boundaryDir, 'boundary.ts'));
+  const hasSqlFirstBoundary = existsSync(path.join(boundaryDir, 'feature.ts')) && existsSync(path.join(boundaryDir, 'query.sql'));
+  if (!hasLegacyBoundary && !hasSqlFirstBoundary) {
     throw invalidCliInputError(
       'ASHIBA_FEATURE_BOUNDARY_FILE_MISSING',
-      `Boundary directory must contain boundary.ts: ${relativeBoundary}.`,
+      `Feature directory must contain query.sql + feature.ts or a legacy boundary.ts: ${relativeBoundary}.`,
       'Run feature scaffold first, then pass the feature name to feature query scaffold.',
       { boundaryDir: relativeBoundary },
     );
@@ -557,9 +577,10 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
   const boundaryDir = resolveExplicitFeatureBoundaryDir(rootDir, options.feature, options.boundaryDir, 'feature query refresh', featureRoot);
   const featureName = path.basename(boundaryDir);
   const queryName = normalizeQueryName(requireValue(options.query, '--query'));
-  const queryDir = path.join(boundaryDir, 'queries', queryName);
-  const sqlPath = path.join(queryDir, `${queryName}.sql`);
-  const queryPath = path.join(queryDir, 'query.ts');
+  const queryBoundary = resolveFeatureQueryBoundary(rootDir, featureName, boundaryDir, queryName);
+  const queryDir = queryBoundary?.queryDir ?? path.join(boundaryDir, 'queries', queryName);
+  const sqlPath = queryBoundary?.sqlFile ?? path.join(queryDir, `${queryName}.sql`);
+  const queryPath = queryBoundary?.queryFile ?? path.join(queryDir, 'query.ts');
   const metadataPath = path.join(queryDir, 'generated', 'query.meta.ts');
   if (!existsSync(sqlPath)) {
     throw invalidCliInputError(
@@ -613,82 +634,80 @@ export function runFeatureTestsScaffold(options: FeatureTestsScaffoldOptions): {
   const featureName = path.basename(featureDir);
   const relativeFeatureDir = toProjectPath(rootDir, featureDir);
   const queriesDir = path.join(featureDir, 'queries');
-  if (!existsSync(queriesDir) || !statSync(queriesDir).isDirectory()) {
+  const rootQueryBoundaries = discoverFeatureQueryBoundaries(rootDir, featureName, featureDir, options.query);
+  if (rootQueryBoundaries.length === 0 && (!existsSync(queriesDir) || !statSync(queriesDir).isDirectory())) {
     throw invalidCliInputError(
       'ASHIBA_FEATURE_QUERIES_DIR_MISSING',
-      `No queries directory was discovered under ${relativeFeatureDir}. Run feature scaffold first.`,
+      `No query.sql or queries directory was discovered under ${relativeFeatureDir}. Run feature scaffold first.`,
       'Run feature scaffold or feature query scaffold before creating query tests.',
       { featureName, boundaryDir: relativeFeatureDir },
     );
   }
 
-  const queryNames = options.query ? [normalizeQueryName(options.query)] : readdirSync(queriesDir).filter((entry) => {
-    const fullPath = path.join(queriesDir, entry);
-    return statSync(fullPath).isDirectory();
-  });
+  const queryBoundaries = rootQueryBoundaries;
+  if (queryBoundaries.length === 0) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_QUERY_DIR_MISSING',
+      `No matching SQL-first or nested query boundary was discovered under ${relativeFeatureDir}.`,
+      'Check --query or run feature scaffold/feature query scaffold before creating query tests.',
+      { featureName, boundaryDir: relativeFeatureDir, query: options.query },
+    );
+  }
 
-  const files: GeneratedFile[] = [
-    {
-      relativePath: `${relativeFeatureDir}/tests/${featureName}.boundary.test.ts`,
-      kind: 'file',
-      contents: renderFeatureBoundaryTest(featureName),
-      overwrite: false,
-    },
-  ];
+  const files: GeneratedFile[] = existsSync(path.join(featureDir, 'boundary.ts'))
+    ? [{
+        relativePath: `${relativeFeatureDir}/tests/${featureName}.boundary.test.ts`,
+        kind: 'file',
+        contents: renderFeatureBoundaryTest(featureName),
+        overwrite: false,
+      }]
+    : [];
 
-  for (const queryName of queryNames) {
-    const queryDir = path.join(queriesDir, queryName);
-    if (!existsSync(queryDir)) {
-      throw invalidCliInputError(
-        'ASHIBA_FEATURE_QUERY_DIR_MISSING',
-        `Query directory not found for tests scaffold: ${queryName}.`,
-        'Check --query or run feature query scaffold for this query before creating tests.',
-        { featureName, queryName },
-      );
-    }
+  for (const queryBoundary of queryBoundaries) {
+    const { queryName, queryDir } = queryBoundary;
     const resolvedMetadata = resolveQueryTestMetadata(rootDir, featureName, queryName, queryDir);
     if (resolvedMetadata) {
       const generatedFiles = buildExpectedGeneratedMappingTestFiles(rootDir, relativeFeatureDir, queryName, queryDir, resolvedMetadata.metadata);
       files.push(
-        { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests`, kind: 'directory' },
-        { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases`, kind: 'directory' },
-        { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/generated`, kind: 'directory' },
+        { relativePath: `${queryBoundary.relativeQueryDir}/tests`, kind: 'directory' },
+        { relativePath: `${queryBoundary.relativeQueryDir}/tests/cases`, kind: 'directory' },
+        { relativePath: `${queryBoundary.relativeQueryDir}/tests/generated`, kind: 'directory' },
         ...generatedFiles,
         {
-          relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases/logic.case.ts`,
+          relativePath: queryBoundary.logicCaseFile,
           kind: 'file',
           contents: renderEmptyLogicZtdCases(queryName),
           overwrite: false,
         },
-        { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
+        { relativePath: `${queryBoundary.relativeQueryDir}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
       );
       continue;
     }
     files.push(
-      { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests`, kind: 'directory' },
-      { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases`, kind: 'directory' },
-      { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/generated`, kind: 'directory' },
+      { relativePath: `${queryBoundary.relativeQueryDir}/tests`, kind: 'directory' },
+      { relativePath: `${queryBoundary.relativeQueryDir}/tests/cases`, kind: 'directory' },
+      { relativePath: `${queryBoundary.relativeQueryDir}/tests/generated`, kind: 'directory' },
       {
-        relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/${queryName}.boundary.ztd.test.ts`,
+        relativePath: queryBoundary.testFile,
         kind: 'file',
-        contents: renderQueryZtdTest(featureName, queryName),
+        contents: renderQueryZtdTest(featureName, queryName, queryBoundary.layout === 'root-query' ? { queryModuleImport: '../feature.js' } : undefined),
         overwrite: false,
       },
       {
-        relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases/logic.case.ts`,
+        relativePath: queryBoundary.logicCaseFile,
         kind: 'file',
         contents: renderEmptyLogicZtdCases(queryName),
         overwrite: false,
       },
-      { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
+      { relativePath: `${queryBoundary.relativeQueryDir}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
       {
-        relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/generated/TEST_PLAN.md`,
+        relativePath: `${queryBoundary.relativeQueryDir}/tests/generated/TEST_PLAN.md`,
         kind: 'file',
         contents: renderGeneratedTestPlan(featureName, queryName),
         overwrite: true,
       },
       {
-        relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/generated/analysis.json`,
+        relativePath: `${queryBoundary.relativeQueryDir}/tests/generated/analysis.json`,
         kind: 'file',
         contents: `${JSON.stringify({ feature: featureName, query: queryName, status: 'generated-empty-cases' }, null, 2)}\n`,
         overwrite: true,
@@ -709,11 +728,8 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
   const checked: FeatureTestsCheckResult['checked'] = [];
 
   for (const { name: featureName, dir: featureDir } of featureBoundaries) {
-    const queriesDir = path.join(featureDir, 'queries');
-    if (!existsSync(queriesDir) || !statSync(queriesDir).isDirectory()) continue;
-    for (const queryName of discoverQueryNames(queriesDir, options.query)) {
-      const queryDir = path.join(queriesDir, queryName);
-      const relativeQueryDir = toProjectPath(rootDir, queryDir);
+    for (const queryBoundary of discoverFeatureQueryBoundaries(rootDir, featureName, featureDir, options.query)) {
+      const { queryName, queryDir, relativeQueryDir } = queryBoundary;
       const resolvedMetadata = resolveQueryTestMetadata(rootDir, featureName, queryName, queryDir);
       const issues: string[] = [];
       const fixed: string[] = [];
@@ -721,6 +737,10 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
         checked.push({
           feature: featureName,
           query: queryName,
+          queryDir: relativeQueryDir,
+          sqlFile: toProjectPath(rootDir, queryBoundary.sqlFile),
+          queryFile: toProjectPath(rootDir, queryBoundary.queryFile),
+          generatedTestDir: `${relativeQueryDir}/tests/generated`,
           ok: false,
           issues: [`Generated test analysis is missing or unreadable and could not be inferred from SQL: ${relativeQueryDir}/tests/generated/analysis.json.`],
           fixed,
@@ -750,7 +770,7 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
         }
       }
 
-      const logicCasePath = `${toProjectPath(rootDir, featureDir)}/queries/${queryName}/tests/cases/logic.case.ts`;
+      const logicCasePath = queryBoundary.logicCaseFile;
       if (!existsSync(path.join(rootDir, logicCasePath))) {
         issues.push(`Missing human-owned logic case stub: ${logicCasePath}.`);
         if (options.fix) fixed.push(logicCasePath);
@@ -771,6 +791,10 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
       checked.push({
         feature: featureName,
         query: queryName,
+        queryDir: relativeQueryDir,
+        sqlFile: toProjectPath(rootDir, queryBoundary.sqlFile),
+        queryFile: toProjectPath(rootDir, queryBoundary.queryFile),
+        generatedTestDir: `${relativeQueryDir}/tests/generated`,
         ok: issues.length === 0 || (options.fix === true && fixed.length > 0),
         issues,
         fixed,
@@ -806,15 +830,8 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
   const checked: FeatureGeneratedMapperCheckResult['checked'] = [];
 
   for (const { name: featureName, dir: featureDir } of featureBoundaries) {
-    const queriesDir = path.join(featureDir, 'queries');
-    if (!existsSync(queriesDir)) {
-      continue;
-    }
-    const queryNames = discoverQueryNames(queriesDir, options.query);
-    for (const queryName of queryNames) {
-      const queryDir = path.join(queriesDir, queryName);
-      const sqlFile = path.join(queryDir, `${queryName}.sql`);
-      const queryFile = path.join(queryDir, 'query.ts');
+    for (const queryBoundary of discoverFeatureQueryBoundaries(rootDir, featureName, featureDir, options.query)) {
+      const { queryName, queryDir, sqlFile, queryFile } = queryBoundary;
       if (!existsSync(sqlFile) || !existsSync(queryFile)) {
         continue;
       }
@@ -968,39 +985,13 @@ function buildFeatureFiles(
   return [
     ...buildSharedFiles(featureRoot),
     { relativePath: boundary, kind: 'directory' },
-    { relativePath: `${boundary}/queries/${queryName}`, kind: 'directory' },
     { relativePath: `${boundary}/tests`, kind: 'directory' },
     {
       relativePath: `${boundary}/README.md`,
       kind: 'file',
       contents: renderFeatureReadme(featureName, queryName, action, table, primaryKeyColumn),
     },
-    {
-      relativePath: `${boundary}/boundary.ts`,
-      kind: 'file',
-      contents: renderFeatureBoundary(featureName),
-    },
-    {
-      relativePath: `${boundary}/input.ts`,
-      kind: 'file',
-      contents: renderFeatureInput(featureName, actionPlan),
-    },
-    {
-      relativePath: `${boundary}/workflow.ts`,
-      kind: 'file',
-      contents: renderFeatureWorkflow(featureName, queryName, actionPlan),
-    },
-    {
-      relativePath: `${boundary}/output.ts`,
-      kind: 'file',
-      contents: renderFeatureOutput(featureName, queryName, actionPlan),
-    },
-    {
-      relativePath: `${boundary}/tests/${featureName}.boundary.test.ts`,
-      kind: 'file',
-      contents: renderFeatureBoundaryTest(featureName, queryName, actionPlan),
-    },
-    ...buildQueryFiles(rootDir, boundary, queryName, action, table, primaryKeyColumn, returningMode, optimisticLockConfig),
+    ...buildRootQueryFiles(rootDir, boundary, featureName, queryName, action, table, primaryKeyColumn, returningMode, optimisticLockConfig, actionPlan),
   ];
 }
 
@@ -1046,6 +1037,66 @@ function discoverQueryNames(queriesDir: string, queryName?: string): string[] {
     .sort();
 }
 
+function discoverFeatureQueryBoundaries(
+  rootDir: string,
+  featureName: string,
+  featureDir: string,
+  queryName?: string,
+): DiscoveredFeatureQueryBoundary[] {
+  const requested = queryName ? normalizeQueryName(queryName) : undefined;
+  const found: DiscoveredFeatureQueryBoundary[] = [];
+  const rootMetadata = readQueryTestMetadata(featureDir);
+  const rootQueryName = rootMetadata?.query ?? normalizeQueryName(featureName);
+  const rootSqlFile = path.join(featureDir, 'query.sql');
+  const rootQueryFile = path.join(featureDir, 'feature.ts');
+  if (
+    existsSync(rootSqlFile) &&
+    existsSync(rootQueryFile) &&
+    (!requested || requested === rootQueryName || requested === 'query')
+  ) {
+    found.push({
+      queryName: rootQueryName,
+      queryDir: featureDir,
+      sqlFile: rootSqlFile,
+      queryFile: rootQueryFile,
+      relativeQueryDir: toProjectPath(rootDir, featureDir),
+      testFile: `${toProjectPath(rootDir, featureDir)}/tests/query.db.test.ts`,
+      logicCaseFile: `${toProjectPath(rootDir, featureDir)}/tests/cases/logic.case.ts`,
+      layout: 'root-query',
+    });
+  }
+
+  const queriesDir = path.join(featureDir, 'queries');
+  if (existsSync(queriesDir) && statSync(queriesDir).isDirectory()) {
+    for (const nestedQueryName of discoverQueryNames(queriesDir, requested)) {
+      const queryDir = path.join(queriesDir, nestedQueryName);
+      const sqlFile = path.join(queryDir, `${nestedQueryName}.sql`);
+      const queryFile = path.join(queryDir, 'query.ts');
+      if (!existsSync(queryDir) || !statSync(queryDir).isDirectory()) continue;
+      found.push({
+        queryName: nestedQueryName,
+        queryDir,
+        sqlFile,
+        queryFile,
+        relativeQueryDir: toProjectPath(rootDir, queryDir),
+        testFile: `${toProjectPath(rootDir, queryDir)}/tests/${nestedQueryName}.boundary.ztd.test.ts`,
+        logicCaseFile: `${toProjectPath(rootDir, queryDir)}/tests/cases/logic.case.ts`,
+        layout: 'nested-query',
+      });
+    }
+  }
+  return found;
+}
+
+function resolveFeatureQueryBoundary(
+  rootDir: string,
+  featureName: string,
+  featureDir: string,
+  queryName: string,
+): DiscoveredFeatureQueryBoundary | undefined {
+  return discoverFeatureQueryBoundaries(rootDir, featureName, featureDir, queryName)[0];
+}
+
 function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined {
   const analysisPath = path.join(queryDir, 'tests', 'generated', 'analysis.json');
   if (!existsSync(analysisPath)) return undefined;
@@ -1058,6 +1109,9 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
       return {
         feature: parsed.feature,
         query: parsed.query,
+        ...(parsed.layout === 'root-query' || parsed.layout === 'nested-query' ? { layout: parsed.layout } : {}),
+        ...(typeof parsed.sqlFile === 'string' ? { sqlFile: parsed.sqlFile } : {}),
+        ...(typeof parsed.queryFile === 'string' ? { queryFile: parsed.queryFile } : {}),
         ...(typeof parsed.action === 'string' && FEATURE_ACTIONS.includes(parsed.action as FeatureAction)
           ? { action: parsed.action as FeatureAction }
           : {}),
@@ -1084,6 +1138,9 @@ function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined 
       return {
         feature: parsed.feature,
         query: parsed.query,
+        ...(parsed.layout === 'root-query' || parsed.layout === 'nested-query' ? { layout: parsed.layout } : {}),
+        ...(typeof parsed.sqlFile === 'string' ? { sqlFile: parsed.sqlFile } : {}),
+        ...(typeof parsed.queryFile === 'string' ? { queryFile: parsed.queryFile } : {}),
         action: parsed.action as FeatureAction,
         table: parsed.table,
         primaryKeyColumn: parsed.primaryKeyColumn,
@@ -1141,8 +1198,11 @@ function inferQueryTestMetadataFromSql(
   queryName: string,
   queryDir: string,
 ): QueryTestMetadata | undefined {
-  const sqlPath = path.join(queryDir, `${queryName}.sql`);
+  const nestedSqlPath = path.join(queryDir, `${queryName}.sql`);
+  const rootSqlPath = path.join(queryDir, 'query.sql');
+  const sqlPath = existsSync(nestedSqlPath) ? nestedSqlPath : rootSqlPath;
   if (!existsSync(sqlPath)) return undefined;
+  const isRootQuery = path.basename(sqlPath) === 'query.sql';
   const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const statement = parseFeatureQuerySql(sql);
   const action = inferFeatureAction(statement, queryName);
@@ -1152,6 +1212,7 @@ function inferQueryTestMetadataFromSql(
     return {
       feature: featureName,
       query: queryName,
+      ...(isRootQuery ? { layout: 'root-query' as const, sqlFile: 'query.sql', queryFile: 'feature.ts' } : {}),
       action,
       ...(imported.anchorSource ? { anchorSource: imported.anchorSource } : {}),
       ...(imported.anchorTable ? { anchorTable: imported.anchorTable.canonicalName } : {}),
@@ -1166,6 +1227,7 @@ function inferQueryTestMetadataFromSql(
     return {
       feature: featureName,
       query: queryName,
+      ...(isRootQuery ? { layout: 'root-query' as const, sqlFile: 'query.sql', queryFile: 'feature.ts' } : {}),
       action,
       ...(imported.anchorSource ? { anchorSource: imported.anchorSource } : {}),
       ...(imported.anchorTable ? { anchorTable: imported.anchorTable.canonicalName } : {}),
@@ -1179,6 +1241,7 @@ function inferQueryTestMetadataFromSql(
   return {
     feature: featureName,
     query: queryName,
+    ...(isRootQuery ? { layout: 'root-query' as const, sqlFile: 'query.sql', queryFile: 'feature.ts' } : {}),
     action,
     table: table.canonicalName,
     anchorSource: imported.anchorSource ?? table.name,
@@ -1368,6 +1431,50 @@ function buildGeneratedMappingTestFiles(
       relativePath: `${queryDir}/tests/generated/analysis.json`,
       kind: 'file',
       contents: renderGeneratedTestAnalysis(metadata.feature, metadata.query, metadata.action, table, metadata.primaryKeyColumn, actionPlan),
+      overwrite: true,
+    },
+  ];
+}
+
+function buildRootGeneratedMappingTestFiles(
+  relativeFeatureDir: string,
+  metadata: ScaffoldQueryTestMetadata,
+  table: DdlTable,
+  actionPlan: ReturnType<typeof buildActionPlan>,
+): GeneratedFile[] {
+  return [
+    {
+      relativePath: `${relativeFeatureDir}/tests/query.db.test.ts`,
+      kind: 'file',
+      contents: renderQueryZtdTest(metadata.feature, metadata.query, { queryModuleImport: '../feature.js' }),
+      overwrite: false,
+    },
+    {
+      relativePath: `${relativeFeatureDir}/tests/boundary-ztd-types.ts`,
+      kind: 'file',
+      contents: renderQueryZtdTypes(metadata.query, table, actionPlan, { queryModuleImport: '../feature.js' }),
+      overwrite: true,
+    },
+    {
+      relativePath: `${relativeFeatureDir}/tests/generated/TEST_PLAN.md`,
+      kind: 'file',
+      contents: renderGeneratedTestPlan(metadata.feature, metadata.query),
+      overwrite: true,
+    },
+    {
+      relativePath: `${relativeFeatureDir}/tests/generated/mapping.cases.ts`,
+      kind: 'file',
+      contents: renderGeneratedMappingZtdCases(metadata.query, actionPlan, table, metadata.primaryKeyColumn),
+      overwrite: true,
+    },
+    {
+      relativePath: `${relativeFeatureDir}/tests/generated/analysis.json`,
+      kind: 'file',
+      contents: renderGeneratedTestAnalysis(metadata.feature, metadata.query, metadata.action, table, metadata.primaryKeyColumn, actionPlan, {
+        layout: 'root-query',
+        sqlFile: 'query.sql',
+        queryFile: 'feature.ts',
+      }),
       overwrite: true,
     },
   ];
@@ -1590,6 +1697,90 @@ function formatTypeMap(types: Record<string, string>): string {
   return Object.entries(types).map(([name, type]) => `${name}: ${type}`).join(', ');
 }
 
+function buildRootQueryFiles(
+  rootDir: string,
+  boundary: string,
+  featureName: string,
+  queryName: string,
+  action: FeatureAction,
+  table: DdlTable,
+  primaryKeyColumn: string,
+  returningMode: InsertReturningMode,
+  optimisticLockConfig: OptimisticLockScaffoldConfig | undefined,
+  actionPlan: ReturnType<typeof buildActionPlan>,
+): GeneratedFile[] {
+  const sql = renderActionSql(actionPlan, table, primaryKeyColumn, rootDir);
+  return [
+    {
+      relativePath: `${boundary}/query.sql`,
+      kind: 'file',
+      contents: sql,
+    },
+    {
+      relativePath: `${boundary}/feature.ts`,
+      kind: 'file',
+      contents: renderQueryBoundary(rootDir, queryName, actionPlan, table, primaryKeyColumn, {
+        sqlFileName: 'query.sql',
+      }),
+    },
+    { relativePath: `${boundary}/generated`, kind: 'directory' },
+    {
+      relativePath: `${boundary}/generated/query.meta.ts`,
+      kind: 'file',
+      contents: renderQueryMetadata(buildFeatureQueryModel(sql, rootDir)),
+      overwrite: true,
+    },
+    { relativePath: `${boundary}/tests`, kind: 'directory' },
+    { relativePath: `${boundary}/tests/cases`, kind: 'directory' },
+    { relativePath: `${boundary}/tests/generated`, kind: 'directory' },
+    {
+      relativePath: `${boundary}/tests/query.db.test.ts`,
+      kind: 'file',
+      contents: renderQueryZtdTest(featureName, queryName, {
+        queryModuleImport: '../feature.js',
+      }),
+      overwrite: false,
+    },
+    {
+      relativePath: `${boundary}/tests/boundary-ztd-types.ts`,
+      kind: 'file',
+      contents: renderQueryZtdTypes(queryName, table, actionPlan, {
+        queryModuleImport: '../feature.js',
+      }),
+      overwrite: false,
+    },
+    {
+      relativePath: `${boundary}/tests/generated/mapping.cases.ts`,
+      kind: 'file',
+      contents: renderGeneratedMappingZtdCases(queryName, actionPlan, table, primaryKeyColumn),
+      overwrite: true,
+    },
+    {
+      relativePath: `${boundary}/tests/cases/logic.case.ts`,
+      kind: 'file',
+      contents: renderEmptyLogicZtdCases(queryName),
+      overwrite: false,
+    },
+    { relativePath: `${boundary}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
+    {
+      relativePath: `${boundary}/tests/generated/TEST_PLAN.md`,
+      kind: 'file',
+      contents: renderGeneratedTestPlan(featureName, queryName),
+      overwrite: true,
+    },
+    {
+      relativePath: `${boundary}/tests/generated/analysis.json`,
+      kind: 'file',
+      contents: renderGeneratedTestAnalysis(featureName, queryName, action, table, primaryKeyColumn, actionPlan, {
+        layout: 'root-query',
+        sqlFile: 'query.sql',
+        queryFile: 'feature.ts',
+      }),
+      overwrite: true,
+    },
+  ];
+}
+
 function formatFeatureTestsCheck(result: FeatureTestsCheckResult): string {
   const lines = [
     `Feature tests check ${result.ok ? 'passed' : 'failed'}`,
@@ -1783,7 +1974,7 @@ function buildExpectedGeneratedMappingTestFiles(
   metadata: QueryTestMetadata,
 ): GeneratedFile[] {
   if (metadata.importSource === 'existing-sql') {
-    const sqlPath = path.join(queryDir, `${queryName}.sql`);
+    const sqlPath = path.join(queryDir, metadata.sqlFile ?? `${queryName}.sql`);
     const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
     const queryModel = buildFeatureQueryModel(sql, rootDir);
     const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
@@ -1804,6 +1995,7 @@ function buildExpectedGeneratedMappingTestFiles(
   const scaffoldMetadata: ScaffoldQueryTestMetadata = {
     feature: metadata.feature,
     query: metadata.query,
+    ...(metadata.layout ? { layout: metadata.layout } : {}),
     action: metadata.action,
     table: metadata.table,
     primaryKeyColumn: metadata.primaryKeyColumn,
@@ -1818,7 +2010,19 @@ function buildExpectedGeneratedMappingTestFiles(
     scaffoldMetadata.returningMode ?? 'all',
     configFromOptimisticLockMetadata(scaffoldMetadata.optimisticLock),
   );
-  return buildGeneratedMappingTestFiles(relativeFeatureDir, scaffoldMetadata, table, actionPlan);
+  return buildGeneratedMappingTestFilesForLayout(relativeFeatureDir, scaffoldMetadata, table, actionPlan);
+}
+
+function buildGeneratedMappingTestFilesForLayout(
+  relativeFeatureDir: string,
+  metadata: ScaffoldQueryTestMetadata,
+  table: DdlTable,
+  actionPlan: ReturnType<typeof buildActionPlan>,
+): GeneratedFile[] {
+  if (metadata.layout === 'root-query') {
+    return buildRootGeneratedMappingTestFiles(relativeFeatureDir, metadata, table, actionPlan);
+  }
+  return buildGeneratedMappingTestFiles(relativeFeatureDir, metadata, table, actionPlan);
 }
 
 interface ImportedQueryTestMetadata {
@@ -2561,9 +2765,11 @@ function renderQueryBoundary(
   plan: ReturnType<typeof buildActionPlan>,
   table: DdlTable,
   primaryKeyColumn: string,
+  options: { sqlFileName?: string } = {},
 ): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
+  const sqlFileName = options.sqlFileName ?? `${queryName}.sql`;
   const result = plan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
   const enablesOptionalConditionCompression = plan.action === 'list' || plan.action === 'get-by-id';
   const rowExpr = plan.action === 'list' ? 'rows as QueryRow[]' : '(rows[0] ?? null) as QueryRow | null';
@@ -2584,19 +2790,19 @@ function renderQueryBoundary(
     "import { queryModel } from './generated/query.meta.js';",
     '',
     'const currentDir = dirname(fileURLToPath(import.meta.url));',
-    `export const ${camel}Sql = loadSqlResource(currentDir, '${queryName}.sql');`,
+    `export const ${camel}Sql = loadSqlResource(currentDir, '${sqlFileName}');`,
     `export const ${camel}Query = {`,
     `  id: '${queryName}',`,
-    `  path: '${queryName}.sql',`,
-    `  sqlPath: '${queryName}.sql',`,
+    `  path: '${sqlFileName}',`,
+    `  sqlPath: '${sqlFileName}',`,
     `  sql: ${camel}Sql,`,
     '  queryModel,',
     ...(enablesOptionalConditionCompression ? ['  optionalConditionCompression: true,'] : []),
     '  metadata: {',
     `    sqlId: '${queryName}',`,
     `    queryId: '${queryName}',`,
-    `    sqlFile: '${queryName}.sql',`,
-    `    sqlPath: '${queryName}.sql',`,
+    `    sqlFile: '${sqlFileName}',`,
+    `    sqlPath: '${sqlFileName}',`,
     '  },',
     '} as const;',
     '',
@@ -3144,13 +3350,18 @@ function renderFeatureBoundaryTest(
   ].join('\n');
 }
 
-function renderQueryZtdTest(featureName: string, queryName: string): string {
+function renderQueryZtdTest(
+  featureName: string,
+  queryName: string,
+  options: { queryModuleImport?: string } = {},
+): string {
   const pascal = toPascal(queryName);
+  const queryModuleImport = options.queryModuleImport ?? '../query.js';
   return [
     "import { expect, test } from 'vitest';",
     '',
     `import { runQuerySpecZtdCases } from '${TEST_ZTD_HARNESS_IMPORT_PATH}';`,
-    `import { execute${pascal}Query } from '../query.js';`,
+    `import { execute${pascal}Query } from '${queryModuleImport}';`,
     "import logicCases from './cases/logic.case.js';",
     "import mappingCases from './generated/mapping.cases.js';",
     '',
@@ -3162,7 +3373,7 @@ function renderQueryZtdTest(featureName: string, queryName: string): string {
     '',
     'const testZtd = shouldSkipZtd ? test.skip : test;',
     '',
-    `testZtd('${featureName}/${queryName} boundary ZTD cases run through the fixed app-level harness', async () => {`,
+    `testZtd('${featureName}/${queryName} DB-backed query cases run through the fixed app-level harness', async () => {`,
     '  expect(cases.length).toBeGreaterThan(0);',
     `  const evidence = await runQuerySpecZtdCases(cases, execute${pascal}Query);`,
     "  expect(evidence.every((entry) => entry.mode === 'ztd')).toBe(true);",
@@ -3176,13 +3387,15 @@ function renderQueryZtdTest(featureName: string, queryName: string): string {
 function renderQueryZtdTypes(
   queryName: string,
   table: DdlTable,
-  actionPlan: ReturnType<typeof buildActionPlan>
+  actionPlan: ReturnType<typeof buildActionPlan>,
+  options: { queryModuleImport?: string } = {},
 ): string {
   const pascal = toPascal(queryName);
+  const queryModuleImport = options.queryModuleImport ?? '../query.js';
   const outputType = actionPlan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
   return [
     `import type { QuerySpecZtdCase } from '${TEST_ZTD_CASE_TYPES_IMPORT_PATH}';`,
-    `import type { ${pascal}QueryParams, ${pascal}QueryResult } from '../query.js';`,
+    `import type { ${pascal}QueryParams, ${pascal}QueryResult } from '${queryModuleImport}';`,
     '',
     `export type ${pascal}BeforeDb = {`,
     `  ${renderPropertyKey(table.schema)}: {`,
@@ -3271,10 +3484,14 @@ function renderGeneratedTestAnalysis(
   table: DdlTable,
   primaryKeyColumn: string,
   actionPlan: ReturnType<typeof buildActionPlan>,
+  options: { layout?: 'root-query' | 'nested-query'; sqlFile?: string; queryFile?: string } = {},
 ): string {
   return `${JSON.stringify({
     feature: featureName,
     query: queryName,
+    ...(options.layout ? { layout: options.layout } : {}),
+    ...(options.sqlFile ? { sqlFile: options.sqlFile } : {}),
+    ...(options.queryFile ? { queryFile: options.queryFile } : {}),
     action,
     table: table.canonicalName,
     primaryKeyColumn,
@@ -3754,8 +3971,11 @@ function renderFeatureReadme(featureName: string, queryName: string, action: Fea
     `Primary key: ${primaryKeyColumn}`,
     `Initial query: ${queryName}`,
     '',
-    'Generated code is editable after scaffolding. Keep SQL visible, named, and directly runnable in a SQL client.',
-    'A feature may contain multiple query boundaries; use feature query scaffold when the behavior needs another SQL access point.',
+    'SQL is the source of truth for this scaffold.',
+    '`query.sql` is the primary human review target. Keep it visible, named, and directly runnable in a SQL client.',
+    '`feature.ts` is generated support code that exposes the SQL contract to TypeScript. It is editable, but it is not the main design object.',
+    '`tests/query.db.test.ts` and `tests/generated/*` keep DB-backed behavior, DTO mapping, and drift evidence close to the SQL.',
+    'A feature may contain additional query boundaries under `queries/<query>/` when the behavior needs another SQL access point.',
     'Transaction policy and feature orchestration belong to application code, not Ashiba. Compose multiple query boundaries by passing the same FeatureQueryExecutor inside an application-owned transaction callback.',
     'Generated mapper cases prove DB-to-TypeScript result contracts. For mutations, use route or integration tests for TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior.',
     '',

@@ -420,10 +420,10 @@ function contractIssues(result: CheckContractResult): ProjectCheckIssue[] {
 function featureTestsIssues(result: FeatureTestsCheckResult, config: ProjectPathConfig): ProjectCheckIssue[] {
   const issues: ProjectCheckIssue[] = [];
   for (const entry of result.checked) {
-    const queryDir = normalizePath(`${config.featureRoot}/${entry.feature}/queries/${entry.query}`);
-    const sqlFile = normalizePath(`${queryDir}/${entry.query}.sql`);
-    const queryFile = normalizePath(`${queryDir}/query.ts`);
-    const generatedTestDir = normalizePath(`${queryDir}/tests/generated`);
+    const queryDir = normalizePath(entry.queryDir ?? `${config.featureRoot}/${entry.feature}/queries/${entry.query}`);
+    const sqlFile = normalizePath(entry.sqlFile ?? `${queryDir}/${entry.query}.sql`);
+    const queryFile = normalizePath(entry.queryFile ?? `${queryDir}/query.ts`);
+    const generatedTestDir = normalizePath(entry.generatedTestDir ?? `${queryDir}/tests/generated`);
     for (const issue of entry.issues) {
       issues.push({
         code: 'ASHIBA_PROJECT_FEATURE_TESTS_FAILED',

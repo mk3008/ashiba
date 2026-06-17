@@ -19,7 +19,7 @@ The goal is not to prove every CRUD path. The main demo focuses on the `R` side:
 - Sort choices are mapped to reviewed safe sort keys from the generated query model.
 - The page shows a user-facing safe sort whitelist and a SQL inspection panel with compiled SQL and bound parameter names.
 - The main list logic remains in one visible SQL file.
-- DTOs, query metadata, mapper test assets, and ZTD tests live beside the feature query.
+- SQL, query metadata, mapper test assets, and DB-backed tests live beside the feature query.
 - Hono and `pg` stay application-owned; Ashiba does not become an ORM runtime path.
 
 ## Mutation Test Boundaries
@@ -69,9 +69,9 @@ npx ashiba feature tests check create-ticket --query create-ticket --fix
 npx ashiba feature tests check create-ticket --query create-ticket-message --fix
 ```
 
-The workflow code then composes the generated boundaries with normal application code. The `create-ticket` feature exposes `execute` as its boundary entrypoint; inside the feature, `input.ts`, `workflow.ts`, and `output.ts` keep parsing, orchestration, and response shaping reviewable. The workflow validates the input, looks up the selected customer, inserts the ticket header, inserts the first message detail, and returns the new ticket id. The web route owns HTTP parsing, redirect/error rendering, and the transaction scope.
+The workflow code then composes the generated boundaries with normal application code. This demo keeps a verbose application-owned feature shell around the generated SQL boundaries because it is a realistic web application, not only a default scaffold snapshot. The workflow validates the input, looks up the selected customer, inserts the ticket header, inserts the first message detail, and returns the new ticket id. The web route owns HTTP parsing, redirect/error rendering, and the transaction scope.
 
-This is the point of the pattern: Ashiba does not hide the mutation behind an ORM runtime, but the repetitive SQL boundary, DTO, mapper fixture, metadata, and drift-check work can still be scaffolded.
+This is the point of the pattern: Ashiba does not hide the mutation behind an ORM runtime, but the repetitive SQL boundary, mapper fixture, metadata, and drift-check work can still be scaffolded.
 
 ## Optimistic Update Pattern
 
@@ -134,9 +134,11 @@ Because both calls share the same borrowed PostgreSQL client, they commit or rol
 
 This is intentional: Ashiba keeps SQL boundaries generated and reviewable, while customer-owned application code decides where transactions start, which isolation level to use, and how workflow failures should be reported.
 
-## RFBA Shape Inspection
+## RFBA Inspection
 
-This demo keeps each use-case feature in the Ashiba scaffold standard shape:
+Ashiba's default scaffold is now SQL-first: `query.sql`, editable TypeScript support, generated metadata, and DB-backed tests are the primary review targets.
+
+This demo intentionally adds an application-owned shell around some query boundaries:
 
 ```text
 boundary.ts  -> exposes execute as the feature entrypoint
@@ -146,6 +148,8 @@ output.ts    -> shapes the caller-facing result
 queries/     -> visible SQL, query metadata, and mapper tests
 ```
 
+Treat that shell as a verbose web-application pattern, not the mandatory default scaffold.
+
 Run RFBA inspection after hand edits:
 
 ```sh
@@ -154,7 +158,7 @@ npx ashiba rfba inspect
 
 The inspection uses `ashiba.config.json` `featureRoot`, so this example's subsystem root `src/features/support-inbox` is handled directly. Non-standard shapes are reported as warnings, not errors; customer-owned code can intentionally diverge, but the divergence stays visible during review.
 
-RFBA treats boundary files as module closure points. A boundary may expose more than one contract type, but it should usually expose only one runtime function entrypoint. Multiple exported functions are a review signal: either the feature boundary is too broad, or implementation details are leaking through over-export.
+RFBA treats SQL-first persistence behavior as the review boundary. When an application-owned shell exists, boundary files can still act as module closure points; multiple exported runtime functions remain a review signal that either the boundary is too broad or implementation details are leaking through over-export.
 
 ## Files To Inspect
 

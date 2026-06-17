@@ -50,10 +50,10 @@ Some generated query contracts can still contain `unknown` fields:
 
 That is not a promise that application code must stay untyped. It means the generated boundary is customer-owned code.
 
-When the domain policy is known, narrow the editable contract where the application owns it:
+When the domain policy is known, narrow the editable contract where the application owns it. In the default SQL-first scaffold, the primary edit points are `query.sql`, `feature.ts`, and the DB-backed tests. This demo also has a verbose application-owned shell, so these files may participate too:
 
-- `input.ts` for adapter/request parsing and validation
-- `output.ts` for the feature response shape
+- `input.ts` for adapter/request parsing and validation in shell-backed features
+- `output.ts` for the feature response shape in shell-backed features
 - `queries/*/query.ts` when the query boundary should expose a narrower app contract
 - route or integration tests for HTTP/API behavior
 - generated mapper tests for DB-to-TypeScript result contracts
@@ -69,8 +69,7 @@ pnpm test
 
 For this demo, useful review questions are:
 
-- Did the input boundary change?
-- Did the output contract change?
+- Did application-owned input/output shell code change?
 - Did the SQL shape change?
 - Did generated metadata or mapper evidence change because of a SQL/contract edit?
 - Did route-level tests still prove the customer-visible workflow?

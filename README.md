@@ -6,7 +6,7 @@
 
 Show me the SQL. Ashiba handles the boring parts.
 
-Ashiba is a SQL-first generator for TypeScript applications. You write the SQL; Ashiba generates DTOs, mapper boundaries, tests, metadata, and drift checks around it.
+Ashiba is a SQL-first scaffold and verification layer for TypeScript applications. You write the SQL; Ashiba helps detect drift, generate boundaries, and verify DB behavior.
 
 No ORM runtime. No hidden query DSL. No mapper boilerplate.
 
@@ -22,7 +22,7 @@ No ORM runtime. No hidden query DSL. No mapper boilerplate.
 
 Ashiba is for teams that want SQL to stay visible.
 
-Using SQL should not mean hand-writing every DTO, mapper glue file, test scaffold, and drift check. Ashiba handles that boring work around the SQL.
+Using SQL should not mean hand-writing every contract, mapper glue file, test scaffold, and drift check. Ashiba handles that boring verification work around the SQL.
 
 The SQL is yours. Edit it freely, keep it as application-owned source code, and let Ashiba generate the TypeScript support around it.
 
@@ -36,7 +36,7 @@ The first run should prove the idea quickly:
 - start a local PostgreSQL test database
 - scaffold a small feature from DDL
 - run tests
-- see generated TypeScript contracts and mapper-test scaffolds in your repo
+- see SQL-centered TypeScript contracts and DB-backed test scaffolds in your repo
 
 Prerequisites:
 
@@ -73,7 +73,7 @@ If port `5432` is busy, change `ASHIBA_TEST_DB_PORT` in `.env`.
 npx ashiba feature scaffold users-list --table users --action list
 ```
 
-This gives you a small SQL-first feature boundary: visible SQL, editable query contracts, generated metadata, mapper boundaries, and test scaffolds.
+This gives you a small SQL-first verification boundary: `query.sql`, editable TypeScript support, generated metadata, mapper evidence, and DB-backed test scaffolds.
 
 ### 5. Run the checks
 
@@ -86,14 +86,14 @@ The generated unit tests are mapper tests. They run lightweight DB-backed probes
 At this point, you should have the core Ashiba experience:
 
 - SQL remains visible source code.
-- TypeScript DTO and mapper support exists around it.
+- TypeScript contract and mapper support exists around it as generated support.
 - Generated assets are reviewable files.
 - Tests and checks tell you when the contract drifts.
 - Runtime stays ordinary: SQL, driver adapter, and TypeScript application code.
 
 ### 6. Change the code
 
-From here, the generated code is yours. Change the SQL, DTO boundary, mapper, or feature code as your application needs.
+From here, the generated code is yours. Change the SQL, TypeScript contract, mapper, or feature code as your application needs.
 
 ```bash
 # fast local check while editing
@@ -135,7 +135,7 @@ Use this section as the entry point for daily work. The command API page links e
 | Run the full local or CI gate | `ashiba check --full` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-check) |
 | Scaffold passive gates without hook libraries | `ashiba gate scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-gate-scaffold) |
 | Start a SQL-first TypeScript project shape | `ashiba init` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-init) |
-| Generate a feature boundary from an existing DDL table | `ashiba feature scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-scaffold) |
+| Generate a SQL-first verification boundary from an existing DDL table | `ashiba feature scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-scaffold) |
 | Generate a feature boundary from existing SQL | `ashiba feature import <feature> <query> --sql <path>` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-import) |
 | Add another query to an existing feature | `ashiba feature query scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-scaffold) |
 | Refresh generated metadata after editing SQL | `ashiba feature query refresh` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-refresh) |
