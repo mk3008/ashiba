@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerCheckCommand } from './commands/check.js';
 import { registerCheckContractCommand } from './commands/check-contract.js';
+import { registerAtlasCommand } from './commands/atlas.js';
 import { applyCommandCatalogToProgram, formatCommonUseCases } from './commands/command-catalog.js';
 import { registerConfigCommand } from './commands/config.js';
 import { registerDescribeCommand } from './commands/describe.js';
@@ -35,6 +36,7 @@ export const VERSION = readCliPackageVersion();
 export function buildProgram(): Command {
   const commonUseCases = formatCommonUseCases([
     'check',
+    'atlas init',
     'gate scaffold',
     'init',
     'feature scaffold',
@@ -66,6 +68,7 @@ Detailed command catalog:
   ashiba describe command [name...] --format text|json
 `);
 
+  registerAtlasCommand(program);
   registerCheckCommand(program);
   registerCheckContractCommand(program);
   registerConfigCommand(program);

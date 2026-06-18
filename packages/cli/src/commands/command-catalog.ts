@@ -128,6 +128,19 @@ export const COMMANDS: readonly CommandSpec[] = [
     examples: ['npx ashiba init --db postgres --driver pg --with-demo-ddl'],
   },
   {
+    name: 'atlas init',
+    summary: 'Create optional Atlas workflow files without making Atlas an Ashiba dependency.',
+    useCase: 'Connect an Ashiba project to Atlas only when DDL changes must move into a stateful database environment.',
+    usage: 'ashiba atlas init [options]',
+    options: [commonRoot],
+    notes: [
+      'Atlas is optional; Ashiba does not install, bundle, or require the Atlas CLI.',
+      'This command creates atlas.hcl, migrations/.gitkeep, and docs/recipes/migration-with-atlas.md only when they do not already exist.',
+      'Ashiba remains responsible for SQL and DDL consistency checks; Atlas owns versioned migration generation, status, and apply when the project chooses that workflow.',
+    ],
+    examples: ['npx ashiba atlas init'],
+  },
+  {
     name: 'config',
     summary: 'Emit Ashiba project configuration.',
     useCase: 'Create or inspect ashiba.config.json; use --compact for machine-readable one-line JSON.',
