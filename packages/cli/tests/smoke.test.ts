@@ -6,6 +6,7 @@ import { buildProgram, getErrorMode, VERSION } from '../src/index.js';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { formatAtlasInitResult, runAtlasInit } from '../src/commands/atlas.js';
 import { runInit } from '../src/commands/init.js';
 import { runCheckContract, formatCheckContractResult } from '../src/commands/check-contract.js';
 import { formatAshibaCheckResult, runAshibaCheck } from '../src/commands/check.js';
@@ -113,6 +114,7 @@ describe('@ashiba-ts/cli smoke', () => {
 
     expect(commandNames).toEqual(expect.arrayContaining([
       'ddl migration generate',
+      'atlas init',
       'check',
       'gate scaffold',
       'query outline',
@@ -157,6 +159,91 @@ describe('@ashiba-ts/cli smoke', () => {
       for (const example of command.examples ?? []) {
         expect(help, `help missing catalog example for ${command.name}`).toContain(example);
       }
+    }
+  });
+
+  test('scaffolds optional Atlas workflow files without requiring Atlas', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-atlas-init-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'package.json'), JSON.stringify({
+        type: 'module',
+        scripts: {
+          test: 'vitest run',
+        },
+      }, null, 2), 'utf8');
+
+      const result = runAtlasInit({ rootDir });
+      const output = formatAtlasInitResult(result);
+      const packageJson = readFileSync(path.join(rootDir, 'package.json'), 'utf8');
+
+      expect(result.created).toEqual([
+        'atlas.hcl',
+        'migrations/.gitkeep',
+        'docs/recipes/migration-with-atlas.md',
+      ]);
+      expect(result.skipped).toEqual([]);
+      expect(readFileSync(path.join(rootDir, 'atlas.hcl'), 'utf8')).toContain('src = "file://db/ddl"');
+      expect(readFileSync(path.join(rootDir, 'migrations/.gitkeep'), 'utf8')).toBe('');
+      const recipe = readFileSync(path.join(rootDir, 'docs/recipes/migration-with-atlas.md'), 'utf8');
+      expect(recipe).toContain("Ashiba's default development workflow is migration zero.");
+      expect(recipe).toContain('Atlas is optional');
+      expect(recipe).toContain('Ashiba does not install, bundle, or require Atlas.');
+      expect(recipe).toContain('Atlas Pro is not required for the default Ashiba workflow.');
+      expect(recipe).toContain('Production apply should be owned by the project deployment policy, not by Ashiba.');
+      expect(recipe).toContain('atlas migrate diff <name> --env local');
+      expect(recipe).toContain('db:migration:lint:pro');
+      expect(packageJson).toContain('"test": "vitest run"');
+      expect(packageJson).not.toContain('db:migration:diff');
+      expect(output).toContain('Atlas is optional.');
+      expect(output).toContain('Suggested package.json scripts:');
+      expect(output).toContain('"db:migration:diff": "atlas migrate diff --env local"');
+      expect(output).not.toContain('atlas migrate lint');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not overwrite existing Atlas workflow files', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-atlas-init-existing-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'migrations'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'docs', 'recipes'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'atlas.hcl'), 'custom atlas config\n', 'utf8');
+      writeFileSync(path.join(rootDir, 'migrations', '.gitkeep'), 'keep me\n', 'utf8');
+
+      const result = runAtlasInit({ rootDir });
+      const output = formatAtlasInitResult(result);
+
+      expect(result.created).toEqual(['docs/recipes/migration-with-atlas.md']);
+      expect(result.skipped).toEqual(['atlas.hcl', 'migrations/.gitkeep']);
+      expect(readFileSync(path.join(rootDir, 'atlas.hcl'), 'utf8')).toBe('custom atlas config\n');
+      expect(readFileSync(path.join(rootDir, 'migrations', '.gitkeep'), 'utf8')).toBe('keep me\n');
+      expect(output).toContain('Atlas workflow scaffold checked.');
+      expect(output).toContain('Skipped because already exists:');
+      expect(output).toContain('No existing files were overwritten.');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('uses configured Ashiba DDL source directory in Atlas scaffold', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-atlas-init-config-'));
+
+    try {
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({
+        ddl: {
+          sourceDir: 'schema/postgres',
+        },
+      }, null, 2), 'utf8');
+
+      runAtlasInit({ rootDir });
+
+      expect(readFileSync(path.join(rootDir, 'atlas.hcl'), 'utf8')).toContain('src = "file://schema/postgres"');
+      expect(readFileSync(path.join(rootDir, 'docs/recipes/migration-with-atlas.md'), 'utf8')).toContain('`schema/postgres`');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
