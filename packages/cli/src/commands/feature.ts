@@ -2358,18 +2358,19 @@ function renderFeatureWorkflow(featureName: string, queryName: string, plan: Ret
   const queryPascal = toPascal(queryName);
   const fields = toFeatureFields(plan.params);
   const requestName = fields.length > 0 ? 'request' : '_request';
+  const resultType = renderFeatureQueryResultType(plan.action, queryPascal);
   return [
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     `import type { ${pascal}Request } from './input.js';`,
     `import { execute${queryPascal}Query, type ${queryPascal}QueryParams, type ${queryPascal}QueryResult } from './queries/${queryName}/query.js';`,
     '',
-    `export type ${pascal}WorkflowResult = ${plan.action === 'list' ? `${queryPascal}QueryResult[]` : `${queryPascal}QueryResult`};`,
+    `export type ${pascal}WorkflowResult = ${resultType};`,
     '',
     `export interface ${pascal}Queries {`,
     `  execute${queryPascal}: (`,
     '    executor: FeatureQueryExecutor,',
     `    params: ${queryPascal}QueryParams,`,
-    `  ) => Promise<${plan.action === 'list' ? `${queryPascal}QueryResult[]` : `${queryPascal}QueryResult`}>;`,
+    `  ) => Promise<${resultType}>;`,
     '}',
     '',
     `const defaultQueries: ${pascal}Queries = {`,
@@ -2402,16 +2403,23 @@ function renderFeatureOutput(featureName: string, queryName: string, plan: Retur
   const pascal = toPascal(featureName);
   const queryPascal = toPascal(queryName);
   const fields = toFeatureFields(plan.rows);
+  const resultType = renderFeatureQueryResultType(plan.action, queryPascal);
   return [
     `import type { ${queryPascal}QueryResult } from './queries/${queryName}/query.js';`,
     '',
     ...renderFeatureResponseType(pascal, plan.action, fields),
     '',
-    `export function buildResult(result: ${plan.action === 'list' ? `${queryPascal}QueryResult[]` : `${queryPascal}QueryResult`}): ${pascal}Response {`,
+    `export function buildResult(result: ${resultType}): ${pascal}Response {`,
     ...renderFeatureBuildResultLines(plan.action, fields),
     '}',
     '',
   ].join('\n');
+}
+
+function renderFeatureQueryResultType(action: FeatureAction, queryPascal: string): string {
+  if (action === 'list') return `${queryPascal}QueryResult[]`;
+  if (action === 'get-by-id') return `${queryPascal}QueryResult | null`;
+  return `${queryPascal}QueryResult`;
 }
 
 function toFeatureFields(columns: DdlColumn[]): RenderField[] {
@@ -2507,6 +2515,13 @@ function renderFeatureResponseType(pascal: string, action: FeatureAction, fields
       '}',
     ];
   }
+  if (action === 'get-by-id') {
+    return [
+      `export type ${pascal}Response = {`,
+      ...fields.map((field) => `  ${field.name}: ${field.typeScriptType};`),
+      '} | null;',
+    ];
+  }
   return [
     `export interface ${pascal}Response ${renderRenderFieldInterfaceBody(fields)}`,
   ];
@@ -2520,6 +2535,18 @@ function renderFeatureBuildResultLines(action: FeatureAction, fields: RenderFiel
       ...fields.map((field) => `      ${field.name}: item.${field.sourceName},`),
       '    })),',
       '  };',
+    ];
+  }
+  if (action === 'get-by-id') {
+    return [
+      '  if (result === null) return null;',
+      ...(fields.length === 0
+        ? ['  return {};']
+        : [
+            '  return {',
+            ...fields.map((field) => `    ${field.name}: result.${field.sourceName},`),
+            '  };',
+          ]),
     ];
   }
   if (fields.length === 0) return ['  return {};'];
@@ -2546,9 +2573,17 @@ function renderQueryBoundary(
 ): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
-  const result = plan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
+  const result = plan.action === 'list'
+    ? `${pascal}QueryResult[]`
+    : plan.action === 'get-by-id'
+      ? `${pascal}QueryResult | null`
+      : `${pascal}QueryResult`;
   const enablesOptionalConditionCompression = plan.action === 'list' || plan.action === 'get-by-id';
-  const helperName = plan.action === 'list' ? 'queryMany' : 'queryOne';
+  const helperName = plan.action === 'list'
+    ? 'queryMany'
+    : plan.action === 'get-by-id'
+      ? 'queryOneOrNull'
+      : 'queryOne';
   return [
     `import { ${helperName}, type FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",

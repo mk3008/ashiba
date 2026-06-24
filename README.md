@@ -119,7 +119,7 @@ Ashiba chooses DBMS and wrapped driver explicitly. PostgreSQL is the most comple
 
 | DBMS | Wrapped driver/tool | Package | Current status |
 |---|---|---|---|
-| Shared driver contracts | driver adapter core | `@ashiba-ts/driver-adapter-core` | Shared thin-adapter contracts, feature query boundary types, safe sort input, SQL observer events, and cardinality helpers. No ORM model or SQL DSL. |
+| Shared driver contracts | driver adapter core | `@ashiba-ts/driver-adapter-core` | Shared feature query contracts and cardinality helpers. No ORM model or SQL DSL. |
 | PostgreSQL | `pg` | `@ashiba-ts/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, mapper-test lane, named-parameter binding, safe sort, optional-condition metadata, and tutorial coverage. |
 | PostgreSQL | `pg` testkit | `@ashiba-ts/testkit-adapter-pg` | ZTD mapper-test adapter used by the PostgreSQL starter. |
 | PostgreSQL | `pg_dump` | `@ashiba-ts/ddl-pull-pg-dump` | Optional helper for comparing production DDL from `pg_dump` with local DDL. |
