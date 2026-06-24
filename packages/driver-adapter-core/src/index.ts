@@ -151,6 +151,146 @@ export type AshibaQueryModelAnalysis = {
 };
 
 /**
+ * Query model shape consumed by feature-level query boundaries.
+ *
+ * This is intentionally a contract type, not an ORM model. The SQL file remains
+ * the canonical source; generated metadata and runtime snapshots only prove that
+ * the thin adapter is executing the reviewed SQL contract.
+ */
+export type FeatureQueryModel = {
+  analysis: AshibaQueryModelAnalysis & {
+    resultColumnTypes?: Record<string, string>;
+    parameterTypes?: Record<string, string>;
+  };
+  bindings?: {
+    postgres?: {
+      sourceHash?: string;
+      sql: string;
+      orderedNames: readonly string[];
+      safeSortInsertion?: {
+        index: number;
+      };
+      optionalConditionCompression?: {
+        branches: readonly {
+          parameterName: string;
+          removalRange: {
+            start: number;
+            end: number;
+            text?: string;
+          };
+          presentReplacement: {
+            start: number;
+            end: number;
+            text: string;
+          };
+        }[];
+        groups?: readonly {
+          branchIndexes: readonly number[];
+          removalRange: {
+            start: number;
+            end: number;
+            text?: string;
+          };
+          leadingPrefixes?: readonly {
+            branchIndexes: readonly number[];
+            removalRange: {
+              start: number;
+              end: number;
+              text?: string;
+            };
+          }[];
+        }[];
+      };
+    };
+  };
+};
+
+/**
+ * File-backed SQL query source generated or loaded from a reviewed SQL file.
+ */
+export interface FeatureQuerySource {
+  id: string;
+  path: string;
+  sqlPath: string;
+  sql: string;
+  queryModel: FeatureQueryModel;
+  optionalConditionCompression?: boolean;
+  metadata?: AshibaSqlExecutionMetadata;
+}
+
+/**
+ * Thin feature-level SQL execution boundary.
+ *
+ * Feature and workflow code depend on this instead of pg, logger packages, or
+ * concrete adapter implementations.
+ */
+export interface FeatureQueryExecutor {
+  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;
+}
+
+/**
+ * Error raised when a feature query boundary receives a row count that does
+ * not match the helper-selected cardinality contract.
+ */
+export class FeatureQueryCardinalityError extends Error {
+  readonly code: 'ASHIBA_QUERY_EXPECTED_ONE_ROW' | 'ASHIBA_QUERY_EXPECTED_ZERO_OR_ONE_ROW';
+  readonly queryId: string;
+  readonly rowCount: number;
+  readonly details: { queryId: string; rowCount: number };
+
+  constructor(code: FeatureQueryCardinalityError['code'], query: FeatureQuerySource, rowCount: number) {
+    const expected = code === 'ASHIBA_QUERY_EXPECTED_ONE_ROW' ? 'one row' : 'zero or one row';
+    super(`${query.id} query expected ${expected}, but got ${rowCount}.`);
+    this.name = 'FeatureQueryCardinalityError';
+    this.code = code;
+    this.queryId = query.id;
+    this.rowCount = rowCount;
+    this.details = { queryId: query.id, rowCount };
+  }
+}
+
+/**
+ * Execute a feature query and return every row.
+ */
+export async function queryMany<T = unknown>(
+  executor: FeatureQueryExecutor,
+  query: FeatureQuerySource,
+  params: Record<string, unknown>,
+): Promise<T[]> {
+  return executor.query<T>(query, params);
+}
+
+/**
+ * Execute a feature query that must return exactly one row.
+ */
+export async function queryOne<T = unknown>(
+  executor: FeatureQueryExecutor,
+  query: FeatureQuerySource,
+  params: Record<string, unknown>,
+): Promise<T> {
+  const rows = await queryMany<T>(executor, query, params);
+  if (rows.length !== 1) {
+    throw new FeatureQueryCardinalityError('ASHIBA_QUERY_EXPECTED_ONE_ROW', query, rows.length);
+  }
+  return rows[0] as T;
+}
+
+/**
+ * Execute a feature query that may return no row, but must not return many.
+ */
+export async function queryOneOrNull<T = unknown>(
+  executor: FeatureQueryExecutor,
+  query: FeatureQuerySource,
+  params: Record<string, unknown>,
+): Promise<T | null> {
+  const rows = await queryMany<T>(executor, query, params);
+  if (rows.length > 1) {
+    throw new FeatureQueryCardinalityError('ASHIBA_QUERY_EXPECTED_ZERO_OR_ONE_ROW', query, rows.length);
+  }
+  return rows[0] ?? null;
+}
+
+/**
  * Error raised when a safe sort request violates the reviewed query model or sort profile.
  */
 export class AshibaSortError extends Error {

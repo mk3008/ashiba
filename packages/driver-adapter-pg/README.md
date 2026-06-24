@@ -2,7 +2,7 @@
 
 Thin Ashiba adapter for [`pg`](https://www.npmjs.com/package/pg) compatible clients.
 
-This package is the PostgreSQL runtime adapter used by Ashiba-generated
+This package is the thin PostgreSQL SQL execution adapter used by Ashiba-generated
 TypeScript code. It is normally paired with `@ashiba-ts/cli` and
 `@ashiba-ts/testkit-adapter-pg`.
 
@@ -13,7 +13,7 @@ Start with the repository README for the full SQL-first workflow:
 
 ## What This Package Owns
 
-It owns named parameter binding, parameter contract checks, logger-ready execution events, and safe sort rendering. It does not own transactions, business SQL, ORM behavior, or DDL pull.
+It owns named parameter binding, parameter contract checks, logger-ready execution events, metadata-backed optional-condition compression, and metadata-backed safe sort rendering. It does not own transactions, business SQL, ORM behavior, relation loading, lazy loading, unit of work, or DDL pull.
 
 Application code should call the adapter with a file-backed or generated query source object containing SQL text, SQL path, and query model metadata. The adapter still passes a SQL string to the wrapped `pg` client internally, but it does not expose an `execute(sql: string, ...)` convenience boundary for arbitrary runtime SQL input.
 

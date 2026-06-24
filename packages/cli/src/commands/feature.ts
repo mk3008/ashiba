@@ -1932,40 +1932,15 @@ function buildSharedFiles(featureRoot = 'src/features'): GeneratedFile[] {
       kind: 'file',
       overwrite: false,
       contents: [
-        'export type FeatureQueryModel = {',
-        '  analysis: {',
-        "    astParse: 'ok';",
-        "    statementKind: 'select' | 'insert' | 'update' | 'delete' | 'unknown';",
-        "    rootQueryShape?: 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';",
-        '    hasTopLevelOrderBy: boolean;',
-        '    sourceHash?: string;',
-        '    resultColumnTypes?: Record<string, string>;',
-        '    parameterTypes?: Record<string, string>;',
-        '  };',
-        '  bindings?: {',
-        '    postgres?: { sourceHash?: string; sql: string; orderedNames: readonly string[] };',
-        '  };',
-        '};',
-        '',
-        'export interface FeatureQuerySource {',
-        '  id: string;',
-        '  path: string;',
-        '  sqlPath: string;',
-        '  sql: string;',
-        '  queryModel: FeatureQueryModel;',
-        '  optionalConditionCompression?: boolean;',
-        '  metadata?: {',
-        '    sqlId?: string;',
-        '    queryId?: string;',
-        '    sqlFile?: string;',
-        '    sqlPath?: string;',
-        '    dialect?: string;',
-        '  };',
-        '}',
-        '',
-        'export interface FeatureQueryExecutor {',
-        '  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;',
-        '}',
+        'export {',
+        '  FeatureQueryCardinalityError,',
+        '  queryMany,',
+        '  queryOne,',
+        '  queryOneOrNull,',
+        '  type FeatureQueryExecutor,',
+        '  type FeatureQueryModel,',
+        '  type FeatureQuerySource,',
+        "} from '@ashiba-ts/driver-adapter-core';",
         '',
       ].join('\n'),
     },
@@ -2573,17 +2548,9 @@ function renderQueryBoundary(
   const camel = toCamel(queryName);
   const result = plan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
   const enablesOptionalConditionCompression = plan.action === 'list' || plan.action === 'get-by-id';
-  const rowExpr = plan.action === 'list' ? 'rows as QueryRow[]' : '(rows[0] ?? null) as QueryRow | null';
-  const returnLines = plan.action === 'list'
-    ? ['  return row;']
-    : [
-        '  if (row === null) {',
-        `    throw new Error('${queryName} query expected one row, but got 0.');`,
-        '  }',
-        '  return row;',
-      ];
+  const helperName = plan.action === 'list' ? 'queryMany' : 'queryOne';
   return [
-    `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
+    `import { ${helperName}, type FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
     "import { querySql } from './generated/query.sql.js';",
     '',
@@ -2613,9 +2580,7 @@ function renderQueryBoundary(
     '  executor: FeatureQueryExecutor,',
     `  params: ${pascal}QueryParams`,
     `): Promise<${result}> {`,
-    `  const rows = await executor.query<QueryRow>(${camel}Query, params as unknown as Record<string, unknown>);`,
-    `  const row = ${rowExpr};`,
-    ...returnLines,
+    `  return ${helperName}<QueryRow>(executor, ${camel}Query, params as unknown as Record<string, unknown>);`,
     '}',
     '',
   ].join('\n');
@@ -2632,7 +2597,7 @@ function renderImportedQueryBoundary(
   const camel = toCamel(queryName);
   const resultFields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   return [
-    `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
+    `import { queryMany, type FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
     "import { querySql } from './generated/query.sql.js';",
     '',
@@ -2662,8 +2627,7 @@ function renderImportedQueryBoundary(
     '  executor: FeatureQueryExecutor,',
     `  params: ${pascal}QueryParams`,
     `): Promise<${pascal}QueryResult[]> {`,
-    `  const rows = await executor.query<QueryRow>(${camel}Query, params as unknown as Record<string, unknown>);`,
-    '  return rows;',
+    `  return queryMany<QueryRow>(executor, ${camel}Query, params as unknown as Record<string, unknown>);`,
     '}',
     '',
   ].join('\n');

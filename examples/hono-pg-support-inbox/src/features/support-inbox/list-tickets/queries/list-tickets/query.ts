@@ -1,4 +1,4 @@
-import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
+import { queryMany, type FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
@@ -61,6 +61,5 @@ export async function executeListTicketsQuery(
   executor: FeatureQueryExecutor,
   params: ListTicketsQueryParams
 ): Promise<ListTicketsQueryResult[]> {
-  const rows = await executor.query<QueryRow>(listTicketsQuery, params as unknown as Record<string, unknown>);
-  return rows;
+  return queryMany<QueryRow>(executor, listTicketsQuery, params as unknown as Record<string, unknown>);
 }

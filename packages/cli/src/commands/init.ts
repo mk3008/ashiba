@@ -36,7 +36,7 @@ type InitTarget = {
   driver: InitDriver;
 };
 
-const postgresStarterRequiredDependencies = ['@ashiba-ts/driver-adapter-pg', 'pg'] as const;
+const postgresStarterRequiredDependencies = ['@ashiba-ts/driver-adapter-core', '@ashiba-ts/driver-adapter-pg', 'pg'] as const;
 const postgresStarterRequiredDevDependencies = [
   '@ashiba-ts/cli',
   '@ashiba-ts/testkit-adapter-pg',
@@ -62,7 +62,7 @@ Ashiba handles the boring parts.
 This starter keeps SQL visible and puts DTO definitions, mappers, query IDs, and generated code where humans and AI agents can read, edit, test, and keep them.
 Generated code is not hidden behind generate; keep it visible and drift-check it as the project grows.
 
-Install the \`pg\` driver, \`@ashiba-ts/driver-adapter-pg\`, Ashiba CLI, TypeScript, Vitest, dotenv, @types/pg, and @ashiba-ts/testkit-adapter-pg before running \`ashiba init --db postgres --driver pg\`.
+Install the \`pg\` driver, \`@ashiba-ts/driver-adapter-core\`, \`@ashiba-ts/driver-adapter-pg\`, Ashiba CLI, TypeScript, Vitest, dotenv, @types/pg, and @ashiba-ts/testkit-adapter-pg before running \`ashiba init --db postgres --driver pg\`.
 Ashiba init does not create or manage package.json because package ownership and database driver choice belong to the application. This starter uses the \`pg\` wrapper path; another PostgreSQL driver should get its own wrapper-specific starter seam.
 
 Install Docker with PostgreSQL support before running the starter tests. Ashiba treats DB-backed unit tests as the normal path, not an optional afterthought.
@@ -88,9 +88,9 @@ Errors should be selectable for human-oriented or AI-oriented output with cause 
 
 ## Runtime Policy
 
-Ashiba Runtime Zero in CLI-generated application code. Thin driver adapter only where needed.
+No ORM runtime in CLI-generated application code. Thin SQL execution adapter only where needed.
 
-Ashiba Runtime Zero does not mean there is no database driver, driver adapter, or extension runtime. It means the CLI generates native TypeScript code and Ashiba CLI/runtime libraries are not required by CLI-generated application code.
+No ORM runtime does not mean there is no database driver, driver adapter, or feature query contract at runtime. It means the CLI generator is not in the runtime path, SQL remains canonical, and generated application code does not add an ORM object layer or hidden SQL DSL.
 That avoids forced security updates for an unused Ashiba runtime dependency. If generated code needs a fix, patch the local application code directly.
 `,
   },
@@ -216,40 +216,15 @@ function redactPostgresUrl(value: string): string {
   },
   {
     relativePath: 'src/features/_shared/featureQueryExecutor.ts',
-    contents: `export type FeatureQueryModel = {
-  analysis: {
-    astParse: 'ok';
-    statementKind: 'select' | 'insert' | 'update' | 'delete' | 'unknown';
-    rootQueryShape?: 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';
-    hasTopLevelOrderBy: boolean;
-    sourceHash?: string;
-    resultColumnTypes?: Record<string, string>;
-    parameterTypes?: Record<string, string>;
-  };
-  bindings?: {
-    postgres?: { sourceHash?: string; sql: string; orderedNames: readonly string[] };
-  };
-};
-
-export interface FeatureQuerySource {
-  id: string;
-  path: string;
-  sqlPath: string;
-  sql: string;
-  queryModel: FeatureQueryModel;
-  optionalConditionCompression?: boolean;
-  metadata?: {
-    sqlId?: string;
-    queryId?: string;
-    sqlFile?: string;
-    sqlPath?: string;
-    dialect?: string;
-  };
-}
-
-export interface FeatureQueryExecutor {
-  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;
-}
+    contents: `export {
+  FeatureQueryCardinalityError,
+  queryMany,
+  queryOne,
+  queryOneOrNull,
+  type FeatureQueryExecutor,
+  type FeatureQueryModel,
+  type FeatureQuerySource,
+} from '@ashiba-ts/driver-adapter-core';
 `,
   },
   {
@@ -1056,7 +1031,7 @@ function validateStarterDependencies(rootDir: string, target: InitTarget): void 
       'ashiba init --db postgres --driver pg requires package.json in the target directory.',
       [
         'Create the application package first, then install the pg-wrapper starter dependencies:',
-        'npm install @ashiba-ts/driver-adapter-pg pg',
+        'npm install @ashiba-ts/driver-adapter-core @ashiba-ts/driver-adapter-pg pg',
         'npm install -D @ashiba-ts/cli @ashiba-ts/testkit-adapter-pg @types/pg dotenv typescript vitest',
       ].join('\n'),
     );
@@ -1091,7 +1066,7 @@ function validateStarterDependencies(rootDir: string, target: InitTarget): void 
     `ashiba init --db postgres --driver pg requires missing package dependencies: ${missing.join(', ')}`,
     [
       'Install the matching pg-wrapper starter dependencies before generating pg-specific starter code:',
-      'npm install @ashiba-ts/driver-adapter-pg pg',
+      'npm install @ashiba-ts/driver-adapter-core @ashiba-ts/driver-adapter-pg pg',
       'npm install -D @ashiba-ts/cli @ashiba-ts/testkit-adapter-pg @types/pg dotenv typescript vitest',
     ].join('\n'),
     { missing },

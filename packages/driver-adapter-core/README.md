@@ -1,9 +1,9 @@
 # @ashiba-ts/driver-adapter-core
 
-Core contracts for thin Ashiba driver adapters.
+Core contracts and helpers for thin Ashiba SQL execution adapters.
 
-This package is shared infrastructure for Ashiba driver adapters. It is not an
-ORM and is not usually installed directly by application code.
+This package is shared infrastructure for Ashiba driver adapters and generated
+feature query boundaries. It is not an ORM runtime and does not provide a SQL DSL.
 
 Start with the repository README for the full SQL-first workflow:
 
@@ -16,8 +16,10 @@ It provides shared types and helpers for:
 
 - masked parameter logging
 - logger-ready execution events
+- feature query boundary types
+- `many` / `one` / `oneOrNull` cardinality helpers
 - safe sort profile rendering
 - common query execution contracts used by driver adapters
 
-Application projects normally install a concrete adapter such as
-`@ashiba-ts/driver-adapter-pg` rather than this package directly.
+Application projects that use generated feature query boundaries should install
+this package alongside a concrete adapter such as `@ashiba-ts/driver-adapter-pg`.

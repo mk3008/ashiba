@@ -29,7 +29,7 @@ describe('@ashiba-ts/cli smoke', () => {
     const help = captureCommandHelp(program);
 
     expect(program.name()).toBe('ashiba');
-    expect(program.description()).toContain('Ashiba Runtime Zero SQL scaffolder');
+    expect(program.description()).toContain('SQL-first scaffold and verification CLI');
     expect(help).toContain('ashiba query format');
   });
 
@@ -345,6 +345,7 @@ describe('@ashiba-ts/cli smoke', () => {
         name: 'starter',
         private: true,
         dependencies: {
+          '@ashiba-ts/driver-adapter-core': '^0.0.0',
           '@ashiba-ts/driver-adapter-pg': '^0.0.0',
           pg: '^8.0.0',
         },
@@ -377,6 +378,7 @@ describe('@ashiba-ts/cli smoke', () => {
         private: true,
         type: 'commonjs',
         dependencies: {
+          '@ashiba-ts/driver-adapter-core': '^0.0.0',
           '@ashiba-ts/driver-adapter-pg': '^0.0.0',
           pg: '^8.0.0',
         },
@@ -686,7 +688,7 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
-  test('scaffolds editable runtime-zero feature and query boundaries from DDL', () => {
+  test('scaffolds editable SQL-first feature and query boundaries from DDL', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-scaffold-'));
 
     try {
@@ -1675,7 +1677,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryBoundary).toContain("from './generated/query.sql.js'");
       expect(queryBoundary).not.toContain("from '#features/_shared/loadSqlResource.js'");
       expect(querySqlSource).toContain('export const querySql =');
-      expect(queryBoundary).toMatch(/if \(row === null\) \{\n {4}throw new Error\('get-user query expected one row, but got 0\.'\);\n {2}\}\n {2}return row;/);
+      expect(queryBoundary).toContain("import { queryOne, type FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
+      expect(queryBoundary).toContain('return queryOne<QueryRow>(executor, getUserQuery, params as unknown as Record<string, unknown>);');
       expect(ztdTest).toContain("from '#tests/support/ztd/harness.js'");
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -5197,6 +5200,7 @@ function writePostgresStarterPackageJson(rootDir: string): void {
     private: true,
     type: 'module',
     dependencies: {
+      '@ashiba-ts/driver-adapter-core': '^0.0.0',
       '@ashiba-ts/driver-adapter-pg': '^0.0.0',
       pg: '^8.0.0',
     },
