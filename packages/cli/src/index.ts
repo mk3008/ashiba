@@ -49,7 +49,7 @@ export function buildProgram(): Command {
   const program = new Command();
   program
     .name('ashiba')
-    .description('Ashiba Runtime Zero SQL scaffolder for TypeScript applications.')
+    .description('SQL-first scaffold and verification CLI for TypeScript applications.')
     .version(VERSION)
     .option('--error-format <mode>', 'Error output mode: human or ai', 'human')
     .addHelpText('after', `

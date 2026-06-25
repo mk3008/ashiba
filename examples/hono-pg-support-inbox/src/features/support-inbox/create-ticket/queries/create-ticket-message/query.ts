@@ -1,3 +1,4 @@
+import { queryOne } from '@ashiba-ts/driver-adapter-core';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
@@ -40,10 +41,5 @@ export async function executeCreateTicketMessageQuery(
   executor: FeatureQueryExecutor,
   params: CreateTicketMessageQueryParams
 ): Promise<CreateTicketMessageQueryResult> {
-  const rows = await executor.query<QueryRow>(createTicketMessageQuery, params as unknown as Record<string, unknown>);
-  const row = (rows[0] ?? null) as QueryRow | null;
-  if (row === null) {
-    throw new Error('create-ticket-message query expected one row, but got 0.');
-  }
-  return row;
+  return queryOne<QueryRow>(executor, createTicketMessageQuery, params as unknown as Record<string, unknown>);
 }

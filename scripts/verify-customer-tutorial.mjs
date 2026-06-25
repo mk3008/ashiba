@@ -53,6 +53,7 @@ writePackageJson(starterRoot, {
     'test:mapper': 'vitest run src/features -t ZTD',
   },
   dependencies: {
+    '@ashiba-ts/driver-adapter-core': '^0.0.0',
     '@ashiba-ts/driver-adapter-pg': '^0.0.0',
     pg: '^8.16.3',
   },
@@ -131,6 +132,7 @@ assertFileContains(path.join(starterRoot, 'db', 'ddl', 'public.sql'), 'external_
 assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'production.sql'), 'create table public.users');
 assertFileContains(path.join(starterRoot, 'tmp', 'ddl', 'production.sql'), 'user_id bigserial primary key');
 assertPathMissing(path.join(starterRoot, 'src', 'features', 'smoke'));
+assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba-ts/driver-adapter-core');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba-ts/driver-adapter-pg');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba-ts/testkit-adapter-pg');
 assertFileContains(path.join(starterRoot, 'package.json'), '@ashiba-ts/cli');

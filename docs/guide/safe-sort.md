@@ -40,7 +40,7 @@ await adapter.execute(
 );
 ```
 
-The adapter renders `ORDER BY` only when the requested key exactly matches the reviewed whitelist recorded in the query model.
+The adapter renders `ORDER BY` only when the requested key exactly matches the reviewed whitelist recorded in the query model. Runtime code does not supply column names or SQL fragments.
 
 ## Where Sort Keys Come From
 
@@ -76,6 +76,8 @@ The PostgreSQL driver adapter checks all of these before rendering dynamic sorti
 - any explicit runtime sort profile does not introduce SQL outside the query model
 
 If one of those checks fails, Ashiba rejects the request before sending SQL to the database.
+
+This makes safe sort a metadata-backed allowed runtime rewrite, not a general runtime `ORDER BY` builder.
 
 ## Existing ORDER BY
 
@@ -173,7 +175,7 @@ Then regenerate metadata.
 
 ## Refresh After SQL Edits
 
-Safe sort depends on generated metadata. If the SQL changes, refresh the query model before relying on dynamic sorting:
+Safe sort depends on generated metadata and source hashes. If the `.sql` file, generated `query.sql.ts` snapshot, compiled dialect binding, or `query.meta.ts` metadata no longer match, refresh the query model before relying on dynamic sorting:
 
 ```bash
 npx ashiba feature query refresh users-list list
@@ -197,4 +199,3 @@ npx ashiba check --full
 Safe sort does not decide which sorts your product should expose. That remains application logic.
 
 Ashiba's job is narrower: once your application chooses a public sort key, the driver adapter verifies that the key maps to a reviewed SQL expression and renders the `ORDER BY` without accepting raw SQL from the outside.
-

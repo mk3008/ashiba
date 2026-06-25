@@ -20,7 +20,7 @@ The goal is not to prove every CRUD path. The main demo focuses on the `R` side:
 - The page shows a user-facing safe sort whitelist and a SQL inspection panel with compiled SQL and bound parameter names.
 - The main list logic remains in one visible SQL file.
 - DTOs, query metadata, mapper test assets, and ZTD tests live beside the feature query.
-- Hono and `pg` stay application-owned; Ashiba does not become an ORM runtime path.
+- Hono and `pg` stay application-owned; Ashiba does not add an ORM runtime or hidden SQL DSL.
 
 ## Mutation Test Boundaries
 

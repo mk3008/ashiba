@@ -84,7 +84,7 @@ npx ashiba query optional remove path/to/query.sql --parameter email
 
 ## Compression At Runtime
 
-SSSQL conditions are readable, but leaving every optional branch in the final SQL can be noisy for the database planner. The PostgreSQL driver adapter can compress optional branches at execution time.
+SSSQL conditions are readable, but leaving every optional branch in the final SQL can be noisy for the database planner. The PostgreSQL driver adapter can compress optional branches at execution time when CLI-generated metadata proves which ranges are safe to rewrite.
 
 For example, when `email` is `null` or `undefined`, Ashiba can remove this branch from the SQL sent to PostgreSQL:
 
@@ -98,7 +98,7 @@ When `email` has a value, Ashiba removes only the null guard and keeps the real 
 and u.email = $1
 ```
 
-The source SQL file stays unchanged. The generated metadata tells the adapter which ranges can be removed safely.
+The source SQL file stays unchanged. The generated metadata tells the adapter which ranges can be removed safely. Runtime code does not supply SQL fragments or boolean-expression strings.
 
 Compression also repairs the surrounding boolean glue. For example:
 
@@ -179,7 +179,9 @@ If a generated query source explicitly sets `optionalConditionCompression: true`
 
 ## Safety Boundary
 
-Compression depends on generated query metadata. If the SQL changes and metadata becomes stale, Ashiba rejects compression instead of emitting guessed SQL.
+Compression depends on generated query metadata and source hashes. If the `.sql` file, generated `query.sql.ts` snapshot, compiled dialect binding, or `query.meta.ts` metadata no longer match, Ashiba rejects compression instead of emitting guessed SQL.
+
+This makes SSSQL a metadata-backed allowed runtime rewrite, not a general runtime SQL builder.
 
 The `query optional` commands also use a conservative rewrite plan before writing SQL files. Ashiba writes an SSSQL change only when `rawsql-ts` reports that the edit can be limited to the target optional branch. If the operation would require a full SQL reformat, or if comments and unrelated SQL could be touched, the command stops and asks you to review or edit the SQL manually.
 
