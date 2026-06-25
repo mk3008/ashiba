@@ -1964,6 +1964,7 @@ function writeGeneratedFiles(
     const destination = path.join(rootDir, file.relativePath);
     const exists = existsSync(destination);
     const mayOverwrite = force || file.overwrite === true;
+    let actuallyWritten = false;
     if (file.kind === 'file' && exists && !mayOverwrite && file.overwrite !== false) {
       throw invalidCliInputError(
         'ASHIBA_SCAFFOLD_OVERWRITE_REQUIRES_FORCE',
@@ -1975,12 +1976,14 @@ function writeGeneratedFiles(
     if (!dryRun) {
       if (file.kind === 'directory') {
         mkdirSync(destination, { recursive: true });
+        actuallyWritten = true;
       } else if (!exists || mayOverwrite || file.overwrite !== false) {
         mkdirSync(path.dirname(destination), { recursive: true });
         writeFileSync(destination, file.contents ?? '', 'utf8');
+        actuallyWritten = true;
       }
     }
-    outputs.push({ path: file.relativePath, written: !dryRun, kind: file.kind });
+    outputs.push({ path: file.relativePath, written: actuallyWritten, kind: file.kind });
   }
 
   return outputs;
@@ -2417,9 +2420,13 @@ function renderFeatureOutput(featureName: string, queryName: string, plan: Retur
 }
 
 function renderFeatureQueryResultType(action: FeatureAction, queryPascal: string): string {
-  if (action === 'list') return `${queryPascal}QueryResult[]`;
+  if (isManyResultAction(action)) return `${queryPascal}QueryResult[]`;
   if (action === 'get-by-id') return `${queryPascal}QueryResult | null`;
   return `${queryPascal}QueryResult`;
+}
+
+function isManyResultAction(action: FeatureAction): boolean {
+  return action === 'list' || action === 'update' || action === 'delete';
 }
 
 function toFeatureFields(columns: DdlColumn[]): RenderField[] {
@@ -2506,7 +2513,7 @@ function renderFeatureParserSupport(): string[] {
 }
 
 function renderFeatureResponseType(pascal: string, action: FeatureAction, fields: RenderField[]): string[] {
-  if (action === 'list') {
+  if (isManyResultAction(action)) {
     return [
       `export interface ${pascal}Response {`,
       '  items: Array<{',
@@ -2528,7 +2535,7 @@ function renderFeatureResponseType(pascal: string, action: FeatureAction, fields
 }
 
 function renderFeatureBuildResultLines(action: FeatureAction, fields: RenderField[]): string[] {
-  if (action === 'list') {
+  if (isManyResultAction(action)) {
     return [
       '  return {',
       '    items: result.map((item) => ({',
@@ -2573,19 +2580,20 @@ function renderQueryBoundary(
 ): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
-  const result = plan.action === 'list'
+  const result = isManyResultAction(plan.action)
     ? `${pascal}QueryResult[]`
     : plan.action === 'get-by-id'
       ? `${pascal}QueryResult | null`
       : `${pascal}QueryResult`;
   const enablesOptionalConditionCompression = plan.action === 'list' || plan.action === 'get-by-id';
-  const helperName = plan.action === 'list'
+  const helperName = isManyResultAction(plan.action)
     ? 'queryMany'
     : plan.action === 'get-by-id'
       ? 'queryOneOrNull'
       : 'queryOne';
   return [
-    `import { ${helperName}, type FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
+    `import { ${helperName} } from '@ashiba-ts/driver-adapter-core';`,
+    `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
     "import { querySql } from './generated/query.sql.js';",
     '',
@@ -2632,7 +2640,8 @@ function renderImportedQueryBoundary(
   const camel = toCamel(queryName);
   const resultFields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   return [
-    `import { queryMany, type FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
+    "import { queryMany } from '@ashiba-ts/driver-adapter-core';",
+    `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
     "import { querySql } from './generated/query.sql.js';",
     '',
@@ -3115,7 +3124,7 @@ function renderFeatureBoundaryTest(
     ? `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`
     : `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`;
   const queryResultRows = indentContinuation(`${queryResult} as unknown[]`, 6);
-  const response = plan.action === 'list'
+  const response = isManyResultAction(plan.action)
     ? renderTsExpression({ items: [Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)]))] }, 2)
     : renderTsExpression(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)])), 2);
   return [
@@ -3186,7 +3195,7 @@ function renderQueryZtdTypes(
   actionPlan: ReturnType<typeof buildActionPlan>
 ): string {
   const pascal = toPascal(queryName);
-  const outputType = actionPlan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
+  const outputType = isManyResultAction(actionPlan.action) ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
   return [
     `import type { QuerySpecZtdCase } from '${TEST_ZTD_CASE_TYPES_IMPORT_PATH}';`,
     `import type { ${pascal}QueryParams, ${pascal}QueryResult } from '../query.js';`,
@@ -3566,7 +3575,7 @@ function buildGeneratedMapperProbeCase(
     mapperProbe: {
       sql: buildSyntheticMapperProbeSql(fields, table, mode),
     },
-    output: actionPlan.action === 'list' ? [row] : row,
+    output: isManyResultAction(actionPlan.action) ? [row] : row,
   };
 }
 

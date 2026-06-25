@@ -18,6 +18,7 @@ It provides shared types and helpers for:
 - logger-ready execution events
 - feature query boundary types
 - `many` / `one` / `oneOrNull` cardinality helpers
+- dialect-extensible query model binding slots
 - safe sort profile rendering
 - common query execution contracts used by driver adapters
 

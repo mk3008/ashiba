@@ -104,6 +104,8 @@ describe('@ashiba-ts/driver-adapter-core', () => {
       code: 'ASHIBA_QUERY_EXPECTED_ONE_ROW',
       queryId: 'user-detail',
       rowCount: 0,
+      causeText: 'The selected feature query cardinality helper received a row count outside its contract.',
+      nextAction: 'Use queryMany for mutation workflows that need to handle zero rows, or use queryOne only when the SQL contract really guarantees exactly one row.',
     });
     await expect(queryOne(manyExecutor, source, {})).rejects.toBeInstanceOf(FeatureQueryCardinalityError);
   });
@@ -126,6 +128,24 @@ describe('@ashiba-ts/driver-adapter-core', () => {
       code: 'ASHIBA_QUERY_EXPECTED_ZERO_OR_ONE_ROW',
       queryId: 'maybe-user',
       rowCount: 2,
+      causeText: 'The selected feature query cardinality helper received a row count outside its contract.',
+      nextAction: 'Use queryMany when multiple rows are valid, or tighten the SQL so queryOneOrNull can only receive zero or one row.',
+    });
+  });
+
+  test('normalizes feature query cardinality errors with cause and next action', () => {
+    const error = new FeatureQueryCardinalityError(
+      'ASHIBA_QUERY_EXPECTED_ONE_ROW',
+      buildFeatureQuerySource('user-insert'),
+      0,
+    );
+
+    expect(normalizeError(error)).toEqual({
+      name: 'FeatureQueryCardinalityError',
+      message: 'user-insert query expected one row, but got 0.',
+      code: 'ASHIBA_QUERY_EXPECTED_ONE_ROW',
+      cause: 'The selected feature query cardinality helper received a row count outside its contract.',
+      nextAction: 'Use queryMany for mutation workflows that need to handle zero rows, or use queryOne only when the SQL contract really guarantees exactly one row.',
     });
   });
 });

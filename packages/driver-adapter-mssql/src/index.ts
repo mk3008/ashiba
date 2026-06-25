@@ -4,6 +4,7 @@ import {
   type AshibaQueryModelAnalysis,
   type AshibaSqlExecutionMetadata,
   type AshibaSqlExecutionObserver,
+  type FeatureQueryDialectBinding,
   maskParams,
   normalizeError,
 } from '@ashiba-ts/driver-adapter-core';
@@ -46,11 +47,7 @@ export type AshibaMssqlAdapterOptions = {
 export type AshibaMssqlQueryModel = {
   analysis: AshibaQueryModelAnalysis;
   bindings?: {
-    mssql?: {
-      sourceHash?: string;
-      sql: string;
-      orderedNames: readonly string[];
-    };
+    mssql?: FeatureQueryDialectBinding;
   };
 };
 

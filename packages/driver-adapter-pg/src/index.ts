@@ -6,6 +6,7 @@ import {
   type AshibaSortProfile,
   type AshibaSqlExecutionMetadata,
   type AshibaSqlExecutionObserver,
+  type FeatureQueryPostgresDialectBinding,
   AshibaSortError,
   maskParams,
   normalizeError,
@@ -42,45 +43,7 @@ export type AshibaPostgresAdapterOptions = {
 export type AshibaPostgresQueryModel = {
   analysis: AshibaQueryModelAnalysis;
   bindings?: {
-    postgres?: {
-      sourceHash?: string;
-      sql: string;
-      orderedNames: readonly string[];
-      safeSortInsertion?: {
-        index: number;
-      };
-      optionalConditionCompression?: {
-        branches: readonly {
-          parameterName: string;
-          removalRange: {
-            start: number;
-            end: number;
-            text?: string;
-          };
-          presentReplacement: {
-            start: number;
-            end: number;
-            text: string;
-          };
-        }[];
-        groups?: readonly {
-          branchIndexes: readonly number[];
-          removalRange: {
-            start: number;
-            end: number;
-            text?: string;
-          };
-          leadingPrefixes?: readonly {
-            branchIndexes: readonly number[];
-            removalRange: {
-              start: number;
-              end: number;
-              text?: string;
-            };
-          }[];
-        }[];
-      };
-    };
+    postgres?: FeatureQueryPostgresDialectBinding;
   };
 };
 

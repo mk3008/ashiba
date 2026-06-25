@@ -4,6 +4,7 @@ import {
   type AshibaQueryModelAnalysis,
   type AshibaSqlExecutionMetadata,
   type AshibaSqlExecutionObserver,
+  type FeatureQueryDialectBinding,
   maskParams,
   normalizeError,
 } from '@ashiba-ts/driver-adapter-core';
@@ -45,11 +46,7 @@ export type AshibaMysql2AdapterOptions = {
 export type AshibaMysql2QueryModel = {
   analysis: AshibaQueryModelAnalysis;
   bindings?: {
-    mysql2?: {
-      sourceHash?: string;
-      sql: string;
-      orderedNames: readonly string[];
-    };
+    mysql2?: FeatureQueryDialectBinding;
   };
 };
 

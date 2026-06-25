@@ -64,7 +64,13 @@ For convenience, `@ashiba-ts/driver-adapter-core` also provides cardinality help
 - `queryOne` requires exactly one row
 - `queryOneOrNull` allows zero rows and rejects multiple rows
 
-These helpers do not change SQL meaning. They only make row cardinality expectations explicit at the feature boundary. Mutation workflows can still call `queryMany` and decide affected-row or `RETURNING` semantics in application-owned workflow code.
+These helpers do not change SQL meaning. They only make row cardinality expectations explicit at the feature boundary. Scaffolded `insert ... returning` queries use `queryOne` by default. Scaffolded `update` and `delete` queries use `queryMany` by default so application-owned workflow code can interpret zero affected/returned rows, including optimistic-lock conflict cases.
+
+## Dialect Binding Metadata
+
+`FeatureQueryModel` is shared by feature query boundaries and thin adapters. It has dialect binding slots for PostgreSQL, mysql2, mssql, and future SQLite-compatible adapters.
+
+PostgreSQL is the most complete runtime binding today because it supports metadata-backed safe sort and optional-condition compression. The shared core type is intentionally dialect-extensible so additional adapters can add their own binding metadata without turning the query model into an ORM model.
 
 ## Metadata-Backed Runtime Rewrites
 
@@ -105,4 +111,3 @@ npx ashiba check
 ```
 
 `ashiba check` and related query checks are responsible for detecting mismatches between canonical SQL, runtime snapshots, metadata, and generated mapper-test assets.
-
