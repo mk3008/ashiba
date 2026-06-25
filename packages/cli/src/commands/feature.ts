@@ -43,6 +43,13 @@ import { normalizeSqlSource } from '../sql-source.js';
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
 const TEST_ZTD_CASE_TYPES_IMPORT_PATH = '#tests/support/ztd/case-types.js';
 const TEST_ZTD_HARNESS_IMPORT_PATH = '#tests/support/ztd/harness.js';
+const DRIVER_ADAPTER_CORE_PACKAGE = '@ashiba-ts/driver-adapter-core';
+const DRIVER_ADAPTER_CORE_MIGRATION_WARNING = [
+  'Warning: generated query boundaries import @ashiba-ts/driver-adapter-core directly.',
+  'Add it as a direct application dependency before using the generated query code:',
+  '',
+  'npm install @ashiba-ts/driver-adapter-core',
+].join('\n');
 
 const FEATURE_ACTIONS = ['insert', 'update', 'delete', 'get-by-id', 'list'] as const;
 type FeatureAction = (typeof FEATURE_ACTIONS)[number];
@@ -138,6 +145,7 @@ export interface FeatureScaffoldResult {
   table: string;
   primaryKeyColumn: string;
   dryRun: boolean;
+  warnings: string[];
   outputs: Array<{ path: string; written: boolean; kind: 'directory' | 'file' }>;
 }
 
@@ -149,6 +157,7 @@ export interface FeatureImportResult {
   dryRun: boolean;
   formatted: boolean;
   formatSkippedReason?: string;
+  warnings: string[];
   outputs: Array<{ path: string; written: boolean; kind: 'directory' | 'file' }>;
 }
 
@@ -413,6 +422,7 @@ export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaf
   const queryName = deriveQueryName(table.name, action);
   const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock, projectConfig.featureRoot);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
+  const warnings = getFeatureQueryBoundaryDependencyWarnings(rootDir);
 
   return {
     featureName,
@@ -421,6 +431,7 @@ export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaf
     table: table.canonicalName,
     primaryKeyColumn,
     dryRun: options.dryRun === true,
+    warnings,
     outputs,
   };
 }
@@ -451,6 +462,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
   const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
   const featureName = path.basename(boundaryDir);
+  const warnings = getFeatureQueryBoundaryDependencyWarnings(rootDir);
 
   return {
     featureName,
@@ -459,6 +471,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
     table: table.canonicalName,
     primaryKeyColumn,
     dryRun: options.dryRun === true,
+    warnings,
     outputs,
   };
 }
@@ -542,6 +555,7 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
     ...buildImportedMappingTestFiles(rootDir, relativeFeatureDir, featureName, queryName, importedSql, parameters, parameterTypes, resultColumnContracts),
   ];
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
+  const warnings = getFeatureQueryBoundaryDependencyWarnings(rootDir);
   return {
     featureName,
     queryName,
@@ -550,6 +564,7 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
     dryRun: options.dryRun === true,
     formatted: formatted.formatted,
     ...(formatted.reason ? { formatSkippedReason: formatted.reason } : {}),
+    warnings,
     outputs,
   };
 }
@@ -1987,6 +2002,23 @@ function writeGeneratedFiles(
   }
 
   return outputs;
+}
+
+function getFeatureQueryBoundaryDependencyWarnings(rootDir: string): string[] {
+  const packageJsonPath = path.join(rootDir, 'package.json');
+  if (!existsSync(packageJsonPath)) return [];
+
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
+    dependencies?: Record<string, unknown>;
+    devDependencies?: Record<string, unknown>;
+  };
+  const dependencies = packageJson.dependencies ?? {};
+  const devDependencies = packageJson.devDependencies ?? {};
+  if (DRIVER_ADAPTER_CORE_PACKAGE in dependencies || DRIVER_ADAPTER_CORE_PACKAGE in devDependencies) {
+    return [];
+  }
+
+  return [DRIVER_ADAPTER_CORE_MIGRATION_WARNING];
 }
 
 function loadDdlTable(rootDir: string, rawTableName: string): DdlTable {
@@ -3779,7 +3811,8 @@ function renderFeatureReadme(featureName: string, queryName: string, action: Fea
 }
 
 function formatFeatureScaffoldResult(label: string, result: FeatureScaffoldResult): string {
-  return formatFilePlan(`${label} ${result.dryRun ? 'plan' : 'completed'}: ${result.featureName}`, process.cwd(), result.dryRun, result.outputs);
+  return formatFeatureWarnings(result.warnings)
+    + formatFilePlan(`${label} ${result.dryRun ? 'plan' : 'completed'}: ${result.featureName}`, process.cwd(), result.dryRun, result.outputs);
 }
 
 function formatFeatureImportResult(result: FeatureImportResult): string {
@@ -3793,11 +3826,17 @@ function formatFeatureImportResult(result: FeatureImportResult): string {
   if (result.formatSkippedReason) {
     lines.push(`- format skipped reason: ${result.formatSkippedReason}`);
   }
-  return `${[
-    ...lines,
-    '',
-    ...result.outputs.map((output) => `- ${output.written ? 'write' : 'plan'} ${output.kind}: ${output.path}`),
-  ].join('\n')}\n`;
+  return formatFeatureWarnings(result.warnings)
+    + `${[
+      ...lines,
+      '',
+      ...result.outputs.map((output) => `- ${output.written ? 'write' : 'plan'} ${output.kind}: ${output.path}`),
+    ].join('\n')}\n`;
+}
+
+function formatFeatureWarnings(warnings: string[]): string {
+  if (warnings.length === 0) return '';
+  return `${warnings.join('\n\n')}\n\n`;
 }
 
 function formatFeatureQueryMetadataRefresh(result: FeatureQueryMetadataRefreshResult): string {

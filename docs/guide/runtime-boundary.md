@@ -48,6 +48,8 @@ The adapter still executes SQL through the wrapped driver. It does not expose a 
 
 Generated feature query code depends on the shared `FeatureQueryExecutor` contract from `@ashiba-ts/driver-adapter-core`.
 
+Existing projects created before the thin execution boundary helpers should add `@ashiba-ts/driver-adapter-core` as a direct dependency before scaffolding new query boundaries.
+
 That contract is intentionally small:
 
 ```ts

@@ -867,6 +867,61 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
+  test('warns existing projects to add driver-adapter-core before scaffolding query boundaries', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-core-dependency-warning-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeLegacyPgPackageJsonWithoutCore(rootDir);
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'search.sql'), [
+        'select',
+        '  user_id,',
+        '  email',
+        'from public.users',
+        'where email = :email',
+        '',
+      ].join('\n'), 'utf8');
+
+      const scaffold = runFeatureScaffold({ rootDir, table: 'users', action: 'list', dryRun: true });
+      expect(scaffold.warnings).toEqual([
+        expect.stringContaining('generated query boundaries import @ashiba-ts/driver-adapter-core directly'),
+      ]);
+      expect(scaffold.warnings[0]).toContain('npm install @ashiba-ts/driver-adapter-core');
+
+      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      const queryScaffold = runFeatureQueryScaffold({
+        rootDir,
+        feature: 'users-list',
+        table: 'users',
+        action: 'get-by-id',
+        queryName: 'get-user',
+        dryRun: true,
+      });
+      expect(queryScaffold.warnings).toEqual(scaffold.warnings);
+
+      const imported = runFeatureImport({
+        rootDir,
+        feature: 'users-search',
+        queryName: 'search',
+        sql: 'search.sql',
+        dryRun: true,
+      });
+      expect(imported.warnings).toEqual(scaffold.warnings);
+
+      writePostgresStarterPackageJson(rootDir);
+      expect(runFeatureScaffold({ rootDir, table: 'users', action: 'get-by-id', dryRun: true }).warnings).toEqual([]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('generates DB-valid mapping probe literals for timestamp and json columns', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-mapping-literals-'));
 
@@ -5293,6 +5348,21 @@ function writePostgresStarterPackageJson(rootDir: string): void {
       dotenv: '^16.0.0',
       typescript: '^5.0.0',
       vitest: '^4.0.0',
+    },
+  }, null, 2)}\n`);
+}
+
+function writeLegacyPgPackageJsonWithoutCore(rootDir: string): void {
+  writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+    name: 'legacy-pg-app',
+    private: true,
+    type: 'module',
+    dependencies: {
+      '@ashiba-ts/driver-adapter-pg': '^0.0.0',
+      pg: '^8.0.0',
+    },
+    devDependencies: {
+      '@ashiba-ts/cli': '^0.0.0',
     },
   }, null, 2)}\n`);
 }
