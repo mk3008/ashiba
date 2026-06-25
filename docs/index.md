@@ -22,7 +22,7 @@ features:
   - title: "Safety is checked"
     details: "Drift checks and mapping tests catch stale SQL, DDL, metadata, and generated contracts before they become accepted code."
   - title: "No ORM runtime"
-    details: "Your app runs explicit SQL through a driver adapter and ordinary TypeScript boundaries. No hidden query DSL or object layer."
+    details: "Your app runs explicit SQL through a selected thin SQL execution adapter and ordinary TypeScript boundaries. No hidden query DSL or object layer."
 ---
 
 ## Documentation
@@ -30,5 +30,6 @@ features:
 - [Command API](./generated/api/commands.md)
 - [SSSQL notation](./guide/sssql.md)
 - [Safe sort](./guide/safe-sort.md)
+- [Runtime boundary](./guide/runtime-boundary.md)
 - [SQL format](./guide/sql-format.md)
 - [Concept map](./concepts/concept-map.md)

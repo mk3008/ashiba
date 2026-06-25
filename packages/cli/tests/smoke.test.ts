@@ -29,7 +29,7 @@ describe('@ashiba-ts/cli smoke', () => {
     const help = captureCommandHelp(program);
 
     expect(program.name()).toBe('ashiba');
-    expect(program.description()).toContain('Ashiba Runtime Zero SQL scaffolder');
+    expect(program.description()).toContain('SQL-first scaffold and verification CLI');
     expect(help).toContain('ashiba query format');
   });
 
@@ -345,6 +345,7 @@ describe('@ashiba-ts/cli smoke', () => {
         name: 'starter',
         private: true,
         dependencies: {
+          '@ashiba-ts/driver-adapter-core': '^0.0.0',
           '@ashiba-ts/driver-adapter-pg': '^0.0.0',
           pg: '^8.0.0',
         },
@@ -377,6 +378,7 @@ describe('@ashiba-ts/cli smoke', () => {
         private: true,
         type: 'commonjs',
         dependencies: {
+          '@ashiba-ts/driver-adapter-core': '^0.0.0',
           '@ashiba-ts/driver-adapter-pg': '^0.0.0',
           pg: '^8.0.0',
         },
@@ -686,7 +688,7 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
-  test('scaffolds editable runtime-zero feature and query boundaries from DDL', () => {
+  test('scaffolds editable SQL-first feature and query boundaries from DDL', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-scaffold-'));
 
     try {
@@ -703,6 +705,8 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runFeatureScaffold({ rootDir, table: 'users', action: 'insert' });
       runFeatureScaffold({ rootDir, table: 'users', action: 'update' });
       runFeatureScaffold({ rootDir, table: 'users', action: 'delete' });
+      runFeatureScaffold({ rootDir, table: 'users', action: 'get-by-id' });
+      const listResult = runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
       const query = runFeatureQueryScaffold({
         rootDir,
         feature: 'users-insert',
@@ -715,6 +719,14 @@ describe('@ashiba-ts/cli smoke', () => {
       const featureReadme = readFileSync(path.join(rootDir, 'src/features/users-insert/README.md'), 'utf8');
       const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/query.ts'), 'utf8');
       const getByIdQueryBoundary = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/get-user/query.ts'), 'utf8');
+      const getByIdFeatureQueryBoundary = readFileSync(path.join(rootDir, 'src/features/users-get-by-id/queries/get-by-id/query.ts'), 'utf8');
+      const getByIdFeatureWorkflow = readFileSync(path.join(rootDir, 'src/features/users-get-by-id/workflow.ts'), 'utf8');
+      const getByIdFeatureOutput = readFileSync(path.join(rootDir, 'src/features/users-get-by-id/output.ts'), 'utf8');
+      const listQueryBoundary = readFileSync(path.join(rootDir, `src/features/users-list/queries/${listResult.queryName}/query.ts`), 'utf8');
+      const updateQueryBoundary = readFileSync(path.join(rootDir, 'src/features/users-update/queries/update-users/query.ts'), 'utf8');
+      const updateWorkflow = readFileSync(path.join(rootDir, 'src/features/users-update/workflow.ts'), 'utf8');
+      const updateOutput = readFileSync(path.join(rootDir, 'src/features/users-update/output.ts'), 'utf8');
+      const deleteQueryBoundary = readFileSync(path.join(rootDir, 'src/features/users-delete/queries/delete-users/query.ts'), 'utf8');
       const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.meta.ts'), 'utf8');
       const querySqlSource = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.sql.ts'), 'utf8');
       const queryZtdTest = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/insert-users.boundary.ztd.test.ts'), 'utf8');
@@ -741,7 +753,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'src/features/users-insert/output.ts'), 'utf8')).toContain('export interface UsersInsertResponse');
       expect(readFileSync(path.join(rootDir, 'src/features/users-insert/workflow.ts'), 'utf8')).toContain("from '#features/_shared/featureQueryExecutor.js'");
       expect(queryBoundary).not.toContain("from 'zod'");
-      expect(queryBoundary).toContain("from '#features/_shared/featureQueryExecutor.js'");
+      expect(queryBoundary).toContain("import { queryOne } from '@ashiba-ts/driver-adapter-core';");
+      expect(queryBoundary).toContain("import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
       expect(queryBoundary).not.toContain("from '#features/_shared/loadSqlResource.js'");
       expect(queryBoundary).not.toContain("from 'node:fs'");
       expect(queryBoundary).not.toContain("from 'node:path'");
@@ -752,8 +765,28 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryBoundary).toContain('metadata');
       expect(queryBoundary).toContain('queryModel');
       expect(queryBoundary).toContain("from './generated/query.meta.js'");
+      expect(queryBoundary).toContain('return queryOne<QueryRow>(executor, insertUsersQuery, params as unknown as Record<string, unknown>);');
       expect(queryBoundary).not.toContain('optionalConditionCompression: true');
       expect(getByIdQueryBoundary).toContain('optionalConditionCompression: true');
+      expect(getByIdQueryBoundary).toContain("import { queryOneOrNull } from '@ashiba-ts/driver-adapter-core';");
+      expect(getByIdQueryBoundary).toContain("import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
+      expect(getByIdQueryBoundary).toContain('): Promise<GetUserQueryResult | null> {');
+      expect(getByIdQueryBoundary).toContain('return queryOneOrNull<QueryRow>(executor, getUserQuery, params as unknown as Record<string, unknown>);');
+      expect(listQueryBoundary).toContain("import { queryMany } from '@ashiba-ts/driver-adapter-core';");
+      expect(listQueryBoundary).toContain('return queryMany<QueryRow>(executor, listQuery, params as unknown as Record<string, unknown>);');
+      expect(getByIdFeatureQueryBoundary).toContain('): Promise<GetByIdQueryResult | null> {');
+      expect(getByIdFeatureWorkflow).toContain('export type UsersGetByIdWorkflowResult = GetByIdQueryResult | null;');
+      expect(getByIdFeatureWorkflow).toContain(') => Promise<GetByIdQueryResult | null>;');
+      expect(getByIdFeatureOutput).toContain('export type UsersGetByIdResponse = {');
+      expect(getByIdFeatureOutput).toContain('} | null;');
+      expect(getByIdFeatureOutput).toContain('if (result === null) return null;');
+      expect(updateQueryBoundary).toContain("import { queryMany } from '@ashiba-ts/driver-adapter-core';");
+      expect(updateQueryBoundary).toContain('): Promise<UpdateUsersQueryResult[]> {');
+      expect(updateQueryBoundary).toContain('return queryMany<QueryRow>(executor, updateUsersQuery, params as unknown as Record<string, unknown>);');
+      expect(updateWorkflow).toContain('export type UsersUpdateWorkflowResult = UpdateUsersQueryResult[];');
+      expect(updateOutput).toContain('items: Array<{');
+      expect(deleteQueryBoundary).toContain("import { queryMany } from '@ashiba-ts/driver-adapter-core';");
+      expect(deleteQueryBoundary).toContain('): Promise<DeleteUsersQueryResult[]> {');
       expect(queryMeta).toContain('Generated by Ashiba. Do not edit by hand.');
       expect(queryMeta).toContain('"postgres"');
       expect(queryMeta).not.toContain('"mysql2"');
@@ -779,6 +812,111 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(querySql).toContain('returning\n    user_id\n    , email\n    , display_name');
       expect(updateSql).toContain('returning\n    user_id\n    , email\n    , display_name');
       expect(deleteSql).toContain('returning\n    user_id\n    , email\n    , display_name');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps new query helpers compatible with an existing shared executor shim', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-existing-shared-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      mkdirSync(path.join(rootDir, 'src/features/_shared'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'src/features/_shared/featureQueryExecutor.ts'), [
+        'export interface FeatureQuerySource {',
+        '  id: string;',
+        '  path: string;',
+        '  sqlPath: string;',
+        '  sql: string;',
+        '  queryModel: unknown;',
+        '}',
+        '',
+        'export interface FeatureQueryExecutor {',
+        '  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;',
+        '}',
+        '',
+      ].join('\n'), 'utf8');
+
+      const scaffold = runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      const forced = runFeatureScaffold({ rootDir, table: 'users', action: 'list', force: true });
+      const queryBoundary = readFileSync(path.join(rootDir, `src/features/users-list/queries/${scaffold.queryName}/query.ts`), 'utf8');
+
+      expect(scaffold.outputs).toContainEqual({
+        path: 'src/features/_shared/featureQueryExecutor.ts',
+        kind: 'file',
+        written: false,
+      });
+      expect(forced.outputs).toContainEqual({
+        path: 'src/features/_shared/featureQueryExecutor.ts',
+        kind: 'file',
+        written: true,
+      });
+      expect(queryBoundary).toContain("import { queryMany } from '@ashiba-ts/driver-adapter-core';");
+      expect(queryBoundary).toContain("import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
+      expect(queryBoundary).not.toContain("import { queryMany, type FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('warns existing projects to add driver-adapter-core before scaffolding query boundaries', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-core-dependency-warning-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeLegacyPgPackageJsonWithoutCore(rootDir);
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key,',
+        '  email text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      writeFileSync(path.join(rootDir, 'search.sql'), [
+        'select',
+        '  user_id,',
+        '  email',
+        'from public.users',
+        'where email = :email',
+        '',
+      ].join('\n'), 'utf8');
+
+      const scaffold = runFeatureScaffold({ rootDir, table: 'users', action: 'list', dryRun: true });
+      expect(scaffold.warnings).toEqual([
+        expect.stringContaining('generated query boundaries import @ashiba-ts/driver-adapter-core directly'),
+      ]);
+      expect(scaffold.warnings[0]).toContain('npm install @ashiba-ts/driver-adapter-core');
+
+      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      const queryScaffold = runFeatureQueryScaffold({
+        rootDir,
+        feature: 'users-list',
+        table: 'users',
+        action: 'get-by-id',
+        queryName: 'get-user',
+        dryRun: true,
+      });
+      expect(queryScaffold.warnings).toEqual(scaffold.warnings);
+
+      const imported = runFeatureImport({
+        rootDir,
+        feature: 'users-search',
+        queryName: 'search',
+        sql: 'search.sql',
+        dryRun: true,
+      });
+      expect(imported.warnings).toEqual(scaffold.warnings);
+
+      writePostgresStarterPackageJson(rootDir);
+      expect(runFeatureScaffold({ rootDir, table: 'users', action: 'get-by-id', dryRun: true }).warnings).toEqual([]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1675,7 +1813,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryBoundary).toContain("from './generated/query.sql.js'");
       expect(queryBoundary).not.toContain("from '#features/_shared/loadSqlResource.js'");
       expect(querySqlSource).toContain('export const querySql =');
-      expect(queryBoundary).toMatch(/if \(row === null\) \{\n {4}throw new Error\('get-user query expected one row, but got 0\.'\);\n {2}\}\n {2}return row;/);
+      expect(queryBoundary).toContain("import { queryOneOrNull } from '@ashiba-ts/driver-adapter-core';");
+      expect(queryBoundary).toContain("import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
+      expect(queryBoundary).toContain('return queryOneOrNull<QueryRow>(executor, getUserQuery, params as unknown as Record<string, unknown>);');
       expect(ztdTest).toContain("from '#tests/support/ztd/harness.js'");
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -5197,6 +5337,7 @@ function writePostgresStarterPackageJson(rootDir: string): void {
     private: true,
     type: 'module',
     dependencies: {
+      '@ashiba-ts/driver-adapter-core': '^0.0.0',
       '@ashiba-ts/driver-adapter-pg': '^0.0.0',
       pg: '^8.0.0',
     },
@@ -5207,6 +5348,21 @@ function writePostgresStarterPackageJson(rootDir: string): void {
       dotenv: '^16.0.0',
       typescript: '^5.0.0',
       vitest: '^4.0.0',
+    },
+  }, null, 2)}\n`);
+}
+
+function writeLegacyPgPackageJsonWithoutCore(rootDir: string): void {
+  writeFileSync(path.join(rootDir, 'package.json'), `${JSON.stringify({
+    name: 'legacy-pg-app',
+    private: true,
+    type: 'module',
+    dependencies: {
+      '@ashiba-ts/driver-adapter-pg': '^0.0.0',
+      pg: '^8.0.0',
+    },
+    devDependencies: {
+      '@ashiba-ts/cli': '^0.0.0',
     },
   }, null, 2)}\n`);
 }

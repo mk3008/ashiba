@@ -1,3 +1,4 @@
+import { queryMany } from '@ashiba-ts/driver-adapter-core';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
@@ -48,6 +49,5 @@ export async function executeGetTicketDetailQuery(
   executor: FeatureQueryExecutor,
   params: GetTicketDetailQueryParams
 ): Promise<GetTicketDetailQueryResult[]> {
-  const rows = await executor.query<QueryRow>(getTicketDetailQuery, params as unknown as Record<string, unknown>);
-  return rows;
+  return queryMany<QueryRow>(executor, getTicketDetailQuery, params as unknown as Record<string, unknown>);
 }

@@ -36,6 +36,9 @@ importers:
 
   examples/hono-pg-support-inbox:
     dependencies:
+      '@ashiba-ts/driver-adapter-core':
+        specifier: workspace:*
+        version: link:../../packages/driver-adapter-core
       '@ashiba-ts/driver-adapter-pg':
         specifier: workspace:*
         version: link:../../packages/driver-adapter-pg

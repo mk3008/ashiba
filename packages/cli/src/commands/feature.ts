@@ -43,6 +43,13 @@ import { normalizeSqlSource } from '../sql-source.js';
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
 const TEST_ZTD_CASE_TYPES_IMPORT_PATH = '#tests/support/ztd/case-types.js';
 const TEST_ZTD_HARNESS_IMPORT_PATH = '#tests/support/ztd/harness.js';
+const DRIVER_ADAPTER_CORE_PACKAGE = '@ashiba-ts/driver-adapter-core';
+const DRIVER_ADAPTER_CORE_MIGRATION_WARNING = [
+  'Warning: generated query boundaries import @ashiba-ts/driver-adapter-core directly.',
+  'Add it as a direct application dependency before using the generated query code:',
+  '',
+  'npm install @ashiba-ts/driver-adapter-core',
+].join('\n');
 
 const FEATURE_ACTIONS = ['insert', 'update', 'delete', 'get-by-id', 'list'] as const;
 type FeatureAction = (typeof FEATURE_ACTIONS)[number];
@@ -138,6 +145,7 @@ export interface FeatureScaffoldResult {
   table: string;
   primaryKeyColumn: string;
   dryRun: boolean;
+  warnings: string[];
   outputs: Array<{ path: string; written: boolean; kind: 'directory' | 'file' }>;
 }
 
@@ -149,6 +157,7 @@ export interface FeatureImportResult {
   dryRun: boolean;
   formatted: boolean;
   formatSkippedReason?: string;
+  warnings: string[];
   outputs: Array<{ path: string; written: boolean; kind: 'directory' | 'file' }>;
 }
 
@@ -413,6 +422,7 @@ export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaf
   const queryName = deriveQueryName(table.name, action);
   const files = buildFeatureFiles(rootDir, featureName, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock, projectConfig.featureRoot);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
+  const warnings = getFeatureQueryBoundaryDependencyWarnings(rootDir);
 
   return {
     featureName,
@@ -421,6 +431,7 @@ export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaf
     table: table.canonicalName,
     primaryKeyColumn,
     dryRun: options.dryRun === true,
+    warnings,
     outputs,
   };
 }
@@ -451,6 +462,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
   const files = buildQueryFiles(rootDir, relativeBoundary, queryName, action, table, primaryKeyColumn, returningMode, projectConfig.mutation.optimisticLock);
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
   const featureName = path.basename(boundaryDir);
+  const warnings = getFeatureQueryBoundaryDependencyWarnings(rootDir);
 
   return {
     featureName,
@@ -459,6 +471,7 @@ export function runFeatureQueryScaffold(options: FeatureQueryScaffoldOptions): F
     table: table.canonicalName,
     primaryKeyColumn,
     dryRun: options.dryRun === true,
+    warnings,
     outputs,
   };
 }
@@ -542,6 +555,7 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
     ...buildImportedMappingTestFiles(rootDir, relativeFeatureDir, featureName, queryName, importedSql, parameters, parameterTypes, resultColumnContracts),
   ];
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
+  const warnings = getFeatureQueryBoundaryDependencyWarnings(rootDir);
   return {
     featureName,
     queryName,
@@ -550,6 +564,7 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
     dryRun: options.dryRun === true,
     formatted: formatted.formatted,
     ...(formatted.reason ? { formatSkippedReason: formatted.reason } : {}),
+    warnings,
     outputs,
   };
 }
@@ -1932,40 +1947,15 @@ function buildSharedFiles(featureRoot = 'src/features'): GeneratedFile[] {
       kind: 'file',
       overwrite: false,
       contents: [
-        'export type FeatureQueryModel = {',
-        '  analysis: {',
-        "    astParse: 'ok';",
-        "    statementKind: 'select' | 'insert' | 'update' | 'delete' | 'unknown';",
-        "    rootQueryShape?: 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';",
-        '    hasTopLevelOrderBy: boolean;',
-        '    sourceHash?: string;',
-        '    resultColumnTypes?: Record<string, string>;',
-        '    parameterTypes?: Record<string, string>;',
-        '  };',
-        '  bindings?: {',
-        '    postgres?: { sourceHash?: string; sql: string; orderedNames: readonly string[] };',
-        '  };',
-        '};',
-        '',
-        'export interface FeatureQuerySource {',
-        '  id: string;',
-        '  path: string;',
-        '  sqlPath: string;',
-        '  sql: string;',
-        '  queryModel: FeatureQueryModel;',
-        '  optionalConditionCompression?: boolean;',
-        '  metadata?: {',
-        '    sqlId?: string;',
-        '    queryId?: string;',
-        '    sqlFile?: string;',
-        '    sqlPath?: string;',
-        '    dialect?: string;',
-        '  };',
-        '}',
-        '',
-        'export interface FeatureQueryExecutor {',
-        '  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;',
-        '}',
+        'export {',
+        '  FeatureQueryCardinalityError,',
+        '  queryMany,',
+        '  queryOne,',
+        '  queryOneOrNull,',
+        '  type FeatureQueryExecutor,',
+        '  type FeatureQueryModel,',
+        '  type FeatureQuerySource,',
+        "} from '@ashiba-ts/driver-adapter-core';",
         '',
       ].join('\n'),
     },
@@ -1989,6 +1979,7 @@ function writeGeneratedFiles(
     const destination = path.join(rootDir, file.relativePath);
     const exists = existsSync(destination);
     const mayOverwrite = force || file.overwrite === true;
+    let actuallyWritten = false;
     if (file.kind === 'file' && exists && !mayOverwrite && file.overwrite !== false) {
       throw invalidCliInputError(
         'ASHIBA_SCAFFOLD_OVERWRITE_REQUIRES_FORCE',
@@ -2000,15 +1991,34 @@ function writeGeneratedFiles(
     if (!dryRun) {
       if (file.kind === 'directory') {
         mkdirSync(destination, { recursive: true });
+        actuallyWritten = true;
       } else if (!exists || mayOverwrite || file.overwrite !== false) {
         mkdirSync(path.dirname(destination), { recursive: true });
         writeFileSync(destination, file.contents ?? '', 'utf8');
+        actuallyWritten = true;
       }
     }
-    outputs.push({ path: file.relativePath, written: !dryRun, kind: file.kind });
+    outputs.push({ path: file.relativePath, written: actuallyWritten, kind: file.kind });
   }
 
   return outputs;
+}
+
+function getFeatureQueryBoundaryDependencyWarnings(rootDir: string): string[] {
+  const packageJsonPath = path.join(rootDir, 'package.json');
+  if (!existsSync(packageJsonPath)) return [];
+
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
+    dependencies?: Record<string, unknown>;
+    devDependencies?: Record<string, unknown>;
+  };
+  const dependencies = packageJson.dependencies ?? {};
+  const devDependencies = packageJson.devDependencies ?? {};
+  if (DRIVER_ADAPTER_CORE_PACKAGE in dependencies || DRIVER_ADAPTER_CORE_PACKAGE in devDependencies) {
+    return [];
+  }
+
+  return [DRIVER_ADAPTER_CORE_MIGRATION_WARNING];
 }
 
 function loadDdlTable(rootDir: string, rawTableName: string): DdlTable {
@@ -2383,18 +2393,19 @@ function renderFeatureWorkflow(featureName: string, queryName: string, plan: Ret
   const queryPascal = toPascal(queryName);
   const fields = toFeatureFields(plan.params);
   const requestName = fields.length > 0 ? 'request' : '_request';
+  const resultType = renderFeatureQueryResultType(plan.action, queryPascal);
   return [
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     `import type { ${pascal}Request } from './input.js';`,
     `import { execute${queryPascal}Query, type ${queryPascal}QueryParams, type ${queryPascal}QueryResult } from './queries/${queryName}/query.js';`,
     '',
-    `export type ${pascal}WorkflowResult = ${plan.action === 'list' ? `${queryPascal}QueryResult[]` : `${queryPascal}QueryResult`};`,
+    `export type ${pascal}WorkflowResult = ${resultType};`,
     '',
     `export interface ${pascal}Queries {`,
     `  execute${queryPascal}: (`,
     '    executor: FeatureQueryExecutor,',
     `    params: ${queryPascal}QueryParams,`,
-    `  ) => Promise<${plan.action === 'list' ? `${queryPascal}QueryResult[]` : `${queryPascal}QueryResult`}>;`,
+    `  ) => Promise<${resultType}>;`,
     '}',
     '',
     `const defaultQueries: ${pascal}Queries = {`,
@@ -2427,16 +2438,27 @@ function renderFeatureOutput(featureName: string, queryName: string, plan: Retur
   const pascal = toPascal(featureName);
   const queryPascal = toPascal(queryName);
   const fields = toFeatureFields(plan.rows);
+  const resultType = renderFeatureQueryResultType(plan.action, queryPascal);
   return [
     `import type { ${queryPascal}QueryResult } from './queries/${queryName}/query.js';`,
     '',
     ...renderFeatureResponseType(pascal, plan.action, fields),
     '',
-    `export function buildResult(result: ${plan.action === 'list' ? `${queryPascal}QueryResult[]` : `${queryPascal}QueryResult`}): ${pascal}Response {`,
+    `export function buildResult(result: ${resultType}): ${pascal}Response {`,
     ...renderFeatureBuildResultLines(plan.action, fields),
     '}',
     '',
   ].join('\n');
+}
+
+function renderFeatureQueryResultType(action: FeatureAction, queryPascal: string): string {
+  if (isManyResultAction(action)) return `${queryPascal}QueryResult[]`;
+  if (action === 'get-by-id') return `${queryPascal}QueryResult | null`;
+  return `${queryPascal}QueryResult`;
+}
+
+function isManyResultAction(action: FeatureAction): boolean {
+  return action === 'list' || action === 'update' || action === 'delete';
 }
 
 function toFeatureFields(columns: DdlColumn[]): RenderField[] {
@@ -2523,7 +2545,7 @@ function renderFeatureParserSupport(): string[] {
 }
 
 function renderFeatureResponseType(pascal: string, action: FeatureAction, fields: RenderField[]): string[] {
-  if (action === 'list') {
+  if (isManyResultAction(action)) {
     return [
       `export interface ${pascal}Response {`,
       '  items: Array<{',
@@ -2532,19 +2554,38 @@ function renderFeatureResponseType(pascal: string, action: FeatureAction, fields
       '}',
     ];
   }
+  if (action === 'get-by-id') {
+    return [
+      `export type ${pascal}Response = {`,
+      ...fields.map((field) => `  ${field.name}: ${field.typeScriptType};`),
+      '} | null;',
+    ];
+  }
   return [
     `export interface ${pascal}Response ${renderRenderFieldInterfaceBody(fields)}`,
   ];
 }
 
 function renderFeatureBuildResultLines(action: FeatureAction, fields: RenderField[]): string[] {
-  if (action === 'list') {
+  if (isManyResultAction(action)) {
     return [
       '  return {',
       '    items: result.map((item) => ({',
       ...fields.map((field) => `      ${field.name}: item.${field.sourceName},`),
       '    })),',
       '  };',
+    ];
+  }
+  if (action === 'get-by-id') {
+    return [
+      '  if (result === null) return null;',
+      ...(fields.length === 0
+        ? ['  return {};']
+        : [
+            '  return {',
+            ...fields.map((field) => `    ${field.name}: result.${field.sourceName},`),
+            '  };',
+          ]),
     ];
   }
   if (fields.length === 0) return ['  return {};'];
@@ -2571,18 +2612,19 @@ function renderQueryBoundary(
 ): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
-  const result = plan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
+  const result = isManyResultAction(plan.action)
+    ? `${pascal}QueryResult[]`
+    : plan.action === 'get-by-id'
+      ? `${pascal}QueryResult | null`
+      : `${pascal}QueryResult`;
   const enablesOptionalConditionCompression = plan.action === 'list' || plan.action === 'get-by-id';
-  const rowExpr = plan.action === 'list' ? 'rows as QueryRow[]' : '(rows[0] ?? null) as QueryRow | null';
-  const returnLines = plan.action === 'list'
-    ? ['  return row;']
-    : [
-        '  if (row === null) {',
-        `    throw new Error('${queryName} query expected one row, but got 0.');`,
-        '  }',
-        '  return row;',
-      ];
+  const helperName = isManyResultAction(plan.action)
+    ? 'queryMany'
+    : plan.action === 'get-by-id'
+      ? 'queryOneOrNull'
+      : 'queryOne';
   return [
+    `import { ${helperName} } from '@ashiba-ts/driver-adapter-core';`,
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
     "import { querySql } from './generated/query.sql.js';",
@@ -2613,9 +2655,7 @@ function renderQueryBoundary(
     '  executor: FeatureQueryExecutor,',
     `  params: ${pascal}QueryParams`,
     `): Promise<${result}> {`,
-    `  const rows = await executor.query<QueryRow>(${camel}Query, params as unknown as Record<string, unknown>);`,
-    `  const row = ${rowExpr};`,
-    ...returnLines,
+    `  return ${helperName}<QueryRow>(executor, ${camel}Query, params as unknown as Record<string, unknown>);`,
     '}',
     '',
   ].join('\n');
@@ -2632,6 +2672,7 @@ function renderImportedQueryBoundary(
   const camel = toCamel(queryName);
   const resultFields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   return [
+    "import { queryMany } from '@ashiba-ts/driver-adapter-core';",
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
     "import { querySql } from './generated/query.sql.js';",
@@ -2662,8 +2703,7 @@ function renderImportedQueryBoundary(
     '  executor: FeatureQueryExecutor,',
     `  params: ${pascal}QueryParams`,
     `): Promise<${pascal}QueryResult[]> {`,
-    `  const rows = await executor.query<QueryRow>(${camel}Query, params as unknown as Record<string, unknown>);`,
-    '  return rows;',
+    `  return queryMany<QueryRow>(executor, ${camel}Query, params as unknown as Record<string, unknown>);`,
     '}',
     '',
   ].join('\n');
@@ -3116,7 +3156,7 @@ function renderFeatureBoundaryTest(
     ? `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`
     : `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`;
   const queryResultRows = indentContinuation(`${queryResult} as unknown[]`, 6);
-  const response = plan.action === 'list'
+  const response = isManyResultAction(plan.action)
     ? renderTsExpression({ items: [Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)]))] }, 2)
     : renderTsExpression(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)])), 2);
   return [
@@ -3187,7 +3227,7 @@ function renderQueryZtdTypes(
   actionPlan: ReturnType<typeof buildActionPlan>
 ): string {
   const pascal = toPascal(queryName);
-  const outputType = actionPlan.action === 'list' ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
+  const outputType = isManyResultAction(actionPlan.action) ? `${pascal}QueryResult[]` : `${pascal}QueryResult`;
   return [
     `import type { QuerySpecZtdCase } from '${TEST_ZTD_CASE_TYPES_IMPORT_PATH}';`,
     `import type { ${pascal}QueryParams, ${pascal}QueryResult } from '../query.js';`,
@@ -3567,7 +3607,7 @@ function buildGeneratedMapperProbeCase(
     mapperProbe: {
       sql: buildSyntheticMapperProbeSql(fields, table, mode),
     },
-    output: actionPlan.action === 'list' ? [row] : row,
+    output: isManyResultAction(actionPlan.action) ? [row] : row,
   };
 }
 
@@ -3771,7 +3811,8 @@ function renderFeatureReadme(featureName: string, queryName: string, action: Fea
 }
 
 function formatFeatureScaffoldResult(label: string, result: FeatureScaffoldResult): string {
-  return formatFilePlan(`${label} ${result.dryRun ? 'plan' : 'completed'}: ${result.featureName}`, process.cwd(), result.dryRun, result.outputs);
+  return formatFeatureWarnings(result.warnings)
+    + formatFilePlan(`${label} ${result.dryRun ? 'plan' : 'completed'}: ${result.featureName}`, process.cwd(), result.dryRun, result.outputs);
 }
 
 function formatFeatureImportResult(result: FeatureImportResult): string {
@@ -3785,11 +3826,17 @@ function formatFeatureImportResult(result: FeatureImportResult): string {
   if (result.formatSkippedReason) {
     lines.push(`- format skipped reason: ${result.formatSkippedReason}`);
   }
-  return `${[
-    ...lines,
-    '',
-    ...result.outputs.map((output) => `- ${output.written ? 'write' : 'plan'} ${output.kind}: ${output.path}`),
-  ].join('\n')}\n`;
+  return formatFeatureWarnings(result.warnings)
+    + `${[
+      ...lines,
+      '',
+      ...result.outputs.map((output) => `- ${output.written ? 'write' : 'plan'} ${output.kind}: ${output.path}`),
+    ].join('\n')}\n`;
+}
+
+function formatFeatureWarnings(warnings: string[]): string {
+  if (warnings.length === 0) return '';
+  return `${warnings.join('\n\n')}\n\n`;
 }
 
 function formatFeatureQueryMetadataRefresh(result: FeatureQueryMetadataRefreshResult): string {

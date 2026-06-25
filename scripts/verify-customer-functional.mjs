@@ -57,6 +57,7 @@ function verifyPostgresCustomer(port) {
   mkdirSync(root, { recursive: true });
   writeCustomerPackageJson(root, {
     dependencies: {
+      '@ashiba-ts/driver-adapter-core': '^0.0.0',
       '@ashiba-ts/driver-adapter-pg': '^0.0.0',
       pino: '^9.7.0',
       pg: '^8.21.0',

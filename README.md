@@ -6,7 +6,7 @@
 
 Show me the SQL. Ashiba handles the boring parts.
 
-Ashiba is a SQL-first generator for TypeScript applications. You write the SQL; Ashiba generates DTOs, mapper boundaries, tests, metadata, and drift checks around it.
+Ashiba is a SQL-first scaffold and verification layer for TypeScript applications. You write the SQL; Ashiba generates DTOs, mapper boundaries, tests, metadata, and drift checks around it.
 
 No ORM runtime. No hidden query DSL. No mapper boilerplate.
 
@@ -26,7 +26,7 @@ Using SQL should not mean hand-writing every DTO, mapper glue file, test scaffol
 
 The SQL is yours. Edit it freely, keep it as application-owned source code, and let Ashiba generate the TypeScript support around it.
 
-Ashiba is not in your runtime path. Your application stays under your control: explicit SQL, a driver adapter, and ordinary TypeScript.
+Ashiba's generator is not in your runtime path. Your application stays under your control: explicit SQL, a selected thin driver adapter, and ordinary TypeScript.
 
 ## Getting Started
 
@@ -46,7 +46,7 @@ Prerequisites:
 ### 1. Install the PostgreSQL path
 
 ```bash
-npm install @ashiba-ts/driver-adapter-pg pg
+npm install @ashiba-ts/driver-adapter-core @ashiba-ts/driver-adapter-pg pg
 npm install -D @ashiba-ts/cli @ashiba-ts/testkit-adapter-pg @types/pg typescript vitest dotenv
 ```
 
@@ -89,7 +89,7 @@ At this point, you should have the core Ashiba experience:
 - TypeScript DTO and mapper support exists around it.
 - Generated assets are reviewable files.
 - Tests and checks tell you when the contract drifts.
-- Runtime stays ordinary: SQL, driver adapter, and TypeScript application code.
+- Runtime stays ordinary: canonical SQL, a thin SQL execution adapter, and TypeScript application code.
 
 ### 6. Change the code
 
@@ -119,6 +119,7 @@ Ashiba chooses DBMS and wrapped driver explicitly. PostgreSQL is the most comple
 
 | DBMS | Wrapped driver/tool | Package | Current status |
 |---|---|---|---|
+| Shared driver contracts | driver adapter core | `@ashiba-ts/driver-adapter-core` | Shared feature query contracts and cardinality helpers. No ORM model or SQL DSL. |
 | PostgreSQL | `pg` | `@ashiba-ts/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, mapper-test lane, named-parameter binding, safe sort, optional-condition metadata, and tutorial coverage. |
 | PostgreSQL | `pg` testkit | `@ashiba-ts/testkit-adapter-pg` | ZTD mapper-test adapter used by the PostgreSQL starter. |
 | PostgreSQL | `pg_dump` | `@ashiba-ts/ddl-pull-pg-dump` | Optional helper for comparing production DDL from `pg_dump` with local DDL. |
@@ -256,7 +257,13 @@ npx ashiba config
 
 ## Runtime Boundary
 
-Ashiba is a development-time generator, not a production object layer. At runtime, your application runs explicit SQL through the selected driver adapter and ordinary TypeScript boundaries; Ashiba stays in scaffolding, generation, tests, drift checks, and review artifacts.
+Ashiba is not an ORM runtime or SQL DSL. The CLI generator, SQL analysis, scaffolding, tests, and drift checks are development-time tools.
+
+At runtime, applications may use a selected thin SQL execution adapter such as `@ashiba-ts/driver-adapter-pg`. That adapter owns narrow execution concerns: named-parameter binding, metadata-backed optional-condition compression, metadata-backed safe sort, stale metadata rejection, and observer events. It does not own entities, relations, lazy loading, unit of work, dirty tracking, or query planning.
+
+The `.sql` file is the canonical source. Generated `query.sql.ts` is a runtime snapshot and must not be hand edited. After SQL-only edits, run refresh/check so `.sql`, `query.sql.ts`, and `query.meta.ts` stay synchronized.
+
+See [Runtime boundary](docs/guide/runtime-boundary.md) for the exact wording and safety boundary.
 
 ## Command API
 
