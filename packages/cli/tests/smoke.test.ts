@@ -922,7 +922,7 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
-  test('generates DB-valid mapping probe literals for timestamp and json columns', () => {
+  test('generates DB-valid mapping probe literals for timestamp, json, and array columns', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-mapping-literals-'));
 
     try {
@@ -931,7 +931,8 @@ describe('@ashiba-ts/cli smoke', () => {
         'create table public.event_logs (',
         '  event_log_id serial primary key,',
         '  created_at timestamptz not null,',
-        "  payload jsonb not null default '{}'::jsonb",
+        "  payload jsonb not null default '{}'::jsonb,",
+        "  tags text[] not null default array[]::text[]",
         ');',
         '',
       ].join('\n'), 'utf8');
@@ -942,9 +943,12 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(queryMappingCases).toContain("cast('2026-01-01T00:00:00.000Z' as timestamptz)");
       expect(queryMappingCases).toContain('as jsonb');
+      expect(queryMappingCases).toContain("cast(array['tags-1'] as text[])");
+      expect(queryMappingCases).toContain('tags: [');
       expect(queryMappingCases).toContain('sample');
       expect(queryMappingCases).not.toContain('created_at-boundary-value');
       expect(queryMappingCases).not.toContain('payload-boundary-value');
+      expect(queryMappingCases).not.toContain("cast('tags-1' as text[])");
       expect(queryMappingCases).not.toContain('[object Object]');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });

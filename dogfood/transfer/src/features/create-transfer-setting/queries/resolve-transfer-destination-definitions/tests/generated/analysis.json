@@ -1,0 +1,48 @@
+{
+  "feature": "create-transfer-setting",
+  "query": "resolve-transfer-destination-definitions",
+  "action": "list",
+  "physicalTables": [
+    "rawsql_transfer.destination_definition"
+  ],
+  "anchorSource": "destination_definition",
+  "anchorTable": "rawsql_transfer.destination_definition",
+  "table": "rawsql_transfer.destination_definition",
+  "primaryKeyColumn": "destination_definition_id",
+  "importSource": "existing-sql",
+  "mappingCaseSignature": {
+    "query": "resolve-transfer-destination-definitions",
+    "action": "list",
+    "table": "rawsql_transfer.destination_definition",
+    "anchorSource": "destination_definition",
+    "anchorTable": "rawsql_transfer.destination_definition",
+    "primaryKeyColumn": "destination_definition_id",
+    "physicalTables": [
+      "rawsql_transfer.destination_definition"
+    ],
+    "params": [
+      {
+        "name": "destination_definition_names",
+        "typeScriptType": "unknown"
+      }
+    ],
+    "rows": [
+      {
+        "name": "destination_definition_id",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      },
+      {
+        "name": "destination_definition_name",
+        "typeScriptType": "string | null",
+        "sqlType": "text",
+        "nullability": "unknown"
+      }
+    ],
+    "generatedCaseNames": [
+      "db-type-mapping: maps resolve-transfer-destination-definitions imported result columns into the DTO"
+    ]
+  },
+  "status": "generated-from-imported-sql"
+}

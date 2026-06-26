@@ -3517,6 +3517,9 @@ function sqlTypeForDdlColumn(column: DdlColumn): string {
 
 function sqlLiteral(value: unknown): string {
   if (value === null || value === undefined) return 'null';
+  if (Array.isArray(value)) {
+    return `array[${value.map((entry) => sqlLiteral(entry)).join(', ')}]`;
+  }
   if (typeof value === 'number') return Number.isFinite(value) ? String(value) : '0';
   if (typeof value === 'boolean') return value ? 'true' : 'false';
   if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
@@ -3532,6 +3535,9 @@ function sampleColumnValueByMode(column: DdlColumn, mode: 'sample' | 'nullable' 
 function coerceSampleToContractType(value: unknown, typeScriptType: string): unknown {
   const normalized = typeScriptType.replace(/\s*\|\s*null/g, '').trim();
   if (value === null || value === undefined) return value;
+  if (normalized.endsWith('[]')) {
+    return Array.isArray(value) ? value : [value];
+  }
   if (normalized === 'number' && typeof value === 'string' && value.trim() !== '') {
     const next = Number(value);
     return Number.isFinite(next) ? next : value;
@@ -3652,6 +3658,9 @@ function sampleValueForSqlType(
   mode: 'sample' | 'nullable' | 'boundary' | 'negative-boundary',
 ): unknown {
   const normalized = sqlType.toLowerCase().replace(/\([^)]*\)/g, '').trim();
+  if (isSqlArrayType(normalized)) {
+    return [mode === 'negative-boundary' ? 'negative-boundary-value' : 'value'];
+  }
   if (/^(bigint|int8|bigserial|serial8)$/.test(normalized)) {
     if (mode === 'boundary') return '9223372036854775807';
     if (mode === 'negative-boundary') return '-9223372036854775808';
@@ -3677,6 +3686,9 @@ function sampleValueForSqlType(
 function sampleColumnValue(column: DdlColumn, rowNumber: number): unknown {
   const type = column.typeName.toLowerCase();
   const name = column.name.toLowerCase();
+  if (isSqlArrayType(type)) {
+    return [`${column.name}-${rowNumber}`];
+  }
   if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) {
     return `2026-01-0${rowNumber}T00:00:00.000Z`;
   }
@@ -3707,6 +3719,7 @@ function sampleColumnValue(column: DdlColumn, rowNumber: number): unknown {
 function sampleBoundaryColumnValue(column: DdlColumn): unknown {
   const type = column.typeName.toLowerCase();
   const name = column.name.toLowerCase();
+  if (isSqlArrayType(type)) return [`${column.name}-boundary-value`];
   if (/^(smallint|int2)$/.test(type)) return 32767;
   if (/^(integer|int|int4|serial|serial4)$/.test(type)) return 2147483647;
   if (/^(bigint|int8|bigserial|serial8)$/.test(type)) return '9223372036854775807';
@@ -3722,6 +3735,7 @@ function sampleBoundaryColumnValue(column: DdlColumn): unknown {
 function sampleNegativeBoundaryColumnValue(column: DdlColumn): unknown {
   const type = column.typeName.toLowerCase();
   const name = column.name.toLowerCase();
+  if (isSqlArrayType(type)) return [`${column.name}-negative-boundary-value`];
   if (/^(smallint|int2)$/.test(type)) return -32768;
   if (/^(integer|int|int4|serial|serial4)$/.test(type)) return -2147483648;
   if (/^(bigint|int8|bigserial|serial8)$/.test(type)) return '-9223372036854775808';
@@ -3732,6 +3746,10 @@ function sampleNegativeBoundaryColumnValue(column: DdlColumn): unknown {
   if (/^(json|jsonb)$/.test(type)) return { case: 'negative-boundary' };
   if (name.includes('email')) return 'negative-boundary@example.com';
   return `${column.name}-negative-boundary-value`;
+}
+
+function isSqlArrayType(typeName: string): boolean {
+  return /\[\]\s*$/.test(typeName.trim());
 }
 
 function isBoundaryValueColumn(column: DdlColumn): boolean {
@@ -3998,7 +4016,9 @@ function isGeneratedInsertColumn(column: DdlColumn, primaryKeyColumn: string): b
 
 function toTsType(column: DdlColumn): string {
   const type = column.typeName.toLowerCase();
-  const base = /^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(type)
+  const base = isSqlArrayType(type)
+    ? 'string[]'
+    : /^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(type)
     ? 'number'
     : /^(bigint|int8|bigserial|serial8|numeric|decimal)$/.test(type)
       ? 'string'

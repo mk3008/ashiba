@@ -1,0 +1,73 @@
+{
+  "name": "@ashiba-ts/transfer-dogfood",
+  "version": "0.0.0",
+  "description": "Ashiba dogfooding package for SQL-first PostgreSQL transfer workflows.",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "imports": {
+    "#features/*.js": {
+      "types": "./src/features/*.ts",
+      "default": "./dist/features/*.js"
+    },
+    "#libraries/*.js": {
+      "types": "./src/libraries/*.ts",
+      "default": "./dist/libraries/*.js"
+    },
+    "#adapters/*.js": {
+      "types": "./src/adapters/*.ts",
+      "default": "./dist/adapters/*.js"
+    },
+    "#tests/*.js": {
+      "types": "./tests/*.ts",
+      "default": "./tests/*.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/driver-adapter-pg build && pnpm --filter @ashiba-ts/testkit-adapter-pg build && tsc --noEmit -p tsconfig.json",
+    "format": "prettier . --write",
+    "lint": "node ./scripts/check-sql-leading-commas.mjs && eslint src tests --ext .ts",
+    "lint:sql": "node ./scripts/check-sql-leading-commas.mjs",
+    "lint:fix": "eslint . --fix",
+    "ashiba:generate": "node ../../packages/cli/dist/index.js feature query refresh create-transfer-destination-definition insert-transfer-destination-definition && node ../../packages/cli/dist/index.js feature query refresh create-transfer-setting insert-transfer-setting && node ../../packages/cli/dist/index.js feature query refresh create-transfer-setting insert-transfer-setting-destination-definition && node ../../packages/cli/dist/index.js feature query refresh create-transfer-setting resolve-transfer-destination-definitions",
+    "check:drift": "node ../../packages/cli/dist/index.js check"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,sql}": [
+      "prettier --write"
+    ]
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "dependencies": {
+    "@ashiba-ts/driver-adapter-core": "workspace:*",
+    "@ashiba-ts/driver-adapter-pg": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@ashiba-ts/cli": "workspace:*",
+    "@ashiba-ts/testkit-adapter-pg": "workspace:*",
+    "@types/pg": "^8.15.5",
+    "eslint": "^9.22.0",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
+    "prettier-plugin-sql": "^0.19.2",
+    "simple-git-hooks": "^2.13.1",
+    "dotenv": "^16.6.1",
+    "vitest": "^4.0.7",
+    "typescript": "^5.8.2",
+    "@types/node": "22.18.7",
+    "@testcontainers/postgresql": "^11.14.0",
+    "pg": "^8.11.1"
+  }
+}
