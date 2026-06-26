@@ -1,0 +1,46 @@
+{
+  "name": "@ashiba-ts/ddl-docs-cli",
+  "version": "0.3.1",
+  "description": "Internal Ashiba dogfooding CLI for generating DDL and Concept Spec review pages.",
+  "private": true,
+  "main": "dist/src/index.js",
+  "bin": {
+    "ddl-docs": "dist/src/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "rawsql-ts",
+    "ddl",
+    "markdown",
+    "docs",
+    "cli"
+  ],
+  "author": "msugiura",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mk3008/ashiba",
+    "directory": "packages/ddl-docs-cli"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "rawsql-ts": "^0.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2",
+    "vitest": "^4.0.7"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md"
+  ]
+}
