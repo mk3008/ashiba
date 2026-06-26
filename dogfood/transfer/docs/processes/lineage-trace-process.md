@@ -16,8 +16,7 @@ Concept Spec は概念の意味、責務、非責務、不変条件を定義す�
 
 ## Process Map Rule Reference
 
-This document follows the shared [Process Map Rules](/guide/concept-spec-overview#process-map-rules).
-<!-- rule-source: concept-spec-overview.md#process-map-rules -->
+This document follows the transfer process map rules defined in the transfer process map README.
 
 ## Diagram Legend
 

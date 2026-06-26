@@ -249,7 +249,6 @@ function rewriteGeneratedTransferLinks() {
     ["](/concepts/", "](/generated/transfer/concepts/"],
     ["](/processes/", "](/generated/transfer/processes/"],
     ["](/dfd/", "](/generated/transfer/dfd/"],
-    ["](/guide/sssql-overview", "](/guide/sssql"],
   ]);
 }
 
@@ -578,6 +577,14 @@ function writeProductReviewReport(metadataCheck, reviewPlan, aiReviewArtifact) {
     "",
     "This page is the product-level review report for `@ashiba-ts/transfer-dogfood`.",
     "It collects machine-check review signals first, then leaves semantic Concept / Process / DDL review to human and AI review workflows.",
+    "",
+    "## Transfer Review Entrypoints",
+    "",
+    "- [Concept definitions](./concepts/) - terms such as Red Transfer, Black Transfer, Active Black, Dirty Key, and Transfer Setting.",
+    "- [Table definitions](./rawsql-transfer/rawsql-transfer/) - generated table pages from transfer DDL and table review metadata.",
+    "- [Process flows](./processes/) - process maps such as Transfer Execution and Lineage Trace.",
+    "- [DFD views](./dfd/) - subsystem and business-flow views for transfer responsibilities.",
+    "- [Scope / Test / Authority / Technology policies](./scope/) - review harness rules used by this report.",
     "",
     "## Review Sections",
     "",

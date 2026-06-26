@@ -275,7 +275,7 @@ interface ProcessMapViewEntry {
 
 const CONCEPT_SUMMARY_MAX_LENGTH = 160;
 const CONCEPT_METADATA_NOTE_MAX_LENGTH = 240;
-const PROCESS_MAP_RULE_REFERENCE_TARGET = 'concept-spec-overview.md#process-map-rules';
+const PROCESS_MAP_RULE_REFERENCE_TARGET = 'transfer process map rules';
 const SCOPE_RULE_KINDS = new Set<ScopeRuleKind>([
   'purpose',
   'in-scope',
@@ -1328,7 +1328,7 @@ function checkProcessMapRuleReference(processMapPath: string, baseDir: string, i
   issues.push({
     severity: 'warning',
     code: 'PROCESS_MAP_RULE_REFERENCE_MISSING',
-    message: `process map markdown should link to the shared Process Map Rules: ${normalizeRelativePath(path.relative(baseDir, processMapPath))}`,
+    message: `process map markdown should reference the transfer process map rules: ${normalizeRelativePath(path.relative(baseDir, processMapPath))}`,
   });
 }
 

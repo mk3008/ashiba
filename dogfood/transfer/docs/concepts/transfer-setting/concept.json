@@ -296,10 +296,10 @@
       },
       {
         "id": "base-sql-produce-sssql-guide-overview-where",
-        "displayName": "任意検索条件は、基礎 SQL の [SSSQL](/guide/sssql-overview) として表現",
+        "displayName": "任意検索条件は、基礎 SQL の SSSQL notation として表現",
         "polarity": "negative",
         "type": "invariant",
-        "text": "任意検索条件は、基礎 SQL の [SSSQL](/guide/sssql-overview) として表現する。転送 SQL 生成側が WHERE 条件を暗黙に追加しない。",
+        "text": "任意検索条件は、基礎 SQL の SSSQL notation として表現する。転送 SQL 生成側が WHERE 条件を暗黙に追加しない。",
         "evidence": [
           "spec:transfer-setting"
         ]

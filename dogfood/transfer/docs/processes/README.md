@@ -13,6 +13,16 @@ Process maps are more detailed than DFDs.
 DFDs may use DFD Concept Groups to keep coarse data-flow diagrams readable.
 Process maps must not use DFD Concept Groups; they should use concrete Concepts in detail views.
 
+## Process Map Rules
+
+Transfer process maps are review views for transfer concepts.
+
+- They must not redefine Concept Spec meanings, responsibilities, non-responsibilities, or invariants.
+- They should describe process order, state transitions, and input/output relationships.
+- They should stay above physical implementation details such as SQL text, API routes, transaction code, and UI behavior.
+- They should use concrete transfer Concepts rather than DFD-only concept groups.
+- When a process requires implementation evidence, link to DDL, SQL, or generated review artifacts instead of embedding implementation details in the process map.
+
 Available process maps:
 
 This list is a human entrypoint. Use `process-map.json` for completeness checks.

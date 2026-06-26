@@ -424,7 +424,7 @@ test('check passes when relationship, order, table-docs, and concept registry re
   ].join('\n'));
   writeText(
     path.join(processesDir, 'account-process.md'),
-    '# Account Process\n\n## Process Map Rule Reference\n\nThis document follows the shared [Process Map Rules](../../../docs/guide/concept-spec-overview.md#process-map-rules).\n'
+    '# Account Process\n\n## Process Map Rule Reference\n\nThis document follows the transfer process map rules.\n'
   );
   writeText(path.join(processesDir, 'process-map.json'), JSON.stringify({
     schemaVersion: 1,
@@ -612,7 +612,7 @@ test('check fails when DFD related process does not exist in process-map metadat
   ].join('\n'));
   writeText(
     path.join(processesDir, 'account-process.md'),
-    '# Account Process\n\n## Process Map Rule Reference\n\nThis document follows the shared [Process Map Rules](../../../docs/guide/concept-spec-overview.md#process-map-rules).\n'
+    '# Account Process\n\n## Process Map Rule Reference\n\nThis document follows the transfer process map rules.\n'
   );
   writeText(path.join(processesDir, 'process-map.json'), JSON.stringify({
     schemaVersion: 1,
@@ -667,7 +667,7 @@ test('check fails when concept related process map does not exist in process-map
   writeText(path.join(conceptsDir, 'account/concept.json'), '# Account Concept\n');
   writeText(
     path.join(processesDir, 'account-process.md'),
-    '# Account Process\n\n## Process Map Rule Reference\n\nThis document follows the shared [Process Map Rules](../../../docs/guide/concept-spec-overview.md#process-map-rules).\n'
+    '# Account Process\n\n## Process Map Rule Reference\n\nThis document follows the transfer process map rules.\n'
   );
   writeText(path.join(processesDir, 'process-map.json'), JSON.stringify({
     schemaVersion: 1,
@@ -1159,7 +1159,7 @@ test('check warns instead of failing concept refs when process-map metadata has 
   writeText(path.join(ddlDir, 'accounts.sql'), 'CREATE TABLE public.accounts (account_id bigint PRIMARY KEY);');
   writeText(
     path.join(processesDir, 'account-process.md'),
-    '# Account Process\n\n## Process Map Rule Reference\n\nThis document follows the shared [Process Map Rules](../../../docs/guide/concept-spec-overview.md#process-map-rules).\n'
+    '# Account Process\n\n## Process Map Rule Reference\n\nThis document follows the transfer process map rules.\n'
   );
   writeText(path.join(processesDir, 'process-map.json'), JSON.stringify({
     schemaVersion: 1,

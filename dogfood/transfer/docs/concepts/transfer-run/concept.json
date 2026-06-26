@@ -388,7 +388,7 @@
         "displayName": "Run Arguments Are Run Conditions",
         "polarity": "negative",
         "type": "rationale",
-        "text": "Run Arguments Are Run Conditions: Transfer Run は、`Transfer Execution` の実行開始時任意引数を持ってよい。 任意引数の例: - 処理日 - 対象年月 - 支店 - 顧客 - 実行者 - 再実行理由 - 手動実行フラグ これらの引数は、`Transfer Setting` の基礎 SQL で条件値として利用される可能性がある。 ただし、Transfer Run はそれらの引数をどのように SQL へ反映するかを定義しない。 任意検索条件の具体的な扱いは、`Transfer Setting` の基礎 SQL と [SSSQL](/guide/sssql-overview) に従う。",
+        "text": "Run Arguments Are Run Conditions: Transfer Run は、`Transfer Execution` の実行開始時任意引数を持ってよい。 任意引数の例: - 処理日 - 対象年月 - 支店 - 顧客 - 実行者 - 再実行理由 - 手動実行フラグ これらの引数は、`Transfer Setting` の基礎 SQL で条件値として利用される可能性がある。 ただし、Transfer Run はそれらの引数をどのように SQL へ反映するかを定義しない。 任意検索条件の具体的な扱いは、`Transfer Setting` の基礎 SQL と SSSQL notation に従う。",
         "evidence": [
           "spec:transfer-run"
         ],
