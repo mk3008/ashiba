@@ -21,7 +21,7 @@
     "@ashiba-ts/driver-adapter-core": "workspace:*",
     "@ashiba-ts/driver-adapter-pg": "workspace:*",
     "@hono/node-server": "^1.19.6",
-    "hono": "^4.10.7",
+    "hono": "^4.12.25",
     "pg": "^8.16.3"
   },
   "devDependencies": {
