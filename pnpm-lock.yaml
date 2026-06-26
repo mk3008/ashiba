@@ -144,6 +144,22 @@ importers:
         specifier: ^22.13.10
         version: 22.19.19
 
+  packages/ddl-docs-cli:
+    dependencies:
+      rawsql-ts:
+        specifier: ^0.24.2
+        version: 0.24.2
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.18.7
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.7
+        version: 4.1.7(@types/node@22.18.7)(vite@6.4.2(@types/node@22.18.7)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
   packages/ddl-pull-pg-dump:
     devDependencies:
       '@types/node':
@@ -4354,7 +4370,7 @@ snapshots:
 
   '@types/mssql@9.1.11(@azure/core-client@1.10.1)':
     dependencies:
-      '@types/node': 22.19.19
+      '@types/node': 22.18.7
       tarn: 3.0.2
       tedious: 19.2.1(@azure/core-client@1.10.1)
     transitivePeerDependencies:

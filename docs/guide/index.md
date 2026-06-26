@@ -8,3 +8,4 @@ Short guides for Ashiba concepts that are easier to understand as named patterns
 - [Safe Sort](./safe-sort.md): dynamic `ORDER BY` built from generated allow-list metadata.
 - [Runtime Boundary](./runtime-boundary.md): No ORM runtime, thin SQL execution adapters, and generated SQL snapshots.
 - [SQL Format](./sql-format.md): scaffolded SQL style and explicit safe formatting for existing SQL files.
+- [Concept Spec Overview](./concept-spec-overview.md): stable concept and process review boundaries.

@@ -8,6 +8,9 @@ Structured Concept Specs live in each `<concept-id>/concept.json`.
 Machine-readable concept lifecycle, glossary, and relationship metadata lives in `concept-relationship.json`.
 Human review views such as Concept Maps or generated VitePress indexes should be regenerated or checked from that metadata; do not add concept graph facts only to a review view.
 
+Run `pnpm docs:transfer` from the repository root to regenerate VitePress review views under `docs/generated/transfer/`.
+Those Markdown pages are derived review views and are intentionally ignored by git.
+
 Concept lifecycle:
 
 - Defined concepts use `<concept-id>/concept.json`.
