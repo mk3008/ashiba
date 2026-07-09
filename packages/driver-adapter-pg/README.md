@@ -13,7 +13,7 @@ Start with the repository README for the full SQL-first workflow:
 
 ## What This Package Owns
 
-It owns named parameter binding, parameter contract checks, logger-ready execution events, metadata-backed optional-condition compression, and metadata-backed safe sort rendering. It does not own transactions, business SQL, ORM behavior, relation loading, lazy loading, unit of work, or DDL pull.
+It owns named parameter binding, parameter contract checks, logger-ready execution events, metadata-backed optional-condition compression, metadata-backed safe sort rendering, and PostgreSQL transient-error classification for caller-owned retry policies. It does not own transactions, business SQL, ORM behavior, relation loading, lazy loading, unit of work, SAGA/compensation workflows, hidden automatic retry, or DDL pull.
 
 Application code should call the adapter with a file-backed or generated query source object containing SQL text, SQL path, and query model metadata. The adapter still passes a SQL string to the wrapped `pg` client internally, but it does not expose an `execute(sql: string, ...)` convenience boundary for arbitrary runtime SQL input.
 
@@ -24,5 +24,7 @@ Safe sort requires CLI-generated query model analysis when sort input is provide
 Root compound queries such as `UNION`, `INTERSECT`, and `EXCEPT` are rejected from query model shape metadata instead of being parsed at runtime. The reported next action is to wrap the compound query in an explicit subquery and expose stable sortable columns.
 
 Current contract tests cover `pg` compatible query delegation, named parameter binding, unused parameter rejection before driver execution, query-model-gated safe sort rendering, stale metadata rejection, masked/unmasked observer events, and error event emission.
+
+For transient database failures, use `classifyPostgresTransientError` or `isPostgresTransientError` as input to an explicit retry boundary such as `withAshibaRetry` from `@ashiba-ts/driver-adapter-core`. The classifier only identifies retry candidates; application code still decides whether the operation is safe to run again.
 
 Live PostgreSQL smoke can be run by setting `ASHIBA_TEST_DATABASE_URL` or `DATABASE_URL` before `pnpm test`. Without that environment variable, the live smoke is skipped.

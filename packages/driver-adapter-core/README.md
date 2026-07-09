@@ -16,6 +16,7 @@ It provides shared types and helpers for:
 
 - masked parameter logging
 - logger-ready execution events
+- explicit retry policy helpers for visible transient-failure retry boundaries
 - feature query boundary types
 - `many` / `one` / `oneOrNull` cardinality helpers
 - dialect-extensible query model binding slots
@@ -24,3 +25,8 @@ It provides shared types and helpers for:
 
 Application projects that use generated feature query boundaries should install
 this package alongside a concrete adapter such as `@ashiba-ts/driver-adapter-pg`.
+
+`withAshibaRetry` is intentionally policy-driven. It does not decide that SQL,
+transactions, external side effects, or SAGA workflows are safe to execute again.
+Application code must pass an explicit classifier and own idempotency,
+compensation, and logging policy.

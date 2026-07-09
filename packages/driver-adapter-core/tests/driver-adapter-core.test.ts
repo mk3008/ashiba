@@ -2,12 +2,15 @@ import { describe, expect, test } from 'vitest';
 import {
   AshibaSortError,
   FeatureQueryCardinalityError,
+  AshibaRetryPolicyError,
   maskParams,
   normalizeError,
   queryMany,
   queryOne,
   queryOneOrNull,
   renderSafeOrderBy,
+  withAshibaRetry,
+  type AshibaRetryEvent,
   type FeatureQueryExecutor,
   type FeatureQuerySource,
 } from '../src/index.js';
@@ -147,6 +150,115 @@ describe('@ashiba-ts/driver-adapter-core', () => {
       cause: 'The selected feature query cardinality helper received a row count outside its contract.',
       nextAction: 'Use queryMany for mutation workflows that need to handle zero rows, or use queryOne only when the SQL contract really guarantees exactly one row.',
     });
+  });
+
+  test('runs caller-owned work under an explicit retry policy', async () => {
+    const events: AshibaRetryEvent[] = [];
+    const attempts: number[] = [];
+    const result = await withAshibaRetry(
+      {
+        maxAttempts: 3,
+        retryOn(error) {
+          return {
+            retry: error instanceof Error && error.message === 'transient',
+            reason: 'test-transient',
+          };
+        },
+        observer: {
+          emit(event) {
+            events.push(event);
+          },
+        },
+      },
+      async ({ attempt }) => {
+        attempts.push(attempt);
+        if (attempt < 2) {
+          throw new Error('transient');
+        }
+        return 'ok';
+      },
+    );
+
+    expect(result).toBe('ok');
+    expect(attempts).toEqual([1, 2]);
+    expect(events).toEqual([
+      expect.objectContaining({
+        phase: 'retry',
+        attempt: 1,
+        maxAttempts: 3,
+        reason: 'test-transient',
+        error: { name: 'Error', message: 'transient' },
+      }),
+    ]);
+  });
+
+  test('does not retry when the explicit policy rejects the error', async () => {
+    const events: AshibaRetryEvent[] = [];
+    const fatal = new Error('fatal');
+
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 3,
+        retryOn: () => false,
+        observer: {
+          emit(event) {
+            events.push(event);
+          },
+        },
+      },
+      async () => {
+        throw fatal;
+      },
+    )).rejects.toBe(fatal);
+
+    expect(events).toEqual([
+      expect.objectContaining({
+        phase: 'give-up',
+        attempt: 1,
+        maxAttempts: 3,
+        error: { name: 'Error', message: 'fatal' },
+      }),
+    ]);
+  });
+
+  test('stops retrying at maxAttempts and rethrows the original error', async () => {
+    const events: AshibaRetryEvent[] = [];
+    const errors = [new Error('transient-1'), new Error('transient-2')];
+    let callCount = 0;
+
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 2,
+        retryOn: () => true,
+        delayMs: ({ attempt }) => attempt,
+        observer: {
+          emit(event) {
+            events.push(event);
+          },
+        },
+      },
+      async () => {
+        const error = errors[callCount] ?? new Error('unexpected');
+        callCount += 1;
+        throw error;
+      },
+    )).rejects.toBe(errors[1]);
+
+    expect(callCount).toBe(2);
+    expect(events).toEqual([
+      expect.objectContaining({ phase: 'retry', attempt: 1, delayMs: 1 }),
+      expect.objectContaining({ phase: 'give-up', attempt: 2 }),
+    ]);
+  });
+
+  test('requires a visible retry policy', async () => {
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 0,
+        retryOn: () => true,
+      },
+      async () => 'never',
+    )).rejects.toBeInstanceOf(AshibaRetryPolicyError);
   });
 });
 

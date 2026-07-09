@@ -119,8 +119,8 @@ Ashiba chooses DBMS and wrapped driver explicitly. PostgreSQL is the most comple
 
 | DBMS | Wrapped driver/tool | Package | Current status |
 |---|---|---|---|
-| Shared driver contracts | driver adapter core | `@ashiba-ts/driver-adapter-core` | Shared feature query contracts and cardinality helpers. No ORM model or SQL DSL. |
-| PostgreSQL | `pg` | `@ashiba-ts/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, mapper-test lane, named-parameter binding, safe sort, optional-condition metadata, and tutorial coverage. |
+| Shared driver contracts | driver adapter core | `@ashiba-ts/driver-adapter-core` | Shared feature query contracts, cardinality helpers, and explicit retry-policy helpers. No ORM model or SQL DSL. |
+| PostgreSQL | `pg` | `@ashiba-ts/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, mapper-test lane, named-parameter binding, safe sort, optional-condition metadata, transient-error classification, and tutorial coverage. |
 | PostgreSQL | `pg` testkit | `@ashiba-ts/testkit-adapter-pg` | ZTD mapper-test adapter used by the PostgreSQL starter. |
 | PostgreSQL | `pg_dump` | `@ashiba-ts/ddl-pull-pg-dump` | Optional helper for comparing production DDL from `pg_dump` with local DDL. |
 | MySQL | `mysql2` | `@ashiba-ts/driver-adapter-mysql2` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
@@ -259,7 +259,7 @@ npx ashiba config
 
 Ashiba is not an ORM runtime or SQL DSL. The CLI generator, SQL analysis, scaffolding, tests, and drift checks are development-time tools.
 
-At runtime, applications may use a selected thin SQL execution adapter such as `@ashiba-ts/driver-adapter-pg`. That adapter owns narrow execution concerns: named-parameter binding, metadata-backed optional-condition compression, metadata-backed safe sort, stale metadata rejection, and observer events. It does not own entities, relations, lazy loading, unit of work, dirty tracking, or query planning.
+At runtime, applications may use a selected thin SQL execution adapter such as `@ashiba-ts/driver-adapter-pg`. That adapter owns narrow execution concerns: named-parameter binding, metadata-backed optional-condition compression, metadata-backed safe sort, stale metadata rejection, observer events, and transient-error classification for explicit retry policies. It does not own entities, relations, lazy loading, unit of work, dirty tracking, query planning, hidden automatic retry, or SAGA compensation.
 
 The `.sql` file is the canonical source. Generated `query.sql.ts` is a runtime snapshot and must not be hand edited. After SQL-only edits, run refresh/check so `.sql`, `query.sql.ts`, and `query.meta.ts` stay synchronized.
 

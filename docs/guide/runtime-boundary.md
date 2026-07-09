@@ -41,8 +41,48 @@ At runtime, the selected driver adapter can be used as a thin SQL execution boun
 - metadata-backed optional-condition compression
 - metadata-backed safe sort
 - observer events for logging
+- transient DB error classification for caller-owned retry policies
 
 The adapter still executes SQL through the wrapped driver. It does not expose a SQL builder DSL, ORM model, object graph, or relation loader.
+
+## Visible Retry Boundary
+
+Thin drivers may help applications handle transient database failures, but retry must stay visible.
+
+`@ashiba-ts/driver-adapter-core` provides `withAshibaRetry`, a small helper for caller-owned retry loops. It retries only when the caller passes an explicit `retryOn` classifier. The final error is rethrown as-is, and retry / give-up events can be observed by application logging.
+
+`@ashiba-ts/driver-adapter-pg` provides `classifyPostgresTransientError` and `isPostgresTransientError` for common PostgreSQL SQLSTATE and connection failures such as serialization failure, deadlock, shutdown, connection failure, and transient network errors.
+
+Example:
+
+```ts
+import { withAshibaRetry } from '@ashiba-ts/driver-adapter-core';
+import { classifyPostgresTransientError } from '@ashiba-ts/driver-adapter-pg';
+
+await withAshibaRetry(
+  {
+    maxAttempts: 3,
+    retryOn(error) {
+      const result = classifyPostgresTransientError(error);
+      return { retry: result.retryable, reason: result.reason };
+    },
+  },
+  async () => {
+    // Application-owned transaction or query boundary call.
+  },
+);
+```
+
+This is intentionally not hidden automatic retry. Application code still owns:
+
+- whether the operation is safe to run again
+- transaction scope
+- idempotency keys or optimistic locking
+- external side effects
+- SAGA / compensation workflows
+- how retries are logged, alerted, and capped
+
+Do not use a thin-driver retry helper to silently re-run arbitrary mutations after the application has performed non-database side effects. For commit-unknown or compensation-heavy workflows, keep the retry decision in application/SAGA code and use the driver classifier only as one input.
 
 ## Feature Query Boundary
 

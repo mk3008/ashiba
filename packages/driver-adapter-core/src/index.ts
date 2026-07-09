@@ -63,6 +63,83 @@ export type AshibaSqlExecutionObserver = {
 };
 
 /**
+ * Caller-owned decision returned by a visible retry policy.
+ */
+export type AshibaRetryDecision =
+  | boolean
+  | {
+    retry: boolean;
+    reason?: string;
+    delayMs?: number;
+  };
+
+/**
+ * Context passed to retry policy functions after a failed attempt.
+ */
+export type AshibaRetryContext = {
+  attempt: number;
+  maxAttempts: number;
+  elapsedMs: number;
+  error: unknown;
+};
+
+/**
+ * Structured retry event emitted by retry helpers.
+ */
+export type AshibaRetryEvent = {
+  phase: 'retry' | 'give-up';
+  attempt: number;
+  maxAttempts: number;
+  elapsedMs: number;
+  delayMs?: number;
+  reason?: string;
+  error: {
+    name: string;
+    message: string;
+    code?: string;
+    cause?: string;
+    nextAction?: string;
+  };
+};
+
+/**
+ * Application-provided observer hook for retry visibility.
+ */
+export type AshibaRetryObserver = {
+  emit(event: AshibaRetryEvent): void;
+};
+
+/**
+ * Explicit retry policy for thin-driver retry boundaries.
+ *
+ * The policy intentionally requires a retry classifier. Ashiba does not infer
+ * that arbitrary SQL or workflow code is safe to execute again.
+ */
+export type AshibaRetryPolicy = {
+  maxAttempts: number;
+  retryOn(error: unknown, context: AshibaRetryContext): AshibaRetryDecision;
+  delayMs?: number | ((context: AshibaRetryContext) => number);
+  observer?: AshibaRetryObserver;
+};
+
+/**
+ * Error raised when an invalid retry policy is passed to the shared helper.
+ */
+export class AshibaRetryPolicyError extends Error {
+  readonly code: 'ASHIBA_RETRY_POLICY_INVALID';
+  readonly causeText: string;
+  readonly nextAction: string;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'AshibaRetryPolicyError';
+    this.code = 'ASHIBA_RETRY_POLICY_INVALID';
+    this.causeText = 'The retry helper received a policy that cannot define a visible retry boundary.';
+    this.nextAction = 'Pass maxAttempts >= 1 and an explicit retryOn classifier. Do not rely on hidden automatic retry.';
+  }
+}
+
+/**
  * Allowed direction values for safe sort rendering.
  */
 export type AshibaSortDirection = 'asc' | 'desc';
@@ -316,6 +393,56 @@ export async function queryOneOrNull<T = unknown>(
 }
 
 /**
+ * Run caller-owned work under an explicit retry boundary.
+ *
+ * This helper retries only when the provided policy says the thrown error is
+ * retryable. It does not wrap the final error or decide business idempotency.
+ */
+export async function withAshibaRetry<T>(
+  policy: AshibaRetryPolicy,
+  operation: (context: { attempt: number; maxAttempts: number }) => Promise<T>,
+): Promise<T> {
+  assertRetryPolicy(policy);
+  const startedAt = Date.now();
+  let attempt = 1;
+
+  for (;;) {
+    try {
+      return await operation({ attempt, maxAttempts: policy.maxAttempts });
+    } catch (error) {
+      const context: AshibaRetryContext = {
+        attempt,
+        maxAttempts: policy.maxAttempts,
+        elapsedMs: Date.now() - startedAt,
+        error,
+      };
+      const decision = normalizeRetryDecision(policy.retryOn(error, context));
+      const shouldRetry = decision.retry && attempt < policy.maxAttempts;
+      const delayMs = shouldRetry ? resolveRetryDelayMs(policy, context, decision) : undefined;
+      policy.observer?.emit({
+        phase: shouldRetry ? 'retry' : 'give-up',
+        attempt,
+        maxAttempts: policy.maxAttempts,
+        elapsedMs: context.elapsedMs,
+        ...(delayMs !== undefined ? { delayMs } : {}),
+        ...(decision.reason ? { reason: decision.reason } : {}),
+        error: normalizeError(error),
+      });
+
+      if (!shouldRetry) {
+        throw error;
+      }
+
+      const retryDelayMs = delayMs ?? 0;
+      if (retryDelayMs > 0) {
+        await sleep(retryDelayMs);
+      }
+      attempt += 1;
+    }
+  }
+}
+
+/**
  * Error raised when a safe sort request violates the reviewed query model or sort profile.
  */
 export class AshibaSortError extends Error {
@@ -395,6 +522,41 @@ export function normalizeError(error: unknown): { name: string; message: string;
     name: 'Error',
     message: String(error),
   };
+}
+
+function assertRetryPolicy(policy: AshibaRetryPolicy): void {
+  if (!Number.isInteger(policy.maxAttempts) || policy.maxAttempts < 1) {
+    throw new AshibaRetryPolicyError('Retry policy maxAttempts must be an integer greater than or equal to 1.');
+  }
+  if (typeof policy.retryOn !== 'function') {
+    throw new AshibaRetryPolicyError('Retry policy must provide an explicit retryOn classifier.');
+  }
+}
+
+function normalizeRetryDecision(decision: AshibaRetryDecision): { retry: boolean; reason?: string; delayMs?: number } {
+  if (typeof decision === 'boolean') {
+    return { retry: decision };
+  }
+  return {
+    retry: decision.retry,
+    ...(decision.reason ? { reason: decision.reason } : {}),
+    ...(decision.delayMs !== undefined ? { delayMs: decision.delayMs } : {}),
+  };
+}
+
+function resolveRetryDelayMs(
+  policy: AshibaRetryPolicy,
+  context: AshibaRetryContext,
+  decision: { delayMs?: number },
+): number {
+  const value = decision.delayMs ?? (typeof policy.delayMs === 'function' ? policy.delayMs(context) : policy.delayMs) ?? 0;
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
+}
+
+function sleep(delayMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
 }
 
 function describeSortErrorCause(code: AshibaSortError['code']): string {

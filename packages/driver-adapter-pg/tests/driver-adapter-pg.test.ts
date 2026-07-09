@@ -3,13 +3,38 @@ import fc from 'fast-check';
 import { describe, expect, test } from 'vitest';
 import {
   AshibaParameterError,
+  classifyPostgresTransientError,
   createPostgresAdapter,
+  isPostgresTransientError,
   type AshibaPostgresQueryModel,
   type NodePostgresQueryable,
 } from '../src/index.js';
 import { AshibaSortError, type AshibaSqlExecutionEvent } from '@ashiba-ts/driver-adapter-core';
 
 describe('@ashiba-ts/driver-adapter-pg', () => {
+  test('classifies PostgreSQL transient retry candidates without deciding idempotency', () => {
+    expect(classifyPostgresTransientError({ code: '40001' })).toEqual({
+      retryable: true,
+      code: '40001',
+      reason: 'PostgreSQL reported transient SQLSTATE 40001.',
+    });
+    expect(classifyPostgresTransientError({ code: '40P01' })).toMatchObject({
+      retryable: true,
+      code: '40P01',
+    });
+    expect(classifyPostgresTransientError({ code: 'ECONNRESET' })).toEqual({
+      retryable: true,
+      code: 'ECONNRESET',
+      reason: 'Node PostgreSQL driver reported transient connection error ECONNRESET.',
+    });
+    expect(classifyPostgresTransientError({ code: '23505' })).toEqual({
+      retryable: false,
+      code: '23505',
+    });
+    expect(isPostgresTransientError({ code: '57P03' })).toBe(true);
+    expect(isPostgresTransientError(new Error('plain'))).toBe(false);
+  });
+
   test('executes named-parameter SQL through a pg compatible client', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const client: NodePostgresQueryable = {
