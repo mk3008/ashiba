@@ -79,6 +79,16 @@ export type AshibaPostgresAdapter = {
 };
 
 /**
+ * Classification result for PostgreSQL errors that may be retried by a
+ * caller-owned visible retry boundary.
+ */
+export type AshibaPostgresRetryClassification = {
+  retryable: boolean;
+  code?: string;
+  reason?: string;
+};
+
+/**
  * Error raised when provided named parameters do not match query model metadata.
  */
 export class AshibaParameterError extends Error {
@@ -134,6 +144,33 @@ type TextRange = {
 type TextEdit = TextRange & {
   text: string;
 };
+
+const POSTGRES_TRANSIENT_SQLSTATES = new Set([
+  '40001', // serialization_failure
+  '40P01', // deadlock_detected
+  '53300', // too_many_connections
+  '57P01', // admin_shutdown
+  '57P02', // crash_shutdown
+  '57P03', // cannot_connect_now
+  '08000', // connection_exception
+  '08001', // sqlclient_unable_to_establish_sqlconnection
+  '08003', // connection_does_not_exist
+  '08004', // sqlserver_rejected_establishment_of_sqlconnection
+  '08006', // connection_failure
+  '08007', // transaction_resolution_unknown
+]);
+
+const POSTGRES_TRANSIENT_NODE_ERROR_CODES = new Set([
+  'ECONNRESET',
+  'ECONNREFUSED',
+  'EPIPE',
+  'ETIMEDOUT',
+  'ENETDOWN',
+  'ENETRESET',
+  'ENETUNREACH',
+  'EHOSTDOWN',
+  'EHOSTUNREACH',
+]);
 
 /**
  * Create a thin adapter around a pg-compatible client or pool.
@@ -231,6 +268,41 @@ export function createPostgresAdapter(
       }
     },
   };
+}
+
+/**
+ * Classify PostgreSQL/pg errors that can be candidates for an explicit retry policy.
+ *
+ * This does not mean the operation is safe to retry. Application code still
+ * owns transaction boundaries, idempotency, and SAGA/compensation decisions.
+ */
+export function classifyPostgresTransientError(error: unknown): AshibaPostgresRetryClassification {
+  const code = getErrorCode(error);
+  if (!code) {
+    return { retryable: false };
+  }
+  if (POSTGRES_TRANSIENT_SQLSTATES.has(code)) {
+    return {
+      retryable: true,
+      code,
+      reason: `PostgreSQL reported transient SQLSTATE ${code}.`,
+    };
+  }
+  if (POSTGRES_TRANSIENT_NODE_ERROR_CODES.has(code)) {
+    return {
+      retryable: true,
+      code,
+      reason: `Node PostgreSQL driver reported transient connection error ${code}.`,
+    };
+  }
+  return { retryable: false, code };
+}
+
+/**
+ * Return true when the error is a PostgreSQL transient failure candidate.
+ */
+export function isPostgresTransientError(error: unknown): boolean {
+  return classifyPostgresTransientError(error).retryable;
 }
 
 function buildSqlSourceWarnings(
@@ -854,4 +926,12 @@ function isPostgresEscapeStringStart(sql: string, quoteIndex: number): boolean {
   }
   const beforeMarker = sql[quoteIndex - 2] ?? '';
   return !/[A-Za-z0-9_$]/.test(beforeMarker);
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null || !('code' in error)) {
+    return undefined;
+  }
+  const code = (error as { code?: unknown }).code;
+  return typeof code === 'string' ? code : undefined;
 }
