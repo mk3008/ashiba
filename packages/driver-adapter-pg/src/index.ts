@@ -158,7 +158,6 @@ const POSTGRES_TRANSIENT_SQLSTATES = new Set([
   '08004', // sqlserver_rejected_establishment_of_sqlconnection
   '08006', // connection_failure
   '08007', // transaction_resolution_unknown
-  '08P01', // protocol_violation
 ]);
 
 const POSTGRES_TRANSIENT_NODE_ERROR_CODES = new Set([

@@ -251,6 +251,157 @@ describe('@ashiba-ts/driver-adapter-core', () => {
     ]);
   });
 
+  test('decision delay overrides policy delay and invalid delays are clamped', async () => {
+    const events: AshibaRetryEvent[] = [];
+    let callCount = 0;
+
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 2,
+        retryOn() {
+          return { retry: true, delayMs: Number.POSITIVE_INFINITY };
+        },
+        delayMs: 99,
+        observer: {
+          emit(event) {
+            events.push(event);
+          },
+        },
+      },
+      async () => {
+        callCount += 1;
+        if (callCount === 1) {
+          throw new Error('transient');
+        }
+        return 'ok';
+      },
+    )).resolves.toBe('ok');
+
+    expect(events).toEqual([
+      expect.objectContaining({ phase: 'retry', attempt: 1, delayMs: 0 }),
+    ]);
+
+    events.length = 0;
+    callCount = 0;
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 2,
+        retryOn: () => true,
+        delayMs: () => -1,
+        observer: {
+          emit(event) {
+            events.push(event);
+          },
+        },
+      },
+      async () => {
+        callCount += 1;
+        if (callCount === 1) {
+          throw new Error('transient');
+        }
+        return 'ok';
+      },
+    )).resolves.toBe('ok');
+
+    expect(events).toEqual([
+      expect.objectContaining({ phase: 'retry', attempt: 1, delayMs: 0 }),
+    ]);
+  });
+
+  test('normalizes non-error throws in retry events', async () => {
+    const events: AshibaRetryEvent[] = [];
+
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 2,
+        retryOn: () => false,
+        observer: {
+          emit(event) {
+            events.push(event);
+          },
+        },
+      },
+      async () => {
+        throw 'string error';
+      },
+    )).rejects.toBe('string error');
+
+    expect(events).toEqual([
+      expect.objectContaining({
+        phase: 'give-up',
+        error: { name: 'Error', message: 'string error' },
+      }),
+    ]);
+  });
+
+  test('allows omitted observer and ignores observer failures', async () => {
+    const original = new Error('original');
+
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 1,
+        retryOn: () => false,
+      },
+      async () => {
+        throw original;
+      },
+    )).rejects.toBe(original);
+
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 1,
+        retryOn: () => false,
+        observer: {
+          emit() {
+            throw new Error('logger failed');
+          },
+        },
+      },
+      async () => {
+        throw original;
+      },
+    )).rejects.toBe(original);
+  });
+
+  test('surfaces retryOn failures without dropping the operation failure', async () => {
+    const operationError = new Error('operation failed');
+    const policyError = new Error('classifier failed');
+    const events: AshibaRetryEvent[] = [];
+
+    await expect(withAshibaRetry(
+      {
+        maxAttempts: 2,
+        retryOn() {
+          throw policyError;
+        },
+        observer: {
+          emit(event) {
+            events.push(event);
+          },
+        },
+      },
+      async () => {
+        throw operationError;
+      },
+    )).rejects.toMatchObject({
+      name: 'AshibaRetryPolicyError',
+      code: 'ASHIBA_RETRY_POLICY_INVALID',
+      cause: policyError,
+      details: {
+        operationError: { name: 'Error', message: 'operation failed' },
+        policyError: { name: 'Error', message: 'classifier failed' },
+      },
+    });
+
+    expect(events).toEqual([
+      expect.objectContaining({
+        phase: 'give-up',
+        reason: 'retryOn threw while classifying the operation failure',
+        error: { name: 'Error', message: 'operation failed' },
+      }),
+    ]);
+  });
+
   test('requires a visible retry policy', async () => {
     await expect(withAshibaRetry(
       {

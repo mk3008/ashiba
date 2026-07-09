@@ -31,6 +31,10 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       retryable: false,
       code: '23505',
     });
+    expect(classifyPostgresTransientError({ code: '08P01' })).toEqual({
+      retryable: false,
+      code: '08P01',
+    });
     expect(isPostgresTransientError({ code: '57P03' })).toBe(true);
     expect(isPostgresTransientError(new Error('plain'))).toBe(false);
   });

@@ -129,13 +129,23 @@ export class AshibaRetryPolicyError extends Error {
   readonly code: 'ASHIBA_RETRY_POLICY_INVALID';
   readonly causeText: string;
   readonly nextAction: string;
+  readonly details?: {
+    operationError?: ReturnType<typeof normalizeError>;
+    policyError?: ReturnType<typeof normalizeError>;
+  };
 
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, details?: { operationError?: unknown; policyError?: unknown }) {
+    super(message, details?.policyError ? { cause: details.policyError } : undefined);
     this.name = 'AshibaRetryPolicyError';
     this.code = 'ASHIBA_RETRY_POLICY_INVALID';
     this.causeText = 'The retry helper received a policy that cannot define a visible retry boundary.';
     this.nextAction = 'Pass maxAttempts >= 1 and an explicit retryOn classifier. Do not rely on hidden automatic retry.';
+    this.details = details
+      ? {
+        ...(details.operationError !== undefined ? { operationError: normalizeError(details.operationError) } : {}),
+        ...(details.policyError !== undefined ? { policyError: normalizeError(details.policyError) } : {}),
+      }
+      : undefined;
   }
 }
 
@@ -416,10 +426,26 @@ export async function withAshibaRetry<T>(
         elapsedMs: Date.now() - startedAt,
         error,
       };
-      const decision = normalizeRetryDecision(policy.retryOn(error, context));
+      let decision: { retry: boolean; reason?: string; delayMs?: number };
+      try {
+        decision = normalizeRetryDecision(policy.retryOn(error, context));
+      } catch (policyError) {
+        safeEmitRetryEvent(policy, {
+          phase: 'give-up',
+          attempt,
+          maxAttempts: policy.maxAttempts,
+          elapsedMs: context.elapsedMs,
+          reason: 'retryOn threw while classifying the operation failure',
+          error: normalizeError(error),
+        });
+        throw new AshibaRetryPolicyError(
+          'Retry policy retryOn threw while classifying an operation failure.',
+          { operationError: error, policyError },
+        );
+      }
       const shouldRetry = decision.retry && attempt < policy.maxAttempts;
       const delayMs = shouldRetry ? resolveRetryDelayMs(policy, context, decision) : undefined;
-      policy.observer?.emit({
+      safeEmitRetryEvent(policy, {
         phase: shouldRetry ? 'retry' : 'give-up',
         attempt,
         maxAttempts: policy.maxAttempts,
@@ -557,6 +583,14 @@ function sleep(delayMs: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, delayMs);
   });
+}
+
+function safeEmitRetryEvent(policy: AshibaRetryPolicy, event: AshibaRetryEvent): void {
+  try {
+    policy.observer?.emit(event);
+  } catch {
+    // Observer errors must not mask the operation error.
+  }
 }
 
 function describeSortErrorCause(code: AshibaSortError['code']): string {
