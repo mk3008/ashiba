@@ -18,6 +18,7 @@ Deeper `AGENTS.md` files take precedence when they add narrower rules without we
 - Use `.codex/agents/` for planning, verification, review, and reporting guidance.
 - Use `.agents/skills/` for repeatable developer workflows copied from `rawsql-ts`.
 - Before substantial multi-step work, read the relevant local guidance instead of relying on this root policy alone.
+- For delegated, recoverable, or multi-worker work, read `docs/codex-orchestration.md` and use the globally installed `$minimal-orchestration` skill for lifecycle control.
 - Keep task-specific plans and observations in `tmp/PLAN.md`; keep durable rules in `AGENTS.md`.
 
 ## Reporting and Verification
