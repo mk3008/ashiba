@@ -3,8 +3,17 @@ packages:
   - "examples/*"
   - "dogfood/*"
 overrides:
+  brace-expansion@^1.1.7: 1.1.18
+  brace-expansion@^2.0.1: 2.1.4
   esbuild: 0.28.1
-  vitepress>vite: 6.4.2
+  js-yaml@^3.0.0: 3.15.0
+  js-yaml@^4.0.0: 4.3.0
+  postcss: 8.5.23
+  protobufjs: 7.6.5
+  undici: 7.29.0
+  uuid: 11.1.1
+  vite: 6.4.3
+  vitepress>vite: 6.4.3
 allowBuilds:
   cpu-features: false
   esbuild: true
