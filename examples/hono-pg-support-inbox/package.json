@@ -20,7 +20,7 @@
   "dependencies": {
     "@ashiba-ts/driver-adapter-core": "workspace:*",
     "@ashiba-ts/driver-adapter-pg": "workspace:*",
-    "@hono/node-server": "^1.19.6",
+    "@hono/node-server": "^2.0.10",
     "hono": "^4.12.25",
     "pg": "^8.16.3"
   },
