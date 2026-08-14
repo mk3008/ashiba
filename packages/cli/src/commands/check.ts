@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import type { Command } from 'commander';
 import { formatProjectCheckResult, runProjectCheck, type ProjectCheckOptions, type ProjectCheckResult } from './project.js';
+import { runFeatureGeneratedRefresh, type FeatureGeneratedRefreshResult } from './feature.js';
 
 export type AshibaCheckLevel = 'fast' | 'full';
 
@@ -8,6 +9,7 @@ export interface AshibaCheckOptions extends ProjectCheckOptions {
   fast?: boolean;
   full?: boolean;
   mapperTestCommand?: string;
+  fixGenerated?: boolean;
 }
 
 export interface AshibaCheckCommandResult {
@@ -15,6 +17,7 @@ export interface AshibaCheckCommandResult {
   level: AshibaCheckLevel;
   ok: boolean;
   projectCheck: ProjectCheckResult;
+  generatedRefresh?: FeatureGeneratedRefreshResult;
   mapperTest?: {
     command: string;
     ok: boolean;
@@ -41,6 +44,7 @@ export function registerCheckCommand(program: Command): void {
     .option('--fast', 'Run the fast local check only. This is the default.', false)
     .option('--full', 'Run the fast check and the configured mapper test command.', false)
     .option('--mapper-test-command <command>', 'Mapper test command used by --full', DEFAULT_MAPPER_TEST_COMMAND)
+    .option('--fix-generated', 'Refresh safe library-owned artifacts before reporting application-owned changes', false)
     .action((options: AshibaCheckOptions) => {
       const result = runAshibaCheck(options);
       if (options.format === 'json') {
@@ -57,12 +61,16 @@ export function registerCheckCommand(program: Command): void {
  */
 export function runAshibaCheck(options: AshibaCheckOptions = {}): AshibaCheckCommandResult {
   const level = resolveCheckLevel(options);
+  const generatedRefresh = options.fixGenerated === true
+    ? runFeatureGeneratedRefresh({ rootDir: options.rootDir })
+    : undefined;
   const projectCheck = runProjectCheck(options);
   const result: AshibaCheckCommandResult = {
     kind: 'ashiba-check',
     level,
-    ok: projectCheck.ok,
+    ok: projectCheck.ok && (generatedRefresh?.applicationOwnedIssues.length ?? 0) === 0,
     projectCheck,
+    ...(generatedRefresh ? { generatedRefresh } : {}),
   };
 
   if (level === 'full' && projectCheck.ok) {
@@ -85,6 +93,17 @@ export function formatAshibaCheckResult(result: AshibaCheckCommandResult, option
     '',
     formatProjectCheckResult(result.projectCheck, options).trimEnd(),
   ];
+
+  if (result.generatedRefresh) {
+    lines.push(
+      '',
+      'Generated refresh:',
+      `- changed generated files: ${result.generatedRefresh.changedGeneratedFiles.length}`,
+      ...result.generatedRefresh.changedGeneratedFiles.map((file) => `  - ${file}`),
+      `- application-owned issues: ${result.generatedRefresh.applicationOwnedIssues.length}`,
+      ...result.generatedRefresh.applicationOwnedIssues.map((issue) => `  - ${issue}`),
+    );
+  }
 
   if (result.level === 'fast') {
     lines.push('', 'Next:', '- Use `ashiba check --full` before push, review, or CI when DB-backed mapper tests should run.');

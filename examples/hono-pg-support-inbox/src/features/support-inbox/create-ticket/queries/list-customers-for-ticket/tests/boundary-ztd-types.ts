@@ -22,5 +22,5 @@ export type ListCustomersForTicketQueryBoundaryZtdCase = QuerySpecZtdCase<
 export type ListCustomersForTicketQueryMappingZtdCase = QuerySpecZtdCase<
   ListCustomersForTicketBeforeDb,
   ListCustomersForTicketQueryParams,
-  unknown
+  ListCustomersForTicketQueryResult[]
 >;

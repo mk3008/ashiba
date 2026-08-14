@@ -23,21 +23,21 @@
     "params": [
       {
         "name": "destination_definition_names",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string[]"
       }
     ],
     "rows": [
       {
         "name": "destination_definition_id",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "destination_definition_name",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       }
     ],
     "generatedCaseNames": [

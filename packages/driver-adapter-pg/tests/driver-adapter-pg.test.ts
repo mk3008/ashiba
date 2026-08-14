@@ -1,15 +1,22 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import fc from 'fast-check';
 import { describe, expect, test } from 'vitest';
 import {
   AshibaParameterError,
   classifyPostgresTransientError,
+  compilePostgresQuery,
   createPostgresAdapter,
   isPostgresTransientError,
   type AshibaPostgresQueryModel,
   type NodePostgresQueryable,
 } from '../src/index.js';
-import { AshibaSortError, type AshibaSqlExecutionEvent } from '@ashiba-ts/driver-adapter-core';
+import {
+  AshibaSortError,
+  type AshibaSqlExecutionEvent,
+  type PostgresDerivedQueryContract,
+  type PostgresDriverRepresentationProfile,
+} from '@ashiba-ts/driver-adapter-core';
 
 describe('@ashiba-ts/driver-adapter-pg', () => {
   test('classifies PostgreSQL transient retry candidates without deciding idempotency', () => {
@@ -156,6 +163,51 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       { id: 1 },{},
     )).rejects.toMatchObject({ code: 'ASHIBA_QUERY_MODEL_STALE' });
 
+    expect(called).toBe(false);
+  });
+
+  test('rejects a PostgreSQL-derived contract generated from stale source SQL', async () => {
+    let called = false;
+    const sourceSql = 'select :id::integer as id';
+    const client: NodePostgresQueryable = {
+      async query() {
+        called = true;
+        return { rows: [] };
+      },
+    };
+    const adapter = createPostgresAdapter(client);
+    const queryModel = queryModelFor(sourceSql, {
+      sql: 'select $1::integer as id',
+      orderedNames: ['id'],
+      contract: contractFor(hashSql('select :other::integer as id')),
+    });
+
+    await expect(adapter.execute(querySource(sourceSql, queryModel), { id: 1 }))
+      .rejects.toMatchObject({ code: 'ASHIBA_QUERY_MODEL_STALE' });
+    expect(called).toBe(false);
+  });
+
+  test('rejects a declared node-postgres parser profile mismatch before DB execution', async () => {
+    let called = false;
+    const sourceSql = 'select :id::integer as id';
+    const client: NodePostgresQueryable = {
+      async query() {
+        called = true;
+        return { rows: [] };
+      },
+    };
+    const adapter = createPostgresAdapter(client, { driverProfile: 'custom:application-v2' });
+    const queryModel = queryModelFor(sourceSql, {
+      sql: 'select $1::integer as id',
+      orderedNames: ['id'],
+      contract: contractFor(hashSql(sourceSql), 'node-postgres-default'),
+    });
+
+    await expect(adapter.execute(querySource(sourceSql, queryModel), { id: 1 }))
+      .rejects.toMatchObject({
+        code: 'ASHIBA_DRIVER_PROFILE_MISMATCH',
+        causeText: expect.stringContaining('type-parser profile'),
+      });
     expect(called).toBe(false);
   });
 
@@ -1292,6 +1344,138 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     ), { numRuns: 100 });
   });
 
+  test('compiles the canonical SQL fixture into traceable ordinary SQL without adding hidden capability', () => {
+    const sourceSql = readFileSync(new URL('./fixtures/representative-search.sql', import.meta.url), 'utf8');
+    const compiledSql = sourceSql
+      .replace(':status', '$1')
+      .replace(':status', '$2')
+      .replace(':ticket_ids', '$3')
+      .replace(':excluded_status', '$4')
+      .replace(':limit', '$5')
+      .replace(':offset', '$6');
+    const sourceInsertion = sourceSql.indexOf('    t.priority desc');
+    const sourceInsertionEnd = sourceSql.indexOf('limit :limit');
+    const compiledInsertion = compiledSql.indexOf('    t.priority desc');
+    const compiledInsertionEnd = compiledSql.indexOf('limit $5');
+    const query = querySource(sourceSql, queryModelFor(sourceSql, {
+      sql: compiledSql,
+      orderedNames: ['status', 'status', 'ticket_ids', 'excluded_status', 'limit', 'offset'],
+      safeSortInsertion: { index: compiledInsertion, end: compiledInsertionEnd },
+      optionalConditionCompression: {
+        branches: [
+          ...optionalCompressionBinding(compiledSql, 'status', 'where\n    ($1 is null or t.status = $2)').branches,
+        ],
+      },
+    }, {
+      safeSort: {
+        insertion: { status: 'ready', index: sourceInsertion, end: sourceInsertionEnd, mode: 'replace' },
+        sortable: {
+          priority: { sql: 't.priority', defaultDirection: 'desc', allowedDirections: ['desc'] },
+          ticket_id: { sql: 't.ticket_id', defaultDirection: 'asc', allowedDirections: ['asc'] },
+        },
+      },
+      optionalConditionCompression: {
+        enabled: true,
+        branches: [
+          ...optionalCompressionAnalysis(sourceSql, 'status', 'where\n    (:status is null or t.status = :status)').branches,
+        ],
+      },
+    }));
+    const injection = "urgent'); drop table public.tickets;--";
+
+    const compiled = compilePostgresQuery(
+      query,
+      { status: null, ticket_ids: [1, 2], excluded_status: injection, limit: 25, offset: 0 },
+      {
+        optionalConditionCompression: true,
+        sort: [
+          { key: 'priority', direction: 'desc' },
+          { key: 'ticket_id', direction: 'asc' },
+        ],
+      },
+    );
+
+    expect(compiled.canonicalSql).toBe(sourceSql);
+    expect(compiled.canonicalSql).toContain('(:status is null or t.status = :status)');
+    expect(compiled.canonicalSql).toContain('t.priority desc');
+    expect(compiled.canonicalSql).toContain('t.ticket_id asc');
+    expect(compiled.canonicalSql).not.toMatch(/ashiba|\{\{|\$\{/i);
+    expect(compiled.sourceSql).not.toContain(':status');
+    expect(compiled.sourceSql).toContain('where\n    t.ticket_id = any(:ticket_ids::integer[])');
+    expect(compiled.sql).not.toContain(injection);
+    expect(compiled.sql).not.toMatch(/(^|[^:]):[A-Za-z_][A-Za-z0-9_$]*/);
+    expect(compiled.sql.match(/t\.priority desc/g)).toHaveLength(1);
+    expect(compiled.sql.match(/t\.ticket_id asc/g)).toHaveLength(1);
+    expect(compiled.values).toEqual([[1, 2], injection, 25, 0]);
+    expect(compiled.orderedNames).toEqual(['ticket_ids', 'excluded_status', 'limit', 'offset']);
+    expect(compiled.sourceHash).toBe(hashSql(sourceSql));
+    expect(compiled.transformations).toEqual({
+      optionalConditionCompression: true,
+      safeSortKeys: ['priority', 'ticket_id'],
+    });
+
+    expect(() => compilePostgresQuery(
+      query,
+      { status: null, ticket_ids: [1, 2], excluded_status: 'closed', limit: 25, offset: 0 },
+      { sort: [{ key: 'priority', direction: 'asc' }] },
+    )).toThrow(AshibaSortError);
+    expect(() => compilePostgresQuery(
+      query,
+      { status: null, ticket_ids: [1, 2], excluded_status: 'closed', limit: 25, offset: 0 },
+      { sort: [{ key: 'priority; drop table public.tickets;--', direction: 'desc' }] },
+    )).toThrow(AshibaSortError);
+  });
+
+  test('covers 64 finite search combinations without crossing the visible SQL capability boundary', () => {
+    const { sourceSql, query } = representativeSearchQuery();
+    const injection = "closed'); drop table public.tickets;--";
+
+    for (let mask = 0; mask < 64; mask += 1) {
+      const status = (mask & 1) === 0 ? null : 'open';
+      const ticketIds = (mask & 2) === 0 ? [1] : [1, 2];
+      const excludedStatus = (mask & 4) === 0 ? 'closed' : injection;
+      const limit = (mask & 8) === 0 ? 10 : 25;
+      const offset = (mask & 16) === 0 ? 0 : 50;
+      const sort = (mask & 32) === 0
+        ? [
+          { key: 'priority' as const, direction: 'desc' as const },
+          { key: 'ticket_id' as const, direction: 'asc' as const },
+        ]
+        : [
+          { key: 'ticket_id' as const, direction: 'asc' as const },
+          { key: 'priority' as const, direction: 'desc' as const },
+        ];
+
+      const compiled = compilePostgresQuery(
+        query,
+        { status, ticket_ids: ticketIds, excluded_status: excludedStatus, limit, offset },
+        { optionalConditionCompression: true, sort },
+      );
+
+      expect(compiled.canonicalSql).toBe(sourceSql);
+      expect(compiled.sql).not.toContain(excludedStatus);
+      expect(compiled.values).toEqual([
+        ...(status === null ? [] : [status]),
+        ticketIds,
+        excludedStatus,
+        limit,
+        offset,
+      ]);
+      expect(compiled.orderedNames).toEqual([
+        ...(status === null ? [] : ['status']),
+        'ticket_ids',
+        'excluded_status',
+        'limit',
+        'offset',
+      ]);
+      expect(compiled.sourceSql.includes('t.status = :status')).toBe(status !== null);
+      expect(compiled.transformations.safeSortKeys).toEqual(sort.map((entry) => entry.key));
+      for (const entry of sort) {
+        expect(sourceSql).toContain(`t.${entry.key} ${entry.direction}`);
+      }
+    }
+  });
+
   test('combines optional condition compression with mixed optional parameters and comma-mode safe sort', async () => {
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const sourceSql = 'select a.user_id as id from users a where a.tenant_id = :tenant_id and (:status is null or a.status = :status) and (:email is null or a.email = :email) order by a.created_at';
@@ -2125,6 +2309,48 @@ function querySource(sourceSql: string, queryModel: AshibaPostgresQueryModel = q
   };
 }
 
+function representativeSearchQuery() {
+  const sourceSql = readFileSync(new URL('./fixtures/representative-search.sql', import.meta.url), 'utf8');
+  const compiledSql = sourceSql
+    .replace(':status', '$1')
+    .replace(':status', '$2')
+    .replace(':ticket_ids', '$3')
+    .replace(':excluded_status', '$4')
+    .replace(':limit', '$5')
+    .replace(':offset', '$6');
+  const sourceInsertion = sourceSql.indexOf('    t.priority desc');
+  const sourceInsertionEnd = sourceSql.indexOf('limit :limit');
+  const compiledInsertion = compiledSql.indexOf('    t.priority desc');
+  const compiledInsertionEnd = compiledSql.indexOf('limit $5');
+  return {
+    sourceSql,
+    query: querySource(sourceSql, queryModelFor(sourceSql, {
+      sql: compiledSql,
+      orderedNames: ['status', 'status', 'ticket_ids', 'excluded_status', 'limit', 'offset'],
+      safeSortInsertion: { index: compiledInsertion, end: compiledInsertionEnd },
+      optionalConditionCompression: {
+        branches: [
+          ...optionalCompressionBinding(compiledSql, 'status', 'where\n    ($1 is null or t.status = $2)').branches,
+        ],
+      },
+    }, {
+      safeSort: {
+        insertion: { status: 'ready', index: sourceInsertion, end: sourceInsertionEnd, mode: 'replace' },
+        sortable: {
+          priority: { sql: 't.priority', defaultDirection: 'desc', allowedDirections: ['desc'] },
+          ticket_id: { sql: 't.ticket_id', defaultDirection: 'asc', allowedDirections: ['asc'] },
+        },
+      },
+      optionalConditionCompression: {
+        enabled: true,
+        branches: [
+          ...optionalCompressionAnalysis(sourceSql, 'status', 'where\n    (:status is null or t.status = :status)').branches,
+        ],
+      },
+    })),
+  };
+}
+
 function queryModelFor(
   sourceSql: string,
   binding: {
@@ -2146,6 +2372,7 @@ function queryModelFor(
           };
         }[];
       };
+    contract?: PostgresDerivedQueryContract;
   } = {},
   analysis: Record<string, unknown> = {},
 ) {
@@ -2175,8 +2402,31 @@ function queryModelFor(
         orderedNames: bindingWithGroups.orderedNames ?? [],
         ...(bindingWithGroups.safeSortInsertion ? { safeSortInsertion: bindingWithGroups.safeSortInsertion } : {}),
         ...(bindingWithGroups.optionalConditionCompression ? { optionalConditionCompression: bindingWithGroups.optionalConditionCompression } : {}),
+        ...(bindingWithGroups.contract ? { contract: bindingWithGroups.contract } : {}),
       },
     },
+  };
+}
+
+function contractFor(
+  sourceHash: string,
+  profile: PostgresDriverRepresentationProfile = 'node-postgres-default',
+): PostgresDerivedQueryContract {
+  return {
+    version: 1,
+    sourceHash,
+    database: {
+      system: 'postgresql',
+      serverMajor: 18,
+      parameters: [],
+      results: [],
+    },
+    driver: {
+      profile,
+      parameters: [],
+      results: [],
+    },
+    diagnostics: [],
   };
 }
 

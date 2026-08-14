@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 
-import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
+import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { execute } from '../boundary.js';
 
 test('update-ticket-status applies parsed boundary input and returns the updated row', async () => {
   const calls: Array<{ id: string; params: Record<string, unknown> }> = [];
   const executor: FeatureQueryExecutor = {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+    async query(query, params) {
       calls.push({ id: query.id, params });
       return [
         {
@@ -15,7 +15,7 @@ test('update-ticket-status applies parsed boundary input and returns the updated
           updated_at: params.updated_at,
           version_key: 3,
         },
-      ] as T[];
+      ];
     },
   };
 
@@ -42,7 +42,7 @@ test('update-ticket-status applies parsed boundary input and returns the updated
 
 test('update-ticket-status reports an optimistic concurrency conflict when no row is updated', async () => {
   const executor: FeatureQueryExecutor = {
-    async query<T = unknown>(): Promise<T[]> {
+    async query() {
       return [];
     },
   };

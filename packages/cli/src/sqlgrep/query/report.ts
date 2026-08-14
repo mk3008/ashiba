@@ -4,6 +4,7 @@ import {
   discoverProjectSqlCatalogSpecFiles,
   loadSqlCatalogSpecsFromFile,
   walkSqlCatalogSpecFiles,
+  type LoadedSqlCatalogSpec,
 } from '../utils/sqlCatalogDiscovery.js';
 import { buildCatalogStatements } from '../utils/sqlCatalogStatements.js';
 import { analyzeColumnUsage } from './analyzeColumnUsage.js';
@@ -109,9 +110,17 @@ export function buildQueryUsageReport(params: BuildQueryUsageReportParams): Quer
       kind: params.kind,
     });
 
+    const resolvedCatalogs = resolveDiscoveredCatalogs({
+      loadedSpecs: discovery.loadedSpecs,
+      rootDir,
+      sqlRoot,
+      normalizedSqlRoot,
+    });
+    warnings.push(...resolvedCatalogs.warnings);
+
     const detailMatches: QueryUsageMatchDetail[] = [];
     let statementsScanned = 0;
-    let unresolvedSqlFiles = 0;
+    const unresolvedSqlFiles = resolvedCatalogs.unresolvedSqlFiles;
     let parseWarnings = 0;
     let fallbackMatches = 0;
 
@@ -132,55 +141,8 @@ Hint: run "ashiba init" or place feature-local specs under your project tree. Us
     // Bound location cache lifetime to this batch so repeated runs do not accumulate statement entries.
     clearStatementCache();
 
-    for (const loaded of discovery.loadedSpecs) {
-      const catalogId = typeof loaded.spec.id === 'string' && loaded.spec.id.trim().length > 0
-        ? loaded.spec.id.trim()
-        : `<missing-id:${path.basename(loaded.filePath)}>`;
-      const sqlFile = typeof loaded.spec.sqlFile === 'string' && loaded.spec.sqlFile.trim().length > 0
-        ? loaded.spec.sqlFile.trim()
-        : null;
-      if (!sqlFile) {
-        unresolvedSqlFiles += 1;
-        warnings.push({
-          catalog_id: catalogId,
-          sql_file: normalizePath(path.relative(rootDir, loaded.filePath)),
-          code: 'unresolved-sql-file',
-          message: 'spec.sqlFile must be a non-empty string.',
-        });
-        continue;
-      }
-
-      const resolvedSqlFile = resolveCatalogSqlFile({
-        rootDir,
-        sqlRoot,
-        specFilePath: loaded.filePath,
-        sqlFile,
-      });
-      if (!resolvedSqlFile) {
-        unresolvedSqlFiles += 1;
-        const specRelativeCandidate = normalizePath(path.relative(rootDir, path.resolve(path.dirname(loaded.filePath), sqlFile)));
-        const projectRelativeCandidate = normalizePath(path.relative(rootDir, path.resolve(rootDir, sqlFile)));
-        const sqlRootCandidate = sqlRoot
-          ? normalizePath(path.relative(rootDir, path.resolve(sqlRoot, sqlFile)))
-          : null;
-        warnings.push({
-          catalog_id: catalogId,
-          sql_file: specRelativeCandidate,
-          code: 'unresolved-sql-file',
-          message: [
-            `SQL file does not exist: ${sqlFile}`,
-            `Tried spec-relative path: ${specRelativeCandidate}`,
-            `Tried project-relative path: ${projectRelativeCandidate}`,
-            ...(sqlRootCandidate && normalizedSqlRoot
-              ? [`Tried --sql-root (${normalizedSqlRoot}): ${sqlRootCandidate}`]
-              : []),
-            `Hint: prefer feature-local spec-relative sqlFile values. Use --sql-root only when your specs intentionally point into a shared SQL root.`,
-          ].join('\n'),
-        });
-        continue;
-      }
-
-      const normalizedSqlFile = normalizePath(path.relative(rootDir, resolvedSqlFile));
+    for (const catalog of resolvedCatalogs.catalogs) {
+      const { catalogId, resolvedSqlFile, normalizedSqlFile } = catalog;
       const sqlText = readFileSync(resolvedSqlFile, 'utf8');
       const statements = buildCatalogStatements({
         catalogId,
@@ -224,10 +186,11 @@ Hint: run "ashiba init" or place feature-local specs under your project tree. Us
       }
     }
 
+    const uniqueDetailMatches = dedupeDetailMatches(detailMatches);
     const matches: QueryUsageMatch[] = view === 'detail'
-      ? detailMatches
-      : runSpan(params.withSpanSync, QUERY_USES_REPORT_SPANS.impactAggregation, () => aggregateImpactMatches(detailMatches), {
-        detailMatchCount: detailMatches.length,
+      ? uniqueDetailMatches
+      : runSpan(params.withSpanSync, QUERY_USES_REPORT_SPANS.impactAggregation, () => aggregateImpactMatches(uniqueDetailMatches), {
+        detailMatchCount: uniqueDetailMatches.length,
       });
 
     return {
@@ -236,12 +199,15 @@ Hint: run "ashiba init" or place feature-local specs under your project tree. Us
       view,
       target: parsedTarget.target,
       summary: {
-        catalogsScanned: discovery.loadedSpecs.length,
+        catalogsScanned: resolvedCatalogs.catalogs.length,
         statementsScanned,
         matches: matches.length,
         fallbackMatches,
         unresolvedSqlFiles,
         parseWarnings,
+        highConfidenceMatches: matches.filter((match) => match.kind === 'impact' && match.confidenceBand === 'high').length,
+        lowConfidenceMatches: matches.filter((match) => match.kind === 'impact' && match.confidenceBand === 'low').length,
+        unresolvedMatches: matches.filter((match) => match.kind === 'impact' && match.confidenceBand === 'unresolved').length,
       },
       matches: sortQueryUsageMatches(matches),
       warnings: sortQueryUsageWarnings(warnings),
@@ -298,6 +264,7 @@ function aggregateImpactMatches(matches: QueryUsageMatchDetail[]): QueryUsageMat
       sql_file: first.sql_file,
       usageKindCounts: sortUsageKindCounts(usageKindCounts),
       confidence: aggregateConfidence(group.map((match) => match.confidence)),
+      confidenceBand: classifyImpactConfidence(group),
       notes: Array.from(noteSet).sort(),
       source: group.some((match) => match.source === 'ast') ? 'ast' : 'fallback',
       representatives: Array.from(representatives.values())
@@ -320,13 +287,124 @@ function aggregateImpactMatches(matches: QueryUsageMatchDetail[]): QueryUsageMat
 }
 
 function aggregateConfidence(confidences: QueryUsageConfidence[]): QueryUsageConfidence {
-  if (confidences.includes('high')) {
+  if (confidences.length > 0 && confidences.every((confidence) => confidence === 'high')) {
     return 'high';
   }
   if (confidences.includes('medium')) {
     return 'medium';
   }
   return 'low';
+}
+
+export function classifyImpactConfidence(group: QueryUsageMatchDetail[]): QueryUsageMatchImpact['confidenceBand'] {
+  if (group.length > 0 && group.every((match) => match.source === 'ast' && match.confidence === 'high' && match.location !== null)) {
+    return 'high';
+  }
+  if (group.length > 0 && group.every((match) => match.location === null)) {
+    return 'unresolved';
+  }
+  return 'low';
+}
+
+function dedupeDetailMatches(matches: QueryUsageMatchDetail[]): QueryUsageMatchDetail[] {
+  const byOccurrence = new Map<string, QueryUsageMatchDetail>();
+  for (const match of matches) {
+    const key = [
+      match.query_id,
+      match.statement_fingerprint,
+      match.usage_kind,
+      match.location?.fileOffsetStart ?? 'unresolved',
+      match.location?.fileOffsetEnd ?? 'unresolved',
+      match.source,
+    ].join('\u0000');
+    const current = byOccurrence.get(key);
+    if (!current || compareConfidence(match.confidence, current.confidence) < 0) {
+      byOccurrence.set(key, match);
+    }
+  }
+  return [...byOccurrence.values()];
+}
+
+function resolveDiscoveredCatalogs(params: {
+  loadedSpecs: LoadedSqlCatalogSpec[];
+  rootDir: string;
+  sqlRoot: string | null;
+  normalizedSqlRoot: string | null;
+}): {
+  catalogs: Array<{ catalogId: string; resolvedSqlFile: string; normalizedSqlFile: string }>;
+  warnings: QueryUsageReport['warnings'];
+  unresolvedSqlFiles: number;
+} {
+  const warnings: QueryUsageReport['warnings'] = [];
+  const bySqlFile = new Map<string, Array<{ loaded: LoadedSqlCatalogSpec; explicitId?: string; resolvedSqlFile: string }>>();
+  let unresolvedSqlFiles = 0;
+  for (const loaded of params.loadedSpecs) {
+    const specFile = normalizePath(path.relative(params.rootDir, loaded.filePath));
+    const fallbackId = `spec:${specFile}`;
+    const explicitId = typeof loaded.spec.id === 'string' && loaded.spec.id.trim().length > 0
+      ? loaded.spec.id.trim()
+      : undefined;
+    const sqlFile = typeof loaded.spec.sqlFile === 'string' && loaded.spec.sqlFile.trim().length > 0
+      ? loaded.spec.sqlFile.trim()
+      : undefined;
+    if (!sqlFile) {
+      unresolvedSqlFiles += 1;
+      warnings.push({
+        catalog_id: explicitId ?? fallbackId,
+        sql_file: specFile,
+        code: 'unresolved-sql-file',
+        message: 'spec.sqlFile must be a non-empty string.',
+      });
+      continue;
+    }
+    const resolvedSqlFile = resolveCatalogSqlFile({
+      rootDir: params.rootDir,
+      sqlRoot: params.sqlRoot,
+      specFilePath: loaded.filePath,
+      sqlFile,
+    });
+    if (!resolvedSqlFile) {
+      unresolvedSqlFiles += 1;
+      const specRelativeCandidate = normalizePath(path.relative(params.rootDir, path.resolve(path.dirname(loaded.filePath), sqlFile)));
+      const projectRelativeCandidate = normalizePath(path.relative(params.rootDir, path.resolve(params.rootDir, sqlFile)));
+      const sqlRootCandidate = params.sqlRoot
+        ? normalizePath(path.relative(params.rootDir, path.resolve(params.sqlRoot, sqlFile)))
+        : null;
+      warnings.push({
+        catalog_id: explicitId ?? fallbackId,
+        sql_file: specRelativeCandidate,
+        code: 'unresolved-sql-file',
+        message: [
+          `SQL file does not exist: ${sqlFile}`,
+          `Tried spec-relative path: ${specRelativeCandidate}`,
+          `Tried project-relative path: ${projectRelativeCandidate}`,
+          ...(sqlRootCandidate && params.normalizedSqlRoot
+            ? [`Tried --sql-root (${params.normalizedSqlRoot}): ${sqlRootCandidate}`]
+            : []),
+        ].join('\n'),
+      });
+      continue;
+    }
+    const normalizedSqlFile = normalizePath(path.relative(params.rootDir, resolvedSqlFile));
+    const group = bySqlFile.get(normalizedSqlFile) ?? [];
+    group.push({ loaded, explicitId, resolvedSqlFile });
+    bySqlFile.set(normalizedSqlFile, group);
+  }
+
+  const catalogs = [...bySqlFile.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([normalizedSqlFile, group]) => {
+    const explicitIds = [...new Set(group.map((entry) => entry.explicitId).filter((value): value is string => Boolean(value)))].sort();
+    const catalogId = explicitIds[0] ?? `sql:${normalizedSqlFile.replace(/\.sql$/i, '')}`;
+    if (explicitIds.length > 1) {
+      warnings.push({
+        catalog_id: catalogId,
+        sql_file: normalizedSqlFile,
+        code: 'conflicting-catalog-ids',
+        message: `The same SQL file was discovered with multiple IDs (${explicitIds.join(', ')}); using ${catalogId} deterministically.`,
+      });
+    }
+    return { catalogId, resolvedSqlFile: group[0].resolvedSqlFile, normalizedSqlFile };
+  });
+  return { catalogs, warnings, unresolvedSqlFiles };
 }
 
 function summarizeImpactNotes(notes: string[]): string[] {

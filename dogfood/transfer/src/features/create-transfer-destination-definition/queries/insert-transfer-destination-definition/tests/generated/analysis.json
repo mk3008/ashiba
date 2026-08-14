@@ -39,7 +39,7 @@
       },
       {
         "name": "destination_key_columns",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string[]"
       },
       {
         "name": "sequence_expression_definition",
@@ -51,7 +51,7 @@
       },
       {
         "name": "sign_inversion_columns",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string[]"
       },
       {
         "name": "note",
@@ -61,9 +61,9 @@
     "rows": [
       {
         "name": "created_at",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "description",
@@ -75,37 +75,37 @@
         "name": "destination_columns",
         "typeScriptType": "unknown",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "destination_definition_id",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "destination_definition_name",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "destination_key_columns",
-        "typeScriptType": "string[] | null",
-        "sqlType": "text",
-        "nullability": "unknown"
+        "typeScriptType": "string[]",
+        "sqlType": "text[]",
+        "nullability": "non-null"
       },
       {
         "name": "destination_table_name",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "generated_red_transfer_sql_body",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "generated_red_transfer_sql_error",
@@ -115,9 +115,9 @@
       },
       {
         "name": "generated_red_transfer_sql_status",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "note",
@@ -134,20 +134,20 @@
       {
         "name": "sign_inversion_columns",
         "typeScriptType": "string[] | null",
-        "sqlType": "text",
+        "sqlType": "text[]",
         "nullability": "nullable"
       },
       {
         "name": "transfer_model",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "updated_at",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       }
     ],
     "generatedCaseNames": [

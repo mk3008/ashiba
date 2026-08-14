@@ -33,69 +33,69 @@
     "rows": [
       {
         "name": "channel",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "created_at",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "customer_name",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "customer_tier",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "language",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "message_body",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "message_created_at",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "message_id",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "priority",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "sender_name",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "sender_role",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "sla_due_at",
@@ -105,33 +105,33 @@
       },
       {
         "name": "status",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "subject",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "ticket_id",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "updated_at",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "version_key",
-        "typeScriptType": "number | null",
+        "typeScriptType": "number",
         "sqlType": "integer",
-        "nullability": "unknown"
+        "nullability": "non-null"
       }
     ],
     "generatedCaseNames": [

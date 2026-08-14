@@ -31,7 +31,7 @@ export type InsertTransferSettingQueryBoundaryZtdCase = QuerySpecZtdCase<
 export type InsertTransferSettingQueryMappingZtdCase = QuerySpecZtdCase<
   InsertTransferSettingBeforeDb,
   InsertTransferSettingQueryParams,
-  unknown
+  InsertTransferSettingQueryResult[]
 >;
 
 // Result columns are mapped through synthetic DB result probes so mapper tests stay focused on DTO compatibility.

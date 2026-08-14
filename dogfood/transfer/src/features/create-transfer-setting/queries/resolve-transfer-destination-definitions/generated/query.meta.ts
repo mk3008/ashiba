@@ -11,14 +11,16 @@ export const queryModel = {
       "insertion": {
         "status": "ready",
         "index": 223,
-        "mode": "prepend-comma"
+        "end": 250,
+        "mode": "replace"
       },
       "sortable": {
-        "destination_definition_id": {
-          "sql": "destination_definition_id"
-        },
         "destination_definition_name": {
-          "sql": "destination_definition_name"
+          "sql": "destination_definition_name",
+          "defaultDirection": "asc",
+          "allowedDirections": [
+            "asc"
+          ]
         }
       }
     },
@@ -34,9 +36,29 @@ export const queryModel = {
       "destination_definition_id": "string",
       "destination_definition_name": "string"
     },
+    "resultColumnNullability": {
+      "destination_definition_id": "non-null",
+      "destination_definition_name": "non-null"
+    },
     "namedParameters": [
       "destination_definition_names"
-    ]
+    ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "supported",
+      "safeSort": "supported",
+      "impactAnalysis": "supported"
+    },
+    "parameterTypes": {
+      "destination_definition_names": "string[]"
+    }
   },
   "bindings": {
     "postgres": {
@@ -46,7 +68,8 @@ export const queryModel = {
         "destination_definition_names"
       ],
       "safeSortInsertion": {
-        "index": 196
+        "index": 196,
+        "end": 223
       },
       "optionalConditionCompression": {
         "branches": []

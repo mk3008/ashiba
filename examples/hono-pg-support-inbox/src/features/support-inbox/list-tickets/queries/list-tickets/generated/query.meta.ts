@@ -11,74 +11,16 @@ export const queryModel = {
       "insertion": {
         "status": "ready",
         "index": 7523,
-        "mode": "prepend-comma"
+        "end": 7536,
+        "mode": "replace"
       },
       "sortable": {
-        "total_count": {
-          "sql": "count(*) over()"
-        },
         "ticket_id": {
-          "sql": "cast(st.ticket_id as bigint)"
-        },
-        "subject": {
-          "sql": "cast(st.subject as text)"
-        },
-        "customer_name": {
-          "sql": "cast(st.customer_name as text)"
-        },
-        "customer_tier": {
-          "sql": "cast(st.customer_tier as text)"
-        },
-        "status": {
-          "sql": "cast(st.status as text)"
-        },
-        "priority": {
-          "sql": "cast(st.priority as text)"
-        },
-        "language": {
-          "sql": "cast(st.language as text)"
-        },
-        "channel": {
-          "sql": "cast(st.channel as text)"
-        },
-        "sla_due_at": {
-          "sql": "st.sla_due_at"
-        },
-        "sla_state": {
-          "sql": "cast(st.sla_state as text)"
-        },
-        "latest_sender_name": {
-          "sql": "st.latest_sender_name"
-        },
-        "latest_sender_role": {
-          "sql": "st.latest_sender_role"
-        },
-        "latest_message_body": {
-          "sql": "st.latest_message_body"
-        },
-        "latest_message_at": {
-          "sql": "st.latest_message_at"
-        },
-        "last_customer_reply_at": {
-          "sql": "lcr.last_customer_reply_at"
-        },
-        "created_at": {
-          "sql": "st.created_at"
-        },
-        "updated_at": {
-          "sql": "st.updated_at"
-        },
-        "tag_slugs": {
-          "sql": "coalesce(tags.tag_slugs, cast(array[] as text[]))"
-        },
-        "action_required": {
-          "sql": "cast(st.action_required as integer)"
-        },
-        "priority_rank": {
-          "sql": "cast(st.priority_rank as integer)"
-        },
-        "vip_rank": {
-          "sql": "cast(st.vip_rank as integer)"
+          "sql": "st.ticket_id",
+          "defaultDirection": "asc",
+          "allowedDirections": [
+            "asc"
+          ]
         }
       }
     },
@@ -342,9 +284,33 @@ export const queryModel = {
       "subject": "string",
       "tag_slugs": "string[]",
       "ticket_id": "string",
-      "total_count": "number",
+      "total_count": "string",
       "updated_at": "string",
       "vip_rank": "number"
+    },
+    "resultColumnNullability": {
+      "action_required": "nullable",
+      "channel": "nullable",
+      "created_at": "nullable",
+      "customer_name": "nullable",
+      "customer_tier": "nullable",
+      "language": "nullable",
+      "last_customer_reply_at": "nullable",
+      "latest_message_at": "nullable",
+      "latest_message_body": "nullable",
+      "latest_sender_name": "nullable",
+      "latest_sender_role": "nullable",
+      "priority": "nullable",
+      "priority_rank": "nullable",
+      "sla_due_at": "nullable",
+      "sla_state": "nullable",
+      "status": "nullable",
+      "subject": "nullable",
+      "tag_slugs": "unknown",
+      "ticket_id": "nullable",
+      "total_count": "non-null",
+      "updated_at": "nullable",
+      "vip_rank": "nullable"
     },
     "namedParameters": [
       "tag",
@@ -356,7 +322,30 @@ export const queryModel = {
       "keyword",
       "limit",
       "offset"
-    ]
+    ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "supported",
+      "safeSort": "supported",
+      "impactAnalysis": "supported"
+    },
+    "parameterTypes": {
+      "channel": "string | null",
+      "customerTier": "string | null",
+      "language": "string | null",
+      "limit": "number",
+      "offset": "number",
+      "slaState": "string | null",
+      "status": "string | null",
+      "tag": "string | null"
+    }
   },
   "bindings": {
     "postgres": {
@@ -383,7 +372,8 @@ export const queryModel = {
         "offset"
       ],
       "safeSortInsertion": {
-        "index": 7430
+        "index": 7430,
+        "end": 7443
       },
       "optionalConditionCompression": {
         "branches": [

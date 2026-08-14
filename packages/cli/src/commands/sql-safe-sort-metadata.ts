@@ -14,13 +14,14 @@ export interface SqlSafeSortMetadata {
     | {
       status: 'ready';
       index: number;
-      mode: 'order-by' | 'prepend-comma' | 'comma';
+      end?: number;
+      mode: 'order-by' | 'prepend-comma' | 'comma' | 'replace';
     }
     | {
       status: 'unresolved';
       reason: string;
     };
-  sortable: Record<string, { sql: string }>;
+  sortable: Record<string, { sql: string; defaultDirection: 'asc' | 'desc'; allowedDirections: readonly ('asc' | 'desc')[] }>;
 }
 
 const sqlFormatter = new SqlFormatter({ keywordCase: 'lower' });
@@ -49,13 +50,29 @@ export function buildSqlSafeSortMetadata(sql: string): SqlSafeSortMetadata {
   }
 
   const orderByIndex = findTopLevelPhrase(sql, ['order', 'by'], selectIndex + 'select'.length);
-  const insertion = orderByIndex >= 0
-    ? { status: 'ready' as const, index: findOrderByListStart(sql, orderByIndex), mode: 'prepend-comma' as const }
-    : { status: 'ready' as const, index: findOrderByInsertionIndex(sql, selectIndex), mode: 'order-by' as const };
+  if (orderByIndex < 0) {
+    return {
+      insertion: {
+        status: 'unresolved',
+        reason: 'Safe sort selection requires reviewed top-level ORDER BY terms in the source SQL.',
+      },
+      sortable: {},
+    };
+  }
+  const listStart = findOrderByListStart(sql, orderByIndex);
+  const listEnd = findFirstTopLevelKeyword(sql, ['limit', 'offset', 'fetch', 'for'], listStart)
+    ?? findStatementEnd(sql, listStart);
+  const sortable = extractSortableOrderByItems(sql.slice(listStart, listEnd), parsed);
+  const insertion = Object.keys(sortable).length > 0
+    ? { status: 'ready' as const, index: listStart, end: listEnd, mode: 'replace' as const }
+    : {
+      status: 'unresolved' as const,
+      reason: 'Source SQL ORDER BY terms could not be mapped to stable public sort keys.',
+    };
 
   return {
     insertion,
-    sortable: extractSortableSelectItems(parsed),
+    sortable,
   };
 }
 
@@ -74,17 +91,85 @@ function parseSqlForSafeSort(sql: string): ReturnType<typeof SqlParser.parse> {
   }
 }
 
-function extractSortableSelectItems(query: SimpleSelectQuery): Record<string, { sql: string }> {
-  const sortable: Record<string, { sql: string }> = {};
-
+function extractSortableSelectItems(query: SimpleSelectQuery): Array<{ name: string; sql: string }> {
+  const sortable: Array<{ name: string; sql: string }> = [];
   for (const item of query.selectClause.items) {
     const sortableItem = parseSortableSelectItem(item);
     if (sortableItem) {
-      sortable[sortableItem.name] = { sql: sortableItem.sql };
+      sortable.push(sortableItem);
     }
   }
-
   return sortable;
+}
+
+function extractSortableOrderByItems(
+  orderBySql: string,
+  query: SimpleSelectQuery,
+): SqlSafeSortMetadata['sortable'] {
+  const selectItems = extractSortableSelectItems(query);
+  const byName = new Map(selectItems.map((item) => [item.name.toLowerCase(), item]));
+  const byExpression = new Map(selectItems.map((item) => [normalizeComparableSql(item.sql), item]));
+  const sortable: SqlSafeSortMetadata['sortable'] = {};
+  for (const term of splitTopLevelCommaList(orderBySql)) {
+    const parsed = parseOrderByTerm(term);
+    if (!parsed) continue;
+    const simpleName = /^[A-Za-z_][A-Za-z0-9_$]*$/.test(parsed.expression)
+      ? normalizeIdentifier(parsed.expression)
+      : undefined;
+    const selected = (simpleName ? byName.get(simpleName.toLowerCase()) : undefined)
+      ?? byExpression.get(normalizeComparableSql(parsed.expression));
+    const plainColumnName = parsed.expression.match(/(?:^|\.)([A-Za-z_][A-Za-z0-9_$]*)$/)?.[1];
+    const key = selected?.name ?? plainColumnName;
+    if (!key || sortable[key]) continue;
+    sortable[key] = {
+      sql: parsed.expression,
+      defaultDirection: parsed.direction,
+      allowedDirections: [parsed.direction],
+    };
+  }
+  return sortable;
+}
+
+function parseOrderByTerm(term: string): { expression: string; direction: 'asc' | 'desc' } | undefined {
+  let value = term.trim();
+  if (!value) return undefined;
+  if (/\s+nulls\s+(?:first|last)\s*$/i.test(value)) return undefined;
+  const directionMatch = value.match(/\s+(asc|desc)\s*$/i);
+  const direction = directionMatch?.[1]?.toLowerCase() === 'desc' ? 'desc' : 'asc';
+  const expression = directionMatch ? value.slice(0, directionMatch.index).trim() : value;
+  return expression ? { expression, direction } : undefined;
+}
+
+function splitTopLevelCommaList(value: string): string[] {
+  const parts: string[] = [];
+  let start = 0;
+  let depth = 0;
+  let quote: '"' | "'" | undefined;
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    const next = value[index + 1];
+    if (quote) {
+      if (char === quote && next === quote) index += 1;
+      else if (char === quote) quote = undefined;
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+    if (char === '(') depth += 1;
+    else if (char === ')' && depth > 0) depth -= 1;
+    else if (char === ',' && depth === 0) {
+      parts.push(value.slice(start, index));
+      start = index + 1;
+    }
+  }
+  parts.push(value.slice(start));
+  return parts;
+}
+
+function normalizeComparableSql(value: string): string {
+  return value.replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 function parseSortableSelectItem(item: SelectItem): { name: string; sql: string } | null {
@@ -113,10 +198,6 @@ function findOrderByListStart(sql: string, orderByIndex: number): number {
   }
   while (/\s/.test(sql[index] ?? '')) index += 1;
   return index;
-}
-
-function findOrderByInsertionIndex(sql: string, selectIndex: number): number {
-  return findFirstTopLevelKeyword(sql, ['window', 'limit', 'offset', 'fetch', 'for'], selectIndex) ?? findStatementEnd(sql, selectIndex);
 }
 
 function findFirstTopLevelKeyword(sql: string, keywords: string[], start: number): number | undefined {

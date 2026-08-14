@@ -4,13 +4,11 @@ import { expect } from 'vitest';
 import { Pool } from 'pg';
 import type { PoolClient } from 'pg';
 
-import type { FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';
+import type { FeatureQueryExecutor } from '@ashiba-ts/driver-adapter-core';
 import type { PostgresTestkitClient } from '@ashiba-ts/testkit-adapter-pg';
 import type { QuerySpecTraditionalCase, QuerySpecZtdCase } from './case-types.js';
 
-type QuerySpecExecutorClient = {
-  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;
-};
+type QuerySpecExecutorClient = FeatureQueryExecutor;
 
 type QuerySpecExecutor<Input, Output> = (
   client: QuerySpecExecutorClient,
@@ -291,7 +289,7 @@ function createQuerySpecExecutor(
   querySpecCase: QuerySpecZtdCase<FixtureTree, unknown, unknown>
 ): QuerySpecExecutorClient {
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+    async query(query, params) {
       const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
       const sourceParams = querySpecCase.mapperProbe?.params ?? params;
       const bound = bindNamedParams(sourceSql, sourceParams);
@@ -304,7 +302,7 @@ function createQuerySpecExecutor(
       });
 
       const result = await testkitClient.query(bound.boundSql, bound.boundValues);
-      return result.rows as T[];
+      return result.rows;
     }
   };
 }
@@ -336,7 +334,7 @@ async function createPhysicalQuerySpecExecutor(
   }
 
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+    async query(query, params) {
       const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
       const sourceParams = querySpecCase.mapperProbe?.params ?? params;
       const bound = bindNamedParams(sourceSql, sourceParams);
@@ -351,7 +349,7 @@ async function createPhysicalQuerySpecExecutor(
         rewriteApplied: false
       });
       const result = await client.query(executedSql, bound.boundValues);
-      return result.rows as T[];
+      return result.rows;
     },
     async assertAfterDb(afterDb: FixtureTree): Promise<void> {
       const expectedTables = flattenFixtureTableRows(afterDb);

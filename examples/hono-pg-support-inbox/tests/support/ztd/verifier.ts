@@ -2,10 +2,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect } from 'vitest';
 import { Pool } from 'pg';
+import type { FeatureQueryExecutor } from '@ashiba-ts/driver-adapter-core';
 import type { PostgresTestkitClient } from '@ashiba-ts/testkit-adapter-pg';
 
 import type { QuerySpecZtdCase } from './case-types.js';
-import type { QuerySpecExecutorClient, QuerySpecSqlSource } from './harness.js';
+import type { QuerySpecExecutorClient } from './harness.js';
 
 type FixtureTree = Record<string, unknown>;
 type FixtureRow = Record<string, unknown>;
@@ -118,7 +119,7 @@ function createQuerySpecExecutor(
   querySpecCase: QuerySpecZtdCase<FixtureTree, unknown, unknown>,
 ): QuerySpecExecutorClient {
   return {
-    async query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]> {
+    async query(query: Parameters<FeatureQueryExecutor['query']>[0], params: Parameters<FeatureQueryExecutor['query']>[1]) {
       const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
       const sourceParams = querySpecCase.mapperProbe?.params ?? params;
       const bound = bindNamedParams(sourceSql, sourceParams);
@@ -129,7 +130,7 @@ function createQuerySpecExecutor(
         rewriteApplied: false,
       });
       const result = await testkitClient.query(bound.boundSql, bound.boundValues);
-      return result.rows as T[];
+      return result.rows;
     },
   };
 }

@@ -458,6 +458,11 @@ function runCatalogContractCheck(options: {
           } else if (metadata.hasTopLevelOrderBy !== currentAnalysis.hasTopLevelOrderBy) {
             issues.push('queryModel.analysis.hasTopLevelOrderBy is stale.');
           }
+          if (!metadata.analysisParserCapabilitiesJson) {
+            issues.push('queryModel.analysis.parserCapabilities is missing.');
+          } else if (metadata.analysisParserCapabilitiesJson !== JSON.stringify(currentAnalysis.parserCapabilities)) {
+            issues.push('queryModel.analysis.parserCapabilities is stale.');
+          }
           if (
             metadata.analysisNamedParameters.length > 0 &&
             JSON.stringify(metadata.analysisNamedParameters) !== JSON.stringify(currentAnalysis.namedParameters)
@@ -470,10 +475,21 @@ function runCatalogContractCheck(options: {
           ) {
             issues.push('queryModel.analysis.resultColumns is stale.');
           }
+          if (
+            metadata.analysisResultColumnOrder.length > 0 &&
+            JSON.stringify(metadata.analysisResultColumnOrder) !== JSON.stringify(currentAnalysis.resultColumnOrder)
+          ) {
+            issues.push('queryModel.analysis.resultColumnOrder is stale.');
+          }
           if (!metadata.analysisResultColumnTypesJson) {
             issues.push('queryModel.analysis.resultColumnTypes is missing.');
           } else if (metadata.analysisResultColumnTypesJson !== JSON.stringify(currentAnalysis.resultColumnTypes)) {
             issues.push('queryModel.analysis.resultColumnTypes is stale.');
+          }
+          if (!metadata.analysisResultColumnNullabilityJson) {
+            issues.push('queryModel.analysis.resultColumnNullability is missing.');
+          } else if (metadata.analysisResultColumnNullabilityJson !== JSON.stringify(currentAnalysis.resultColumnNullability)) {
+            issues.push('queryModel.analysis.resultColumnNullability is stale.');
           }
           if (!metadata.analysisSafeSortJson) {
             issues.push('queryModel.analysis.safeSort is missing.');
@@ -578,10 +594,13 @@ function extractQueryModelMetadata(specFilePath: string): {
   rootQueryShape?: string;
   astParse?: string;
   statementKind?: string;
-  hasTopLevelOrderBy?: boolean;
+  hasTopLevelOrderBy?: boolean | 'unknown';
   analysisNamedParameters: string[];
   analysisResultColumns: string[];
+  analysisResultColumnOrder: string[];
   analysisResultColumnTypesJson?: string;
+  analysisResultColumnNullabilityJson?: string;
+  analysisParserCapabilitiesJson?: string;
   analysisSafeSortJson?: string;
   analysisOptionalConditionCompressionJson?: string;
   bindingSql?: string;
@@ -610,6 +629,7 @@ function extractQueryModelMetadata(specFilePath: string): {
       expectedMetadataFile: normalizePath(metadataRelativePath),
       analysisNamedParameters: [],
       analysisResultColumns: [],
+      analysisResultColumnOrder: [],
       bindingOrderedNames: [],
     };
   }
@@ -626,13 +646,22 @@ function extractQueryModelMetadata(specFilePath: string): {
   const statementKind = readStringProperty(analysisObject, 'statementKind')
     ?? source.match(/"statementKind"\s*:\s*"([^"]+)"/)?.[1];
   const hasTopLevelOrderBy = readBooleanProperty(analysisObject, 'hasTopLevelOrderBy')
+    ?? (readStringProperty(analysisObject, 'hasTopLevelOrderBy') === 'unknown' ? 'unknown' : undefined)
     ?? readBooleanLiteral(source, 'hasTopLevelOrderBy');
   const analysisNamedParameters = readStringArrayProperty(analysisObject, 'namedParameters')
     ?? extractStringArray(analysisBlock, 'namedParameters');
   const analysisResultColumns = readStringArrayProperty(analysisObject, 'resultColumns')
     ?? extractStringArray(analysisBlock, 'resultColumns');
+  const analysisResultColumnOrder = readStringArrayProperty(analysisObject, 'resultColumnOrder')
+    ?? extractStringArray(analysisBlock, 'resultColumnOrder');
   const analysisResultColumnTypesJson = analysisObject && Object.prototype.hasOwnProperty.call(analysisObject, 'resultColumnTypes')
     ? JSON.stringify(analysisObject.resultColumnTypes)
+    : undefined;
+  const analysisResultColumnNullabilityJson = analysisObject && Object.prototype.hasOwnProperty.call(analysisObject, 'resultColumnNullability')
+    ? JSON.stringify(analysisObject.resultColumnNullability)
+    : undefined;
+  const analysisParserCapabilitiesJson = analysisObject && Object.prototype.hasOwnProperty.call(analysisObject, 'parserCapabilities')
+    ? JSON.stringify(analysisObject.parserCapabilities)
     : undefined;
   const analysisSafeSortJson = analysisObject && Object.prototype.hasOwnProperty.call(analysisObject, 'safeSort')
     ? JSON.stringify(analysisObject.safeSort)
@@ -664,7 +693,10 @@ function extractQueryModelMetadata(specFilePath: string): {
     hasTopLevelOrderBy,
     analysisNamedParameters,
     analysisResultColumns,
+    analysisResultColumnOrder,
     analysisResultColumnTypesJson,
+    analysisResultColumnNullabilityJson,
+    analysisParserCapabilitiesJson,
     analysisSafeSortJson,
     analysisOptionalConditionCompressionJson,
     bindingSql,

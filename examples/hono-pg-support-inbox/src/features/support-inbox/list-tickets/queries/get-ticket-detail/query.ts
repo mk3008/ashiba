@@ -1,10 +1,10 @@
-import { queryMany } from '@ashiba-ts/driver-adapter-core';
+import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const getTicketDetailSql = querySql;
-export const getTicketDetailQuery = {
+export const getTicketDetailQuery: FeatureQuerySource<GetTicketDetailQueryParams, GetTicketDetailQueryResult> = {
   id: 'get-ticket-detail',
   path: 'get-ticket-detail.sql',
   sqlPath: 'get-ticket-detail.sql',
@@ -17,37 +17,35 @@ export const getTicketDetailQuery = {
     sqlFile: 'get-ticket-detail.sql',
     sqlPath: 'get-ticket-detail.sql',
   },
-} as const;
+};
 
 export interface GetTicketDetailQueryParams {
   ticketId: string;
 }
 
 export interface GetTicketDetailQueryResult {
-  channel: string | null;
-  created_at: string | null;
-  customer_name: string | null;
-  customer_tier: string | null;
-  language: string | null;
+  channel: string;
+  created_at: string;
+  customer_name: string;
+  customer_tier: string;
+  language: string;
   message_body: string | null;
   message_created_at: string | null;
   message_id: string | null;
-  priority: string | null;
+  priority: string;
   sender_name: string | null;
   sender_role: string | null;
   sla_due_at: string | null;
-  status: string | null;
-  subject: string | null;
-  ticket_id: string | null;
-  updated_at: string | null;
-  version_key: number | null;
+  status: string;
+  subject: string;
+  ticket_id: string;
+  updated_at: string;
+  version_key: number;
 }
-
-type QueryRow = GetTicketDetailQueryResult;
 
 export async function executeGetTicketDetailQuery(
   executor: FeatureQueryExecutor,
   params: GetTicketDetailQueryParams
 ): Promise<GetTicketDetailQueryResult[]> {
-  return queryMany<QueryRow>(executor, getTicketDetailQuery, params as unknown as Record<string, unknown>);
+  return queryMany(executor, getTicketDetailQuery, params);
 }

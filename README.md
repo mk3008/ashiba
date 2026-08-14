@@ -133,6 +133,7 @@ Use this section as the entry point for daily work. The command API page links e
 | When you want to... | Use this | Details |
 |---|---|---|
 | Diagnose ordinary drift while editing | `ashiba check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-check) |
+| Refresh generated artifacts and list application-owned work | `ashiba check --fix-generated` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-check) |
 | Run the full local or CI gate | `ashiba check --full` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-check) |
 | Scaffold passive gates without hook libraries | `ashiba gate scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-gate-scaffold) |
 | Start a SQL-first TypeScript project shape | `ashiba init` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-init) |
@@ -140,6 +141,7 @@ Use this section as the entry point for daily work. The command API page links e
 | Generate a feature boundary from existing SQL | `ashiba feature import <feature> <query> --sql <path>` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-import) |
 | Add another query to an existing feature | `ashiba feature query scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-scaffold) |
 | Refresh generated metadata after editing SQL | `ashiba feature query refresh` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-refresh) |
+| Optionally prove PostgreSQL query/driver types | `ashiba feature query postgres-contract` | [PostgreSQL contract guide](https://mk3008.github.io/ashiba/guide/postgres-contract) |
 | Add generated mapper-test cases and human-owned placeholders | `ashiba feature tests scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-scaffold) |
 | Detect generated mapping-test drift | `ashiba feature tests check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-check) |
 | Check SQL parameters, result columns, and editable query contracts | `ashiba feature generated-mapper check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-generated-mapper-check) |
@@ -161,12 +163,14 @@ Use this section as the entry point for daily work. The command API page links e
 ### I changed SQL
 
 ```bash
-npx ashiba feature query refresh users-list list
-npx ashiba check
+npx ashiba check --fix-generated
+# edit only the application-owned files listed by the diagnostic
 npx ashiba check --full
 ```
 
-Use this when the SQL changed but the feature boundary should remain the same.
+Use this after SQL or DDL changes. The first command refreshes safe generated-owned artifacts together, leaves application-owned files untouched, and lists the remaining contract changes in one diagnostic.
+
+See [Raw SQL change loop measurement](docs/evaluations/raw-sql-change-loop.md) for the measured rename, nullability, and projection mutation results.
 
 ### I changed DDL
 

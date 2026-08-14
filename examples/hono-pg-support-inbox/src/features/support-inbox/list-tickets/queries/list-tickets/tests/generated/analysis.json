@@ -31,27 +31,27 @@
     "params": [
       {
         "name": "tag",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string | null"
       },
       {
         "name": "status",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string | null"
       },
       {
         "name": "customerTier",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string | null"
       },
       {
         "name": "slaState",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string | null"
       },
       {
         "name": "language",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string | null"
       },
       {
         "name": "channel",
-        "typeScriptType": "unknown"
+        "typeScriptType": "string | null"
       },
       {
         "name": "keyword",
@@ -59,11 +59,11 @@
       },
       {
         "name": "limit",
-        "typeScriptType": "unknown"
+        "typeScriptType": "number"
       },
       {
         "name": "offset",
-        "typeScriptType": "unknown"
+        "typeScriptType": "number"
       }
     ],
     "rows": [
@@ -71,79 +71,79 @@
         "name": "action_required",
         "typeScriptType": "number | null",
         "sqlType": "integer",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "channel",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "created_at",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "customer_name",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "customer_tier",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "language",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "last_customer_reply_at",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "latest_message_at",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "latest_message_body",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "latest_sender_name",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "latest_sender_role",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "priority",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "priority_rank",
         "typeScriptType": "number | null",
         "sqlType": "integer",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "sla_due_at",
@@ -155,49 +155,49 @@
         "name": "sla_state",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "status",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "subject",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "tag_slugs",
         "typeScriptType": "string[] | null",
-        "sqlType": "text",
+        "sqlType": "text[]",
         "nullability": "unknown"
       },
       {
         "name": "ticket_id",
         "typeScriptType": "string | null",
         "sqlType": "bigint",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "total_count",
-        "typeScriptType": "number | null",
-        "sqlType": "integer",
-        "nullability": "unknown"
+        "typeScriptType": "string",
+        "sqlType": "text",
+        "nullability": "non-null"
       },
       {
         "name": "updated_at",
         "typeScriptType": "string | null",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "nullable"
       },
       {
         "name": "vip_rank",
         "typeScriptType": "number | null",
         "sqlType": "integer",
-        "nullability": "unknown"
+        "nullability": "nullable"
       }
     ],
     "generatedCaseNames": [

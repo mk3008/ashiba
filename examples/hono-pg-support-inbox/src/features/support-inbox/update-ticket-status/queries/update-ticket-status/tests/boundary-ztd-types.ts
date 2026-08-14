@@ -29,7 +29,7 @@ export type UpdateTicketStatusQueryBoundaryZtdCase = QuerySpecZtdCase<
 export type UpdateTicketStatusQueryMappingZtdCase = QuerySpecZtdCase<
   UpdateTicketStatusBeforeDb,
   UpdateTicketStatusQueryParams,
-  unknown
+  UpdateTicketStatusQueryResult[]
 >;
 
 // Result columns are mapped through synthetic DB result probes so mapper tests stay focused on DTO compatibility.

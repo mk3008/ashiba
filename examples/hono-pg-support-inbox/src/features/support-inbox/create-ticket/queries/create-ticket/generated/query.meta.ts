@@ -42,6 +42,20 @@ export const queryModel = {
       "updated_at": "string",
       "version_key": "number"
     },
+    "resultColumnNullability": {
+      "channel": "non-null",
+      "created_at": "non-null",
+      "customer_id": "non-null",
+      "language": "non-null",
+      "metadata": "non-null",
+      "priority": "non-null",
+      "sla_due_at": "nullable",
+      "status": "non-null",
+      "subject": "non-null",
+      "ticket_id": "non-null",
+      "updated_at": "non-null",
+      "version_key": "non-null"
+    },
     "namedParameters": [
       "customer_id",
       "subject",
@@ -53,6 +67,19 @@ export const queryModel = {
       "created_at",
       "updated_at"
     ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "blocked",
+      "safeSort": "blocked",
+      "impactAnalysis": "supported"
+    },
     "parameterTypes": {
       "channel": "string",
       "created_at": "string",

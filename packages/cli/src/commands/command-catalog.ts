@@ -108,8 +108,9 @@ export const COMMANDS: readonly CommandSpec[] = [
       { flags: '--fast', description: 'Run the fast local check only. This is the default.', defaultValue: 'false' },
       { flags: '--full', description: 'Run the fast check and the configured mapper test command.', defaultValue: 'false' },
       { flags: '--mapper-test-command <command>', description: 'Mapper test command used by --full.', defaultValue: 'vitest run' },
+      { flags: '--fix-generated', description: 'Refresh safe generated-owned artifacts, then report application-owned changes without editing them.', defaultValue: 'false' },
     ],
-    examples: ['npx ashiba check', 'npx ashiba check --full --mapper-test-command "vitest run"'],
+    examples: ['npx ashiba check', 'npx ashiba check --fix-generated', 'npx ashiba check --full --mapper-test-command "vitest run"'],
   },
   {
     name: 'init',
@@ -275,6 +276,31 @@ export const COMMANDS: readonly CommandSpec[] = [
     ],
     options: [commonRoot, commonDryRun, commonFormat],
     examples: ['npx ashiba feature query refresh users-list list'],
+  },
+  {
+    name: 'feature query postgres-contract',
+    summary: 'Validate visible SQL against a development PostgreSQL database and generate DB/driver metadata.',
+    useCase: 'Prove parameter/result database types and record the selected node-postgres representation profile without executing the application statement.',
+    usage: 'ashiba feature query postgres-contract [options] <feature> <query>',
+    arguments: [
+      { name: 'feature', required: true, description: 'Feature name.' },
+      { name: 'query', required: true, description: 'Query boundary name.' },
+    ],
+    options: [
+      { flags: '--database-url <url>', description: 'Development PostgreSQL URL; prefer an environment variable in shared scripts.' },
+      { flags: '--database-url-env <name>', description: 'URL environment variable. Defaults to ASHIBA_POSTGRES_DATABASE_URL.' },
+      { flags: '--driver-profile <profile>', description: 'node-postgres-default or custom:<stable-id>.' },
+      commonRoot,
+      commonDryRun,
+      commonFormat,
+    ],
+    notes: [
+      'The command uses PostgreSQL PREPARE/catalog metadata and does not execute the canonical application statement.',
+      'Custom driver profiles deliberately degrade generated driver value types to unknown; Ashiba does not configure node-postgres parsers.',
+    ],
+    examples: [
+      'ASHIBA_POSTGRES_DATABASE_URL=postgresql://localhost/app npx ashiba feature query postgres-contract users-list list',
+    ],
   },
   {
     name: 'feature tests scaffold',

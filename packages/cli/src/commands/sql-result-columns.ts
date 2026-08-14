@@ -11,12 +11,18 @@ import {
   type SelectItem,
   type ValueComponent,
 } from 'rawsql-ts';
-import { inferSqlExpressionContractType, type SqlExpressionContractType } from './sql-expression-type.js';
+import {
+  inferSqlExpressionContractType,
+  inferSqlExpressionNullability,
+  type SqlExpressionContractType,
+  type SqlExpressionNullability,
+} from './sql-expression-type.js';
 import { astParseUserError } from '../errors.js';
 
 export type SqlResultColumnContract = {
   name: string;
   type: SqlExpressionContractType;
+  nullability: SqlExpressionNullability;
   expression?: string;
 };
 
@@ -45,6 +51,7 @@ function extractSqlResultColumnContractsFromAst(sql: string): SqlResultColumnCon
   return extractSqlResultColumnAstItems(sql).map((item) => ({
     name: item.name,
     type: inferSqlExpressionContractType(item.value),
+    nullability: inferSqlExpressionNullability(item.value),
     expression: item.expression,
   }));
 }

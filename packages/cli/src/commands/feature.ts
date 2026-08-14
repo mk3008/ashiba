@@ -39,6 +39,14 @@ import { areTypeScriptTypesCompatible, inferSqlParameterTypes } from './sql-para
 import { astParseUserError, invalidCliInputError, requiredCliValueError } from '../errors.js';
 import { collectTableReferences } from './table-resolution.js';
 import { normalizeSqlSource } from '../sql-source.js';
+import {
+  derivePostgresQueryContractFromDatabase,
+  parsePostgresDerivedQueryContract,
+  type PostgresDerivedQueryContract,
+  type PostgresDriverProfile,
+  type PostgresDriverRepresentation,
+  type PostgresContractResult,
+} from './postgres-contract.js';
 
 const FEATURE_SHARED_EXECUTOR_IMPORT_PATH = '#features/_shared/featureQueryExecutor.js';
 const TEST_ZTD_CASE_TYPES_IMPORT_PATH = '#tests/support/ztd/case-types.js';
@@ -110,6 +118,19 @@ export interface FeatureQueryMetadataRefreshOptions {
   format?: 'text' | 'json';
 }
 
+export interface FeatureQueryPostgresContractOptions {
+  query?: string;
+  feature?: string;
+  boundaryDir?: string;
+  featureRoot?: string;
+  rootDir?: string;
+  databaseUrl?: string;
+  databaseUrlEnv?: string;
+  driverProfile?: string;
+  dryRun?: boolean;
+  format?: 'text' | 'json';
+}
+
 export interface FeatureTestsScaffoldOptions {
   feature?: string;
   boundaryDir?: string;
@@ -126,6 +147,7 @@ export interface FeatureTestsCheckOptions {
   query?: string;
   rootDir?: string;
   fix?: boolean;
+  generatedOnly?: boolean;
   format?: 'text' | 'json';
 }
 
@@ -171,6 +193,20 @@ export interface FeatureQueryMetadataRefreshResult {
   sqlSourceFile: string;
   dryRun: boolean;
   changed: boolean;
+  changedFiles: string[];
+}
+
+export interface FeatureQueryPostgresContractResult {
+  rootDir: string;
+  featureName: string;
+  queryName: string;
+  sqlFile: string;
+  contractFile: string;
+  databaseUrlSource: string;
+  dryRun: boolean;
+  changed: boolean;
+  changedFiles: string[];
+  contract: PostgresDerivedQueryContract;
 }
 
 export interface FeatureGeneratedMapperCheckResult {
@@ -198,6 +234,7 @@ export interface FeatureGeneratedMapperCheckResult {
     unusedResultInMapper: string[];
     mismatchedResultTypes: string[];
     warningResultTypeMismatches: string[];
+    postgresContractIssues: string[];
   }>;
   ok: boolean;
 }
@@ -213,6 +250,15 @@ export interface FeatureTestsCheckResult {
     fixed: string[];
   }>;
   ok: boolean;
+}
+
+export interface FeatureGeneratedRefreshResult {
+  rootDir: string;
+  metadata: FeatureQueryMetadataRefreshResult[];
+  tests?: FeatureTestsCheckResult;
+  contract?: FeatureGeneratedMapperCheckResult;
+  changedGeneratedFiles: string[];
+  applicationOwnedIssues: string[];
 }
 
 interface DdlColumn {
@@ -345,6 +391,28 @@ export function registerFeatureCommand(program: Command): void {
         return;
       }
       process.stdout.write(formatFeatureQueryMetadataRefresh(result));
+    });
+
+  query
+    .command('postgres-contract <feature> <query>')
+    .description('Validate visible SQL against PostgreSQL and generate a DB/driver query contract')
+    .option('--database-url <url>', 'Development PostgreSQL connection URL; prefer --database-url-env in shared scripts')
+    .option('--database-url-env <name>', 'Environment variable containing the development PostgreSQL URL', 'ASHIBA_POSTGRES_DATABASE_URL')
+    .option('--driver-profile <profile>', 'node-postgres-default or custom:<stable-id>', 'node-postgres-default')
+    .option('--root-dir <path>', 'Project root directory', '.')
+    .option('--dry-run', 'Derive and print the contract without writing generated files', false)
+    .option('--format <format>', 'Output format: text or json', 'text')
+    .action(async (featureName: string, queryName: string, options: FeatureQueryPostgresContractOptions) => {
+      const result = await runFeatureQueryPostgresContract(withConfiguredFeatureRoot({
+        ...options,
+        feature: featureName,
+        query: queryName,
+      }));
+      if (options.format === 'json') {
+        process.stdout.write(`${JSON.stringify({ kind: 'feature-query-postgres-contract', ...result }, null, 2)}\n`);
+        return;
+      }
+      process.stdout.write(formatFeatureQueryPostgresContract(result));
     });
 
   tests
@@ -521,6 +589,7 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
         parameterTypes,
         resultColumnContracts,
         queryModel.analysis.optionalConditionCompression?.enabled === true,
+        queryModel.analysis.astParse === 'failed',
       ),
     },
     { relativePath: `${relativeQueryDir}/generated`, kind: 'directory' },
@@ -601,18 +670,20 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
   }
 
   const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
-  const queryModel = buildFeatureQueryModel(sql, rootDir);
+  const queryModel = buildFeatureQueryModel(sql, rootDir, loadGeneratedPostgresContract(queryDir));
   const refreshedSource = renderQueryMetadata(queryModel);
   const refreshedSqlSource = renderQuerySqlSource(sql);
   const existingSource = existsSync(metadataPath) ? readFileSync(metadataPath, 'utf8') : '';
   const existingSqlSource = existsSync(sqlSourcePath) ? readFileSync(sqlSourcePath, 'utf8') : '';
-  const changed = refreshedSource !== existingSource || refreshedSqlSource !== existingSqlSource;
+  const metadataChanged = refreshedSource !== existingSource;
+  const sqlSourceChanged = refreshedSqlSource !== existingSqlSource;
+  const changed = metadataChanged || sqlSourceChanged;
   if (!options.dryRun && changed) {
     mkdirSync(path.dirname(metadataPath), { recursive: true });
-    if (refreshedSource !== existingSource) {
+    if (metadataChanged) {
       writeFileSync(metadataPath, refreshedSource, 'utf8');
     }
-    if (refreshedSqlSource !== existingSqlSource) {
+    if (sqlSourceChanged) {
       writeFileSync(sqlSourcePath, refreshedSqlSource, 'utf8');
     }
   }
@@ -627,6 +698,211 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
     sqlSourceFile: toProjectPath(rootDir, sqlSourcePath),
     dryRun: options.dryRun === true,
     changed,
+    changedFiles: [
+      ...(metadataChanged ? [toProjectPath(rootDir, metadataPath)] : []),
+      ...(sqlSourceChanged ? [toProjectPath(rootDir, sqlSourcePath)] : []),
+    ],
+  };
+}
+
+/**
+ * Uses a development PostgreSQL instance as an optional, non-executing type
+ * oracle and stores the deterministic result beside the VSA-local query.
+ */
+export async function runFeatureQueryPostgresContract(
+  options: FeatureQueryPostgresContractOptions,
+): Promise<FeatureQueryPostgresContractResult> {
+  const rootDir = path.resolve(options.rootDir ?? '.');
+  const featureRoot = options.featureRoot ?? loadProjectPathConfig(rootDir).featureRoot;
+  const boundaryDir = resolveExplicitFeatureBoundaryDir(
+    rootDir,
+    options.feature,
+    options.boundaryDir,
+    'feature query postgres-contract',
+    featureRoot,
+  );
+  const featureName = path.basename(boundaryDir);
+  const queryName = normalizeQueryName(requireValue(options.query, '--query'));
+  const queryDir = path.join(boundaryDir, 'queries', queryName);
+  const sqlPath = path.join(queryDir, `${queryName}.sql`);
+  const queryPath = path.join(queryDir, 'query.ts');
+  if (!existsSync(sqlPath) || !existsSync(queryPath)) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_QUERY_BOUNDARY_NOT_FOUND',
+      `Feature query boundary was not found: ${toProjectPath(rootDir, queryDir)}.`,
+      'Run feature query scaffold/import first, or pass the correct feature and query names.',
+      { queryDir: toProjectPath(rootDir, queryDir) },
+    );
+  }
+  const { connectionString, source: databaseUrlSource } = resolvePostgresContractDatabaseUrl(options);
+  const driverProfile = parsePostgresDriverProfile(options.driverProfile);
+  const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
+  const offlineModel = buildFeatureQueryModel(sql, rootDir);
+  const binding = offlineModel.bindings.postgres;
+  const contract = await derivePostgresQueryContractFromDatabase(connectionString, {
+    sql,
+    compiledSql: binding.sql,
+    parameterNames: binding.orderedNames,
+    resultColumnOrder: offlineModel.analysis.resultColumnOrder,
+    resultColumnNullability: offlineModel.analysis.resultColumnNullability,
+    driverProfile,
+  });
+  const contractPath = path.join(queryDir, 'generated', 'postgres.contract.json');
+  const contractContents = `${JSON.stringify(contract, null, 2)}\n`;
+  const existingContract = existsSync(contractPath) ? readFileSync(contractPath, 'utf8') : '';
+  const contractChanged = existingContract !== contractContents;
+  const changedFiles: string[] = [];
+  if (!options.dryRun && contractChanged) {
+    mkdirSync(path.dirname(contractPath), { recursive: true });
+    writeFileSync(contractPath, contractContents, 'utf8');
+    changedFiles.push(toProjectPath(rootDir, contractPath));
+  }
+  if (!options.dryRun) {
+    const refresh = runFeatureQueryMetadataRefresh({
+      rootDir,
+      featureRoot,
+      boundaryDir,
+      query: queryName,
+    });
+    changedFiles.push(...refresh.changedFiles);
+  }
+  return {
+    rootDir,
+    featureName,
+    queryName,
+    sqlFile: toProjectPath(rootDir, sqlPath),
+    contractFile: toProjectPath(rootDir, contractPath),
+    databaseUrlSource,
+    dryRun: options.dryRun === true,
+    changed: contractChanged || changedFiles.length > 0,
+    changedFiles: [...new Set(changedFiles)].sort(),
+    contract,
+  };
+}
+
+function resolvePostgresContractDatabaseUrl(options: FeatureQueryPostgresContractOptions): {
+  connectionString: string;
+  source: string;
+} {
+  const explicit = options.databaseUrl?.trim();
+  if (explicit) return { connectionString: explicit, source: '--database-url' };
+  const environmentName = options.databaseUrlEnv?.trim() || 'ASHIBA_POSTGRES_DATABASE_URL';
+  const environmentValue = process.env[environmentName]?.trim();
+  if (environmentValue) return { connectionString: environmentValue, source: environmentName };
+  throw invalidCliInputError(
+    'ASHIBA_POSTGRES_DATABASE_URL_REQUIRED',
+    `PostgreSQL query contract requires --database-url or a non-empty ${environmentName} environment variable.`,
+    'Point the command at a development/test PostgreSQL database. Do not use a production database.',
+    { databaseUrlEnv: environmentName },
+  );
+}
+
+function parsePostgresDriverProfile(value: string | undefined): PostgresDriverProfile {
+  const profile = value?.trim() || 'node-postgres-default';
+  if (profile === 'node-postgres-default') return profile;
+  if (profile.startsWith('custom:') && profile.slice('custom:'.length).trim().length > 0) {
+    return `custom:${profile.slice('custom:'.length).trim()}`;
+  }
+  throw invalidCliInputError(
+    'ASHIBA_POSTGRES_DRIVER_PROFILE_INVALID',
+    `Invalid PostgreSQL driver profile: ${profile}.`,
+    'Use node-postgres-default or custom:<stable-id>. Custom profiles deliberately generate unknown driver value types.',
+    { driverProfile: profile },
+  );
+}
+
+function loadGeneratedPostgresContract(queryDir: string): PostgresDerivedQueryContract | undefined {
+  const contractPath = path.join(queryDir, 'generated', 'postgres.contract.json');
+  if (!existsSync(contractPath)) return undefined;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(contractPath, 'utf8'));
+  } catch (error) {
+    throw invalidCliInputError(
+      'ASHIBA_POSTGRES_CONTRACT_INVALID',
+      `Generated PostgreSQL query contract is not valid JSON: ${contractPath}.`,
+      'Rerun feature query postgres-contract against a development PostgreSQL database.',
+      { contractPath, reason: error instanceof Error ? error.message : String(error) },
+    );
+  }
+  try {
+    return parsePostgresDerivedQueryContract(parsed);
+  } catch (error) {
+    throw invalidCliInputError(
+      'ASHIBA_POSTGRES_CONTRACT_INVALID',
+      `Generated PostgreSQL query contract has an invalid shape: ${contractPath}.`,
+      'Rerun feature query postgres-contract against a development PostgreSQL database.',
+      { contractPath, reason: error instanceof Error ? error.message : String(error) },
+    );
+  }
+}
+
+/**
+ * Refresh every safe library-owned query artifact in one deterministic pass.
+ * Visible SQL, query.ts, and human-owned logic cases are never rewritten.
+ */
+export function runFeatureGeneratedRefresh(options: {
+  rootDir?: string;
+  featureRoot?: string;
+} = {}): FeatureGeneratedRefreshResult {
+  const rootDir = path.resolve(options.rootDir ?? '.');
+  const featureRoot = options.featureRoot ?? loadProjectPathConfig(rootDir).featureRoot;
+  const metadata: FeatureQueryMetadataRefreshResult[] = [];
+  for (const boundary of discoverFeatureBoundaries(rootDir, undefined, undefined, featureRoot)) {
+    const queriesDir = path.join(boundary.dir, 'queries');
+    if (!existsSync(queriesDir) || !statSync(queriesDir).isDirectory()) continue;
+    for (const queryName of discoverQueryNames(queriesDir)) {
+      metadata.push(runFeatureQueryMetadataRefresh({
+        rootDir,
+        featureRoot,
+        boundaryDir: boundary.dir,
+        query: queryName,
+      }));
+    }
+  }
+
+  let tests: FeatureTestsCheckResult | undefined;
+  try {
+    tests = runFeatureTestsCheck({ rootDir, featureRoot, fix: true, generatedOnly: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes('No feature query test boundaries were discovered')) throw error;
+  }
+  const changedGeneratedFiles = [
+    ...metadata.flatMap((entry) => entry.changedFiles),
+    ...(tests?.checked.flatMap((entry) => entry.fixed) ?? []),
+  ].filter((value, index, values) => values.indexOf(value) === index).sort();
+  const fixed = new Set(tests?.checked.flatMap((entry) => entry.fixed) ?? []);
+  let contract: FeatureGeneratedMapperCheckResult | undefined;
+  try {
+    contract = runFeatureGeneratedMapperCheck({ rootDir, featureRoot });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes('No feature query boundaries were discovered')) throw error;
+  }
+  const contractIssues = contract?.checked.flatMap((entry) => [
+    ...entry.missingInMapper.map((name) => `${entry.queryFile}: add parameter ${name} required by visible SQL.`),
+    ...entry.unusedInMapper.map((name) => `${entry.queryFile}: remove parameter ${name}; it is absent from visible SQL.`),
+    ...entry.mismatchedParameterTypes.map((message) => `${entry.queryFile}: fix parameter type ${message}.`),
+    ...entry.parameterTypeConflicts.map((message) => `${entry.queryFile}: resolve parameter type conflict ${message}.`),
+    ...entry.missingResultInMapper.map((name) => `${entry.queryFile}: add result column ${name} projected by visible SQL.`),
+    ...entry.unusedResultInMapper.map((name) => `${entry.queryFile}: remove result column ${name}; it is absent from visible SQL.`),
+    ...entry.mismatchedResultTypes.map((message) => `${entry.queryFile}: fix result type ${message}.`),
+    ...entry.postgresContractIssues.map((message) => `${entry.queryFile}: ${message}`),
+  ]) ?? [];
+  const applicationOwnedIssues = [
+    ...(tests?.checked.flatMap((entry) => entry.issues) ?? [])
+    .filter((issue) => ![...fixed].some((file) => issue.includes(file)))
+    ,
+    ...contractIssues,
+  ].sort();
+  return {
+    rootDir,
+    metadata,
+    ...(tests ? { tests } : {}),
+    ...(contract ? { contract } : {}),
+    changedGeneratedFiles,
+    applicationOwnedIssues,
   };
 }
 
@@ -783,12 +1059,12 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
       const logicCasePath = `${toProjectPath(rootDir, featureDir)}/queries/${queryName}/tests/cases/logic.case.ts`;
       if (!existsSync(path.join(rootDir, logicCasePath))) {
         issues.push(`Missing human-owned logic case stub: ${logicCasePath}.`);
-        if (options.fix) fixed.push(logicCasePath);
+        if (options.fix && options.generatedOnly !== true) fixed.push(logicCasePath);
       }
 
       if (options.fix && fixed.length > 0) {
         writeGeneratedFiles(rootDir, expectedFiles, false, true);
-        if (!existsSync(path.join(rootDir, logicCasePath))) {
+        if (options.generatedOnly !== true && !existsSync(path.join(rootDir, logicCasePath))) {
           writeGeneratedFiles(rootDir, [{
             relativePath: logicCasePath,
             kind: 'file',
@@ -849,22 +1125,43 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
         continue;
       }
       const sql = normalizeSqlSource(readFileSync(sqlFile, 'utf8'));
+      const postgresContract = loadGeneratedPostgresContract(queryDir);
+      const postgresContractStale = postgresContract !== undefined && postgresContract.sourceHash !== hashSql(sql);
+      const postgresContractIssues = postgresContractStale
+        ? ['generated/postgres.contract.json is stale; rerun feature query postgres-contract.']
+        : [];
       const sqlParameters = [...new Set(compileNamedParameters(sql).orderedNames)].sort();
       const querySource = readFileSync(queryFile, 'utf8');
       const mapperParameters = extractMapperParameters(querySource, queryName).sort();
       const mapperParameterTypes = extractMapperParameterTypes(querySource, queryName);
-      const parameterInference = ddlModel ? inferSqlParameterTypes(sql, ddlModel, schemaPath) : undefined;
+      const parameterInference = inferSqlParameterTypes(sql, ddlModel, schemaPath);
       const sqlParameterTypes = parameterInference?.parameterTypes ?? {};
       const certainParameters = new Set(
-        (parameterInference?.bindings ?? [])
-          .filter((binding) => binding.confidence === 'certain')
-          .map((binding) => binding.parameter)
+        parameterInference?.certainParameters ?? []
       );
-      const mismatchedParameterTypes = Object.entries(sqlParameterTypes)
+      const offlineMismatchedParameterTypes = Object.entries(sqlParameterTypes)
         .filter(([parameter]) => mapperParameters.includes(parameter))
         .filter(([parameter]) => certainParameters.has(parameter))
         .filter(([parameter, expectedType]) => !areTypeScriptTypesCompatible(mapperParameterTypes[parameter] ?? 'unknown', expectedType))
         .map(([parameter, expectedType]) => `${parameter}: mapper ${mapperParameterTypes[parameter] ?? 'unknown'} / SQL ${expectedType}`);
+      const postgresParameterTypes = !postgresContractStale && postgresContract
+        ? Object.fromEntries(
+          postgresContract.driver.parameters
+            .filter((field): field is PostgresDriverRepresentation & { name: string } => typeof field.name === 'string')
+            .map((field) => [field.name, field.typeScriptType]),
+        )
+        : {};
+      const postgresParameterTypeMismatches = Object.entries(postgresParameterTypes)
+        .filter(([parameter, expectedType]) =>
+          mapperParameters.includes(parameter)
+          && expectedType !== 'unknown'
+          && !isParameterTypeCoveredByDriverContract(mapperParameterTypes[parameter] ?? 'unknown', expectedType))
+        .map(([parameter, expectedType]) =>
+          `${parameter}: mapper ${mapperParameterTypes[parameter] ?? 'unknown'} / node-postgres input ${expectedType}`);
+      const mismatchedParameterTypes = [...new Set([
+        ...offlineMismatchedParameterTypes,
+        ...postgresParameterTypeMismatches,
+      ])];
       const warningParameterTypeMismatches = Object.entries(sqlParameterTypes)
         .filter(([parameter]) => mapperParameters.includes(parameter))
         .filter(([parameter]) => !certainParameters.has(parameter))
@@ -880,7 +1177,16 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
         .map((conflict) =>
         `${conflict.parameter}: ${conflict.bindings.map((binding) => `${binding.table}.${binding.column} ${binding.typeScriptType}`).join(', ')}`
       ) ?? [];
-      const sqlResultColumns = extractSqlResultColumns(sql).sort();
+      const sqlResultContracts = buildQueryResultColumnContracts(sql, rootDir);
+      const postgresResultFields = !postgresContractStale && postgresContract
+        ? postgresContract.driver.results.filter(
+          (field): field is PostgresDriverRepresentation & { name: string } => typeof field.name === 'string',
+        )
+        : [];
+      const offlineSqlResultColumns = sqlResultContracts.map((column) => column.name).sort();
+      const sqlResultColumns = postgresResultFields.length === postgresContract?.driver.results.length
+        ? postgresResultFields.map((field) => field.name).sort()
+        : offlineSqlResultColumns;
       const mapperResultColumns = extractMapperResultColumns(querySource, queryName).sort();
       const queryTestMetadata = readQueryTestMetadata(queryDir);
       const resultTypesShouldBeConservative = queryTestMetadata?.importSource === 'existing-sql';
@@ -890,17 +1196,28 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       const importedDdlTable = importedDdlTableName
         ? loadOptionalDdlTable(rootDir, importedDdlTableName)
         : undefined;
-      const resultNullabilityByColumn = resultTypesShouldBeConservative
-        ? inferImportedResultNullabilityByColumn(buildQueryResultColumnContracts(sql, rootDir), importedDdlTable)
+      const importedResultNullability = resultTypesShouldBeConservative
+        ? inferImportedResultNullabilityByColumn(sqlResultContracts, importedDdlTable)
         : {};
+      const resultNullabilityByColumn: Record<string, ResultNullabilityLevel> = {
+        ...Object.fromEntries(sqlResultContracts.map((column) => [
+          column.name,
+          importedResultNullability[column.name] ?? column.nullability,
+        ])),
+        ...Object.fromEntries((!postgresContractStale && postgresContract
+          ? postgresContract.database.results
+          : [])
+          .filter((field): field is PostgresContractResult & { name: string } => typeof field.name === 'string')
+          .map((field) => [field.name, field.nullability.value])),
+      };
       const metadataResultTypeOverrides = queryTestMetadata
         ? buildMetadataBackedResultTypeOverrides(rootDir, queryTestMetadata)
         : undefined;
-      const sqlResultTypes: Record<string, string> = Object.fromEntries(
-        buildQueryResultColumnContracts(sql, rootDir)
+      const offlineSqlResultTypes: Record<string, string> = Object.fromEntries(
+        sqlResultContracts
           .map((column): [string, string] => {
             const nullability = resultNullabilityByColumn[column.name] ?? 'unknown';
-            const contractType = resultTypesShouldBeConservative && nullability !== 'non-null'
+            const contractType = nullability !== 'non-null'
               ? makeConservativeNullableType(column.type)
               : column.type;
             const metadataType = metadataResultTypeOverrides?.[column.name];
@@ -911,6 +1228,10 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
           })
           .sort(([left], [right]) => left.localeCompare(right)),
       );
+      const sqlResultTypes: Record<string, string> = {
+        ...offlineSqlResultTypes,
+        ...Object.fromEntries(postgresResultFields.map((field) => [field.name, field.typeScriptType])),
+      };
       const mapperResultTypes = extractMapperResultTypes(querySource, queryName);
       const missingInMapper = sqlParameters.filter((parameter) => !mapperParameters.includes(parameter));
       const unusedInMapper = mapperParameters.filter((parameter) => !sqlParameters.includes(parameter));
@@ -954,6 +1275,7 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
         unusedResultInMapper,
         mismatchedResultTypes,
         warningResultTypeMismatches,
+        postgresContractIssues,
       });
     }
   }
@@ -978,6 +1300,7 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       && entry.missingResultInMapper.length === 0
       && entry.unusedResultInMapper.length === 0
       && entry.mismatchedResultTypes.length === 0
+      && entry.postgresContractIssues.length === 0
     ),
   };
 }
@@ -1174,7 +1497,18 @@ function inferQueryTestMetadataFromSql(
   const sqlPath = path.join(queryDir, `${queryName}.sql`);
   if (!existsSync(sqlPath)) return undefined;
   const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
-  const statement = parseFeatureQuerySql(sql);
+  let statement: ReturnType<typeof SqlParser.parse>;
+  try {
+    statement = parseFeatureQuerySql(sql);
+  } catch {
+    return {
+      feature: featureName,
+      query: queryName,
+      action: inferFeatureActionFromName(queryName),
+      physicalTables: [],
+      importSource: 'existing-sql',
+    };
+  }
   const action = inferFeatureAction(statement, queryName);
   const imported = inferImportedQueryTestMetadata(rootDir, featureName, queryName, sql);
   const tableName = extractRootTableName(statement);
@@ -1362,6 +1696,14 @@ function inferFeatureAction(statement: ReturnType<typeof SqlParser.parse>, query
   );
 }
 
+function inferFeatureActionFromName(queryName: string): FeatureAction {
+  if (/^(?:insert|create|add)(?:-|$)/.test(queryName)) return 'insert';
+  if (/^(?:update|set|change)(?:-|$)/.test(queryName)) return 'update';
+  if (/^(?:delete|remove)(?:-|$)/.test(queryName)) return 'delete';
+  if (/^(?:get|find)(?:-|$)/.test(queryName)) return 'get-by-id';
+  return 'list';
+}
+
 function buildGeneratedMappingTestFiles(
   relativeFeatureDir: string,
   metadata: ScaffoldQueryTestMetadata,
@@ -1470,6 +1812,29 @@ function areResultTypesCompatible(mapperType: string, expectedSqlType: string): 
   return !isNullableType(expected) && isNullableType(mapper);
 }
 
+function isParameterTypeCoveredByDriverContract(mapperType: string, expectedType: string): boolean {
+  const mapperMembers = splitTopLevelTypeUnion(normalizeTypeScriptTypeForComparison(mapperType));
+  const expectedMembers = new Set(splitTopLevelTypeUnion(normalizeTypeScriptTypeForComparison(expectedType)));
+  return mapperMembers.length > 0 && mapperMembers.every((member) => expectedMembers.has(member));
+}
+
+function splitTopLevelTypeUnion(type: string): string[] {
+  const members: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < type.length; index += 1) {
+    const character = type[index];
+    if (character === '(' || character === '<' || character === '[' || character === '{') depth += 1;
+    if (character === ')' || character === '>' || character === ']' || character === '}') depth = Math.max(0, depth - 1);
+    if (character === '|' && depth === 0) {
+      members.push(type.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  members.push(type.slice(start).trim());
+  return members.filter((member) => member.length > 0);
+}
+
 interface ResultTypeDrift {
   severity: 'error' | 'warning';
   message: string;
@@ -1501,7 +1866,10 @@ function classifyResultTypeDrift(options: {
   }
 
   if (!isNullableType(expected) && isNullableType(mapper)) {
-    return undefined;
+    return {
+      severity: 'error',
+      message: `${options.column}: mapper ${options.mapperType} / SQL ${options.expectedSqlType}`,
+    };
   }
 
   if (isNullableType(expected) && !isNullableType(mapper) && options.nullability === 'unknown') {
@@ -1611,6 +1979,9 @@ function formatGeneratedMapperCheck(result: FeatureGeneratedMapperCheckResult): 
     }
     if (entry.warningResultTypeMismatches.length > 0) {
       lines.push(`  warning result type mismatches: ${entry.warningResultTypeMismatches.join(', ')}`);
+    }
+    if (entry.postgresContractIssues.length > 0) {
+      lines.push(`  PostgreSQL contract issues: ${entry.postgresContractIssues.join(', ')}`);
     }
   }
   return `${lines.join('\n')}\n`;
@@ -1873,7 +2244,17 @@ function inferImportedQueryTestMetadata(
   queryName: string,
   sql: string,
 ): ImportedQueryTestMetadata {
-  const statement = parseFeatureQuerySql(sql);
+  let statement: ReturnType<typeof SqlParser.parse>;
+  try {
+    statement = parseFeatureQuerySql(sql);
+  } catch {
+    return {
+      feature: featureName,
+      query: queryName,
+      action: inferFeatureActionFromName(queryName),
+      physicalTables: [],
+    };
+  }
   const tables = loadOptionalDdlTables(rootDir);
   const pathConfig = loadProjectPathConfig(rootDir);
   const tableMap = new Map(tables.map((table) => [table.canonicalName.toLowerCase(), table]));
@@ -2624,13 +3005,13 @@ function renderQueryBoundary(
       ? 'queryOneOrNull'
       : 'queryOne';
   return [
-    `import { ${helperName} } from '@ashiba-ts/driver-adapter-core';`,
+    `import { ${helperName}, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';`,
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
     "import { querySql } from './generated/query.sql.js';",
     '',
     `export const ${camel}Sql = querySql;`,
-    `export const ${camel}Query = {`,
+    `export const ${camel}Query: FeatureQuerySource<${pascal}QueryParams, ${pascal}QueryResult> = {`,
     `  id: '${queryName}',`,
     `  path: '${queryName}.sql',`,
     `  sqlPath: '${queryName}.sql',`,
@@ -2643,19 +3024,17 @@ function renderQueryBoundary(
     `    sqlFile: '${queryName}.sql',`,
     `    sqlPath: '${queryName}.sql',`,
     '  },',
-    '} as const;',
+    '};',
     '',
     `export interface ${pascal}QueryParams ${renderInterfaceBody(plan.params)}`,
     '',
     `export interface ${pascal}QueryResult ${renderInterfaceBody(plan.rows)}`,
     '',
-    `type QueryRow = ${pascal}QueryResult;`,
-    '',
     `export async function execute${pascal}Query(`,
     '  executor: FeatureQueryExecutor,',
     `  params: ${pascal}QueryParams`,
     `): Promise<${result}> {`,
-    `  return ${helperName}<QueryRow>(executor, ${camel}Query, params as unknown as Record<string, unknown>);`,
+    `  return ${helperName}(executor, ${camel}Query, params);`,
     '}',
     '',
   ].join('\n');
@@ -2667,18 +3046,19 @@ function renderImportedQueryBoundary(
   parameterTypes: Record<string, string>,
   resultColumnContracts: SqlResultColumnContract[],
   enablesOptionalConditionCompression: boolean,
+  contractDegraded = false,
 ): string {
   const pascal = toPascal(queryName);
   const camel = toCamel(queryName);
   const resultFields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   return [
-    "import { queryMany } from '@ashiba-ts/driver-adapter-core';",
+    "import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';",
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
     "import { queryModel } from './generated/query.meta.js';",
     "import { querySql } from './generated/query.sql.js';",
     '',
     `export const ${camel}Sql = querySql;`,
-    `export const ${camel}Query = {`,
+    `export const ${camel}Query: FeatureQuerySource<${pascal}QueryParams, ${pascal}QueryResult> = {`,
     `  id: '${queryName}',`,
     `  path: '${queryName}.sql',`,
     `  sqlPath: '${queryName}.sql',`,
@@ -2691,19 +3071,17 @@ function renderImportedQueryBoundary(
     `    sqlFile: '${queryName}.sql',`,
     `    sqlPath: '${queryName}.sql',`,
     '  },',
-    '} as const;',
+    '};',
     '',
     `export interface ${pascal}QueryParams ${renderImportedParamsInterface(parameters, parameterTypes)}`,
     '',
-    `export interface ${pascal}QueryResult ${renderContractFieldInterfaceBody(resultFields)}`,
-    '',
-    `type QueryRow = ${pascal}QueryResult;`,
+    `export interface ${pascal}QueryResult ${contractDegraded ? '{ [column: string]: unknown; }' : renderContractFieldInterfaceBody(resultFields)}`,
     '',
     `export async function execute${pascal}Query(`,
     '  executor: FeatureQueryExecutor,',
     `  params: ${pascal}QueryParams`,
     `): Promise<${pascal}QueryResult[]> {`,
-    `  return queryMany<QueryRow>(executor, ${camel}Query, params as unknown as Record<string, unknown>);`,
+    `  return queryMany(executor, ${camel}Query, params);`,
     '}',
     '',
   ].join('\n');
@@ -2750,6 +3128,16 @@ function renderImportedFeatureInput(
 ): string {
   const pascal = toPascal(featureName);
   const queryPascal = toPascal(queryName);
+  const readerNames = new Set<string>();
+  const parameterLines = parameters.map((parameter) => {
+    const typeScriptType = parameterTypes[parameter] ?? 'unknown';
+    const readerName = importedInputReaderName(typeScriptType);
+    if (readerName) readerNames.add(readerName);
+    const value = readerName
+      ? `${readerName}(record[${JSON.stringify(parameter)}], ${JSON.stringify(parameter)})`
+      : `record[${JSON.stringify(parameter)}]`;
+    return `    ${renderPropertyKey(parameter)}: ${value},`;
+  });
   return [
     `import type { ${queryPascal}QueryParams } from './queries/${queryName}/query.js';`,
     '',
@@ -2760,20 +3148,72 @@ function renderImportedFeatureInput(
     ' * Add domain validation here after deciding the application boundary contract.',
     ' */',
     `export function parseRequest(raw: unknown): ${pascal}Request {`,
-    '  if (typeof raw !== \'object\' || raw === null || Array.isArray(raw)) {',
+    '  if (!isRecord(raw)) {',
     "    throw new Error('Feature request must be an object.');",
     '  }',
-    `  const record = raw as Partial<Record<keyof ${queryPascal}QueryParams, unknown>>;`,
+    '  const record = raw;',
     ...(parameters.length > 0
       ? [
           '  return {',
-          ...parameters.map((parameter) => `    ${renderPropertyKey(parameter)}: record[${JSON.stringify(parameter)}] as ${parameterTypes[parameter] ?? 'unknown'},`),
+          ...parameterLines,
           '  };',
         ]
       : ['  return {};']),
     '}',
     '',
+    'function isRecord(value: unknown): value is Record<string, unknown> {',
+    "  return typeof value === 'object' && value !== null && !Array.isArray(value);",
+    '}',
+    ...[...readerNames].sort().flatMap((readerName) => ['', ...renderImportedInputReader(readerName)]),
+    '',
   ].join('\n');
+}
+
+function importedInputReaderName(typeScriptType: string): string | undefined {
+  const nullable = /\|\s*null\b/.test(typeScriptType);
+  const base = typeScriptType.replace(/\s*\|\s*null/g, '').trim();
+  const suffix = base === 'string'
+    ? 'String'
+    : base === 'number'
+      ? 'Number'
+      : base === 'boolean'
+        ? 'Boolean'
+        : base === 'string[]'
+          ? 'StringArray'
+          : base === 'number[]'
+            ? 'NumberArray'
+            : base === 'boolean[]'
+              ? 'BooleanArray'
+              : undefined;
+  return suffix ? `read${nullable ? 'Nullable' : ''}${suffix}` : undefined;
+}
+
+function renderImportedInputReader(readerName: string): string[] {
+  const nullable = readerName.startsWith('readNullable');
+  const kind = readerName.replace(/^read(?:Nullable)?/, '');
+  const typeScriptType = kind === 'String'
+    ? 'string'
+    : kind === 'Number'
+      ? 'number'
+      : kind === 'Boolean'
+        ? 'boolean'
+        : kind === 'StringArray'
+          ? 'string[]'
+          : kind === 'NumberArray'
+            ? 'number[]'
+            : 'boolean[]';
+  const scalar = kind === 'String' || kind === 'Number' || kind === 'Boolean';
+  const scalarType = kind.toLowerCase();
+  const guard = scalar
+    ? `typeof value === '${scalarType}'`
+    : `Array.isArray(value) && value.every((entry): entry is ${typeScriptType.slice(0, -2)} => typeof entry === '${kind.replace('Array', '').toLowerCase()}')`;
+  return [
+    `function ${readerName}(value: unknown, name: string): ${typeScriptType}${nullable ? ' | null' : ''} {`,
+    ...(nullable ? ['  if (value === null) return null;'] : []),
+    `  if (${guard}) return value;`,
+    `  throw new Error(\`Feature request parameter \${name} must be ${nullable ? 'null or ' : ''}${typeScriptType}.\`);`,
+    '}',
+  ];
 }
 
 function renderImportedFeatureWorkflow(featureName: string, queryName: string): string {
@@ -2846,6 +3286,7 @@ function renderImportedFeatureBoundaryTest(
 ): string {
   const pascal = toPascal(featureName);
   const queryPascal = toPascal(queryName);
+  const queryCamel = toCamel(queryName);
   const request = Object.fromEntries(parameters.map((parameter) => [parameter, sampleValueForType(parameterTypes[parameter] ?? 'unknown')]));
   const fields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts));
   const response = {
@@ -2858,14 +3299,14 @@ function renderImportedFeatureBoundaryTest(
     '',
     "import { execute } from '../boundary.js';",
     `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
-    `import type { ${queryPascal}QueryResult } from '../queries/${queryName}/query.js';`,
+    `import { ${queryCamel}Query, type ${queryPascal}QueryResult } from '../queries/${queryName}/query.js';`,
     '',
     `test('${featureName} executes imported ${queryName} query boundary through injected workflow', async () => {`,
     `  const request = ${renderTsExpression(request, 2)};`,
     `  const row: ${queryPascal}QueryResult = ${renderTsExpression(response.items[0], 2)};`,
-    '  const executor: FeatureQueryExecutor = {',
-    '    async query<T = unknown>() {',
-    '      return [row] as T[];',
+    `  const executor: FeatureQueryExecutor<typeof ${queryCamel}Query> = {`,
+    '    async query() {',
+    '      return [row];',
     '    },',
     '  };',
     '',
@@ -2877,7 +3318,11 @@ function renderImportedFeatureBoundaryTest(
   ].join('\n');
 }
 
-function buildFeatureQueryModel(sql: string, rootDir: string): {
+function buildFeatureQueryModel(
+  sql: string,
+  rootDir: string,
+  postgresContract?: PostgresDerivedQueryContract,
+): {
   analysis: ReturnType<typeof analyzeQueryModel>;
   bindings: {
     postgres: QueryModelBindings['postgres'];
@@ -2891,7 +3336,7 @@ function buildFeatureQueryModel(sql: string, rootDir: string): {
   const schemaPath = loadProjectPathConfig(rootDir);
   const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
     optionalConditionCompression: true,
-    parameterTypes: ddlModel ? inferSqlParameterTypes(sql, ddlModel, schemaPath).parameterTypes : undefined,
+    parameterTypes: inferSqlParameterTypes(sql, ddlModel, schemaPath).parameterTypes,
   });
   return {
     analysis,
@@ -2899,6 +3344,7 @@ function buildFeatureQueryModel(sql: string, rootDir: string): {
       postgres: {
         sourceHash,
         ...postgres,
+        ...(postgresContract ? { contract: postgresContract } : {}),
         ...buildPostgresSafeSortBindingMetadata(sql, analysis.safeSort),
         ...buildPostgresOptionalConditionCompressionBindingMetadata(sql, analysis.optionalConditionCompression),
       },
@@ -2932,14 +3378,17 @@ function toContractFields(
   nullabilityByColumn: Record<string, ResultNullabilityLevel> = {},
 ): RenderContractField[] {
   return columns.map((column) => {
-    const typeScriptType = nullabilityByColumn[column.name] === 'non-null'
+    const nullability = column.nullability !== 'unknown'
+      ? column.nullability
+      : nullabilityByColumn[column.name] ?? 'unknown';
+    const typeScriptType = nullability === 'non-null'
       ? column.type
       : makeConservativeNullableType(column.type);
     return {
       name: column.name,
       typeScriptType,
       sqlType: sqlTypeForContract(inferSqlTypeForResultColumn(column) ?? sqlTypeForTypeScript(typeScriptType)),
-      nullability: nullabilityByColumn[column.name] ?? 'unknown',
+      nullability,
     };
   });
 }
@@ -2952,6 +3401,7 @@ function inferImportedResultNullabilityByColumn(
 }
 
 function inferImportedResultNullability(column: SqlResultColumnContract, table?: DdlTable): ResultNullabilityLevel {
+  if (column.nullability !== 'unknown') return column.nullability;
   const expression = normalizeSqlExpressionForNullability(column.expression ?? '');
   const ddlColumn = table?.columns.find((candidate) => candidate.name.toLowerCase() === column.name.toLowerCase());
   if (ddlColumn?.nullable) return 'nullable';
@@ -3010,13 +3460,12 @@ function formatImportedSqlSafely(sql: string, rootDir: string): { sql: string; f
   try {
     formattedSql = `${formatter.format(SqlParser.parse(sql)).formattedSql.trimEnd()};\n`;
   } catch (error) {
-    throw astParseUserError({
-      code: 'ASHIBA_FEATURE_IMPORT_SQL_AST_PARSE_FAILED',
-      message: 'SQL AST parse failed while importing existing SQL.',
-      reason: error instanceof Error ? error.message : String(error),
-      sqlKind: 'SQL',
-      operation: 'importing existing SQL into a feature query boundary',
-    });
+    const reason = error instanceof Error ? error.message : String(error);
+    return {
+      sql: normalizeSqlText(sql),
+      formatted: false,
+      reason: `formatting skipped because SQL AST analysis degraded: ${reason}`,
+    };
   }
   const safety = validateImportedFormattedSql(sql, formattedSql, formatter);
   if (!safety.safe) {
@@ -3144,6 +3593,7 @@ function renderFeatureBoundaryTest(
   }
   const pascal = toPascal(featureName);
   const queryPascal = toPascal(queryName);
+  const queryCamel = toCamel(queryName);
   const request = renderTsExpression(
     Object.fromEntries(toFeatureFields(plan.params).map((field) => [field.name, sampleFieldValue(field)])),
     2,
@@ -3152,10 +3602,7 @@ function renderFeatureBoundaryTest(
     Object.fromEntries(toFeatureFields(plan.params).map((field) => [field.sourceName, sampleFieldValue(field)])),
     6,
   );
-  const queryResult = plan.action === 'list'
-    ? `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`
-    : `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`;
-  const queryResultRows = indentContinuation(`${queryResult} as unknown[]`, 6);
+  const queryResult = `[${renderTsValue(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.sourceName, sampleFieldValue(field)])))}]`;
   const response = isManyResultAction(plan.action)
     ? renderTsExpression({ items: [Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)]))] }, 2)
     : renderTsExpression(Object.fromEntries(toFeatureFields(plan.rows).map((field) => [field.name, sampleFieldValue(field)])), 2);
@@ -3163,10 +3610,11 @@ function renderFeatureBoundaryTest(
     "import { expect, test } from 'vitest';",
     '',
     "import { execute } from '../boundary.js';",
-    `import type { FeatureQueryExecutor, FeatureQuerySource } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
+    `import type { FeatureQueryExecutor } from '${FEATURE_SHARED_EXECUTOR_IMPORT_PATH}';`,
+    `import { ${queryCamel}Query, type ${queryPascal}QueryResult } from '../queries/${queryName}/query.js';`,
     '',
     `test('${featureName} rejects invalid feature input before query execution', async () => {`,
-    '  const guardedExecutor: FeatureQueryExecutor = {',
+    `  const guardedExecutor: FeatureQueryExecutor<typeof ${queryCamel}Query> = {`,
     '    async query() {',
     `      throw new Error('Feature boundary tests stay mock-based for ${featureName}; keep DB-backed SQL checks in the query boundary.');`,
     '    },',
@@ -3176,11 +3624,12 @@ function renderFeatureBoundaryTest(
     '});',
     '',
     `test('${featureName} maps request through workflow and output boundary', async () => {`,
-    '  const executor: FeatureQueryExecutor = {',
-    '    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {',
+    `  const rows: ${queryPascal}QueryResult[] = ${queryResult};`,
+    `  const executor: FeatureQueryExecutor<typeof ${queryCamel}Query> = {`,
+    '    async query(query, params) {',
     `      expect(query.id).toBe('${queryName}');`,
     `      expect(params).toEqual(${expectedParams});`,
-    `      return ${queryResultRows} as T[];`,
+    '      return rows;',
     '    },',
     '  };',
     '',
@@ -3249,7 +3698,7 @@ function renderQueryZtdTypes(
     `export type ${pascal}QueryMappingZtdCase = QuerySpecZtdCase<`,
     `  ${pascal}BeforeDb,`,
     `  ${pascal}QueryParams,`,
-    '  unknown',
+    `  ${outputType}`,
     '>;',
     '',
   ].join('\n');
@@ -3367,7 +3816,7 @@ function renderImportedQueryZtdTypes(
     `export type ${pascal}QueryMappingZtdCase = QuerySpecZtdCase<`,
     `  ${pascal}BeforeDb,`,
     `  ${pascal}QueryParams,`,
-    '  unknown',
+    `  ${pascal}QueryResult[]`,
     '>;',
     '',
     fields.length === 0
@@ -3484,6 +3933,9 @@ function isNullableType(typeScriptType: string): boolean {
 
 function sqlTypeForTypeScript(typeScriptType: string): string {
   const normalized = typeScriptType.replace(/\s*\|\s*null/g, '').trim();
+  if (normalized === 'number[]') return 'integer[]';
+  if (normalized === 'boolean[]') return 'boolean[]';
+  if (normalized === 'string[]') return 'text[]';
   if (normalized === 'number') return 'integer';
   if (normalized === 'boolean') return 'boolean';
   return 'text';
@@ -3645,6 +4097,7 @@ function sampleParameterValue(column: DdlColumn): unknown {
 function sampleValueForType(typeScriptType: string): unknown {
   const normalized = typeScriptType.replace(/\s*\|\s*null/g, '').trim();
   if (normalized === 'null') return null;
+  if (normalized.endsWith('[]')) return [sampleValueForType(normalized.slice(0, -2))];
   if (normalized === 'number') return 1;
   if (normalized === 'boolean') return true;
   if (normalized === 'string') return 'value';
@@ -3865,6 +4318,24 @@ function formatFeatureQueryMetadataRefresh(result: FeatureQueryMetadataRefreshRe
     `- query: ${result.queryFile}`,
     `- metadata: ${result.metadataFile}`,
     `- runtime SQL: ${result.sqlSourceFile}`,
+    `- changed: ${result.changed ? 'yes' : 'no'}`,
+    `- dry-run: ${result.dryRun ? 'true' : 'false'}`,
+    '',
+  ].join('\n');
+}
+
+function formatFeatureQueryPostgresContract(result: FeatureQueryPostgresContractResult): string {
+  return [
+    `PostgreSQL query contract ${result.dryRun ? 'plan' : 'completed'}: ${result.featureName}/${result.queryName}`,
+    '',
+    `- sql: ${result.sqlFile}`,
+    `- contract: ${result.contractFile}`,
+    `- database URL source: ${result.databaseUrlSource}`,
+    `- PostgreSQL major: ${result.contract.database.serverMajor}`,
+    `- driver profile: ${result.contract.driver.profile}`,
+    `- parameters: ${result.contract.database.parameters.length}`,
+    `- results: ${result.contract.database.results.length}`,
+    `- diagnostics: ${result.contract.diagnostics.length}`,
     `- changed: ${result.changed ? 'yes' : 'no'}`,
     `- dry-run: ${result.dryRun ? 'true' : 'false'}`,
     '',

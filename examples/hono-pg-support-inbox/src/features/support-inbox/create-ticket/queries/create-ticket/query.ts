@@ -1,10 +1,10 @@
-import { queryOne } from '@ashiba-ts/driver-adapter-core';
+import { queryOne, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const createTicketSql = querySql;
-export const createTicketQuery = {
+export const createTicketQuery: FeatureQuerySource<CreateTicketQueryParams, CreateTicketQueryResult> = {
   id: 'create-ticket',
   path: 'create-ticket.sql',
   sqlPath: 'create-ticket.sql',
@@ -16,7 +16,7 @@ export const createTicketQuery = {
     sqlFile: 'create-ticket.sql',
     sqlPath: 'create-ticket.sql',
   },
-} as const;
+};
 
 export interface CreateTicketQueryParams {
   customer_id: string;
@@ -45,11 +45,9 @@ export interface CreateTicketQueryResult {
   metadata: unknown;
 }
 
-type QueryRow = CreateTicketQueryResult;
-
 export async function executeCreateTicketQuery(
   executor: FeatureQueryExecutor,
   params: CreateTicketQueryParams
 ): Promise<CreateTicketQueryResult> {
-  return queryOne<QueryRow>(executor, createTicketQuery, params as unknown as Record<string, unknown>);
+  return queryOne(executor, createTicketQuery, params);
 }

@@ -1,5 +1,10 @@
-import { createPostgresAdapter } from '@ashiba-ts/driver-adapter-pg';
-import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
+import { createPostgresAdapter, type AshibaPostgresQuerySource } from '@ashiba-ts/driver-adapter-pg';
+import type {
+  AnyFeatureQuerySource,
+  AshibaQueryParams,
+  AshibaQueryRow,
+  FeatureQueryExecutor,
+} from '#features/_shared/featureQueryExecutor.js';
 
 /**
  * Adapt a node-postgres `pg`-style queryable (Client or Pool) into a feature query executor.
@@ -20,8 +25,14 @@ export function fromPg(queryable: {
 }): FeatureQueryExecutor {
   const adapter = createPostgresAdapter(queryable);
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
-      const result = await adapter.execute<T>(query, params);
+    async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
+      const postgresQuery: AshibaPostgresQuerySource<AshibaQueryParams<Query>, AshibaQueryRow<Query>> = {
+        sql: query.sql,
+        sqlPath: query.sqlPath,
+        queryModel: query.queryModel,
+        metadata: query.metadata,
+      };
+      const result = await adapter.execute(postgresQuery, { ...params });
       return result.rows;
     },
   };

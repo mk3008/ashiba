@@ -48,6 +48,29 @@ describe('@ashiba-ts/driver-adapter-core', () => {
     expect(() => renderSafeOrderBy(profile, [{ key: '"created_at"' }])).toThrow(AshibaSortError);
   });
 
+  test('does not allow a direction that is absent from source-visible ORDER BY metadata', () => {
+    const profile = {
+      priority: {
+        sql: 't.priority',
+        defaultDirection: 'desc' as const,
+        allowedDirections: ['desc'] as const,
+      },
+    };
+
+    expect(renderSafeOrderBy(profile, [{ key: 'priority' }])).toBe('order by t.priority desc');
+    expect(() => renderSafeOrderBy(profile, [{ key: 'priority', direction: 'asc' }]))
+      .toThrow(AshibaSortError);
+  });
+
+  test('rejects duplicate keys so the finite sort surface cannot grow through repetition', () => {
+    const profile = { name: { sql: 'u.name', allowedDirections: ['asc'] as const } };
+
+    expect(() => renderSafeOrderBy(profile, [
+      { key: 'name', direction: 'asc' },
+      { key: 'name', direction: 'asc' },
+    ])).toThrow(AshibaSortError);
+  });
+
   test('rejects SQL-like sort input instead of rendering it', () => {
     const profile = { name: { sql: '"name"' } };
 
@@ -70,38 +93,38 @@ describe('@ashiba-ts/driver-adapter-core', () => {
   });
 
   test('provides feature query cardinality helpers without changing SQL meaning', async () => {
-    const source = buildFeatureQuerySource('users-list');
-    const executor: FeatureQueryExecutor = {
-      async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+    const source = buildFeatureQuerySource<{ limit: number }, { id: string }>('users-list');
+    const executor: FeatureQueryExecutor<typeof source> = {
+      async query(query, params) {
         expect(query).toBe(source);
         expect(params).toEqual({ limit: 2 });
-        return [{ id: '1' }, { id: '2' }] as T[];
+        return [{ id: '1' }, { id: '2' }];
       },
     };
 
-    await expect(queryMany<{ id: string }>(executor, source, { limit: 2 }))
+    await expect(queryMany(executor, source, { limit: 2 }))
       .resolves.toEqual([{ id: '1' }, { id: '2' }]);
   });
 
   test('queryOne requires exactly one row', async () => {
-    const source = buildFeatureQuerySource('user-detail');
-    const oneRowExecutor: FeatureQueryExecutor = {
-      async query<T = unknown>(): Promise<T[]> {
-        return [{ id: '1' }] as T[];
+    const source = buildFeatureQuerySource<{ [key: string]: never }, { id: string }>('user-detail');
+    const oneRowExecutor: FeatureQueryExecutor<typeof source> = {
+      async query() {
+        return [{ id: '1' }];
       },
     };
-    const emptyExecutor: FeatureQueryExecutor = {
-      async query<T = unknown>(): Promise<T[]> {
-        return [] as T[];
+    const emptyExecutor: FeatureQueryExecutor<typeof source> = {
+      async query() {
+        return [];
       },
     };
-    const manyExecutor: FeatureQueryExecutor = {
-      async query<T = unknown>(): Promise<T[]> {
-        return [{ id: '1' }, { id: '2' }] as T[];
+    const manyExecutor: FeatureQueryExecutor<typeof source> = {
+      async query() {
+        return [{ id: '1' }, { id: '2' }];
       },
     };
 
-    await expect(queryOne<{ id: string }>(oneRowExecutor, source, {})).resolves.toEqual({ id: '1' });
+    await expect(queryOne(oneRowExecutor, source, {})).resolves.toEqual({ id: '1' });
     await expect(queryOne(emptyExecutor, source, {})).rejects.toMatchObject({
       name: 'FeatureQueryCardinalityError',
       code: 'ASHIBA_QUERY_EXPECTED_ONE_ROW',
@@ -114,15 +137,15 @@ describe('@ashiba-ts/driver-adapter-core', () => {
   });
 
   test('queryOneOrNull allows no row but rejects multiple rows', async () => {
-    const source = buildFeatureQuerySource('maybe-user');
-    const emptyExecutor: FeatureQueryExecutor = {
-      async query<T = unknown>(): Promise<T[]> {
-        return [] as T[];
+    const source = buildFeatureQuerySource<{ [key: string]: never }, { id: string }>('maybe-user');
+    const emptyExecutor: FeatureQueryExecutor<typeof source> = {
+      async query() {
+        return [];
       },
     };
-    const manyExecutor: FeatureQueryExecutor = {
-      async query<T = unknown>(): Promise<T[]> {
-        return [{ id: '1' }, { id: '2' }] as T[];
+    const manyExecutor: FeatureQueryExecutor<typeof source> = {
+      async query() {
+        return [{ id: '1' }, { id: '2' }];
       },
     };
 
@@ -413,7 +436,7 @@ describe('@ashiba-ts/driver-adapter-core', () => {
   });
 });
 
-function buildFeatureQuerySource(id: string): FeatureQuerySource {
+function buildFeatureQuerySource<Params extends object = Record<string, unknown>, Row = unknown>(id: string): FeatureQuerySource<Params, Row> {
   return {
     id,
     path: `${id}.sql`,

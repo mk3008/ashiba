@@ -32,5 +32,5 @@ export async function executeResolveTransferDestinationDefinitionsQuerySpec(
 ): Promise<ResolveTransferDestinationDefinitionsQueryResult> {
   const params = parseQueryParams(rawParams);
   const rows = await executeResolveTransferDestinationDefinitionsQuery(executor, params);
-  return mapResolveTransferDestinationDefinitionsRowsToResult(rows as ResolveTransferDestinationDefinitionsRow[]);
+  return mapResolveTransferDestinationDefinitionsRowsToResult(rows);
 }

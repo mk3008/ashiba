@@ -13,8 +13,8 @@ test('support-inbox executes imported list-tickets query boundary through inject
     channel: "value",
     tag: "value",
     keyword: "value",
-    limit: "value",
-    offset: "value"
+    limit: 10,
+    offset: 0
   };
   const row: ListTicketsQueryResult = {
     action_required: 1,
@@ -36,13 +36,13 @@ test('support-inbox executes imported list-tickets query boundary through inject
     subject: "value",
     tag_slugs: ["value"],
     ticket_id: "1",
-    total_count: 1,
+    total_count: '1',
     updated_at: "value",
     vip_rank: 1
   };
   const executor: FeatureQueryExecutor = {
-    async query<T = unknown>() {
-      return [row] as T[];
+    async query() {
+      return [row];
     },
   };
 

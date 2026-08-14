@@ -29,7 +29,7 @@ export type GetTicketDetailQueryBoundaryZtdCase = QuerySpecZtdCase<
 export type GetTicketDetailQueryMappingZtdCase = QuerySpecZtdCase<
   GetTicketDetailBeforeDb,
   GetTicketDetailQueryParams,
-  unknown
+  GetTicketDetailQueryResult[]
 >;
 
 // Result columns are mapped through synthetic DB result probes so mapper tests stay focused on DTO compatibility.

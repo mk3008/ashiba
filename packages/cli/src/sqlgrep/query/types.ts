@@ -55,6 +55,7 @@ export interface QueryUsageMatchImpact {
   sql_file: string;
   usageKindCounts: Record<string, number>;
   confidence: QueryUsageConfidence;
+  confidenceBand: 'high' | 'low' | 'unresolved';
   notes: string[];
   source: QueryUsageSource;
   representatives?: QueryUsageRepresentative[];
@@ -82,6 +83,9 @@ export interface QueryUsageReport {
     fallbackMatches: number;
     unresolvedSqlFiles: number;
     parseWarnings: number;
+    highConfidenceMatches: number;
+    lowConfidenceMatches: number;
+    unresolvedMatches: number;
   };
   matches: QueryUsageMatch[];
   warnings: QueryUsageWarning[];

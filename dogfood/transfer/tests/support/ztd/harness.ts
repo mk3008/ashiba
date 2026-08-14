@@ -6,14 +6,12 @@ import {
   type QuerySpecExecutionEvidence
 } from './verifier.js';
 
-type QuerySpecExecutor<RowShape extends Record<string, unknown>, Input, Output> = (
-  client: QuerySpecExecutorClient<RowShape>,
+type QuerySpecExecutor<Input, Output> = (
+  client: QuerySpecExecutorClient,
   input: Input
 ) => Promise<Output>;
 
-export type QuerySpecExecutorClient<RowShape extends Record<string, unknown>> = {
-  query: FeatureQueryExecutor['query'];
-};
+export type QuerySpecExecutorClient = FeatureQueryExecutor;
 
 export interface QuerySpecRunnerOptions {
   mode?: 'ztd' | 'traditional';
@@ -26,7 +24,7 @@ export interface QuerySpecRunnerOptions {
  */
 export async function runQuerySpecZtdCases<RowShape extends Record<string, unknown>, Input, Output>(
   cases: readonly QuerySpecZtdCase<RowShape, Input, Output>[],
-  execute: QuerySpecExecutor<RowShape, Input, Output>
+  execute: QuerySpecExecutor<Input, Output>
 ): Promise<QuerySpecExecutionEvidence[]> {
   if (process.env.ASHIBA_SKIP_DB_BACKED_TESTS === '1') {
     return [];
@@ -46,7 +44,7 @@ export async function runQuerySpecZtdCases<RowShape extends Record<string, unkno
  */
 export async function runQuerySpecCases<RowShape extends Record<string, unknown>, Input, Output>(
   cases: readonly (QuerySpecZtdCase<RowShape, Input, Output> | QuerySpecTraditionalCase<RowShape, Input, Output>)[],
-  execute: QuerySpecExecutor<RowShape, Input, Output>,
+  execute: QuerySpecExecutor<Input, Output>,
   options: QuerySpecRunnerOptions = {}
 ): Promise<QuerySpecExecutionEvidence[]> {
   if ((options.mode ?? 'ztd') === 'traditional') {
@@ -61,7 +59,7 @@ export async function runQuerySpecCases<RowShape extends Record<string, unknown>
 
 export async function runQuerySpecTraditionalCases<RowShape extends Record<string, unknown>, Input, Output>(
   cases: readonly QuerySpecTraditionalCase<RowShape, Input, Output>[],
-  execute: QuerySpecExecutor<RowShape, Input, Output>
+  execute: QuerySpecExecutor<Input, Output>
 ): Promise<QuerySpecExecutionEvidence[]> {
   if (process.env.ASHIBA_SKIP_DB_BACKED_TESTS === '1') {
     return [];
@@ -79,5 +77,5 @@ export async function runQuerySpecTraditionalCases<RowShape extends Record<strin
 export const runZtdCases = runQuerySpecZtdCases;
 
 export type { QuerySpecCase, QuerySpecTraditionalCase, QuerySpecZtdCase } from './case-types.js';
-export type QuerySpecHarnessClient<RowShape extends Record<string, unknown>> = QuerySpecExecutorClient<RowShape>;
+export type QuerySpecHarnessClient = QuerySpecExecutorClient;
 export type { QuerySpecExecutionEvidence } from './verifier.js';

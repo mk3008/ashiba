@@ -29,5 +29,5 @@ export type CreateTicketQueryBoundaryZtdCase = QuerySpecZtdCase<
 export type CreateTicketQueryMappingZtdCase = QuerySpecZtdCase<
   CreateTicketBeforeDb,
   CreateTicketQueryParams,
-  unknown
+  CreateTicketQueryResult
 >;

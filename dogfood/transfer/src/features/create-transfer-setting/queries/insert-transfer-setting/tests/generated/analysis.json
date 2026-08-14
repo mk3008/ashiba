@@ -69,9 +69,9 @@
     "rows": [
       {
         "name": "created_at",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "description",
@@ -81,9 +81,9 @@
       },
       {
         "name": "is_enabled",
-        "typeScriptType": "boolean | null",
+        "typeScriptType": "boolean",
         "sqlType": "boolean",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "note",
@@ -99,21 +99,21 @@
       },
       {
         "name": "setting_id",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "setting_name",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "source_key_definition",
         "typeScriptType": "unknown",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "source_sql_analysis_error",
@@ -129,27 +129,27 @@
       },
       {
         "name": "source_sql_analysis_status",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "source_sql_body",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "source_sql_hash",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "updated_at",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       }
     ],
     "generatedCaseNames": [

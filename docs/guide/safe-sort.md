@@ -44,7 +44,7 @@ The adapter renders `ORDER BY` only when the requested key exactly matches the r
 
 ## Where Sort Keys Come From
 
-Ashiba analyzes the `SELECT` list during model generation.
+Ashiba analyzes reviewed terms in the top-level `ORDER BY` during model generation. A projected column is not dynamically sortable merely because it appears in `SELECT`.
 
 ```sql
 select
@@ -52,15 +52,17 @@ select
   u.email,
   u.created_at as createdAt
 from public.users u
+order by
+  u.created_at desc,
+  u.user_id asc
 ```
 
-This exposes sortable keys such as:
+This exposes only these finite choices:
 
-- `id`
-- `email`
-- `createdAt`
+- `createdAt desc`
+- `id asc`
 
-The generated query model records the SQL expression behind each key. Runtime code requests the public key; it does not provide the SQL expression.
+`email`, `createdAt asc`, and `id desc` are not capabilities of this query. The generated query model records each visible expression and direction. Runtime code selects those public keys; it cannot provide a new SQL expression or direction. Each key may appear at most once in a request, so repetition cannot turn the finite selection surface into an unbounded SQL fragment.
 
 ## What The Driver Adapter Checks
 
@@ -72,34 +74,16 @@ The PostgreSQL driver adapter checks all of these before rendering dynamic sorti
 - the root query is not an unsupported compound query such as root-level `UNION`
 - the `ORDER BY` insertion position is resolved
 - the requested sort key exactly matches the query model whitelist
-- the direction is only `asc` or `desc`
+- the direction and expression both occur in the source `ORDER BY`
 - any explicit runtime sort profile does not introduce SQL outside the query model
 
 If one of those checks fails, Ashiba rejects the request before sending SQL to the database.
 
-This makes safe sort a metadata-backed allowed runtime rewrite, not a general runtime `ORDER BY` builder.
+This makes safe sort a finite selection over source-visible behavior, not a general runtime `ORDER BY` builder.
 
-## Existing ORDER BY
+## Source-Visible ORDER BY
 
-Safe sort can add a new `ORDER BY` clause when the query does not have one:
-
-```sql
-select u.email from public.users u
-```
-
-It can also combine with an existing top-level `ORDER BY`. By default, Ashiba treats existing `ORDER BY` terms as the stable suffix and prepends the dynamic safe sort terms before them:
-
-```sql
-select u.email from public.users u order by u.created_at
-```
-
-In that case, the generated SQL becomes:
-
-```sql
-order by u.email asc, u.created_at
-```
-
-This is useful for pagination. Put the stable identity order, such as a primary key or another deterministic tie-breaker, in the visible SQL:
+Safe sort is unavailable when source SQL has no top-level `ORDER BY`. Add every selectable expression and its allowed direction to the canonical SQL first. Ashiba treats that visible list as the maximum finite sort surface:
 
 ```sql
 select
@@ -112,15 +96,25 @@ limit :limit
 offset :offset
 ```
 
-Then a runtime request for `createdAt desc` becomes:
+To make `createdAt desc` selectable, it must also be visible:
 
 ```sql
-order by u.created_at desc, u.user_id
+order by
+  u.created_at desc,
+  u.user_id asc
+limit :limit
+offset :offset
+```
+
+A runtime request for `createdAt desc` can then produce:
+
+```sql
+order by u.created_at desc
 limit $1
 offset $2
 ```
 
-The user-selected sort stays primary. The fixed SQL sort stays as a deterministic suffix.
+Ashiba replaces only the reviewed `ORDER BY` list with a selected subset of those exact terms. Every expression and direction in executable SQL is therefore already reviewable in the canonical file. Runtime code cannot introduce an optional JOIN, projection, predicate, identifier, or opposite sort direction. Include an identity term in the runtime selection whenever pagination requires a deterministic tie-breaker.
 
 For clauses such as `LIMIT`, `OFFSET`, `FETCH`, and `FOR UPDATE`, Ashiba records the insertion point and places the dynamic `ORDER BY` before those clauses.
 
@@ -128,7 +122,7 @@ For clauses such as `LIMIT`, `OFFSET`, `FETCH`, and `FOR UPDATE`, Ashiba records
 
 The generated query model is the maximum allowed sort surface.
 
-You may pass a runtime `sortProfile` to refine defaults, for example a default direction:
+You may pass a runtime `sortProfile` to refine which already-visible direction is used as the default:
 
 ```ts
 await adapter.execute(
@@ -148,7 +142,7 @@ await adapter.execute(
 );
 ```
 
-The `sql` in a runtime profile must match the SQL expression already recorded in the query model. The profile can refine behavior, but it cannot add new sortable SQL expressions at runtime.
+The `sql` in a runtime profile must match the SQL expression already recorded in the query model, and its default direction must be one of the source-visible directions. The profile cannot add a sort expression or direction at runtime.
 
 ## Unsupported Shapes
 
@@ -173,13 +167,14 @@ from (
 
 Then regenerate metadata.
 
+Terms with explicit `NULLS FIRST` or `NULLS LAST` are also not exposed yet. Ashiba blocks them instead of dropping the null-placement semantics during finite selection. Keep the source `ORDER BY` unchanged, or use only terms whose complete ordering semantics Ashiba can preserve.
+
 ## Refresh After SQL Edits
 
 Safe sort depends on generated metadata and source hashes. If the `.sql` file, generated `query.sql.ts` snapshot, compiled dialect binding, or `query.meta.ts` metadata no longer match, refresh the query model before relying on dynamic sorting:
 
 ```bash
-npx ashiba feature query refresh users-list list
-npx ashiba check
+npx ashiba check --fix-generated
 ```
 
 For standalone query contracts:

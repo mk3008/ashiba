@@ -224,16 +224,29 @@ function redactPostgresUrl(value: string): string {
   type FeatureQueryExecutor,
   type FeatureQueryModel,
   type FeatureQuerySource,
+  type AnyFeatureQuerySource,
+  type AshibaQueryParams,
+  type AshibaQueryRow,
 } from '@ashiba-ts/driver-adapter-core';
 `,
   },
   {
     relativePath: 'src/adapters/pg/pool.ts',
     contents: `import { Pool, type PoolConfig } from 'pg';
-import { createPostgresAdapter, type AshibaPostgresAdapterOptions, type AshibaPostgresExecuteOptions } from '@ashiba-ts/driver-adapter-pg';
+import {
+  createPostgresAdapter,
+  type AshibaPostgresAdapterOptions,
+  type AshibaPostgresExecuteOptions,
+  type AshibaPostgresQuerySource,
+} from '@ashiba-ts/driver-adapter-pg';
 
 import { logSqlExecution } from '#adapters/logger/sqlLogger.js';
-import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
+import type {
+  AnyFeatureQuerySource,
+  AshibaQueryParams,
+  AshibaQueryRow,
+  FeatureQueryExecutor,
+} from '#features/_shared/featureQueryExecutor.js';
 
 export type PgConnectionSettings = {
   connectionString?: string;
@@ -294,13 +307,9 @@ export function createPgSqlClient(
     observer: observer ?? { emit: logSqlExecution },
   });
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
-      const queryAnalysis = query.queryModel.analysis as FeatureQuerySource['queryModel']['analysis'] & {
-        optionalConditionCompression?: { enabled?: boolean };
-        safeSort?: { insertion?: { status?: string } };
-      };
-      const result = await adapter.execute<T>(
-        {
+    async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
+      const queryAnalysis = query.queryModel.analysis;
+      const postgresQuery: AshibaPostgresQuerySource<AshibaQueryParams<Query>, AshibaQueryRow<Query>> = {
           sql: query.sql,
           sqlPath: query.sqlPath,
           queryModel: query.queryModel,
@@ -315,8 +324,10 @@ export function createPgSqlClient(
             queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
             queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
           },
-        },
-        params,
+      };
+      const result = await adapter.execute(
+        postgresQuery,
+        { ...params },
         {
           ...executeOptions,
           optionalConditionCompression: query.optionalConditionCompression ?? executeOptions?.optionalConditionCompression,
@@ -502,18 +513,11 @@ export function logSqlExecution(event: SqlExecutionLogEvent): void {
   },
   {
     relativePath: 'tests/support/ztd/harness.ts',
-    contents: `import type { QuerySpecZtdCase } from './case-types.js';
+    contents: `import type { FeatureQueryExecutor } from '@ashiba-ts/driver-adapter-core';
+import type { QuerySpecZtdCase } from './case-types.js';
 import { createQuerySpecZtdVerifier, type QuerySpecExecutionEvidence } from './verifier.js';
 
-export type QuerySpecExecutorClient = {
-  query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]>;
-};
-
-export type QuerySpecSqlSource = {
-  id: string;
-  path: string;
-  sql: string;
-};
+export type QuerySpecExecutorClient = FeatureQueryExecutor;
 
 type QuerySpecExecutor<Input, Output> = (
   client: QuerySpecExecutorClient,
@@ -552,7 +556,7 @@ import { Pool } from 'pg';
 import type { PostgresTestkitClient } from '@ashiba-ts/testkit-adapter-pg';
 
 import type { QuerySpecZtdCase } from './case-types.js';
-import type { QuerySpecExecutorClient, QuerySpecSqlSource } from './harness.js';
+import type { QuerySpecExecutorClient } from './harness.js';
 
 type FixtureTree = Record<string, unknown>;
 type FixtureRow = Record<string, unknown>;
@@ -607,7 +611,7 @@ export async function createQuerySpecZtdVerifier(): Promise<QuerySpecZtdVerifier
       try {
         testkitClient = createPostgresTestkitClient({
           queryExecutor: async (sql, params) => {
-            const result = await pool.query(sql, params as unknown[]);
+            const result = await pool.query(sql, [...params]);
             return {
               rows: result.rows,
               rowCount: result.rowCount ?? undefined,
@@ -665,7 +669,7 @@ function createQuerySpecExecutor(
   querySpecCase: QuerySpecZtdCase<FixtureTree, unknown, unknown>,
 ): QuerySpecExecutorClient {
   return {
-    async query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]> {
+    async query(query, params) {
       const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
       const sourceParams = querySpecCase.mapperProbe?.params ?? params;
       const bound = bindNamedParams(sourceSql, sourceParams);
@@ -676,7 +680,7 @@ function createQuerySpecExecutor(
         rewriteApplied: false,
       });
       const result = await testkitClient.query(bound.boundSql, bound.boundValues);
-      return result.rows as T[];
+      return result.rows;
     },
   };
 }

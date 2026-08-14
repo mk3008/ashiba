@@ -41,27 +41,27 @@
     "rows": [
       {
         "name": "status",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "ticket_id",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "updated_at",
-        "typeScriptType": "string | null",
+        "typeScriptType": "string",
         "sqlType": "text",
-        "nullability": "unknown"
+        "nullability": "non-null"
       },
       {
         "name": "version_key",
-        "typeScriptType": "number | null",
+        "typeScriptType": "number",
         "sqlType": "integer",
-        "nullability": "unknown"
+        "nullability": "non-null"
       }
     ],
     "generatedCaseNames": [

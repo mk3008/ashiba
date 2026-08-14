@@ -49,7 +49,7 @@ const cases: readonly GetTicketDetailQueryMappingZtdCase[] = [
       ticketId: "value"
     },
     mapperProbe: {
-      sql: "select\n    cast('channel-1' as text) as \"channel\"\n    , cast('2026-01-01T00:00:00.000Z' as timestamptz) as \"created_at\"\n    , cast('value' as text) as \"customer_name\"\n    , cast('value' as text) as \"customer_tier\"\n    , cast('language-1' as text) as \"language\"\n    , cast('value' as text) as \"message_body\"\n    , cast('value' as text) as \"message_created_at\"\n    , cast('value' as text) as \"message_id\"\n    , cast('priority-1' as text) as \"priority\"\n    , cast('value' as text) as \"sender_name\"\n    , cast('value' as text) as \"sender_role\"\n    , cast(null as timestamptz) as \"sla_due_at\"\n    , cast('active' as text) as \"status\"\n    , cast('subject-1' as text) as \"subject\"\n    , cast('1' as bigint) as \"ticket_id\"\n    , cast('2026-01-01T00:00:00.000Z' as timestamptz) as \"updated_at\"\n    , cast(1 as integer) as \"version_key\"\n;"
+      sql: "select\n    cast('channel-1' as text) as \"channel\"\n    , cast('2026-01-01T00:00:00.000Z' as timestamptz) as \"created_at\"\n    , cast('value' as text) as \"customer_name\"\n    , cast('value' as text) as \"customer_tier\"\n    , cast('language-1' as text) as \"language\"\n    , cast(null as text) as \"message_body\"\n    , cast(null as text) as \"message_created_at\"\n    , cast(null as text) as \"message_id\"\n    , cast('priority-1' as text) as \"priority\"\n    , cast(null as text) as \"sender_name\"\n    , cast(null as text) as \"sender_role\"\n    , cast(null as timestamptz) as \"sla_due_at\"\n    , cast('active' as text) as \"status\"\n    , cast('subject-1' as text) as \"subject\"\n    , cast('1' as bigint) as \"ticket_id\"\n    , cast('2026-01-01T00:00:00.000Z' as timestamptz) as \"updated_at\"\n    , cast(1 as integer) as \"version_key\"\n;"
     },
     output: [
       {
@@ -58,12 +58,12 @@ const cases: readonly GetTicketDetailQueryMappingZtdCase[] = [
         customer_name: "value",
         customer_tier: "value",
         language: "language-1",
-        message_body: "value",
-        message_created_at: "value",
-        message_id: "value",
+        message_body: null,
+        message_created_at: null,
+        message_id: null,
         priority: "priority-1",
-        sender_name: "value",
-        sender_role: "value",
+        sender_name: null,
+        sender_role: null,
         sla_due_at: null,
         status: "active",
         subject: "subject-1",

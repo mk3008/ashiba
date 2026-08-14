@@ -30,6 +30,14 @@ export const queryModel = {
       "sender_role": "string",
       "ticket_id": "string"
     },
+    "resultColumnNullability": {
+      "body": "non-null",
+      "created_at": "non-null",
+      "message_id": "non-null",
+      "sender_name": "non-null",
+      "sender_role": "non-null",
+      "ticket_id": "non-null"
+    },
     "namedParameters": [
       "ticket_id",
       "sender_name",
@@ -37,6 +45,19 @@ export const queryModel = {
       "body",
       "created_at"
     ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "blocked",
+      "safeSort": "blocked",
+      "impactAnalysis": "supported"
+    },
     "parameterTypes": {
       "body": "string",
       "created_at": "string",

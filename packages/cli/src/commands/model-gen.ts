@@ -11,7 +11,7 @@ import {
   buildSqlOptionalConditionCompressionMetadata,
   type SqlOptionalConditionCompressionMetadata,
 } from './sql-optional-condition-compression-metadata.js';
-import { inferSqlExpressionContractType } from './sql-expression-type.js';
+import { inferSqlExpressionContractType, inferSqlExpressionNullability } from './sql-expression-type.js';
 import { inferSqlParameterTypes } from './sql-parameter-types.js';
 import { loadProjectPathConfig } from './config.js';
 import { normalizeIdentifier, resolveSchemaPathTable, type SchemaPathConfig } from './schema-path.js';
@@ -44,19 +44,33 @@ export interface ModelGenResult {
 
 export type QueryModelStatementKind = 'select' | 'insert' | 'update' | 'delete' | 'unknown';
 export type QueryModelRootQueryShape = 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';
+type DdlRelation = { alias?: string; table: DdlSchemaTable; nullExtended?: boolean };
 
 export interface QueryModelAnalysis {
-  astParse: 'ok';
+  astParse: 'ok' | 'failed';
   statementKind: QueryModelStatementKind;
   rootQueryShape: QueryModelRootQueryShape;
-  hasTopLevelOrderBy: boolean;
+  hasTopLevelOrderBy: boolean | 'unknown';
   sourceHash: string;
   safeSort: SqlSafeSortMetadata;
   optionalConditionCompression?: SqlOptionalConditionCompressionMetadata;
   resultColumns: string[];
+  resultColumnOrder: string[];
   resultColumnTypes: Record<string, SqlResultColumnContract['type']>;
+  resultColumnNullability: Record<string, SqlResultColumnContract['nullability']>;
   namedParameters: string[];
   parameterTypes?: Record<string, string>;
+  parserCapabilities: {
+    parser: { status: 'supported' | 'degraded'; reason?: string };
+    sqlStorage: 'unaffected';
+    execution: 'unaffected';
+    parameterBinding: 'unaffected';
+    logging: 'unaffected';
+    resultContract: 'supported' | 'degraded';
+    optionalConditionCompression: 'supported' | 'blocked';
+    safeSort: 'supported' | 'blocked';
+    impactAnalysis: 'supported' | 'degraded';
+  };
 }
 
 export interface QueryModelBindings {
@@ -64,8 +78,10 @@ export interface QueryModelBindings {
     sourceHash: string;
     sql: string;
     orderedNames: string[];
+    contract?: import('./postgres-contract.js').PostgresDerivedQueryContract;
     safeSortInsertion?: {
       index: number;
+      end?: number;
     };
     optionalConditionCompression?: {
       branches: Array<{
@@ -162,7 +178,7 @@ export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const resultColumns = resultColumnContracts.map((column) => column.name);
   const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
     optionalConditionCompression: true,
-    parameterTypes: ddlModel ? inferSqlParameterTypes(sql, ddlModel, schemaPath).parameterTypes : undefined,
+    parameterTypes: inferSqlParameterTypes(sql, ddlModel, schemaPath).parameterTypes,
   });
   const bindings = {
     postgres: {
@@ -296,7 +312,7 @@ function renderQueryMetadata(params: {
 export function buildPostgresSafeSortBindingMetadata(
   sourceSql: string,
   safeSort: SqlSafeSortMetadata,
-): { safeSortInsertion?: { index: number } } {
+): { safeSortInsertion?: { index: number; end?: number } } {
   if (safeSort.insertion.status !== 'ready') {
     return {};
   }
@@ -306,6 +322,13 @@ export function buildPostgresSafeSortBindingMetadata(
   return {
     safeSortInsertion: {
       index: compiledPrefix.sql.length,
+      ...(safeSort.insertion.end !== undefined
+        ? {
+          end: compileNamedParameters(sourceSql.slice(0, safeSort.insertion.end), {
+            placeholderStyle: 'postgres',
+          }).sql.length,
+        }
+        : {}),
     },
   };
 }
@@ -412,7 +435,13 @@ function buildPostgresPresentReplacement(
 export function buildQueryResultColumnContracts(sql: string, rootDir?: string, ddlDir?: string): SqlResultColumnContract[] {
   const ddlModel = rootDir ? loadDdlSchemaModel(path.resolve(rootDir), ddlDir) : undefined;
   const schemaPath = rootDir ? loadProjectPathConfig(path.resolve(rootDir)) : undefined;
-  return applyDdlTypeHints(sql, extractSqlResultColumnContracts(sql), ddlModel, schemaPath);
+  let columns: SqlResultColumnContract[];
+  try {
+    columns = extractSqlResultColumnContracts(sql);
+  } catch {
+    return [];
+  }
+  return applyDdlTypeHints(sql, columns, ddlModel, schemaPath);
 }
 
 /**
@@ -426,7 +455,9 @@ export function analyzeQueryModel(
 ): QueryModelAnalysis {
   const sourceHash = hashSql(sql);
   const resultColumns = resultColumnContracts.map((column) => column.name);
+  const resultColumnOrder = inferResultColumnOrder(sql);
   const resultColumnTypes = Object.fromEntries(resultColumnContracts.map((column) => [column.name, column.type]));
+  const resultColumnNullability = Object.fromEntries(resultColumnContracts.map((column) => [column.name, column.nullability]));
   try {
     const parsed = SqlParser.parse(sql);
     const statementKind = detectStatementKind(parsed);
@@ -450,21 +481,77 @@ export function analyzeQueryModel(
         ? { optionalConditionCompression: buildSqlOptionalConditionCompressionMetadata(sql) }
         : {}),
       resultColumns,
+      resultColumnOrder,
       resultColumnTypes,
+      resultColumnNullability,
       namedParameters,
+      parserCapabilities: supportedParserCapabilities(statementKind),
       ...(options.parameterTypes && Object.keys(options.parameterTypes).length > 0
         ? { parameterTypes: options.parameterTypes }
         : {}),
     };
   } catch (error) {
-    throw astParseUserError({
-      code: 'ASHIBA_MODEL_GEN_AST_PARSE_FAILED',
-      message: 'SQL AST parse failed during query model generation.',
-      reason: error instanceof Error ? error.message : String(error),
-      sqlKind: 'SQL',
-      operation: 'generating query model metadata',
-    });
+    const reason = error instanceof Error ? error.message : String(error);
+    return {
+      astParse: 'failed',
+      statementKind: 'unknown',
+      rootQueryShape: 'unknown',
+      hasTopLevelOrderBy: 'unknown',
+      sourceHash,
+      safeSort: {
+        insertion: {
+          status: 'unresolved',
+          reason: `Safe sort is blocked because SQL AST analysis degraded: ${reason}`,
+        },
+        sortable: {},
+      },
+      resultColumns,
+      resultColumnOrder,
+      resultColumnTypes,
+      resultColumnNullability,
+      namedParameters,
+      parserCapabilities: degradedParserCapabilities(reason),
+      ...(options.parameterTypes && Object.keys(options.parameterTypes).length > 0
+        ? { parameterTypes: options.parameterTypes }
+        : {}),
+    };
   }
+}
+
+function inferResultColumnOrder(sql: string): string[] {
+  try {
+    return extractSqlResultColumnAstItems(sql).map((item) => item.name);
+  } catch {
+    return [];
+  }
+}
+
+function supportedParserCapabilities(statementKind: QueryModelStatementKind): QueryModelAnalysis['parserCapabilities'] {
+  return {
+    parser: { status: 'supported' },
+    sqlStorage: 'unaffected',
+    execution: 'unaffected',
+    parameterBinding: 'unaffected',
+    logging: 'unaffected',
+    resultContract: 'supported',
+    optionalConditionCompression: statementKind === 'select' ? 'supported' : 'blocked',
+    safeSort: statementKind === 'select' ? 'supported' : 'blocked',
+    impactAnalysis: 'supported',
+  };
+}
+
+function degradedParserCapabilities(reason: string): QueryModelAnalysis['parserCapabilities'] {
+  return {
+    parser: { status: 'degraded', reason },
+    sqlStorage: 'unaffected',
+    execution: 'unaffected',
+    parameterBinding: 'unaffected',
+    logging: 'unaffected',
+    resultContract: 'degraded',
+    optionalConditionCompression: 'blocked',
+    safeSort: 'blocked',
+    impactAnalysis: 'degraded',
+  };
 }
 
 function detectStatementKind(parsed: ReturnType<typeof SqlParser.parse>): QueryModelStatementKind {
@@ -511,13 +598,20 @@ function applyDdlTypeHints(
   const astItemsByName = new Map(extractSqlResultColumnAstItems(sql).map((item) => [item.name, item.value]));
 
   return columns.map((column) => {
-    if (column.type !== 'unknown' || !column.expression) return column;
+    if (!column.expression) return column;
     const astItem = astItemsByName.get(column.name);
     if (!astItem) return column;
     const type = inferSqlExpressionContractType(astItem, {
       resolveColumnType: (reference) => resolveDdlColumnType(reference, relations),
     });
-    return type === 'unknown' ? column : { ...column, type };
+    const nullability = inferSqlExpressionNullability(astItem, {
+      resolveColumnNullability: (reference) => resolveDdlColumnNullability(reference, relations),
+    });
+    return {
+      ...column,
+      ...(column.type === 'unknown' && type !== 'unknown' ? { type } : {}),
+      ...(nullability !== 'unknown' ? { nullability } : {}),
+    };
   });
 }
 
@@ -525,7 +619,7 @@ function extractTopLevelRelations(
   sql: string,
   ddlModel: DdlSchemaModel,
   schemaPath: Partial<SchemaPathConfig>,
-): Array<{ alias?: string; table: DdlSchemaTable }> {
+): DdlRelation[] {
   const parsed = SqlParser.parse(sql);
   const cteTables = buildCteTables(parsed, ddlModel, schemaPath);
   return extractRelationsFromParsed(parsed, ddlModel, schemaPath, cteTables);
@@ -536,20 +630,20 @@ function extractRelationsFromParsed(
   ddlModel: DdlSchemaModel,
   schemaPath: Partial<SchemaPathConfig>,
   cteTables: Map<string, DdlSchemaTable>,
-): Array<{ alias?: string; table: DdlSchemaTable }> {
-  const relations: Array<{ alias?: string; table: DdlSchemaTable }> = [];
-  const addRelation = (rawName: string, rawAlias?: string | null) => {
+): DdlRelation[] {
+  const relations: DdlRelation[] = [];
+  const addRelation = (rawName: string, rawAlias?: string | null, nullExtended = false) => {
     const alias = normalizeIdentifier(rawAlias ?? '');
     const table = resolveRelationTable(rawName, ddlModel, schemaPath, cteTables);
     if (table) {
-      relations.push({ ...(alias ? { alias } : {}), table });
+      relations.push({ ...(alias ? { alias } : {}), table, ...(nullExtended ? { nullExtended: true } : {}) });
     }
   };
 
-  const addSource = (source: SourceExpression | null | undefined) => {
+  const addSource = (source: SourceExpression | null | undefined, nullExtended = false) => {
     if (!source) return;
     if (source.datasource instanceof TableSource) {
-      addRelation(source.datasource.qualifiedName.toString(), source.getAliasName());
+      addRelation(source.datasource.qualifiedName.toString(), source.getAliasName(), nullExtended);
       return;
     }
     if (source.datasource instanceof SubQuerySource) {
@@ -560,14 +654,27 @@ function extractRelationsFromParsed(
       relations.push({
         alias,
         table: buildSyntheticCteTable(alias, source.datasource.query, subqueryRelations),
+        ...(nullExtended ? { nullExtended: true } : {}),
       });
     }
   };
 
   const addSelectRelations = (query: unknown) => {
     if (query instanceof SimpleSelectQuery) {
-      for (const source of query.fromClause?.getSources() ?? []) {
-        addSource(source);
+      const fromClause = query.fromClause;
+      if (!fromClause) return;
+      const relationStart = relations.length;
+      addSource(fromClause.source);
+      for (const join of fromClause.joins ?? []) {
+        const joinType = join.joinType.value.toLowerCase();
+        const nullExtendsPrior = joinType.includes('right') || joinType.includes('full');
+        if (nullExtendsPrior) {
+          for (let index = relationStart; index < relations.length; index += 1) {
+            const relation = relations[index];
+            if (relation) relation.nullExtended = true;
+          }
+        }
+        addSource(join.source, joinType.includes('left') || joinType.includes('full'));
       }
       return;
     }
@@ -629,7 +736,7 @@ function buildCteTables(
 function buildSyntheticCteTable(
   name: string,
   query: unknown,
-  relations: Array<{ alias?: string; table: DdlSchemaTable }>,
+  relations: DdlRelation[],
 ): DdlSchemaTable {
   const columns = new Map<string, DdlSchemaColumn>();
   for (const item of extractSelectItemsFromParsed(query)) {
@@ -699,7 +806,7 @@ function resolveRelationTable(
   return cteTables.get(normalized) ?? resolveDdlTable(rawName, ddlModel, schemaPath);
 }
 
-function resolveDdlColumnType(reference: ColumnReference, relations: Array<{ alias?: string; table: DdlSchemaTable }>): string | undefined {
+function resolveDdlColumnType(reference: ColumnReference, relations: DdlRelation[]): string | undefined {
   const namespaces = reference.namespaces?.map((namespace) => normalizeIdentifier(namespace.name)) ?? [];
   const columnName = normalizeIdentifier(reference.column.name).toLowerCase();
 
@@ -720,6 +827,33 @@ function resolveDdlColumnType(reference: ColumnReference, relations: Array<{ ali
     .map((relation) => relation.table.columns.get(columnName))
     .filter((column): column is NonNullable<typeof column> => Boolean(column));
   return matches.length === 1 ? matches[0].typeName : undefined;
+}
+
+function resolveDdlColumnNullability(
+  reference: ColumnReference,
+  relations: DdlRelation[],
+): boolean | undefined {
+  const namespaces = reference.namespaces?.map((namespace) => normalizeIdentifier(namespace.name)) ?? [];
+  const columnName = normalizeIdentifier(reference.column.name).toLowerCase();
+  if (namespaces.length > 0) {
+    const qualifier = namespaces.join('.').toLowerCase();
+    const lastQualifier = namespaces[namespaces.length - 1]?.toLowerCase();
+    const relation = relations.find((candidate) =>
+      candidate.alias?.toLowerCase() === qualifier ||
+      candidate.alias?.toLowerCase() === lastQualifier ||
+      candidate.table.name.toLowerCase() === qualifier ||
+      candidate.table.name.toLowerCase() === lastQualifier ||
+      candidate.table.canonicalName.toLowerCase() === qualifier
+    );
+    const ddlNullability = relation?.table.columns.get(columnName)?.nullable;
+    return relation?.nullExtended && ddlNullability !== undefined ? true : ddlNullability;
+  }
+  const matches = relations
+    .map((relation) => ({ relation, column: relation.table.columns.get(columnName) }))
+    .filter((match): match is { relation: DdlRelation; column: DdlSchemaColumn } => Boolean(match.column));
+  return matches.length === 1
+    ? (matches[0]?.relation.nullExtended ? true : matches[0]?.column.nullable)
+    : undefined;
 }
 
 function hasTopLevelOrderBy(parsed: ReturnType<typeof SqlParser.parse>): boolean {
@@ -748,7 +882,7 @@ function renderRowInterface(columns: SqlResultColumnContract[]): string {
   if (columns.length === 0) {
     return '{\n  // Fill this from mapper tests or DB-backed inspection.\n  [column: string]: unknown;\n}';
   }
-  return `{\n${columns.map((column) => `  ${column.name}: ${column.type};`).join('\n')}\n}`;
+  return `{\n${columns.map((column) => `  ${column.name}: ${column.nullability === 'non-null' ? column.type : `${column.type} | null`};`).join('\n')}\n}`;
 }
 
 function deriveQueryId(rootDir: string, sqlPath: string): string {

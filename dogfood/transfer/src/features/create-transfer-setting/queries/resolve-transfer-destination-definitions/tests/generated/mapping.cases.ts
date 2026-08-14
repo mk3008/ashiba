@@ -11,7 +11,9 @@ const cases: readonly ResolveTransferDestinationDefinitionsQueryMappingZtdCase[]
       }
     },
     input: {
-      destination_definition_names: "value"
+      destination_definition_names: [
+        "value"
+      ]
     },
     mapperProbe: {
       sql: "select\n    cast('1' as bigint) as \"destination_definition_id\"\n    , cast('Alice' as text) as \"destination_definition_name\"\n;"
