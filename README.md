@@ -142,6 +142,7 @@ Use this section as the entry point for daily work. The command API page links e
 | Add another query to an existing feature | `ashiba feature query scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-scaffold) |
 | Refresh generated metadata after editing SQL | `ashiba feature query refresh` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-refresh) |
 | Optionally prove PostgreSQL query/driver types | `ashiba feature query postgres-contract` | [PostgreSQL contract guide](https://mk3008.github.io/ashiba/guide/postgres-contract) |
+| Compare database schema changes against the canonical SQL fleet | `ashiba sql-resource snapshot`, `ashiba sql-resource compare` | [SQL resource compatibility guide](https://mk3008.github.io/ashiba/guide/sql-resource-compatibility) |
 | Add generated mapper-test cases and human-owned placeholders | `ashiba feature tests scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-scaffold) |
 | Detect generated mapping-test drift | `ashiba feature tests check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-check) |
 | Check SQL parameters, result columns, and editable query contracts | `ashiba feature generated-mapper check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-generated-mapper-check) |

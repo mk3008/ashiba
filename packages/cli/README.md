@@ -20,6 +20,9 @@ ashiba feature scaffold users-list --table users --action list
 ashiba feature import users-search search --sql tmp/search-users.sql
 ASHIBA_POSTGRES_DATABASE_URL=postgresql://localhost/app \
   ashiba feature query postgres-contract users-search search
+ASHIBA_POSTGRES_DATABASE_URL=postgresql://localhost/app \
+  ashiba sql-resource snapshot --out generated/schema-before.json
+ashiba sql-resource compare --before generated/schema-before.json --after generated/schema-after.json
 ashiba check
 ```
 
@@ -55,3 +58,19 @@ and pass the same profile to the runtime adapter. Custom profiles deliberately
 degrade driver value types to `unknown`; Ashiba does not own parser
 configuration. Use a development/test database, not production. See the
 [PostgreSQL-derived query contract guide](https://mk3008.github.io/ashiba/guide/postgres-contract).
+
+## SQL resource fleets
+
+`sql-resource snapshot` projects canonical VSA-local `.sql` files into
+language-neutral resource JSON plus separate executable PostgreSQL SQL. The
+metadata points to the canonical SQL rather than embedding its body. It carries
+OID-free recursive database type identity, driver representation, capabilities,
+dependency evidence, and provenance so consumers do not need TypeScript or an
+Ashiba runtime.
+
+`sql-resource compare` compares before/after snapshots and emits a compact
+fleet summary with only affected query IDs and reasons by default. It separates
+compatible drift, contract change, PostgreSQL prepare failure, and evidence
+that needs review. This is a development/check workflow; it never applies a
+migration. See the
+[SQL resource compatibility guide](https://mk3008.github.io/ashiba/guide/sql-resource-compatibility).

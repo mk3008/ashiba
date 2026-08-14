@@ -3318,7 +3318,7 @@ function renderImportedFeatureBoundaryTest(
   ].join('\n');
 }
 
-function buildFeatureQueryModel(
+export function buildFeatureQueryModel(
   sql: string,
   rootDir: string,
   postgresContract?: PostgresDerivedQueryContract,

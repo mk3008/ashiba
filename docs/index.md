@@ -32,4 +32,6 @@ features:
 - [Safe sort](./guide/safe-sort.md)
 - [Runtime boundary](./guide/runtime-boundary.md)
 - [SQL format](./guide/sql-format.md)
+- [PostgreSQL-derived query contracts](./guide/postgres-contract.md)
+- [SQL resources and schema compatibility](./guide/sql-resource-compatibility.md)
 - [Concept map](./concepts/concept-map.md)

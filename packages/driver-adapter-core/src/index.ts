@@ -277,6 +277,26 @@ export type PostgresDatabaseTypeKind =
   | 'pseudo'
   | 'unknown';
 
+export type PostgresDomainConstraint = {
+  name: string;
+  definition: string;
+  validated: boolean;
+};
+
+/** Cluster-independent PostgreSQL type identity for deterministic snapshot comparison. */
+export type PostgresPortableDatabaseTypeIdentity = {
+  schema: string;
+  name: string;
+  formattedName: string;
+  kind: PostgresDatabaseTypeKind;
+  category: string;
+  typeModifier?: number;
+  elementType?: PostgresPortableDatabaseTypeIdentity;
+  baseType?: PostgresPortableDatabaseTypeIdentity;
+  enumValues?: readonly string[];
+  domainConstraints?: readonly PostgresDomainConstraint[];
+};
+
 /** PostgreSQL type identity reported by the development-time database oracle. */
 export type PostgresDatabaseTypeIdentity = {
   oid: number;
@@ -288,6 +308,9 @@ export type PostgresDatabaseTypeIdentity = {
   elementTypeOid?: number;
   baseTypeOid?: number;
   enumValues?: readonly string[];
+  typeModifier?: number;
+  domainConstraints?: readonly PostgresDomainConstraint[];
+  portableIdentity?: PostgresPortableDatabaseTypeIdentity;
 };
 
 /** Nullability evidence kept separate because PostgreSQL result type metadata does not generally prove it. */
@@ -303,13 +326,14 @@ export type PostgresContractParameter = {
   databaseType: PostgresDatabaseTypeIdentity;
   typeProvenance: Extract<AshibaQueryContractProvenance, 'proven'>;
   nullability: PostgresContractNullability;
+  typeModifier?: number;
 };
 
 /** One PostgreSQL-derived result position. */
 export type PostgresContractResult = {
   position: number;
   name?: string;
-  nameProvenance: Extract<AshibaQueryContractProvenance, 'inferred' | 'unknown'>;
+  nameProvenance: Extract<AshibaQueryContractProvenance, 'proven' | 'inferred' | 'unknown'>;
   databaseType: PostgresDatabaseTypeIdentity;
   typeProvenance: Extract<AshibaQueryContractProvenance, 'proven'>;
   nullability: PostgresContractNullability;
@@ -334,6 +358,20 @@ export type PostgresDriverRepresentation = {
   provenance: Extract<AshibaQueryContractProvenance, 'driver-mapped' | 'unknown'>;
 };
 
+export type PostgresQueryDependency = {
+  kind: 'column' | 'relation' | 'function';
+  schema: string;
+  name: string;
+  relationKind?: string;
+  column?: string;
+  columnNotNull?: boolean;
+  columnType?: PostgresPortableDatabaseTypeIdentity;
+  columnTypeModifier?: number;
+  definitionHash?: string;
+  identityArguments?: string;
+  resultType?: string;
+};
+
 /** Deterministic, optional development-time PostgreSQL query contract. */
 export type PostgresDerivedQueryContract = {
   version: 1;
@@ -343,6 +381,7 @@ export type PostgresDerivedQueryContract = {
     serverMajor: number;
     parameters: readonly PostgresContractParameter[];
     results: readonly PostgresContractResult[];
+    dependencies?: readonly PostgresQueryDependency[];
   };
   driver: {
     profile: PostgresDriverRepresentationProfile;

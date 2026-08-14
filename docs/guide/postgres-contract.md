@@ -45,7 +45,9 @@ proof is required.
 The contract intentionally does not collapse these concerns:
 
 1. **Database type**: PostgreSQL OID, schema/name, base/array/enum/domain kind,
-   element/base type, and enum labels. This is `proven` by PostgreSQL metadata.
+   element/base type, enum labels, type modifiers, and domain constraints. This
+   is `proven` by PostgreSQL metadata. A recursive OID-free identity is also
+   emitted for cross-cluster resource comparison.
 2. **Nullability**: offline SQL/DDL evidence is `inferred`; unavailable evidence
    remains `unknown`. Prepared result type metadata does not generally prove
    result nullability.
@@ -92,16 +94,21 @@ to declare a custom profile remains an application configuration error. Custom
 profiles generate `unknown` driver value types instead of pretending that the
 default mappings still apply.
 
-## Result-name limitation
+## Result-name and dependency evidence
 
 PostgreSQL prepared-statement metadata proves result types by position but does
-not expose result aliases through this stable catalog surface. Ashiba attaches
-names only when its offline SQL analysis proves the complete source order. For
-valid PostgreSQL syntax outside that parser coverage, database types remain
-position-based and the contract emits
-`ASHIBA_POSTGRES_RESULT_NAME_ORDER_UNRESOLVED`. Ashiba does not execute the
-statement, use private node-postgres protocol APIs, or introduce another SQL
-semantic analyzer merely to guess the aliases.
+not expose result aliases. For SELECT-like statements, Ashiba creates a
+transaction-local temporary view with typed `NULL` parameter substitutes, then
+reads its catalog metadata. This proves output names and type modifiers and
+records referenced columns, relations, views, and functions without executing
+the application statement. If PostgreSQL cannot represent the statement as a
+temporary view, Ashiba rolls back to a savepoint and retains offline inferred or
+unknown evidence with `ASHIBA_POSTGRES_SELECT_DESCRIPTION_DEGRADED`.
+
+The temporary view does not generally prove result nullability. That remains
+inferred or unknown. Referenced column `NOT NULL` facts and view-definition
+hashes are stored separately so schema compatibility can report the evidence
+without overstating result-level proof.
 
 This feature does not apply migrations, configure drivers, construct queries,
 or change the canonical SQL ownership model. It is an optional validation and

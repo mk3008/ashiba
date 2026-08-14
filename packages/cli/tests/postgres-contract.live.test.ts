@@ -255,7 +255,7 @@ describe.skipIf(!databaseUrl)('PostgreSQL-derived query contract live', () => {
       .resolves.toMatchObject({ rows: [{ count: 0 }] });
   });
 
-  test('degrades custom parser profiles and unresolved names instead of manufacturing types', async () => {
+  test('proves result names while custom driver profiles stay unknown instead of manufacturing types', async () => {
     const contract = await derivePostgresQueryContractFromDatabase(connectionString, {
       sql: 'select 1::bigint as value, jsonb_build_object() as payload',
       compiledSql: 'select 1::bigint as value, jsonb_build_object() as payload',
@@ -265,11 +265,27 @@ describe.skipIf(!databaseUrl)('PostgreSQL-derived query contract live', () => {
       driverProfile: 'custom:application-v1',
     });
     expect(contract.database.results.map((field) => field.databaseType.formattedName)).toEqual(['bigint', 'jsonb']);
-    expect(contract.database.results.every((field) => field.name === undefined && field.nameProvenance === 'unknown')).toBe(true);
+    expect(contract.database.results.map((field) => [field.name, field.nameProvenance])).toEqual([
+      ['value', 'proven'],
+      ['payload', 'proven'],
+    ]);
     expect(contract.driver.results.every((field) => field.typeScriptType === 'unknown' && field.provenance === 'unknown')).toBe(true);
-    expect(contract.diagnostics).toContainEqual(expect.objectContaining({
-      code: 'ASHIBA_POSTGRES_RESULT_NAME_ORDER_UNRESOLVED',
-    }));
+    expect(contract.diagnostics).toEqual([]);
+  });
+
+  test('describes placeholders without rewriting quoted PostgreSQL text', async () => {
+    const contract = await derivePostgresQueryContractFromDatabase(connectionString, {
+      sql: "select '$1'::text as quoted_value, :value::integer as parameter_value, $$ $1 $$::text as dollar_value",
+      compiledSql: "select '$1'::text as quoted_value, $1::integer as parameter_value, $$ $1 $$::text as dollar_value",
+      parameterNames: ['value'],
+      resultColumnOrder: [],
+      resultColumnNullability: {},
+    });
+    expect(contract.database.results.map((field) => [field.name, field.databaseType.formattedName])).toEqual([
+      ['quoted_value', 'text'],
+      ['parameter_value', 'integer'],
+      ['dollar_value', 'text'],
+    ]);
   });
 
   test('writes a VSA-local contract and rejects false application result self-reporting and staleness', async () => {
