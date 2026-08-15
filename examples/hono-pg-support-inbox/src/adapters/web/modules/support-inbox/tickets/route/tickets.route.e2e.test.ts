@@ -272,7 +272,7 @@ describeDb('support inbox HTTP filters', () => {
     expect(response.status).toBe(200);
     expectReadyHtml(html);
     expect(html).toContain('並び順: 顧客 昇順 → 更新日時 降順');
-    expect(html).toContain('order by cast(st.customer_name as text) asc, st.updated_at desc, st.ticket_id');
+    expect(html).toContain('cast(st.customer_name as text) asc, st.updated_at desc, st.ticket_id asc');
     expect(html).toContain('data-sort-key="customer_name">顧客<span class="sortMarker">↑</span>');
     expect(html).toContain('data-sort-key="updated_at">更新日時<span class="sortMarker">↓2</span>');
   });
