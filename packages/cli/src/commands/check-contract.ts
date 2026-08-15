@@ -75,7 +75,7 @@ export interface CatalogContractCheckResult {
 export function registerCheckContractCommand(program: Command): void {
   program
     .command('check-contract')
-    .description('Check visible SQL contracts against editable generated mapper boundaries')
+    .description('Check visible SQL against editable parameter and result contracts')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--feature <name>', 'Limit check to one feature')
     .option('--feature-root <path>', 'Feature root directory', 'src/features')
@@ -139,10 +139,10 @@ export function formatCheckContractResult(result: CheckContractResult): string {
       lines.push('  named parameters: ok');
     } else {
       if (entry.missingInMapper.length > 0) {
-        lines.push(`  missing in mapper: ${entry.missingInMapper.join(', ')}`);
+        lines.push(`  missing in boundary: ${entry.missingInMapper.join(', ')}`);
       }
       if (entry.unusedInMapper.length > 0) {
-        lines.push(`  unused in mapper: ${entry.unusedInMapper.join(', ')}`);
+        lines.push(`  unused in boundary: ${entry.unusedInMapper.join(', ')}`);
       }
     }
     if (entry.mismatchedParameterTypes.length === 0 && entry.parameterTypeConflicts.length === 0) {
@@ -160,10 +160,10 @@ export function formatCheckContractResult(result: CheckContractResult): string {
       lines.push('  result columns: ok');
     } else {
       if (entry.missingResultInMapper.length > 0) {
-        lines.push(`  missing result in mapper: ${entry.missingResultInMapper.join(', ')}`);
+        lines.push(`  missing result in boundary: ${entry.missingResultInMapper.join(', ')}`);
       }
       if (entry.unusedResultInMapper.length > 0) {
-        lines.push(`  unused result in mapper: ${entry.unusedResultInMapper.join(', ')}`);
+        lines.push(`  unused result in boundary: ${entry.unusedResultInMapper.join(', ')}`);
       }
     }
   }

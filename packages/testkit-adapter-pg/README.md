@@ -2,7 +2,7 @@
 
 Ashiba Zero Table Dependency testkit adapter for `pg`/PostgreSQL query tests.
 
-This package is used by Ashiba-generated PostgreSQL mapper tests. It is normally
+This package is used by explicitly selected Ashiba PostgreSQL SQL logic tests. It is normally
 installed with `@ashiba-ts/cli`, `@ashiba-ts/driver-adapter-pg`, and `pg` as part
 of the PostgreSQL starter path.
 

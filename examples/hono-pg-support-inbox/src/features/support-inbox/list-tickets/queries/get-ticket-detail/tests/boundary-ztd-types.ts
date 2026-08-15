@@ -3,6 +3,21 @@ import type { GetTicketDetailQueryParams, GetTicketDetailQueryResult } from '../
 
 export type GetTicketDetailBeforeDb = {
   public: {
+    customers: readonly {
+      customer_id?: unknown;
+      name?: unknown;
+      tier?: unknown;
+      locale?: unknown;
+      created_at?: unknown;
+    }[];
+    ticket_messages: readonly {
+      message_id?: unknown;
+      ticket_id?: unknown;
+      sender_name?: unknown;
+      sender_role?: unknown;
+      body?: unknown;
+      created_at?: unknown;
+    }[];
     tickets: readonly {
       ticket_id?: unknown;
       customer_id?: unknown;
@@ -26,10 +41,4 @@ export type GetTicketDetailQueryBoundaryZtdCase = QuerySpecZtdCase<
   GetTicketDetailQueryResult[]
 >;
 
-export type GetTicketDetailQueryMappingZtdCase = QuerySpecZtdCase<
-  GetTicketDetailBeforeDb,
-  GetTicketDetailQueryParams,
-  GetTicketDetailQueryResult[]
->;
-
-// Result columns are mapped through synthetic DB result probes so mapper tests stay focused on DTO compatibility.
+// Add cases only for SQL behavior that static and PostgreSQL-derived contracts cannot prove.

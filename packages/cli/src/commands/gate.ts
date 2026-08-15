@@ -118,7 +118,7 @@ function writePackageScripts(rootDir: string): { relativePath: string; action: '
   };
   const scripts = { ...(packageJson.scripts ?? {}) };
   scripts['ashiba:check'] = typeof scripts['ashiba:check'] === 'string' ? scripts['ashiba:check'] : `${ASHIBA_CLI_SCRIPT} check`;
-  scripts['ashiba:verify'] = typeof scripts['ashiba:verify'] === 'string' ? scripts['ashiba:verify'] : `${ASHIBA_CLI_SCRIPT} check --full --mapper-test-command "vitest run"`;
+  scripts['ashiba:verify'] = typeof scripts['ashiba:verify'] === 'string' ? scripts['ashiba:verify'] : `${ASHIBA_CLI_SCRIPT} check --full --test-command "vitest run"`;
   packageJson.scripts = scripts;
   writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf8');
   return { relativePath: 'package.json', action: 'update' };

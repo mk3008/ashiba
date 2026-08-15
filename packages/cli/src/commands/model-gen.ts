@@ -880,7 +880,7 @@ function renderParamsInterface(parameters: string[], parameterTypes: Record<stri
 
 function renderRowInterface(columns: SqlResultColumnContract[]): string {
   if (columns.length === 0) {
-    return '{\n  // Fill this from mapper tests or DB-backed inspection.\n  [column: string]: unknown;\n}';
+    return '{\n  // Narrow this from PostgreSQL-derived evidence or targeted DB-backed inspection.\n  [column: string]: unknown;\n}';
   }
   return `{\n${columns.map((column) => `  ${column.name}: ${column.nullability === 'non-null' ? column.type : `${column.type} | null`};`).join('\n')}\n}`;
 }

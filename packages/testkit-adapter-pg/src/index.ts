@@ -29,7 +29,7 @@ export function createPostgresTestkitClient<RowType extends Row>(
 }
 
 /**
- * Postgres ZTD testkit client class for fixture-backed SQL mapper tests.
+ * Postgres ZTD testkit client class for selected fixture-backed SQL logic tests.
  */
 export { PostgresTestkitClient };
 

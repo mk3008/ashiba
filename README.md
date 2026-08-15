@@ -6,7 +6,7 @@
 
 Show me the SQL. Ashiba handles the boring parts.
 
-Ashiba is a SQL-first scaffold and verification layer for TypeScript applications. You write the SQL; Ashiba generates DTOs, mapper boundaries, tests, metadata, and drift checks around it.
+Ashiba is a SQL-first scaffold and verification layer for TypeScript applications. You write the SQL; Ashiba generates DTOs, mapper boundaries, runtime metadata, and drift checks around it. Add executable SQL logic cases only where behavior needs proof.
 
 No ORM runtime. No hidden query DSL. No mapper boilerplate.
 
@@ -15,7 +15,7 @@ No ORM runtime. No hidden query DSL. No mapper boilerplate.
 </p>
 
 <p align="center">
-  <img src="docs/public/brand/ashiba-getting-started-scaffold.gif" alt="Ashiba getting started: scaffold visible SQL and run mapper tests." width="900">
+  <img src="docs/public/brand/ashiba-getting-started-scaffold.gif" alt="Ashiba getting started: scaffold visible SQL and run contract checks." width="900">
 </p>
 
 ## Concept
@@ -36,7 +36,7 @@ The first run should prove the idea quickly:
 - start a local PostgreSQL test database
 - scaffold a small feature from DDL
 - run tests
-- see generated TypeScript contracts and mapper-test scaffolds in your repo
+- see generated TypeScript contracts and metadata in your repo
 
 Prerequisites:
 
@@ -73,7 +73,7 @@ If port `5432` is busy, change `ASHIBA_TEST_DB_PORT` in `.env`.
 npx ashiba feature scaffold users-list --table users --action list
 ```
 
-This gives you a small SQL-first feature boundary: visible SQL, editable query contracts, generated metadata, mapper boundaries, and test scaffolds.
+This gives you a small SQL-first feature boundary: visible SQL, editable query contracts, generated metadata, and mapper boundaries. It does not add a per-query test until you explicitly select one.
 
 ### 5. Run the checks
 
@@ -81,14 +81,20 @@ This gives you a small SQL-first feature boundary: visible SQL, editable query c
 npx vitest run
 ```
 
-The generated unit tests are mapper tests. They run lightweight DB-backed probes that return representative SQL values and prove those values can map into the TypeScript DTO shape. They do not prove business SQL logic, row counts, final database state, transaction behavior, or which rows should be changed. Put those expectations in customer-owned SQL logic tests when the feature needs them.
+The default gate checks SQL parameters, result columns, DDL/metadata freshness, and editable TypeScript contracts without persisting synthetic test rows. For optional conditions, JOIN behavior, aggregates, CASE, windows, pagination, or other data-dependent semantics, explicitly add a human-owned logic test:
+
+```bash
+npx ashiba feature tests scaffold users-list --query list
+```
+
+Use ZTD only when it executes the exact canonical SQL faithfully. Use a real-schema/data-backed test for constraints, transactions, locking, functions, planner behavior, or unsupported PostgreSQL syntax.
 
 At this point, you should have the core Ashiba experience:
 
 - SQL remains visible source code.
 - TypeScript DTO and mapper support exists around it.
-- Generated assets are reviewable files.
-- Tests and checks tell you when the contract drifts.
+- Required generated assets are reviewable files.
+- Contract checks and selected behavior tests tell you when the relevant obligation drifts.
 - Runtime stays ordinary: canonical SQL, a thin SQL execution adapter, and TypeScript application code.
 
 ### 6. Change the code
@@ -103,14 +109,14 @@ npx ashiba check
 npx ashiba check --full
 ```
 
-When DDL and generated contracts drift apart, Ashiba should make the repair path visible: which SQL file changed, which editable TypeScript boundary needs attention, and which generated mapping-test assets can be refreshed.
+When DDL and generated contracts drift apart, Ashiba should make the repair path visible: which SQL file changed, which editable TypeScript boundary needs attention, and which generated runtime metadata can be refreshed.
 
 <p align="center">
-  <img src="docs/public/brand/ashiba-drift-detect.gif" alt="Ashiba drift detection: edit DDL, see mapper tests fail, and inspect check output that points to repair targets." width="900">
+  <img src="docs/public/brand/ashiba-drift-detect.gif" alt="Ashiba drift detection: edit DDL and inspect contract-check output that points to repair targets." width="900">
 </p>
 
 <p align="center">
-  <img src="docs/public/brand/ashiba-drift-repair.gif" alt="Ashiba drift repair: human or AI repairs owned SQL and TypeScript boundaries, refreshes generated mapping tests, and passes checks again." width="900">
+  <img src="docs/public/brand/ashiba-drift-repair.gif" alt="Ashiba drift repair: human or AI repairs owned SQL and TypeScript boundaries, refreshes runtime metadata, and passes checks again." width="900">
 </p>
 
 ## Supported DBMS And Drivers
@@ -120,8 +126,8 @@ Ashiba chooses DBMS and wrapped driver explicitly. PostgreSQL is the most comple
 | DBMS | Wrapped driver/tool | Package | Current status |
 |---|---|---|---|
 | Shared driver contracts | driver adapter core | `@ashiba-ts/driver-adapter-core` | Shared feature query contracts, cardinality helpers, and explicit retry-policy helpers. No ORM model or SQL DSL. |
-| PostgreSQL | `pg` | `@ashiba-ts/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, mapper-test lane, named-parameter binding, safe sort, optional-condition metadata, transient-error classification, and tutorial coverage. |
-| PostgreSQL | `pg` testkit | `@ashiba-ts/testkit-adapter-pg` | ZTD mapper-test adapter used by the PostgreSQL starter. |
+| PostgreSQL | `pg` | `@ashiba-ts/driver-adapter-pg` | Most complete starter path. Includes generated query metadata, named-parameter binding, safe sort, optional-condition metadata, transient-error classification, and tutorial coverage. |
+| PostgreSQL | `pg` testkit | `@ashiba-ts/testkit-adapter-pg` | Optional ZTD executor for selected SQL logic tests. |
 | PostgreSQL | `pg_dump` | `@ashiba-ts/ddl-pull-pg-dump` | Optional helper for comparing production DDL from `pg_dump` with local DDL. |
 | MySQL | `mysql2` | `@ashiba-ts/driver-adapter-mysql2` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
 | SQL Server | `mssql` | `@ashiba-ts/driver-adapter-mssql` | Driver adapter exists. Full `ashiba init` starter and testkit path are not complete yet. |
@@ -143,9 +149,9 @@ Use this section as the entry point for daily work. The command API page links e
 | Refresh generated metadata after editing SQL | `ashiba feature query refresh` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-refresh) |
 | Optionally prove PostgreSQL query/driver types | `ashiba feature query postgres-contract` | [PostgreSQL contract guide](https://mk3008.github.io/ashiba/guide/postgres-contract) |
 | Compare database schema changes against the canonical SQL fleet | `ashiba sql-resource snapshot`, `ashiba sql-resource compare` | [SQL resource compatibility guide](https://mk3008.github.io/ashiba/guide/sql-resource-compatibility) |
-| Add generated mapper-test cases and human-owned placeholders | `ashiba feature tests scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-scaffold) |
-| Detect generated mapping-test drift | `ashiba feature tests check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-check) |
-| Check SQL parameters, result columns, and editable query contracts | `ashiba feature generated-mapper check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-generated-mapper-check) |
+| Selectively add a human-owned SQL logic test | `ashiba feature tests scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-scaffold) |
+| Detect generated fixture/wrapper drift for selected logic tests | `ashiba feature tests check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-tests-check) |
+| Check SQL parameters, result columns, and editable query contracts | `ashiba feature contract check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-contract-check) |
 | Run the project-level passive check gate | `ashiba project check` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-project-check) |
 | Check visible SQL contracts before commit or release | `ashiba check-contract` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-check-contract) |
 | Generate reviewable migration SQL from DDL changes | `ashiba ddl migration generate` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-ddl-migration-generate) |
@@ -172,6 +178,8 @@ npx ashiba check --full
 Use this after SQL or DDL changes. The first command refreshes safe generated-owned artifacts together, leaves application-owned files untouched, and lists the remaining contract changes in one diagnostic.
 
 See [Raw SQL change loop measurement](docs/evaluations/raw-sql-change-loop.md) for the measured rename, nullability, and projection mutation results.
+
+See [Verification value audit](docs/evaluations/verification-value-audit.md) for the measured responsibility graph, 25-category mutation matrix, generated-artifact reduction, selective logic-test rule, and ZTD/real-schema boundary.
 
 ### I changed DDL
 
@@ -244,11 +252,13 @@ Ashiba reads `ashiba.config.json`:
     "parameterStyle": "both"
   },
   "tests": {
-    "mapperLane": "ztd",
     "performanceLane": "traditional"
   }
 }
 ```
+
+Query-local SQL logic tests are opt-in through `ashiba feature tests scaffold`.
+The `tests` configuration does not enable generated per-query mapping probes.
 
 `featureRoot` is the generated feature or use-case boundary root.
 

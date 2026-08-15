@@ -19,12 +19,10 @@ import { buildQueryUsageReport, classifyImpactConfidence } from '../src/sqlgrep/
 import type { QueryUsageMatchDetail } from '../src/sqlgrep/query/types.js';
 
 describe('Raw SQL hardening gates', () => {
-  test('binds inferred Params/Row, PostgreSQL arrays, and generated probes to one query contract', () => {
+  test('binds inferred Params/Row and PostgreSQL arrays to one query contract without generated probes', () => {
     const fixture = createSearchFixture();
     try {
       const querySource = readFileSync(fixture.queryFile, 'utf8');
-      const mappingTypes = readFileSync(fixture.mappingTypesFile, 'utf8');
-      const mappingCases = readFileSync(fixture.mappingCasesFile, 'utf8');
       const check = runFeatureGeneratedMapperCheck({
         rootDir: fixture.rootDir,
         feature: 'tickets-search',
@@ -47,11 +45,6 @@ describe('Raw SQL hardening gates', () => {
       expect(querySource).toContain('note: string | null;');
       expect(querySource).toContain('return queryMany(executor, searchQuery, params);');
       expect(querySource).not.toContain('as unknown as');
-      expect(mappingTypes).toContain('SearchQueryMappingZtdCase = QuerySpecZtdCase<');
-      expect(mappingTypes).toContain('SearchQueryResult[]');
-      expect(mappingCases).toContain('as text[]');
-      expect(mappingCases).toContain('ticket_ids: [');
-      expect(mappingCases).toContain('tags: [');
       expect(check.ok).toBe(true);
       expect(check.checked[0]?.parameterTypeConflicts).toEqual([]);
       expect(check.checked[0]?.warningParameterTypeConflicts).toEqual([]);
@@ -68,18 +61,6 @@ describe('Raw SQL hardening gates', () => {
         tags: 'string[]',
         note: 'string | null',
       });
-
-      const analysisFile = path.join(path.dirname(fixture.queryFile), 'tests/generated/analysis.json');
-      const scaffoldMetadata = JSON.parse(readFileSync(analysisFile, 'utf8')) as Record<string, unknown>;
-      delete scaffoldMetadata.importSource;
-      writeFileSync(analysisFile, `${JSON.stringify(scaffoldMetadata, null, 2)}\n`, 'utf8');
-      const scaffoldStyleCheck = runFeatureGeneratedMapperCheck({
-        rootDir: fixture.rootDir,
-        feature: 'tickets-search',
-        query: 'search',
-      });
-      expect(scaffoldStyleCheck.checked[0]?.sqlResultTypes.note).toBe('string | null');
-      expect(scaffoldStyleCheck.ok).toBe(true);
 
       writeFileSync(
         fixture.queryFile,
@@ -127,7 +108,7 @@ describe('Raw SQL hardening gates', () => {
       );
       const renameLoop = runAshibaCheck({ rootDir: renamed.rootDir, fixGenerated: true });
       expect(renameLoop.generatedRefresh?.applicationOwnedIssues).toHaveLength(1);
-      expect(renameLoop.generatedRefresh?.changedGeneratedFiles).toHaveLength(4);
+      expect(renameLoop.generatedRefresh?.changedGeneratedFiles).toHaveLength(1);
 
       writeFileSync(
         nonNullable.ddlFile,
@@ -145,7 +126,7 @@ describe('Raw SQL hardening gates', () => {
       );
       const nullabilityLoop = runAshibaCheck({ rootDir: nonNullable.rootDir, fixGenerated: true });
       expect(nullabilityLoop.generatedRefresh?.applicationOwnedIssues).toHaveLength(1);
-      expect(nullabilityLoop.generatedRefresh?.changedGeneratedFiles).toHaveLength(3);
+      expect(nullabilityLoop.generatedRefresh?.changedGeneratedFiles).toHaveLength(1);
 
       writeFileSync(
         nullable.ddlFile,
@@ -199,10 +180,8 @@ describe('Raw SQL hardening gates', () => {
       expect(result.generatedRefresh?.changedGeneratedFiles).toEqual(expect.arrayContaining([
         'src/features/tickets-search/queries/search/generated/query.meta.ts',
         'src/features/tickets-search/queries/search/generated/query.sql.ts',
-        'src/features/tickets-search/queries/search/tests/generated/analysis.json',
-        'src/features/tickets-search/queries/search/tests/generated/mapping.cases.ts',
       ]));
-      expect(result.generatedRefresh?.changedGeneratedFiles).toHaveLength(4);
+      expect(result.generatedRefresh?.changedGeneratedFiles).toHaveLength(2);
       expect(result.generatedRefresh?.applicationOwnedIssues).toHaveLength(1);
       expect(result.generatedRefresh?.applicationOwnedIssues).toContain(
         'src/features/tickets-search/queries/search/query.ts: remove result column note; it is absent from visible SQL.',
@@ -220,7 +199,7 @@ describe('Raw SQL hardening gates', () => {
         'src/features/tickets-search/queries/search/query.ts: add result column status_label projected by visible SQL.',
       );
       expect(addResult.generatedRefresh?.applicationOwnedIssues).toHaveLength(1);
-      expect(addResult.generatedRefresh?.changedGeneratedFiles).toHaveLength(4);
+      expect(addResult.generatedRefresh?.changedGeneratedFiles).toHaveLength(2);
       expect(addResult.projectCheck.checks.contract?.mapperCheck.checked[0]?.missingResultInMapper).toEqual(['status_label']);
     } finally {
       rmSync(fixture.rootDir, { recursive: true, force: true });
@@ -397,8 +376,6 @@ function createSearchFixture(): {
   ddlFile: string;
   sqlFile: string;
   queryFile: string;
-  mappingTypesFile: string;
-  mappingCasesFile: string;
 } {
   const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-query-contract-'));
   const ddlFile = path.join(rootDir, 'db/ddl/public.sql');
@@ -453,7 +430,5 @@ function createSearchFixture(): {
     ddlFile,
     sqlFile: path.join(queryDir, 'search.sql'),
     queryFile: path.join(queryDir, 'query.ts'),
-    mappingTypesFile: path.join(queryDir, 'tests/boundary-ztd-types.ts'),
-    mappingCasesFile: path.join(queryDir, 'tests/generated/mapping.cases.ts'),
   };
 }

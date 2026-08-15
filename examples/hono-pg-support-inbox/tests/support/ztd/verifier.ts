@@ -79,7 +79,7 @@ export async function createQuerySpecZtdVerifier(): Promise<QuerySpecZtdVerifier
           },
         });
 
-        const actual = await execute(createQuerySpecExecutor(testkitClient, trace, querySpecCase), querySpecCase.input);
+        const actual = await execute(createQuerySpecExecutor(testkitClient, trace), querySpecCase.input);
         expect(normalizeActualByExpected(actual, querySpecCase.output)).toEqual(querySpecCase.output);
         if (trace.length === 0) {
           throw new Error(`ZTD verifier did not execute any SQL for case "${querySpecCase.name}".`);
@@ -116,15 +116,12 @@ export async function verifyQuerySpecZtdCase<BeforeDb extends FixtureTree, Input
 function createQuerySpecExecutor(
   testkitClient: PostgresTestkitClient,
   trace: QueryExecutionTrace[],
-  querySpecCase: QuerySpecZtdCase<FixtureTree, unknown, unknown>,
 ): QuerySpecExecutorClient {
   return {
     async query(query: Parameters<FeatureQueryExecutor['query']>[0], params: Parameters<FeatureQueryExecutor['query']>[1]) {
-      const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
-      const sourceParams = querySpecCase.mapperProbe?.params ?? params;
-      const bound = bindNamedParams(sourceSql, sourceParams);
+      const bound = bindNamedParams(query.sql, params);
       trace.push({
-        originalSql: sourceSql,
+        originalSql: query.sql,
         boundSql: bound.boundSql,
         boundParams: bound.boundValues,
         rewriteApplied: false,

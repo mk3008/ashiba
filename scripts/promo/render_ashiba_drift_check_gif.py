@@ -185,7 +185,7 @@ def render_detect() -> None:
     frame_options = {
         "subtitle": "Drift detection",
         "terminal_title": "ashiba-drift-detect",
-        "footer": "DDL changed  ->  mapper test fails  ->  ashiba check explains repair targets",
+        "footer": "DDL changed  ->  contract check fails  ->  ashiba explains repair targets",
     }
 
     add_pause(frames, durations, lines, 700, **frame_options)
@@ -206,9 +206,10 @@ def render_detect() -> None:
         ("- add status text not null default 'active'", YELLOW, False),
     ], **frame_options)
 
-    type_command(frames, durations, lines, "npx vitest run", **frame_options)
+    type_command(frames, durations, lines, "npx ashiba feature contract check users-list --query list", **frame_options)
     output_lines(frames, durations, lines, [
-        ("FAIL  src/features/users-list/queries/list/tests/list.boundary.ztd.test.ts", RED, True),
+        ("Feature contract check: failed", RED, True),
+        ("- result column drift: display_name", RED, False),
     ], last_ms=950, **frame_options)
 
     type_command(frames, durations, lines, "npx ashiba check", **frame_options)
@@ -217,9 +218,9 @@ def render_detect() -> None:
         ("[error] ASHIBA_PROJECT_FEATURE_TESTS_FAILED", RED, True),
         ("file: src/features/users-list/queries/list", WHITE, False),
         ("detail: visible SQL: .../list.sql", WHITE, False),
-        ("detail: editable mapper boundary: .../query.ts", WHITE, False),
+        ("detail: editable query boundary: .../query.ts", WHITE, False),
         ("[error] ddl-missing-column: public.users.display_name", RED, False),
-        ("next: human/AI updates SQL and boundary first; then refresh generated tests.", BLUE, False),
+        ("next: human/AI updates SQL and boundary first; then refresh metadata.", BLUE, False),
     ], last_ms=1100, **frame_options)
 
     add_pause(frames, durations, lines, 4800, **frame_options)
@@ -235,7 +236,7 @@ def render_repair() -> None:
     frame_options = {
         "subtitle": "Drift repair",
         "terminal_title": "ashiba-drift-repair",
-        "footer": "human/AI repairs owned files  ->  metadata/tests refresh  ->  green again",
+        "footer": "human/AI repairs owned files  ->  runtime metadata refresh  ->  green again",
     }
 
     add_pause(frames, durations, lines, 700, **frame_options)
@@ -260,25 +261,25 @@ def render_repair() -> None:
         ("- changed: yes", GREEN, False),
     ], last_ms=850, **frame_options)
 
-    type_command(frames, durations, lines, "npx ashiba feature tests check users-list --query list --fix", **frame_options)
+    type_command(frames, durations, lines, "npx ashiba feature contract check users-list --query list", **frame_options)
     output_lines(frames, durations, lines, [
-        ("Feature tests check passed", GREEN, True),
-        ("fixed: .../tests/generated/mapping.cases.ts", GREEN, False),
-        ("fixed: .../tests/generated/analysis.json", GREEN, False),
+        ("Feature contract check passed", GREEN, True),
+        ("- SQL parameters: ok", GREEN, False),
+        ("- result columns/types: ok", GREEN, False),
     ], last_ms=950, **frame_options)
 
     type_command(frames, durations, lines, "npx ashiba check", **frame_options)
     output_lines(frames, durations, lines, [
         ("Ashiba check: ok", GREEN, True),
         ("- contract: ok", GREEN, False),
-        ("- generated mapper: ok", GREEN, False),
+        ("- query contract: ok", GREEN, False),
         ("- DDL diagnostics: ok", GREEN, False),
     ], last_ms=850, **frame_options)
 
     type_command(frames, durations, lines, "npx vitest run", **frame_options)
     output_lines(frames, durations, lines, [
         ("RUN  v4.1.7  ./ashiba-demo", PURPLE, False),
-        ("✓ ZTD mapper test: SQL row -> TypeScript DTO", GREEN, True),
+        ("✓ application behavior test: ticket list", GREEN, True),
         ("Test Files  2 passed (2)", GREEN, True),
         ("Tests       3 passed (3)", GREEN, True),
         ("Drift was detected, repaired, and proven by tests.", BLUE, True),

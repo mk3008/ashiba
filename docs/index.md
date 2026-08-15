@@ -18,9 +18,9 @@ features:
   - title: "SQL is yours"
     details: "Keep SQL as application-owned source code. Read it, edit it, review it, and run it in your SQL client."
   - title: "Generated code is yours"
-    details: "Ashiba writes ordinary TypeScript into your repo, including DTOs, mapper boundaries, query contracts, tests, and metadata."
+    details: "Ashiba writes ordinary TypeScript into your repo, including DTOs, mapper boundaries, query contracts, and runtime metadata. SQL logic tests are explicit and selective."
   - title: "Safety is checked"
-    details: "Drift checks and mapping tests catch stale SQL, DDL, metadata, and generated contracts before they become accepted code."
+    details: "Deterministic contract checks catch stale SQL, DDL, metadata, and editable TypeScript boundaries; selected behavior tests cover semantics those checks cannot prove."
   - title: "No ORM runtime"
     details: "Your app runs explicit SQL through a selected thin SQL execution adapter and ordinary TypeScript boundaries. No hidden query DSL or object layer."
 ---
@@ -34,4 +34,5 @@ features:
 - [SQL format](./guide/sql-format.md)
 - [PostgreSQL-derived query contracts](./guide/postgres-contract.md)
 - [SQL resources and schema compatibility](./guide/sql-resource-compatibility.md)
+- [Verification value audit](./evaluations/verification-value-audit.md)
 - [Concept map](./concepts/concept-map.md)

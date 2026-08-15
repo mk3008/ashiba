@@ -7,8 +7,4 @@ export interface QuerySpecZtdCase<
   beforeDb: BeforeDb;
   input: Input;
   output: Output;
-  mapperProbe?: {
-    sql: string;
-    params?: Record<string, unknown>;
-  };
 }

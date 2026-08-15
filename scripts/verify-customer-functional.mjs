@@ -322,23 +322,22 @@ function verifyPostgresCodeIsYoursMapperDrift(root) {
   ], root);
 
   const queryPath = path.join(root, 'src', 'features', 'status-read', 'queries', 'status', 'query.ts');
-  const mappingPath = path.join(root, 'src', 'features', 'status-read', 'queries', 'status', 'tests', 'generated', 'mapping.cases.ts');
   const originalQuerySource = readFileSync(queryPath, 'utf8');
   assertFileContains(queryPath, 'status_text: string | null;');
   assertFileContains(queryPath, 'message: string | null;');
-  assertFileContains(mappingPath, 'nullable-output-mapping');
+  assertPathMissing(path.join(root, 'src', 'features', 'status-read', 'queries', 'status', 'tests'));
 
   writeFileSync(
     queryPath,
     readFileSync(queryPath, 'utf8').replace('status_text: string | null;', 'status_text: string;'),
     'utf8',
   );
-  const warningOnly = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'generated-mapper', 'check', 'status-read', '--query', 'status'], root);
+  const warningOnly = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'contract', 'check', 'status-read', '--query', 'status'], root);
   if (warningOnly.status !== 0) {
-    throw new Error(`customer-owned unknown-nullability DTO narrowing should not fail generated mapper check:\n${warningOnly.output}`);
+    throw new Error(`customer-owned unknown-nullability DTO narrowing should not fail contract check:\n${warningOnly.output}`);
   }
   if (!warningOnly.output.includes('warning result type mismatches')) {
-    throw new Error(`generated mapper check did not warn about customer-owned unknown nullability narrowing:\n${warningOnly.output}`);
+    throw new Error(`contract check did not warn about customer-owned unknown nullability narrowing:\n${warningOnly.output}`);
   }
 
   writeFileSync(
@@ -346,12 +345,12 @@ function verifyPostgresCodeIsYoursMapperDrift(root) {
     readFileSync(queryPath, 'utf8').replace('message: string | null;', 'message: string;'),
     'utf8',
   );
-  const critical = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'generated-mapper', 'check', 'status-read', '--query', 'status'], root);
+  const critical = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'feature', 'contract', 'check', 'status-read', '--query', 'status'], root);
   if (critical.status === 0) {
-    throw new Error(`confirmed nullable DTO narrowing should fail generated mapper check:\n${critical.output}`);
+    throw new Error(`confirmed nullable DTO narrowing should fail contract check:\n${critical.output}`);
   }
   if (!critical.output.includes('mismatched result types')) {
-    throw new Error(`generated mapper check did not report critical mapper drift for confirmed nullable result:\n${critical.output}`);
+    throw new Error(`contract check did not report critical result drift for confirmed nullable result:\n${critical.output}`);
   }
   writeFileSync(queryPath, originalQuerySource, 'utf8');
 }
@@ -403,11 +402,9 @@ function verifyPostgresSchemaPathFeatureImport(root) {
     ], root);
 
     const queryPath = path.join(root, 'src', 'schema-path-features', 'schema-path-users', 'queries', 'read', 'query.ts');
-    const analysisPath = path.join(root, 'src', 'schema-path-features', 'schema-path-users', 'queries', 'read', 'tests', 'generated', 'analysis.json');
     assertFileContains(queryPath, 'account_id: string;');
     assertFileContains(queryPath, 'display_name: string | null;');
-    assertFileContains(analysisPath, '"table": "app.users"');
-    assertFileContains(analysisPath, '"primaryKeyColumn": "account_id"');
+    assertPathMissing(path.join(root, 'src', 'schema-path-features', 'schema-path-users', 'queries', 'read', 'tests'));
 
     const ok = runCapture(corepack, ['pnpm', 'exec', 'ashiba', 'project', 'check'], root);
     if (ok.status !== 0) {
@@ -424,8 +421,8 @@ function verifyPostgresSchemaPathFeatureImport(root) {
     if (drift.status === 0) {
       throw new Error(`schema-path drift should fail after changing searchPath order:\n${drift.output}`);
     }
-    if (!drift.output.includes('Drifted generated mapping test asset')) {
-      throw new Error(`schema-path drift did not report generated mapping test drift:\n${drift.output}`);
+    if (!drift.output.includes('ASHIBA_PROJECT_GENERATED_MAPPER_DRIFT')) {
+      throw new Error(`schema-path drift did not report query-contract drift:\n${drift.output}`);
     }
   } finally {
     writeFileSync(configPath, originalConfig, 'utf8');
@@ -1035,6 +1032,12 @@ function assertFileContains(filePath, expected) {
   const source = readFileSync(filePath, 'utf8');
   if (!source.includes(expected)) {
     throw new Error(`${filePath} did not contain expected text: ${expected}`);
+  }
+}
+
+function assertPathMissing(filePath) {
+  if (existsSync(filePath)) {
+    throw new Error(`${filePath} unexpectedly exists`);
   }
 }
 

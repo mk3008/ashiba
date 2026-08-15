@@ -56,14 +56,14 @@ When the domain policy is known, narrow the editable contract where the applicat
 - `output.ts` for the feature response shape
 - `queries/*/query.ts` when the query boundary should expose a narrower app contract
 - route or integration tests for HTTP/API behavior
-- generated mapper tests for DB-to-TypeScript result contracts
+- PostgreSQL-derived contracts or targeted DB-backed inspection for DB-to-TypeScript result contracts
 
 After editing SQL or query contracts, refresh generated assets and run checks:
 
 ```sh
 npx ashiba feature query refresh <feature> <query>
-npx ashiba feature tests check <feature> --query <query> --fix
-npx ashiba check:drift
+npx ashiba feature contract check <feature> --query <query>
+npx ashiba check
 pnpm test
 ```
 
@@ -72,7 +72,7 @@ For this demo, useful review questions are:
 - Did the input boundary change?
 - Did the output contract change?
 - Did the SQL shape change?
-- Did generated metadata or mapper evidence change because of a SQL/contract edit?
+- Did generated runtime metadata or contract evidence change because of a SQL/contract edit?
 - Did route-level tests still prove the customer-visible workflow?
 
 The matching exercise is `examples/hono-pg-support-inbox/exercises/contract-boundary-narrowing/`.
@@ -86,13 +86,13 @@ npx ashiba feature query scaffold create-ticket create-ticket --table tickets --
 npx ashiba feature query scaffold create-ticket create-ticket-message --table ticket_messages --action insert
 ```
 
-After SQL edits, refresh each query boundary and update mapper fixtures:
+After SQL edits, refresh each query boundary and check its contract:
 
 ```sh
 npx ashiba feature query refresh create-ticket create-ticket
 npx ashiba feature query refresh create-ticket create-ticket-message
-npx ashiba feature tests check create-ticket --query create-ticket --fix
-npx ashiba feature tests check create-ticket --query create-ticket-message --fix
+npx ashiba feature contract check create-ticket --query create-ticket
+npx ashiba feature contract check create-ticket --query create-ticket-message
 ```
 
 ## Transaction composition
@@ -105,11 +105,11 @@ Keep `begin`, `commit`, `rollback`, isolation level, retry policy, and failure r
 
 ## Mutation test scope
 
-Use generated mapper cases for DB-to-TypeScript result contracts:
+Use static/DDL checks, TypeScript, and PostgreSQL-derived contracts for inferable DB-to-TypeScript obligations:
 
 - SELECT result rows
 - INSERT/UPDATE/DELETE `RETURNING` rows
-- DTO shape, column names, nullability, and representative DB values
+- DTO shape, column names, nullability, and driver representation
 
 Use route or integration tests for TypeScript-to-DB and workflow behavior:
 
@@ -118,4 +118,4 @@ Use route or integration tests for TypeScript-to-DB and workflow behavior:
 - transaction composition and rollback behavior
 - database defaults, constraints, triggers, and read-after-write checks
 
-This keeps CUD supported without overstating what mapper tests prove.
+Add a human-owned SQL logic test only when row/value/order semantics need an executable example. This keeps CUD supported without treating synthetic rows as business proof.

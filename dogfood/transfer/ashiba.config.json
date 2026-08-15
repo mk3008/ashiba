@@ -47,7 +47,6 @@
     }
   },
   "tests": {
-    "mapperLane": "ztd",
     "performanceLane": "traditional"
   }
 }

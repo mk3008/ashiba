@@ -8,6 +8,8 @@ export type AshibaCheckLevel = 'fast' | 'full';
 export interface AshibaCheckOptions extends ProjectCheckOptions {
   fast?: boolean;
   full?: boolean;
+  testCommand?: string;
+  /** @deprecated Use testCommand. */
   mapperTestCommand?: string;
   fixGenerated?: boolean;
 }
@@ -29,7 +31,7 @@ export interface AshibaCheckCommandResult {
   };
 }
 
-const DEFAULT_MAPPER_TEST_COMMAND = 'npx vitest run';
+const DEFAULT_TEST_COMMAND = 'npx vitest run';
 
 /**
  * Register the top-level human-first diagnostic command.
@@ -42,8 +44,9 @@ export function registerCheckCommand(program: Command): void {
     .option('--format <format>', 'Output format: text or json', 'text')
     .option('--warnings-as-errors', 'Treat warnings as check failures', false)
     .option('--fast', 'Run the fast local check only. This is the default.', false)
-    .option('--full', 'Run the fast check and the configured mapper test command.', false)
-    .option('--mapper-test-command <command>', 'Mapper test command used by --full', DEFAULT_MAPPER_TEST_COMMAND)
+    .option('--full', 'Run the fast check and the configured verification test command.', false)
+    .option('--test-command <command>', 'Verification test command used by --full')
+    .option('--mapper-test-command <command>', 'Deprecated alias for --test-command')
     .option('--fix-generated', 'Refresh safe library-owned artifacts before reporting application-owned changes', false)
     .action((options: AshibaCheckOptions) => {
       const result = runAshibaCheck(options);
@@ -74,7 +77,7 @@ export function runAshibaCheck(options: AshibaCheckOptions = {}): AshibaCheckCom
   };
 
   if (level === 'full' && projectCheck.ok) {
-    const command = (options.mapperTestCommand ?? DEFAULT_MAPPER_TEST_COMMAND).trim();
+    const command = (options.testCommand ?? options.mapperTestCommand ?? DEFAULT_TEST_COMMAND).trim();
     const mapperTest = runMapperTestCommand(command, projectCheck.rootDir, options.format === 'json');
     result.mapperTest = mapperTest;
     result.ok = result.ok && mapperTest.ok;
@@ -106,21 +109,21 @@ export function formatAshibaCheckResult(result: AshibaCheckCommandResult, option
   }
 
   if (result.level === 'fast') {
-    lines.push('', 'Next:', '- Use `ashiba check --full` before push, review, or CI when DB-backed mapper tests should run.');
+    lines.push('', 'Next:', '- Use `ashiba check --full` before push, review, or CI when selected verification tests should run.');
   } else if (result.mapperTest) {
     lines.push(
       '',
-      `Mapper test: ${result.mapperTest.ok ? 'ok' : 'failed'}`,
+      `Verification test: ${result.mapperTest.ok ? 'ok' : 'failed'}`,
       `- command: ${result.mapperTest.command}`,
     );
     if (!result.mapperTest.ok) {
-      lines.push('- next: Fix the DB-backed mapper test failure, then rerun `ashiba check --full`.');
+      lines.push('- next: Fix the selected verification test failure, then rerun `ashiba check --full`.');
       if (result.mapperTest.error) lines.push(`- error: ${result.mapperTest.error}`);
     }
   } else {
     lines.push(
       '',
-      'Mapper test: skipped',
+      'Verification test: skipped',
       '- reason: fast project check failed first.',
       '- next: Fix the fast check issues, then rerun `ashiba check --full`.',
     );
@@ -143,7 +146,7 @@ function runMapperTestCommand(command: string, cwd: string, captureOutput: boole
       ok: false,
       status: 1,
       signal: null,
-      error: 'Mapper test command is empty.',
+      error: 'Verification test command is empty.',
     };
   }
 

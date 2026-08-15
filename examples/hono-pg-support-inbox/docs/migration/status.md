@@ -16,5 +16,5 @@ This starter was created by `ashiba init`.
 
 - Wire `src/adapters/pg/pool.ts` from your application entry point and replace it if your connection policy differs.
 - Replace starter sample cases with project-specific mapper and feature cases when the query contract is ready.
-- Run `ashiba feature tests check` to inspect generated mapper coverage and drift.
+- Run `ashiba feature contract check` for parameter/result drift and `ashiba feature tests check` only for explicitly scaffolded SQL logic tests.
 - Keep SQL visible and reviewable.

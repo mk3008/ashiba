@@ -134,6 +134,7 @@ export interface FeatureQueryPostgresContractOptions {
 export interface FeatureTestsScaffoldOptions {
   feature?: string;
   boundaryDir?: string;
+  featureRoot?: string;
   query?: string;
   rootDir?: string;
   dryRun?: boolean;
@@ -316,13 +317,6 @@ interface QueryTestMetadata {
   importSource?: 'existing-sql';
 }
 
-type ScaffoldQueryTestMetadata = QueryTestMetadata & {
-  action: FeatureAction;
-  table: string;
-  primaryKeyColumn: string;
-  importSource?: undefined;
-};
-
 interface ResolvedQueryTestMetadata {
   metadata: QueryTestMetadata;
   inferred: boolean;
@@ -334,8 +328,9 @@ interface ResolvedQueryTestMetadata {
 export function registerFeatureCommand(program: Command): void {
   const feature = program.command('feature').description('Scaffold editable feature-local SQL boundaries');
   const query = feature.command('query').description('Add query boundaries to an existing feature');
-  const tests = feature.command('tests').description('Scaffold feature-local mapper test files');
-  const generatedMapper = feature.command('generated-mapper').description('Check editable generated mapper drift');
+  const tests = feature.command('tests').description('Scaffold selective feature-local SQL logic tests');
+  const contract = feature.command('contract').description('Check SQL and editable query contract drift');
+  const generatedMapper = feature.command('generated-mapper').description('Deprecated alias for feature contract');
 
   feature
     .command('scaffold <name>')
@@ -417,23 +412,23 @@ export function registerFeatureCommand(program: Command): void {
 
   tests
     .command('scaffold <feature>')
-    .description('Scaffold editable mapper test files and library-owned generated test schema files')
+    .description('Scaffold selective human-owned SQL logic tests and generated fixture types')
     .option('--query <name>', 'Limit scaffolding to one query boundary')
     .option('--root-dir <path>', 'Project root directory', '.')
     .option('--dry-run', 'Print the files that would be created without writing them', false)
     .option('--force', 'Overwrite scaffold-owned test files when they already exist', false)
     .action((featureName: string, options: FeatureTestsScaffoldOptions) => {
-      const result = runFeatureTestsScaffold({ ...options, feature: featureName });
+      const result = runFeatureTestsScaffold(withConfiguredFeatureRoot({ ...options, feature: featureName }));
       process.stdout.write(formatFilePlan('Feature tests scaffold', result.rootDir, result.dryRun, result.outputs));
     });
 
   tests
     .command('check [feature]')
-    .description('Detect missing or drifted generated mapping test assets')
+    .description('Detect missing or drifted support for explicitly scaffolded SQL logic tests')
     .option('--boundary-dir <path>', 'Explicit feature boundary directory, including subgrouped boundaries')
     .option('--query <name>', 'Limit check to one query boundary')
     .option('--root-dir <path>', 'Project root directory', '.')
-    .option('--fix', 'Rewrite generated mapping test assets and create missing logic-case stubs', false)
+    .option('--fix', 'Rewrite generated logic-test support and create missing logic-case stubs', false)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((featureName: string | undefined, options: FeatureTestsCheckOptions) => {
       const result = runFeatureTestsCheck(withConfiguredFeatureRoot({ ...options, feature: featureName ?? options.feature }));
@@ -446,9 +441,14 @@ export function registerFeatureCommand(program: Command): void {
       if (!result.ok) process.exitCode = 1;
     });
 
-  generatedMapper
+  registerFeatureContractCheck(contract, 'feature-contract-check');
+  registerFeatureContractCheck(generatedMapper, 'feature-generated-mapper-check');
+}
+
+function registerFeatureContractCheck(parent: Command, kind: 'feature-contract-check' | 'feature-generated-mapper-check'): void {
+  parent
     .command('check [feature]')
-    .description('Check SQL named parameters against editable generated query mapper contracts')
+    .description('Check SQL named parameters and result columns against editable query contracts')
     .option('--boundary-dir <path>', 'Limit drift check to one explicit feature boundary directory, including subgrouped boundaries')
     .option('--query <name>', 'Limit drift check to one query boundary')
     .option('--root-dir <path>', 'Project root directory', '.')
@@ -456,7 +456,7 @@ export function registerFeatureCommand(program: Command): void {
     .action((featureName: string | undefined, options: FeatureGeneratedMapperCheckOptions) => {
       const result = runFeatureGeneratedMapperCheck(withConfiguredFeatureRoot({ ...options, feature: featureName ?? options.feature }));
       if (options.format === 'json') {
-        process.stdout.write(`${JSON.stringify({ kind: 'feature-generated-mapper-check', ...result }, null, 2)}\n`);
+        process.stdout.write(`${JSON.stringify({ kind, ...result }, null, 2)}\n`);
         if (!result.ok) process.exitCode = 1;
         return;
       }
@@ -605,23 +605,6 @@ export function runFeatureImport(options: FeatureImportOptions): FeatureImportRe
       contents: renderQuerySqlSource(importedSql),
       overwrite: true,
     },
-    { relativePath: `${relativeQueryDir}/tests`, kind: 'directory' },
-    { relativePath: `${relativeQueryDir}/tests/cases`, kind: 'directory' },
-    { relativePath: `${relativeQueryDir}/tests/generated`, kind: 'directory' },
-    {
-      relativePath: `${relativeQueryDir}/tests/${queryName}.boundary.ztd.test.ts`,
-      kind: 'file',
-      contents: renderQueryZtdTest(featureName, queryName),
-      overwrite: false,
-    },
-    {
-      relativePath: `${relativeQueryDir}/tests/cases/logic.case.ts`,
-      kind: 'file',
-      contents: renderEmptyLogicZtdCases(queryName),
-      overwrite: false,
-    },
-    { relativePath: `${relativeQueryDir}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
-    ...buildImportedMappingTestFiles(rootDir, relativeFeatureDir, featureName, queryName, importedSql, parameters, parameterTypes, resultColumnContracts),
   ];
   const outputs = writeGeneratedFiles(rootDir, files, options.dryRun === true, options.force === true);
   const warnings = getFeatureQueryBoundaryDependencyWarnings(rootDir);
@@ -907,7 +890,7 @@ export function runFeatureGeneratedRefresh(options: {
 }
 
 /**
- * Scaffolds mapping and logic test files for existing feature queries.
+ * Scaffolds selective human-owned logic tests for existing feature queries.
  */
 export function runFeatureTestsScaffold(options: FeatureTestsScaffoldOptions): {
   rootDir: string;
@@ -915,7 +898,13 @@ export function runFeatureTestsScaffold(options: FeatureTestsScaffoldOptions): {
   outputs: Array<{ path: string; written: boolean; kind: 'directory' | 'file' }>;
 } {
   const rootDir = path.resolve(options.rootDir ?? '.');
-  const featureDir = resolveExplicitFeatureBoundaryDir(rootDir, options.feature, options.boundaryDir, 'feature tests scaffold');
+  const featureDir = resolveExplicitFeatureBoundaryDir(
+    rootDir,
+    options.feature,
+    options.boundaryDir,
+    'feature tests scaffold',
+    options.featureRoot,
+  );
   const featureName = path.basename(featureDir);
   const relativeFeatureDir = toProjectPath(rootDir, featureDir);
   const queriesDir = path.join(featureDir, 'queries');
@@ -952,34 +941,17 @@ export function runFeatureTestsScaffold(options: FeatureTestsScaffoldOptions): {
         { featureName, queryName },
       );
     }
-    const resolvedMetadata = resolveQueryTestMetadata(rootDir, featureName, queryName, queryDir);
-    if (resolvedMetadata) {
-      const generatedFiles = buildExpectedGeneratedMappingTestFiles(rootDir, relativeFeatureDir, queryName, queryDir, resolvedMetadata.metadata);
-      files.push(
-        { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests`, kind: 'directory' },
-        { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases`, kind: 'directory' },
-        { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/generated`, kind: 'directory' },
-        ...generatedFiles,
-        {
-          relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases/logic.case.ts`,
-          kind: 'file',
-          contents: renderEmptyLogicZtdCases(queryName),
-          overwrite: false,
-        },
-        { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
-      );
-      continue;
-    }
+    const generatedFiles = buildExpectedLogicTestSupportFiles(
+      rootDir,
+      relativeFeatureDir,
+      featureName,
+      queryName,
+      queryDir,
+    );
     files.push(
       { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests`, kind: 'directory' },
       { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases`, kind: 'directory' },
-      { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/generated`, kind: 'directory' },
-      {
-        relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/${queryName}.boundary.ztd.test.ts`,
-        kind: 'file',
-        contents: renderQueryZtdTest(featureName, queryName),
-        overwrite: false,
-      },
+      ...generatedFiles,
       {
         relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases/logic.case.ts`,
         kind: 'file',
@@ -987,18 +959,6 @@ export function runFeatureTestsScaffold(options: FeatureTestsScaffoldOptions): {
         overwrite: false,
       },
       { relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
-      {
-        relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/generated/TEST_PLAN.md`,
-        kind: 'file',
-        contents: renderGeneratedTestPlan(featureName, queryName),
-        overwrite: true,
-      },
-      {
-        relativePath: `${relativeFeatureDir}/queries/${queryName}/tests/generated/analysis.json`,
-        kind: 'file',
-        contents: `${JSON.stringify({ feature: featureName, query: queryName, status: 'generated-empty-cases' }, null, 2)}\n`,
-        overwrite: true,
-      }
     );
   }
 
@@ -1007,7 +967,7 @@ export function runFeatureTestsScaffold(options: FeatureTestsScaffoldOptions): {
 }
 
 /**
- * Checks generated feature test coverage against discovered query metadata.
+ * Checks only explicitly scaffolded SQL logic-test support.
  */
 export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): FeatureTestsCheckResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
@@ -1020,43 +980,36 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
     for (const queryName of discoverQueryNames(queriesDir, options.query)) {
       const queryDir = path.join(queriesDir, queryName);
       const relativeQueryDir = toProjectPath(rootDir, queryDir);
-      const resolvedMetadata = resolveQueryTestMetadata(rootDir, featureName, queryName, queryDir);
+      const logicCasePath = `${relativeQueryDir}/tests/cases/logic.case.ts`;
+      const boundaryTestPath = `${relativeQueryDir}/tests/${queryName}.boundary.ztd.test.ts`;
+      const fixtureTypesPath = `${relativeQueryDir}/tests/boundary-ztd-types.ts`;
+      const hasScaffold = [logicCasePath, boundaryTestPath, fixtureTypesPath]
+        .some((relativePath) => existsSync(path.join(rootDir, relativePath)));
+      if (!hasScaffold) continue;
+
       const issues: string[] = [];
       const fixed: string[] = [];
-      if (!resolvedMetadata) {
-        checked.push({
-          feature: featureName,
-          query: queryName,
-          ok: false,
-          issues: [`Generated test analysis is missing or unreadable and could not be inferred from SQL: ${relativeQueryDir}/tests/generated/analysis.json.`],
-          fixed,
-        });
-        continue;
-      }
-
-      const { metadata, inferred } = resolvedMetadata;
-      if (inferred) {
-        const analysisPath = `${relativeQueryDir}/tests/generated/analysis.json`;
-        issues.push(`Missing or unreadable generated mapping test analysis: ${analysisPath}.`);
-        if (options.fix) fixed.push(analysisPath);
-      }
-
-      const expectedFiles = buildExpectedGeneratedMappingTestFiles(rootDir, toProjectPath(rootDir, featureDir), queryName, queryDir, metadata);
+      const expectedFiles = buildExpectedLogicTestSupportFiles(
+        rootDir,
+        toProjectPath(rootDir, featureDir),
+        featureName,
+        queryName,
+        queryDir,
+      );
       for (const file of expectedFiles) {
         const fullPath = path.join(rootDir, file.relativePath);
         const expected = file.contents ?? '';
         if (!existsSync(fullPath)) {
-          issues.push(`Missing generated mapping test asset: ${file.relativePath}.`);
+          issues.push(`Missing generated logic-test support: ${file.relativePath}.`);
           if (options.fix) fixed.push(file.relativePath);
           continue;
         }
         if (readFileSync(fullPath, 'utf8') !== expected) {
-          issues.push(`Drifted generated mapping test asset: ${file.relativePath}.`);
+          issues.push(`Drifted generated logic-test support: ${file.relativePath}.`);
           if (options.fix) fixed.push(file.relativePath);
         }
       }
 
-      const logicCasePath = `${toProjectPath(rootDir, featureDir)}/queries/${queryName}/tests/cases/logic.case.ts`;
       if (!existsSync(path.join(rootDir, logicCasePath))) {
         issues.push(`Missing human-owned logic case stub: ${logicCasePath}.`);
         if (options.fix && options.generatedOnly !== true) fixed.push(logicCasePath);
@@ -1077,7 +1030,7 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
       checked.push({
         feature: featureName,
         query: queryName,
-        ok: issues.length === 0 || (options.fix === true && fixed.length > 0),
+        ok: issues.length === 0 || (options.fix === true && fixed.length === issues.length),
         issues,
         fixed,
       });
@@ -1088,7 +1041,7 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
     throw invalidCliInputError(
       'ASHIBA_FEATURE_QUERY_TESTS_NOT_FOUND',
       'No feature query test boundaries were discovered for tests check.',
-      'Run feature scaffold/query scaffold first, or pass a feature positional value, --boundary-dir, or --query for an existing feature query boundary.',
+      'Run feature tests scaffold for a selected query first, or pass a feature positional value, --boundary-dir, or --query that already has logic-test support.',
       { rootDir },
     );
   }
@@ -1102,7 +1055,7 @@ export function runFeatureTestsCheck(options: FeatureTestsCheckOptions = {}): Fe
 }
 
 /**
- * Checks generated mapper tests for drift against DDL-derived mapping expectations.
+ * Checks editable query contracts against SQL- and DDL-derived expectations.
  */
 export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCheckOptions = {}): FeatureGeneratedMapperCheckResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
@@ -1188,7 +1141,7 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
         ? postgresResultFields.map((field) => field.name).sort()
         : offlineSqlResultColumns;
       const mapperResultColumns = extractMapperResultColumns(querySource, queryName).sort();
-      const queryTestMetadata = readQueryTestMetadata(queryDir);
+      const queryTestMetadata = resolveQueryTestMetadata(rootDir, featureName, queryName, queryDir)?.metadata;
       const resultTypesShouldBeConservative = queryTestMetadata?.importSource === 'existing-sql';
       const importedDdlTableName = queryTestMetadata?.importSource === 'existing-sql'
         ? queryTestMetadata.anchorTable ?? queryTestMetadata.table
@@ -1283,7 +1236,7 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
   if (checked.length === 0) {
     throw invalidCliInputError(
       'ASHIBA_FEATURE_QUERY_BOUNDARIES_NOT_FOUND',
-      'No feature query boundaries were discovered for generated mapper drift check.',
+      'No feature query boundaries were discovered for contract drift check.',
       'Run feature scaffold/query scaffold first, or pass a feature positional value or --query for an existing feature query boundary.',
       { rootDir },
     );
@@ -1399,76 +1352,12 @@ function discoverQueryNames(queriesDir: string, queryName?: string): string[] {
     .sort();
 }
 
-function readQueryTestMetadata(queryDir: string): QueryTestMetadata | undefined {
-  const analysisPath = path.join(queryDir, 'tests', 'generated', 'analysis.json');
-  if (!existsSync(analysisPath)) return undefined;
-  try {
-    const parsed = JSON.parse(readFileSync(analysisPath, 'utf8')) as Partial<QueryTestMetadata>;
-    if (typeof parsed.feature !== 'string' || typeof parsed.query !== 'string') {
-      return undefined;
-    }
-    if (parsed.importSource === 'existing-sql') {
-      return {
-        feature: parsed.feature,
-        query: parsed.query,
-        ...(typeof parsed.action === 'string' && FEATURE_ACTIONS.includes(parsed.action as FeatureAction)
-          ? { action: parsed.action as FeatureAction }
-          : {}),
-        ...(typeof parsed.table === 'string' ? { table: parsed.table } : {}),
-        ...(typeof parsed.primaryKeyColumn === 'string' ? { primaryKeyColumn: parsed.primaryKeyColumn } : {}),
-        ...(typeof parsed.returningMode === 'string' && INSERT_RETURNING_MODES.includes(parsed.returningMode as InsertReturningMode)
-          ? { returningMode: parsed.returningMode as InsertReturningMode }
-          : {}),
-        ...(isOptimisticLockMetadata(parsed.optimisticLock) ? { optimisticLock: parsed.optimisticLock } : {}),
-        ...(typeof parsed.anchorSource === 'string' || parsed.anchorSource === null ? { anchorSource: parsed.anchorSource } : {}),
-        ...(typeof parsed.anchorTable === 'string' || parsed.anchorTable === null ? { anchorTable: parsed.anchorTable } : {}),
-        ...(Array.isArray(parsed.physicalTables)
-          ? { physicalTables: parsed.physicalTables.filter((entry): entry is string => typeof entry === 'string') }
-          : {}),
-        importSource: 'existing-sql',
-      };
-    }
-    if (
-      typeof parsed.action === 'string' &&
-      FEATURE_ACTIONS.includes(parsed.action as FeatureAction) &&
-      typeof parsed.table === 'string' &&
-      typeof parsed.primaryKeyColumn === 'string'
-    ) {
-      return {
-        feature: parsed.feature,
-        query: parsed.query,
-        action: parsed.action as FeatureAction,
-        table: parsed.table,
-        primaryKeyColumn: parsed.primaryKeyColumn,
-        ...(typeof parsed.returningMode === 'string' && INSERT_RETURNING_MODES.includes(parsed.returningMode as InsertReturningMode)
-          ? { returningMode: parsed.returningMode as InsertReturningMode }
-          : {}),
-        ...(isOptimisticLockMetadata(parsed.optimisticLock) ? { optimisticLock: parsed.optimisticLock } : {}),
-      };
-    }
-  } catch {
-    return undefined;
-  }
-  return undefined;
-}
-
-function isOptimisticLockMetadata(value: unknown): value is OptimisticLockPlan {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
-  const record = value as Record<string, unknown>;
-  return typeof record.versionColumn === 'string' &&
-    record.versionColumn.trim().length > 0 &&
-    typeof record.expectedVersionParameter === 'string' &&
-    record.expectedVersionParameter.trim().length > 0;
-}
-
 function resolveQueryTestMetadata(
   rootDir: string,
   featureName: string,
   queryName: string,
   queryDir: string,
 ): ResolvedQueryTestMetadata | undefined {
-  const metadata = readQueryTestMetadata(queryDir);
-  if (metadata) return { metadata, inferred: false };
   const inferred = inferQueryTestMetadataFromSql(rootDir, featureName, queryName, queryDir);
   return inferred ? { metadata: inferred, inferred: true } : undefined;
 }
@@ -1559,10 +1448,10 @@ function parseFeatureQuerySql(sql: string): ReturnType<typeof SqlParser.parse> {
     const reason = error instanceof Error ? error.message : String(error);
     throw astParseUserError({
       code: 'ASHIBA_FEATURE_QUERY_AST_PARSE_FAILED',
-      message: 'Query AST parse failed while reading generated mapping test metadata.',
+      message: 'Query AST parse failed while inferring SQL logic-test metadata.',
       reason,
       sqlKind: 'SQL',
-      operation: 'inferring feature generated mapping test metadata',
+      operation: 'inferring feature SQL logic-test metadata',
     });
   }
 }
@@ -1690,8 +1579,8 @@ function inferFeatureAction(statement: ReturnType<typeof SqlParser.parse>, query
   }
   throw invalidCliInputError(
     'ASHIBA_FEATURE_QUERY_ACTION_UNSUPPORTED',
-    'Generated mapping test metadata inference supports SELECT/INSERT/UPDATE/DELETE query boundaries only.',
-    'Keep generated mapping tests tied to a single scaffolded query boundary, or regenerate the query metadata explicitly.',
+    'SQL logic-test metadata inference supports SELECT/INSERT/UPDATE/DELETE query boundaries only.',
+    'Keep each logic test tied to one query boundary, or refresh the query metadata explicitly.',
     { queryName, statementType: statement.constructor.name },
   );
 }
@@ -1702,47 +1591,6 @@ function inferFeatureActionFromName(queryName: string): FeatureAction {
   if (/^(?:delete|remove)(?:-|$)/.test(queryName)) return 'delete';
   if (/^(?:get|find)(?:-|$)/.test(queryName)) return 'get-by-id';
   return 'list';
-}
-
-function buildGeneratedMappingTestFiles(
-  relativeFeatureDir: string,
-  metadata: ScaffoldQueryTestMetadata,
-  table: DdlTable,
-  actionPlan: ReturnType<typeof buildActionPlan>,
-): GeneratedFile[] {
-  const queryDir = `${relativeFeatureDir}/queries/${metadata.query}`;
-  return [
-    {
-      relativePath: `${queryDir}/tests/${metadata.query}.boundary.ztd.test.ts`,
-      kind: 'file',
-      contents: renderQueryZtdTest(metadata.feature, metadata.query),
-      overwrite: false,
-    },
-    {
-      relativePath: `${queryDir}/tests/boundary-ztd-types.ts`,
-      kind: 'file',
-      contents: renderQueryZtdTypes(metadata.query, table, actionPlan),
-      overwrite: true,
-    },
-    {
-      relativePath: `${queryDir}/tests/generated/TEST_PLAN.md`,
-      kind: 'file',
-      contents: renderGeneratedTestPlan(metadata.feature, metadata.query),
-      overwrite: true,
-    },
-    {
-      relativePath: `${queryDir}/tests/generated/mapping.cases.ts`,
-      kind: 'file',
-      contents: renderGeneratedMappingZtdCases(metadata.query, actionPlan, table, metadata.primaryKeyColumn),
-      overwrite: true,
-    },
-    {
-      relativePath: `${queryDir}/tests/generated/analysis.json`,
-      kind: 'file',
-      contents: renderGeneratedTestAnalysis(metadata.feature, metadata.query, metadata.action, table, metadata.primaryKeyColumn, actionPlan),
-      overwrite: true,
-    },
-  ];
 }
 
 function extractMapperParameters(source: string, queryName: string): string[] {
@@ -1929,34 +1777,34 @@ function extractFieldTypes(body: string): Record<string, string> {
 }
 
 function formatGeneratedMapperCheck(result: FeatureGeneratedMapperCheckResult): string {
-  const lines = [`Feature generated mapper check: ${result.ok ? 'ok' : 'failed'}`];
+  const lines = [`Feature contract check: ${result.ok ? 'ok' : 'failed'}`];
   for (const entry of result.checked) {
     lines.push('', `- ${entry.feature}/${entry.query}`);
     lines.push(`  sql: ${entry.sqlFile}`);
-    lines.push(`  mapper: ${entry.queryFile}`);
+    lines.push(`  boundary: ${entry.queryFile}`);
     lines.push(`  sql parameters: ${entry.sqlParameters.length > 0 ? entry.sqlParameters.join(', ') : '(none)'}`);
-    lines.push(`  mapper parameters: ${entry.mapperParameters.length > 0 ? entry.mapperParameters.join(', ') : '(none)'}`);
+    lines.push(`  boundary parameters: ${entry.mapperParameters.length > 0 ? entry.mapperParameters.join(', ') : '(none)'}`);
     if (Object.keys(entry.sqlParameterTypes).length > 0) {
       lines.push(`  sql parameter types: ${formatTypeMap(entry.sqlParameterTypes)}`);
     }
     if (Object.keys(entry.mapperParameterTypes).length > 0) {
-      lines.push(`  mapper parameter types: ${formatTypeMap(entry.mapperParameterTypes)}`);
+      lines.push(`  boundary parameter types: ${formatTypeMap(entry.mapperParameterTypes)}`);
     }
     lines.push(`  sql result columns: ${entry.sqlResultColumns.length > 0 ? entry.sqlResultColumns.join(', ') : '(none)'}`);
-    lines.push(`  mapper result columns: ${entry.mapperResultColumns.length > 0 ? entry.mapperResultColumns.join(', ') : '(none)'}`);
+    lines.push(`  boundary result columns: ${entry.mapperResultColumns.length > 0 ? entry.mapperResultColumns.join(', ') : '(none)'}`);
     if (Object.keys(entry.sqlResultTypes).length > 0) {
       lines.push(`  sql result types: ${formatTypeMap(entry.sqlResultTypes)}`);
     }
     if (Object.keys(entry.mapperResultTypes).length > 0) {
-      lines.push(`  mapper result types: ${formatTypeMap(entry.mapperResultTypes)}`);
+      lines.push(`  boundary result types: ${formatTypeMap(entry.mapperResultTypes)}`);
     }
     if (entry.missingInMapper.length > 0) {
-      lines.push(`  missing in mapper: ${entry.missingInMapper.join(', ')}`);
+      lines.push(`  missing in boundary: ${entry.missingInMapper.join(', ')}`);
     }
     if (entry.unusedInMapper.length > 0) {
-      lines.push(`  unused in mapper: ${entry.unusedInMapper.join(', ')}`);
+      lines.push(`  unused in boundary: ${entry.unusedInMapper.join(', ')}`);
     }
-      if (entry.mismatchedParameterTypes.length > 0) {
+    if (entry.mismatchedParameterTypes.length > 0) {
       lines.push(`  mismatched parameter types: ${entry.mismatchedParameterTypes.join(', ')}`);
     }
     if (entry.warningParameterTypeMismatches.length > 0) {
@@ -1969,10 +1817,10 @@ function formatGeneratedMapperCheck(result: FeatureGeneratedMapperCheckResult): 
       lines.push(`  warning parameter type conflicts: ${entry.warningParameterTypeConflicts.join(', ')}`);
     }
     if (entry.missingResultInMapper.length > 0) {
-      lines.push(`  missing result in mapper: ${entry.missingResultInMapper.join(', ')}`);
+      lines.push(`  missing result in boundary: ${entry.missingResultInMapper.join(', ')}`);
     }
     if (entry.unusedResultInMapper.length > 0) {
-      lines.push(`  unused result in mapper: ${entry.unusedResultInMapper.join(', ')}`);
+      lines.push(`  unused result in boundary: ${entry.unusedResultInMapper.join(', ')}`);
     }
     if (entry.mismatchedResultTypes.length > 0) {
       lines.push(`  mismatched result types: ${entry.mismatchedResultTypes.join(', ')}`);
@@ -2044,46 +1892,6 @@ function buildQueryFiles(
       contents: renderQuerySqlSource(sql),
       overwrite: true,
     },
-    { relativePath: `${queryDir}/tests`, kind: 'directory' },
-    { relativePath: `${queryDir}/tests/cases`, kind: 'directory' },
-    { relativePath: `${queryDir}/tests/generated`, kind: 'directory' },
-    {
-      relativePath: `${queryDir}/tests/${queryName}.boundary.ztd.test.ts`,
-      kind: 'file',
-      contents: renderQueryZtdTest(featureNameFromBoundary(boundary), queryName),
-      overwrite: false,
-    },
-    {
-      relativePath: `${queryDir}/tests/boundary-ztd-types.ts`,
-      kind: 'file',
-      contents: renderQueryZtdTypes(queryName, table, actionPlan),
-      overwrite: false,
-    },
-    {
-      relativePath: `${queryDir}/tests/generated/mapping.cases.ts`,
-      kind: 'file',
-      contents: renderGeneratedMappingZtdCases(queryName, actionPlan, table, primaryKeyColumn),
-      overwrite: true,
-    },
-    {
-      relativePath: `${queryDir}/tests/cases/logic.case.ts`,
-      kind: 'file',
-      contents: renderEmptyLogicZtdCases(queryName),
-      overwrite: false,
-    },
-    { relativePath: `${queryDir}/tests/cases/.gitkeep`, kind: 'file', contents: '', overwrite: false },
-    {
-      relativePath: `${queryDir}/tests/generated/TEST_PLAN.md`,
-      kind: 'file',
-      contents: renderGeneratedTestPlan(featureNameFromBoundary(boundary), queryName),
-      overwrite: true,
-    },
-      {
-        relativePath: `${queryDir}/tests/generated/analysis.json`,
-        kind: 'file',
-      contents: renderGeneratedTestAnalysis(featureNameFromBoundary(boundary), queryName, action, table, primaryKeyColumn, actionPlan),
-      overwrite: true,
-    },
   ];
 }
 
@@ -2140,92 +1948,44 @@ function buildImportedFeatureFiles(
   ];
 }
 
-function buildImportedMappingTestFiles(
+function buildExpectedLogicTestSupportFiles(
   rootDir: string,
   relativeFeatureDir: string,
   featureName: string,
   queryName: string,
-  sql: string,
-  parameters: string[],
-  parameterTypes: Record<string, string>,
-  resultColumnContracts: SqlResultColumnContract[],
+  queryDir: string,
 ): GeneratedFile[] {
-  const queryDir = `${relativeFeatureDir}/queries/${queryName}`;
+  const sqlPath = path.join(queryDir, `${queryName}.sql`);
+  if (!existsSync(sqlPath)) {
+    throw invalidCliInputError(
+      'ASHIBA_FEATURE_QUERY_SQL_MISSING',
+      `Visible SQL is required before scaffolding logic tests: ${toProjectPath(rootDir, sqlPath)}.`,
+      'Restore the canonical SQL file or remove the stale query boundary before scaffolding tests.',
+      { featureName, queryName },
+    );
+  }
+  const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const inferred = inferImportedQueryTestMetadata(rootDir, featureName, queryName, sql);
-  const fields = toContractFields(resultColumnContracts, inferImportedResultNullabilityByColumn(resultColumnContracts, inferred.anchorTable));
-  const cases = buildImportedMappingZtdCases(queryName, inferred.anchorTable, inferred.primaryKeyColumn, parameters, parameterTypes, fields);
+  const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
+  const fields = toContractFields(
+    resultColumnContracts,
+    inferImportedResultNullabilityByColumn(resultColumnContracts, inferred.anchorTable),
+  );
+  const queryRoot = `${relativeFeatureDir}/queries/${queryName}`;
   return [
     {
-      relativePath: `${queryDir}/tests/boundary-ztd-types.ts`,
+      relativePath: `${queryRoot}/tests/${queryName}.boundary.ztd.test.ts`,
       kind: 'file',
-      contents: renderImportedQueryZtdTypes(queryName, inferred.anchorTable, fields),
+      contents: renderQueryZtdTest(featureName, queryName),
       overwrite: true,
     },
     {
-      relativePath: `${queryDir}/tests/generated/mapping.cases.ts`,
+      relativePath: `${queryRoot}/tests/boundary-ztd-types.ts`,
       kind: 'file',
-      contents: renderImportedGeneratedMappingZtdCases(queryName, cases),
-      overwrite: true,
-    },
-    {
-      relativePath: `${queryDir}/tests/generated/TEST_PLAN.md`,
-      kind: 'file',
-      contents: renderGeneratedTestPlan(featureName, queryName),
-      overwrite: true,
-    },
-    {
-      relativePath: `${queryDir}/tests/generated/analysis.json`,
-      kind: 'file',
-      contents: renderImportedGeneratedTestAnalysis(featureName, queryName, inferred, parameters, parameterTypes, fields),
+      contents: renderImportedQueryZtdTypes(queryName, inferred.physicalTables, fields),
       overwrite: true,
     },
   ];
-}
-
-function buildExpectedGeneratedMappingTestFiles(
-  rootDir: string,
-  relativeFeatureDir: string,
-  queryName: string,
-  queryDir: string,
-  metadata: QueryTestMetadata,
-): GeneratedFile[] {
-  if (metadata.importSource === 'existing-sql') {
-    const sqlPath = path.join(queryDir, `${queryName}.sql`);
-    const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
-    const queryModel = buildFeatureQueryModel(sql, rootDir);
-    const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
-    return buildImportedMappingTestFiles(
-      rootDir,
-      relativeFeatureDir,
-      metadata.feature,
-      queryName,
-      sql,
-      queryModel.analysis.namedParameters,
-      queryModel.analysis.parameterTypes ?? {},
-      resultColumnContracts,
-    );
-  }
-  if (!metadata.action || !metadata.table || !metadata.primaryKeyColumn) {
-    return [];
-  }
-  const scaffoldMetadata: ScaffoldQueryTestMetadata = {
-    feature: metadata.feature,
-    query: metadata.query,
-    action: metadata.action,
-    table: metadata.table,
-    primaryKeyColumn: metadata.primaryKeyColumn,
-    ...(metadata.returningMode ? { returningMode: metadata.returningMode } : {}),
-    ...(metadata.optimisticLock ? { optimisticLock: metadata.optimisticLock } : {}),
-  };
-  const table = loadDdlTable(rootDir, scaffoldMetadata.table);
-  const actionPlan = buildActionPlan(
-    scaffoldMetadata.action,
-    table,
-    scaffoldMetadata.primaryKeyColumn,
-    scaffoldMetadata.returningMode ?? 'all',
-    configFromOptimisticLockMetadata(scaffoldMetadata.optimisticLock),
-  );
-  return buildGeneratedMappingTestFiles(relativeFeatureDir, scaffoldMetadata, table, actionPlan);
 }
 
 interface ImportedQueryTestMetadata {
@@ -2272,52 +2032,6 @@ function inferImportedQueryTestMetadata(
     ...(primaryKeyColumn ? { primaryKeyColumn } : {}),
     physicalTables,
   };
-}
-
-function renderImportedGeneratedTestAnalysis(
-  featureName: string,
-  queryName: string,
-  inferred: ImportedQueryTestMetadata,
-  parameters: string[],
-  parameterTypes: Record<string, string>,
-  fields: RenderContractField[],
-): string {
-  const generatedCaseNames = buildImportedMappingZtdCases(
-    queryName,
-    inferred.anchorTable,
-    inferred.primaryKeyColumn,
-    parameters,
-    parameterTypes,
-    fields,
-  ).map((entry) => hasStringName(entry) ? entry.name : 'unknown');
-  return `${JSON.stringify({
-    feature: featureName,
-    query: queryName,
-    action: inferred.action,
-    physicalTables: inferred.physicalTables.map((table) => table.canonicalName),
-    ...(inferred.anchorSource ? { anchorSource: inferred.anchorSource } : {}),
-    ...(inferred.anchorTable
-      ? {
-          anchorTable: inferred.anchorTable.canonicalName,
-          table: inferred.anchorTable.canonicalName,
-        }
-      : {}),
-    ...(inferred.primaryKeyColumn ? { primaryKeyColumn: inferred.primaryKeyColumn } : {}),
-    importSource: 'existing-sql',
-    mappingCaseSignature: {
-      query: queryName,
-      action: inferred.action,
-      table: inferred.anchorTable?.canonicalName ?? null,
-      anchorSource: inferred.anchorSource ?? null,
-      anchorTable: inferred.anchorTable?.canonicalName ?? null,
-      primaryKeyColumn: inferred.primaryKeyColumn ?? null,
-      physicalTables: inferred.physicalTables.map((table) => table.canonicalName),
-      params: parameters.map((name) => ({ name, typeScriptType: parameterTypes[name] ?? 'unknown' })),
-      rows: fields,
-      generatedCaseNames,
-    },
-    status: inferred.anchorTable ? 'generated-from-imported-sql' : 'generated-from-imported-sql-without-root-table',
-  }, null, 2)}\n`;
 }
 
 function buildSharedFiles(featureRoot = 'src/features'): GeneratedFile[] {
@@ -3113,9 +2827,9 @@ function renderImportedFeatureReadme(featureName: string, queryName: string): st
     '',
     'This feature was scaffolded from an existing visible SQL file.',
     'Generated code is editable after import. Keep SQL visible, named, and directly runnable in a SQL client.',
-    'Generated mapper cases prove that representative DB result values can map into the generated DTO shape.',
-    'Human/AI-owned SQL logic cases belong under the query-local `tests/cases/` directory.',
-    'For mutation queries, generated mapper cases prove `RETURNING` result compatibility. Use route or integration tests for TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior.',
+    'Static and PostgreSQL-derived contract checks prove DB-to-TypeScript result contracts without persisted synthetic probes.',
+    'Add Human/AI-owned SQL logic cases under the query-local `tests/cases/` directory only when query behavior merits executable examples.',
+    'For mutation queries, use route or integration tests for TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior.',
     '',
   ].join('\n');
 }
@@ -3649,9 +3363,8 @@ function renderQueryZtdTest(featureName: string, queryName: string): string {
     `import { runQuerySpecZtdCases } from '${TEST_ZTD_HARNESS_IMPORT_PATH}';`,
     `import { execute${pascal}Query } from '../query.js';`,
     "import logicCases from './cases/logic.case.js';",
-    "import mappingCases from './generated/mapping.cases.js';",
     '',
-    'const cases = [...mappingCases, ...logicCases];',
+    'const cases = logicCases;',
     '',
     'const shouldSkipZtd =',
     "  process.env.ASHIBA_SKIP_DB_BACKED_TESTS === '1' ||",
@@ -3695,33 +3408,6 @@ function renderQueryZtdTypes(
     `  ${outputType}`,
     '>;',
     '',
-    `export type ${pascal}QueryMappingZtdCase = QuerySpecZtdCase<`,
-    `  ${pascal}BeforeDb,`,
-    `  ${pascal}QueryParams,`,
-    `  ${outputType}`,
-    '>;',
-    '',
-  ].join('\n');
-}
-
-function renderGeneratedMappingZtdCases(
-  queryName: string,
-  actionPlan: ReturnType<typeof buildActionPlan>,
-  table: DdlTable,
-  primaryKeyColumn: string
-): string {
-  const pascal = toPascal(queryName);
-  const caseType = `${pascal}QueryMappingZtdCase`;
-  const cases = buildGeneratedMappingZtdCases(queryName, actionPlan, table, primaryKeyColumn);
-  return [
-    `import type { ${caseType} } from '../boundary-ztd-types.js';`,
-    '',
-    '// Library-owned mechanical mapper probes. Refresh with `ashiba feature tests scaffold` or `ashiba feature tests check --fix`.',
-    '// These cases use synthetic DB result SQL to prove DTO mapping, not the source SQL business logic.',
-    `const cases: readonly ${caseType}[] = ${renderTsValue(cases)};`,
-    '',
-    'export default cases;',
-    '',
   ].join('\n');
 }
 
@@ -3730,7 +3416,7 @@ function renderEmptyLogicZtdCases(queryName: string): string {
   return [
     `import type { ${caseType} } from '../boundary-ztd-types.js';`,
     '',
-    '// Human/AI-owned SQL logic cases. Add business expectations here; Ashiba will not overwrite this file.',
+    '// Human/AI-owned SQL logic cases. Keep only expectations with measured semantic value; Ashiba will not overwrite this file.',
     `const cases: readonly ${caseType}[] = [];`,
     '',
     'export default cases;',
@@ -3738,69 +3424,38 @@ function renderEmptyLogicZtdCases(queryName: string): string {
   ].join('\n');
 }
 
-function renderGeneratedTestPlan(featureName: string, queryName: string): string {
-  return [
-    `# ${featureName}/${queryName} Test Plan`,
-    '',
-    'This generated file is library-owned and may be refreshed by Ashiba.',
-    '',
-    '- Unit tests are mapping-contract tests, not database state management or SQL logic tests.',
-    '- Generated mapper cases use lightweight synthetic DB result SQL, usually a SELECT without a FROM clause, to prove DB-to-TypeScript DTO mapping.',
-    '- For INSERT/UPDATE/DELETE queries, generated mapper cases prove RETURNING row compatibility only.',
-    '- TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior belong in route/integration/traditional DB-backed tests.',
-    '- Generated mapper cases do not prove source SQL business logic, parameter business meaning, row cardinality, affected-row counts, business mutation targets, transaction isolation, locking, or final database state.',
-    '- Ashiba does not infer or check single-row cardinality after scaffolding; row handling in `query.ts` is customer-owned code.',
-    '- DTOs are customer-owned after scaffolding. Ashiba may report drift and expected column/type/nullability, but it should not silently rewrite customer-owned DTOs.',
-    '- Nullability is conservative. If Ashiba cannot prove a value is non-null, generated contracts and diagnostics should prefer nullable output.',
-    '- DDL is loaded from the configured DDL source directory; missing DDL should fail mapping verification instead of silently skipping it.',
-    '- Human/AI-owned SQL logic cases under `cases/` may use ZTD/CTE shadowing and the real source SQL.',
-    '- Prefer Zero Table Dependency for mapping tests.',
-    '- Performance tests: prefer traditional DB-backed tests.',
-    '- Keep human-authored cases under `cases/`.',
-    '',
-  ].join('\n');
-}
-
-function renderGeneratedTestAnalysis(
-  featureName: string,
-  queryName: string,
-  action: FeatureAction,
-  table: DdlTable,
-  primaryKeyColumn: string,
-  actionPlan: ReturnType<typeof buildActionPlan>,
-): string {
-  return `${JSON.stringify({
-    feature: featureName,
-    query: queryName,
-    action,
-    table: table.canonicalName,
-    primaryKeyColumn,
-    returningMode: actionPlan.returningMode,
-    ...(actionPlan.optimisticLock ? { optimisticLock: actionPlan.optimisticLock } : {}),
-    mappingCaseSignature: buildMappingCaseSignature(queryName, actionPlan, table, primaryKeyColumn),
-    status: 'generated',
-  }, null, 2)}\n`;
-}
-
 function renderImportedQueryZtdTypes(
   queryName: string,
-  table: DdlTable | undefined,
+  tables: DdlTable | readonly DdlTable[] | undefined,
   fields: RenderContractField[],
 ): string {
   const pascal = toPascal(queryName);
-  const beforeDb = table
+  const physicalTables = tables ? (Array.isArray(tables) ? [...tables] : [tables]) : [];
+  const tablesBySchema = new Map<string, DdlTable[]>();
+  for (const table of physicalTables) {
+    const schemaTables = tablesBySchema.get(table.schema) ?? [];
+    schemaTables.push(table);
+    tablesBySchema.set(table.schema, schemaTables);
+  }
+  const beforeDb = physicalTables.length > 0
     ? [
         `export type ${pascal}BeforeDb = {`,
-        `  ${renderPropertyKey(table.schema)}: {`,
-        `    ${renderPropertyKey(table.name)}: readonly {`,
-        ...table.columns.map((column) => `      ${renderPropertyKey(column.name)}?: unknown;`),
-        '    }[];',
-        '  };',
+        ...[...tablesBySchema.entries()]
+          .sort(([left], [right]) => left.localeCompare(right))
+          .flatMap(([schema, schemaTables]) => [
+            `  ${renderPropertyKey(schema)}: {`,
+            ...schemaTables
+              .sort((left, right) => left.name.localeCompare(right.name))
+              .flatMap((table) => [
+                `    ${renderPropertyKey(table.name)}: readonly {`,
+                ...table.columns.map((column) => `      ${renderPropertyKey(column.name)}?: unknown;`),
+                '    }[];',
+              ]),
+            '  };',
+          ]),
         '};',
       ]
-    : [
-        `export type ${pascal}BeforeDb = Record<string, unknown>;`,
-      ];
+    : [`export type ${pascal}BeforeDb = Record<string, unknown>;`];
   return [
     `import type { QuerySpecZtdCase } from '${TEST_ZTD_CASE_TYPES_IMPORT_PATH}';`,
     `import type { ${pascal}QueryParams, ${pascal}QueryResult } from '../query.js';`,
@@ -3813,118 +3468,11 @@ function renderImportedQueryZtdTypes(
     `  ${pascal}QueryResult[]`,
     '>;',
     '',
-    `export type ${pascal}QueryMappingZtdCase = QuerySpecZtdCase<`,
-    `  ${pascal}BeforeDb,`,
-    `  ${pascal}QueryParams,`,
-    `  ${pascal}QueryResult[]`,
-    '>;',
-    '',
     fields.length === 0
       ? '// This imported SQL has no result columns in query metadata; add human-owned logic cases when behavior must be proved.'
-      : '// Result columns are mapped through synthetic DB result probes so mapper tests stay focused on DTO compatibility.',
+      : '// Add cases only for SQL behavior that static and PostgreSQL-derived contracts cannot prove.',
     '',
   ].join('\n');
-}
-
-function renderImportedGeneratedMappingZtdCases(queryName: string, cases: unknown[]): string {
-  const pascal = toPascal(queryName);
-  const caseType = `${pascal}QueryMappingZtdCase`;
-  return [
-    `import type { ${caseType} } from '../boundary-ztd-types.js';`,
-    '',
-    '// Library-owned mechanical mapper probes for imported SQL. Refresh with `ashiba feature tests check --fix` after SQL contract changes.',
-    '// These cases cover DB/TypeScript DTO mapping with synthetic result SQL, not source SQL business behavior.',
-    `const cases: readonly ${caseType}[] = ${renderTsValue(cases)};`,
-    '',
-    'export default cases;',
-    '',
-  ].join('\n');
-}
-
-function buildImportedMappingZtdCases(
-  queryName: string,
-  table: DdlTable | undefined,
-  primaryKeyColumn: string | undefined,
-  parameters: string[],
-  parameterTypes: Record<string, string>,
-  fields: RenderContractField[],
-): unknown[] {
-  if (fields.length === 0) {
-    return [];
-  }
-  const firstRow = table ? buildFixtureRow(table, 1) : {};
-  const input = buildImportedCaseInput(parameters, parameterTypes, table, firstRow, primaryKeyColumn);
-  const expectedRow = buildSyntheticContractRow(table, fields, 'sample');
-  const nullableRow = buildSyntheticContractRow(table, fields, 'nullable');
-  const cases: unknown[] = [{
-    name: `db-type-mapping: maps ${queryName} imported result columns into the DTO`,
-    beforeDb: buildImportedBeforeDb(table),
-    input,
-    mapperProbe: {
-      sql: buildSyntheticMapperProbeSql(fields, table, 'sample'),
-    },
-    output: [expectedRow],
-  }];
-  if (Object.values(nullableRow).some((value) => value === null)) {
-    cases.push({
-      name: `nullable-output-mapping: maps ${queryName} nullable imported result columns into the DTO`,
-      beforeDb: buildImportedBeforeDb(table),
-      input,
-      mapperProbe: {
-        sql: buildSyntheticMapperProbeSql(fields, table, 'nullable'),
-      },
-      output: [nullableRow],
-    });
-  }
-  return cases;
-}
-
-function buildEmptyBeforeDb(table: DdlTable): Record<string, unknown> {
-  return { [table.schema]: { [table.name]: [] } };
-}
-
-function buildImportedBeforeDb(table: DdlTable | undefined): Record<string, unknown> {
-  return table ? buildEmptyBeforeDb(table) : {};
-}
-
-function buildSyntheticContractRow(
-  table: DdlTable | undefined,
-  fields: RenderContractField[],
-  mode: 'sample' | 'nullable' | 'boundary' | 'negative-boundary',
-): Record<string, unknown> {
-  return Object.fromEntries(fields.map((field) => {
-    const column = findDdlColumnForField(table, field.name);
-    if (mode === 'nullable' && field.nullability === 'nullable') return [field.name, null];
-    if (column && /^(json|jsonb)$/.test(column.typeName.toLowerCase())) {
-      return [field.name, sampleColumnValueByMode(column, mode)];
-    }
-    if (column) return [field.name, coerceSampleToContractType(sampleColumnValueByMode(column, mode), field.typeScriptType)];
-    return [field.name, sampleValueForSqlType(field.sqlType, field.typeScriptType, mode)];
-  }));
-}
-
-function buildSyntheticMapperProbeSql(
-  fields: RenderContractField[],
-  table: DdlTable | undefined,
-  mode: 'sample' | 'nullable' | 'boundary' | 'negative-boundary',
-): string {
-  return [
-    'select',
-    fields.map((field, index) => {
-      const prefix = index === 0 ? '    ' : '    , ';
-      const column = findDdlColumnForField(table, field.name);
-      const sqlType = column ? sqlTypeForDdlColumn(column) : field.sqlType;
-      const valueSql = mode === 'nullable' && field.nullability === 'nullable'
-        ? 'null'
-        : sqlLiteral(buildSyntheticContractRow(table, [field], mode)[field.name]);
-      return `${prefix}cast(${valueSql} as ${sqlType}) as ${quoteIdentifier(field.name)}`;
-    }).join('\n'),
-    ';',
-  ].join('\n');
-}
-
-function findDdlColumnForField(table: DdlTable | undefined, fieldName: string): DdlColumn | undefined {
-  return table?.columns.find((column) => column.name.toLowerCase() === fieldName.toLowerCase());
 }
 
 function isNullableType(typeScriptType: string): boolean {
@@ -3959,141 +3507,6 @@ function inferSqlTypeForResultColumn(column: SqlResultColumnContract): string | 
   return undefined;
 }
 
-function sqlTypeForDdlColumn(column: DdlColumn): string {
-  const type = column.typeName.toLowerCase();
-  if (/^(smallserial|serial2)$/.test(type)) return 'smallint';
-  if (/^(serial|serial4)$/.test(type)) return 'integer';
-  if (/^(bigserial|serial8)$/.test(type)) return 'bigint';
-  return column.typeName;
-}
-
-function sqlLiteral(value: unknown): string {
-  if (value === null || value === undefined) return 'null';
-  if (Array.isArray(value)) {
-    return `array[${value.map((entry) => sqlLiteral(entry)).join(', ')}]`;
-  }
-  if (typeof value === 'number') return Number.isFinite(value) ? String(value) : '0';
-  if (typeof value === 'boolean') return value ? 'true' : 'false';
-  if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
-  return `'${String(value).replace(/'/g, "''")}'`;
-}
-
-function sampleColumnValueByMode(column: DdlColumn, mode: 'sample' | 'nullable' | 'boundary' | 'negative-boundary'): unknown {
-  if (mode === 'boundary') return sampleBoundaryColumnValue(column);
-  if (mode === 'negative-boundary') return sampleNegativeBoundaryColumnValue(column);
-  return sampleColumnValue(column, 1);
-}
-
-function coerceSampleToContractType(value: unknown, typeScriptType: string): unknown {
-  const normalized = typeScriptType.replace(/\s*\|\s*null/g, '').trim();
-  if (value === null || value === undefined) return value;
-  if (normalized.endsWith('[]')) {
-    return Array.isArray(value) ? value : [value];
-  }
-  if (normalized === 'number' && typeof value === 'string' && value.trim() !== '') {
-    const next = Number(value);
-    return Number.isFinite(next) ? next : value;
-  }
-  if (normalized === 'string' && typeof value !== 'string') {
-    return String(value);
-  }
-  if (normalized === 'boolean' && typeof value === 'string') {
-    if (value.toLowerCase() === 'true') return true;
-    if (value.toLowerCase() === 'false') return false;
-  }
-  return value;
-}
-
-function buildImportedCaseInput(
-  parameters: string[],
-  parameterTypes: Record<string, string>,
-  table: DdlTable | undefined,
-  firstRow: Record<string, unknown>,
-  primaryKeyColumn: string | undefined,
-): Record<string, unknown> {
-  const columnMap = new Map((table?.columns ?? []).map((column) => [column.name.toLowerCase(), column]));
-  return Object.fromEntries(parameters.map((parameter) => {
-    const column = columnMap.get(parameter.toLowerCase());
-    if (column) return [parameter, firstRow[column.name]];
-    if (primaryKeyColumn && parameter.toLowerCase() === primaryKeyColumn.toLowerCase()) return [parameter, firstRow[primaryKeyColumn]];
-    if (parameter.toLowerCase() === 'limit') return [parameter, 100];
-    if (parameter.toLowerCase() === 'offset') return [parameter, 0];
-    return [parameter, sampleValueForType(parameterTypes[parameter] ?? 'unknown')];
-  }));
-}
-
-function isPaginationParameter(name: string): boolean {
-  const normalized = name.toLowerCase();
-  return normalized === 'limit' || normalized === 'offset';
-}
-
-function buildGeneratedMappingZtdCases(
-  queryName: string,
-  actionPlan: ReturnType<typeof buildActionPlan>,
-  table: DdlTable,
-  primaryKeyColumn: string
-): unknown[] {
-  if (actionPlan.rows.length === 0) return [];
-  const fields = toDdlContractFields(actionPlan.rows);
-  const cases: unknown[] = [
-    buildGeneratedMapperProbeCase('db-type-mapping', queryName, actionPlan, table, primaryKeyColumn, fields, 'sample'),
-  ];
-  if (actionPlan.rows.some((column) => column.nullable)) {
-    cases.push(buildGeneratedMapperProbeCase('nullable-output-mapping', queryName, actionPlan, table, primaryKeyColumn, fields, 'nullable'));
-  }
-  if (actionPlan.rows.some((column) => isBoundaryValueColumn(column))) {
-    cases.push(buildGeneratedMapperProbeCase('boundary-value-mapping', queryName, actionPlan, table, primaryKeyColumn, fields, 'boundary'));
-    cases.push(buildGeneratedMapperProbeCase('negative-boundary-value-mapping', queryName, actionPlan, table, primaryKeyColumn, fields, 'negative-boundary'));
-  }
-  return cases;
-}
-
-function buildGeneratedMapperProbeCase(
-  kind: string,
-  queryName: string,
-  actionPlan: ReturnType<typeof buildActionPlan>,
-  table: DdlTable,
-  primaryKeyColumn: string,
-  fields: RenderContractField[],
-  mode: 'sample' | 'nullable' | 'boundary' | 'negative-boundary',
-): unknown {
-  const row = buildSyntheticContractRow(table, fields, mode);
-  return {
-    name: `${kind}: maps ${queryName} DB result values into the DTO`,
-    beforeDb: buildEmptyBeforeDb(table),
-    input: buildGeneratedMapperProbeInput(actionPlan, primaryKeyColumn),
-    mapperProbe: {
-      sql: buildSyntheticMapperProbeSql(fields, table, mode),
-    },
-    output: isManyResultAction(actionPlan.action) ? [row] : row,
-  };
-}
-
-function buildGeneratedMapperProbeInput(
-  actionPlan: ReturnType<typeof buildActionPlan>,
-  _primaryKeyColumn: string,
-): Record<string, unknown> {
-  return Object.fromEntries(actionPlan.params.map((column) => [column.name, sampleParameterValue(column)]));
-}
-
-function toDdlContractFields(columns: DdlColumn[]): RenderContractField[] {
-  return columns.map((column) => ({
-    name: column.name,
-    typeScriptType: toTsType(column),
-    sqlType: sqlTypeForDdlColumn(column),
-    nullability: column.nullable ? 'nullable' : 'non-null',
-  }));
-}
-
-function buildFixtureRow(table: DdlTable, rowNumber: number): Record<string, unknown> {
-  return Object.fromEntries(table.columns.map((column) => [column.name, sampleColumnValue(column, rowNumber)]));
-}
-
-function sampleParameterValue(column: DdlColumn): unknown {
-  if (column.name === 'limit') return 100;
-  return sampleColumnValue(column, 1);
-}
-
 function sampleValueForType(typeScriptType: string): unknown {
   const normalized = typeScriptType.replace(/\s*\|\s*null/g, '').trim();
   if (normalized === 'null') return null;
@@ -4105,145 +3518,8 @@ function sampleValueForType(typeScriptType: string): unknown {
   return 'value';
 }
 
-function sampleValueForSqlType(
-  sqlType: string,
-  typeScriptType: string,
-  mode: 'sample' | 'nullable' | 'boundary' | 'negative-boundary',
-): unknown {
-  const normalized = sqlType.toLowerCase().replace(/\([^)]*\)/g, '').trim();
-  if (isSqlArrayType(normalized)) {
-    return [mode === 'negative-boundary' ? 'negative-boundary-value' : 'value'];
-  }
-  if (/^(bigint|int8|bigserial|serial8)$/.test(normalized)) {
-    if (mode === 'boundary') return '9223372036854775807';
-    if (mode === 'negative-boundary') return '-9223372036854775808';
-    return '1';
-  }
-  if (/^(numeric|decimal)$/.test(normalized)) {
-    if (mode === 'boundary') return '1234567890.12345';
-    if (mode === 'negative-boundary') return '-1234567890.12345';
-    return '1.25';
-  }
-  if (/^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(normalized)) {
-    return mode === 'negative-boundary' ? -1 : 1;
-  }
-  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz|date|time|time without time zone|time with time zone|timetz)$/.test(normalized)) {
-    if (mode === 'boundary') return '2026-01-02T00:00:00.000Z';
-    if (mode === 'negative-boundary') return '2026-01-03T00:00:00.000Z';
-    return '2026-01-01T00:00:00.000Z';
-  }
-  if (/^(boolean|bool)$/.test(normalized)) return mode !== 'negative-boundary';
-  return sampleValueForType(typeScriptType);
-}
-
-function sampleColumnValue(column: DdlColumn, rowNumber: number): unknown {
-  const type = column.typeName.toLowerCase();
-  const name = column.name.toLowerCase();
-  if (isSqlArrayType(type)) {
-    return [`${column.name}-${rowNumber}`];
-  }
-  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) {
-    return `2026-01-0${rowNumber}T00:00:00.000Z`;
-  }
-  if (/^(json|jsonb)$/.test(type)) {
-    return { sample: rowNumber };
-  }
-  if (/^(smallint|integer|int|int2|int4|real|float|float4|float8|double precision|serial|serial2|serial4)$/.test(type)) {
-    return rowNumber;
-  }
-  if (/^(bigint|int8|bigserial|serial8|numeric|decimal)$/.test(type)) {
-    return String(rowNumber);
-  }
-  if (/^(boolean|bool)$/.test(type)) {
-    return rowNumber % 2 === 1;
-  }
-  if (name.includes('email')) {
-    return rowNumber === 1 ? 'alice@example.com' : 'bob@example.com';
-  }
-  if (name.includes('name')) {
-    return rowNumber === 1 ? 'Alice' : 'Bob';
-  }
-  if (name.includes('status')) {
-    return rowNumber === 1 ? 'active' : 'inactive';
-  }
-  return `${column.name}-${rowNumber}`;
-}
-
-function sampleBoundaryColumnValue(column: DdlColumn): unknown {
-  const type = column.typeName.toLowerCase();
-  const name = column.name.toLowerCase();
-  if (isSqlArrayType(type)) return [`${column.name}-boundary-value`];
-  if (/^(smallint|int2)$/.test(type)) return 32767;
-  if (/^(integer|int|int4|serial|serial4)$/.test(type)) return 2147483647;
-  if (/^(bigint|int8|bigserial|serial8)$/.test(type)) return '9223372036854775807';
-  if (/^(real|float|float4|float8|double precision)$/.test(type)) return 123456.5;
-  if (/^(numeric|decimal)$/.test(type)) return '1234567890.12345';
-  if (/^(boolean|bool)$/.test(type)) return true;
-  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) return '2026-01-02T00:00:00.000Z';
-  if (/^(json|jsonb)$/.test(type)) return { case: 'boundary' };
-  if (name.includes('email')) return 'boundary@example.com';
-  return `${column.name}-boundary-value`;
-}
-
-function sampleNegativeBoundaryColumnValue(column: DdlColumn): unknown {
-  const type = column.typeName.toLowerCase();
-  const name = column.name.toLowerCase();
-  if (isSqlArrayType(type)) return [`${column.name}-negative-boundary-value`];
-  if (/^(smallint|int2)$/.test(type)) return -32768;
-  if (/^(integer|int|int4|serial|serial4)$/.test(type)) return -2147483648;
-  if (/^(bigint|int8|bigserial|serial8)$/.test(type)) return '-9223372036854775808';
-  if (/^(real|float|float4|float8|double precision)$/.test(type)) return -123456.5;
-  if (/^(numeric|decimal)$/.test(type)) return '-1234567890.12345';
-  if (/^(boolean|bool)$/.test(type)) return false;
-  if (/^(timestamp|timestamp without time zone|timestamp with time zone|timestamptz)$/.test(type)) return '2026-01-03T00:00:00.000Z';
-  if (/^(json|jsonb)$/.test(type)) return { case: 'negative-boundary' };
-  if (name.includes('email')) return 'negative-boundary@example.com';
-  return `${column.name}-negative-boundary-value`;
-}
-
 function isSqlArrayType(typeName: string): boolean {
   return /\[\]\s*$/.test(typeName.trim());
-}
-
-function isBoundaryValueColumn(column: DdlColumn): boolean {
-  return /^(smallint|integer|int|int2|int4|bigint|int8|bigserial|serial8|real|float|float4|float8|double precision|numeric|decimal)$/
-    .test(column.typeName.toLowerCase());
-}
-
-function buildMappingCaseSignature(
-  queryName: string,
-  actionPlan: ReturnType<typeof buildActionPlan>,
-  table: DdlTable,
-  primaryKeyColumn: string,
-): Record<string, unknown> {
-  return {
-    query: queryName,
-    action: actionPlan.action,
-    table: table.canonicalName,
-    primaryKeyColumn,
-    returningMode: actionPlan.returningMode,
-    ...(actionPlan.optimisticLock ? { optimisticLock: actionPlan.optimisticLock } : {}),
-    params: actionPlan.params.map((column) => columnSignature(column)),
-    rows: actionPlan.rows.map((column) => columnSignature(column)),
-    writeColumns: actionPlan.writeColumns.map((column) => columnSignature(column)),
-    generatedCaseNames: buildGeneratedMappingZtdCases(queryName, actionPlan, table, primaryKeyColumn)
-      .map((entry) => hasStringName(entry) ? entry.name : 'unknown'),
-  };
-}
-
-function hasStringName(value: unknown): value is { name: string } {
-  return typeof value === 'object' && value !== null && 'name' in value && typeof value.name === 'string';
-}
-
-function columnSignature(column: DdlColumn): Record<string, unknown> {
-  return {
-    name: column.name,
-    typeName: column.typeName,
-    nullable: column.nullable,
-    defaultValue: column.defaultValue ?? null,
-    generated: column.generated,
-    primaryKey: column.primaryKey,
-  };
 }
 
 function renderTsValue(value: unknown): string {
@@ -4276,7 +3552,7 @@ function renderFeatureReadme(featureName: string, queryName: string, action: Fea
     'Generated code is editable after scaffolding. Keep SQL visible, named, and directly runnable in a SQL client.',
     'A feature may contain multiple query boundaries; use feature query scaffold when the behavior needs another SQL access point.',
     'Transaction policy and feature orchestration belong to application code, not Ashiba. Compose multiple query boundaries by passing the same FeatureQueryExecutor inside an application-owned transaction callback.',
-    'Generated mapper cases prove DB-to-TypeScript result contracts. For mutations, use route or integration tests for TypeScript-to-DB inputs, affected rows, persisted state, transaction behavior, defaults, constraints, triggers, and read-after-write behavior.',
+    'Static and PostgreSQL-derived contract checks prove DB-to-TypeScript result contracts. Add query-local SQL logic tests selectively; for mutations, use route or integration tests for inputs, affected rows, persisted state, transactions, defaults, constraints, triggers, and read-after-write behavior.',
     '',
   ].join('\n');
 }
