@@ -113,9 +113,38 @@ export function ddlColumnToTypeScriptType(column: Pick<DdlSchemaColumn, 'typeNam
 }
 
 export function areTypeScriptTypesCompatible(actual: string, expected: string): boolean {
-  const actualNormalized = normalizeTypeScriptType(actual);
-  if (actualNormalized === 'unknown') return false;
-  return actualNormalized === normalizeTypeScriptType(expected);
+  const actualMembers = splitTopLevelTypeUnion(normalizeTypeScriptType(actual));
+  const expectedMembers = splitTopLevelTypeUnion(normalizeTypeScriptType(expected));
+  if (actualMembers.length === 0 || actualMembers.includes('unknown')) return false;
+  return actualMembers.every((actualMember) =>
+    expectedMembers.some((expectedMember) => isInputTypeMemberCovered(actualMember, expectedMember))
+  );
+}
+
+function isInputTypeMemberCovered(actual: string, expected: string): boolean {
+  if (actual === expected) return true;
+  if (expected === 'string' && /^"(?:\\.|[^"\\])*"$/.test(actual)) return true;
+  if (expected === 'number' && /^(?:-?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)$/i.test(actual)) return true;
+  if (expected === 'bigint' && /^-?(?:0|[1-9]\d*)n$/.test(actual)) return true;
+  if (expected === 'boolean' && (actual === 'true' || actual === 'false')) return true;
+  return false;
+}
+
+function splitTopLevelTypeUnion(type: string): string[] {
+  const members: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < type.length; index += 1) {
+    const character = type[index];
+    if (character === '(' || character === '<' || character === '[' || character === '{') depth += 1;
+    if (character === ')' || character === '>' || character === ']' || character === '}') depth = Math.max(0, depth - 1);
+    if (character === '|' && depth === 0) {
+      members.push(type.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  members.push(type.slice(start).trim());
+  return members.filter((member) => member.length > 0);
 }
 
 function collectInsertParameterBindings(
@@ -604,5 +633,8 @@ function baseTypeScriptType(type: string): string {
 }
 
 function normalizeTypeScriptType(type: string): string {
-  return type.replace(/\s+/g, ' ').trim();
+  return type
+    .replace(/'((?:\\.|[^'\\])*)'/g, (_literal, value: string) => `"${value.replace(/"/g, '\\"')}"`)
+    .replace(/\s+/g, ' ')
+    .trim();
 }

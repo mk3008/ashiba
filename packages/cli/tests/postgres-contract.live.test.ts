@@ -341,7 +341,12 @@ describe.skipIf(!databaseUrl)('PostgreSQL-derived query contract live', () => {
     });
     expect(generated.changedFiles).toContain('src/features/report-load/queries/load/generated/postgres.contract.json');
     expect(generated.contract.diagnostics).toEqual([]);
-    expect(readFileSync(path.join(queryDir, 'generated/query.meta.ts'), 'utf8')).toContain('"contract"');
+    const runtimeMetadata = readFileSync(path.join(queryDir, 'generated/query.meta.ts'), 'utf8');
+    expect(runtimeMetadata).toContain('"contract"');
+    expect(runtimeMetadata).toContain('"profile": "node-postgres-default"');
+    expect(runtimeMetadata).not.toContain('"serverMajor"');
+    expect(runtimeMetadata).not.toContain('"parameters": [');
+    expect(readFileSync(path.join(queryDir, 'generated/postgres.contract.json'), 'utf8')).toContain('"serverMajor"');
     const falseReport = runFeatureGeneratedMapperCheck({ rootDir, feature: 'report-load', query: 'load' });
     expect(falseReport.ok).toBe(false);
     expect(falseReport.checked[0]?.mismatchedParameterTypes).toEqual(expect.arrayContaining([

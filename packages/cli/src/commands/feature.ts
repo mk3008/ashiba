@@ -1661,26 +1661,7 @@ function areResultTypesCompatible(mapperType: string, expectedSqlType: string): 
 }
 
 function isParameterTypeCoveredByDriverContract(mapperType: string, expectedType: string): boolean {
-  const mapperMembers = splitTopLevelTypeUnion(normalizeTypeScriptTypeForComparison(mapperType));
-  const expectedMembers = new Set(splitTopLevelTypeUnion(normalizeTypeScriptTypeForComparison(expectedType)));
-  return mapperMembers.length > 0 && mapperMembers.every((member) => expectedMembers.has(member));
-}
-
-function splitTopLevelTypeUnion(type: string): string[] {
-  const members: string[] = [];
-  let depth = 0;
-  let start = 0;
-  for (let index = 0; index < type.length; index += 1) {
-    const character = type[index];
-    if (character === '(' || character === '<' || character === '[' || character === '{') depth += 1;
-    if (character === ')' || character === '>' || character === ']' || character === '}') depth = Math.max(0, depth - 1);
-    if (character === '|' && depth === 0) {
-      members.push(type.slice(start, index).trim());
-      start = index + 1;
-    }
-  }
-  members.push(type.slice(start).trim());
-  return members.filter((member) => member.length > 0);
+  return areTypeScriptTypesCompatible(mapperType, expectedType);
 }
 
 interface ResultTypeDrift {
@@ -3058,7 +3039,13 @@ export function buildFeatureQueryModel(
       postgres: {
         sourceHash,
         ...postgres,
-        ...(postgresContract ? { contract: postgresContract } : {}),
+        ...(postgresContract ? {
+          contract: {
+            version: postgresContract.version,
+            sourceHash: postgresContract.sourceHash,
+            driver: { profile: postgresContract.driver.profile },
+          },
+        } : {}),
         ...buildPostgresSafeSortBindingMetadata(sql, analysis.safeSort),
         ...buildPostgresOptionalConditionCompressionBindingMetadata(sql, analysis.optionalConditionCompression),
       },
