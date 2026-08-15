@@ -93,12 +93,17 @@ Existing projects created before the thin execution boundary helpers should add 
 That contract is intentionally small:
 
 ```ts
-export interface FeatureQueryExecutor {
-  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;
+export interface FeatureQueryExecutor<Query extends AnyFeatureQuerySource> {
+  query(
+    query: Query,
+    params: AshibaQueryParams<Query>,
+  ): Promise<AshibaQueryRow<Query>[]>;
 }
 ```
 
 Feature code receives this boundary instead of importing `pg`, the concrete driver adapter, or logger packages directly.
+
+The Params/Row link is a compile-time contract derived from visible SQL and available DDL facts; the thin adapter does not validate every returned value at runtime. Unproved expressions remain `unknown` instead of accepting a caller-supplied result generic. PostgreSQL contracts follow default `pg` representations: `bigint`, `numeric`, and `count(...)` are strings unless source SQL explicitly casts them to another database type. Applications that install custom `pg` type parsers must keep that conversion visible at their driver/application boundary or express the intended type with a reviewed SQL cast.
 
 For convenience, `@ashiba-ts/driver-adapter-core` also provides cardinality helpers:
 
@@ -145,11 +150,10 @@ Generated files have narrower roles:
 | `query.meta.ts` | query model, source hash, binding metadata, safe rewrite metadata | generated, do not edit by hand |
 | `query.ts` | feature query boundary that chooses source, params, result type, and cardinality helper | application-owned after generation |
 
-After SQL-only edits, run refresh/check so `.sql`, `query.sql.ts`, and `query.meta.ts` stay synchronized:
+After SQL or DDL edits, refresh generated-owned artifacts and receive one list of application-owned contract work:
 
 ```bash
-npx ashiba feature query refresh <feature> <query>
-npx ashiba check
+npx ashiba check --fix-generated
 ```
 
-`ashiba check` and related query checks are responsible for detecting mismatches between canonical SQL, runtime snapshots, metadata, and generated mapper-test assets.
+The command may update `query.sql.ts`, `query.meta.ts`, and generated mapper-test assets. It never edits canonical SQL or application-owned `query.ts`. `ashiba check` and related query checks reject mismatches between those layers.

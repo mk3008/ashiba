@@ -114,7 +114,7 @@ def draw_frame(
     draw.text((MARGIN + 178, 38), subtitle, font=SUB_FONT, fill=TITLE)
     x = WIDTH - 420
     x = draw_badge(draw, x, 35, "SQL stays visible", GREEN)
-    x = draw_badge(draw, x, 35, "Mapper tested", PURPLE)
+    x = draw_badge(draw, x, 35, "Contract checked", PURPLE)
 
     shadow_box = (TERM_X + 8, TERM_Y + 10, TERM_X + TERM_W + 8, TERM_Y + TERM_H + 10)
     rounded(draw, shadow_box, 20, SHADOW)
@@ -228,8 +228,8 @@ def render_scaffold() -> None:
     output_lines(frames, durations, lines, [
         ("Feature scaffold completed: users-list", BLUE, True),
         ("- write: visible SQL and editable query boundary", COMMENT, False),
-        ("- write: generated metadata and mapper tests", COMMENT, False),
-        ("Visible SQL file + mapper test are generated.", YELLOW, False),
+        ("- write: generated runtime metadata", COMMENT, False),
+        ("Visible SQL + contract metadata are generated.", YELLOW, False),
     ], **frame_options)
 
     type_command(frames, durations, lines, "type src\\features\\users-list\\queries\\list\\list.sql", **frame_options)
@@ -241,12 +241,12 @@ def render_scaffold() -> None:
         ("    public.users", WHITE, False),
     ], **frame_options)
 
-    type_command(frames, durations, lines, "npx vitest run", **frame_options)
+    type_command(frames, durations, lines, "npx ashiba feature contract check users-list --query list", **frame_options)
     output_lines(frames, durations, lines, [
-        ("RUN  v4.1.7  ./ashiba-demo", PURPLE, False),
-        ("✓ ZTD mapper test: SQL row -> TypeScript DTO", GREEN, True),
-        ("Test Files  2 passed (2)", GREEN, True),
-        ("DB access is mapper-tested from visible SQL to TypeScript.", BLUE, True),
+        ("Feature contract check: ok", GREEN, True),
+        ("- SQL parameters: ok", GREEN, False),
+        ("- result columns/types: ok", GREEN, False),
+        ("Visible SQL and the editable TypeScript boundary agree.", BLUE, True),
     ], **frame_options)
     add_pause(frames, durations, lines, 4800, **frame_options)
     save_gif(frames, durations, SCAFFOLD_GIF_PATH, SCAFFOLD_PNG_PATH)

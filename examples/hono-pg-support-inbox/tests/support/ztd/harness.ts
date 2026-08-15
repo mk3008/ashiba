@@ -1,15 +1,8 @@
+import type { FeatureQueryExecutor } from '@ashiba-ts/driver-adapter-core';
 import type { QuerySpecZtdCase } from './case-types.js';
 import { createQuerySpecZtdVerifier, type QuerySpecExecutionEvidence } from './verifier.js';
 
-export type QuerySpecExecutorClient = {
-  query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]>;
-};
-
-export type QuerySpecSqlSource = {
-  id: string;
-  path: string;
-  sql: string;
-};
+export type QuerySpecExecutorClient = FeatureQueryExecutor;
 
 type QuerySpecExecutor<Input, Output> = (
   client: QuerySpecExecutorClient,

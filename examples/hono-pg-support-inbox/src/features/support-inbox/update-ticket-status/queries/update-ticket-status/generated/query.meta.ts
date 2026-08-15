@@ -26,12 +26,31 @@ export const queryModel = {
       "updated_at": "string",
       "version_key": "number"
     },
+    "resultColumnNullability": {
+      "status": "non-null",
+      "ticket_id": "non-null",
+      "updated_at": "non-null",
+      "version_key": "non-null"
+    },
     "namedParameters": [
       "status",
       "updated_at",
       "ticket_id",
       "expected_version_key"
     ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "blocked",
+      "safeSort": "blocked",
+      "impactAnalysis": "supported"
+    },
     "parameterTypes": {
       "expected_version_key": "number",
       "status": "string",

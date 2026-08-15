@@ -2,10 +2,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect } from 'vitest';
 import { Pool } from 'pg';
+import type { FeatureQueryExecutor } from '@ashiba-ts/driver-adapter-core';
 import type { PostgresTestkitClient } from '@ashiba-ts/testkit-adapter-pg';
 
 import type { QuerySpecZtdCase } from './case-types.js';
-import type { QuerySpecExecutorClient, QuerySpecSqlSource } from './harness.js';
+import type { QuerySpecExecutorClient } from './harness.js';
 
 type FixtureTree = Record<string, unknown>;
 type FixtureRow = Record<string, unknown>;
@@ -78,7 +79,7 @@ export async function createQuerySpecZtdVerifier(): Promise<QuerySpecZtdVerifier
           },
         });
 
-        const actual = await execute(createQuerySpecExecutor(testkitClient, trace, querySpecCase), querySpecCase.input);
+        const actual = await execute(createQuerySpecExecutor(testkitClient, trace), querySpecCase.input);
         expect(normalizeActualByExpected(actual, querySpecCase.output)).toEqual(querySpecCase.output);
         if (trace.length === 0) {
           throw new Error(`ZTD verifier did not execute any SQL for case "${querySpecCase.name}".`);
@@ -115,21 +116,18 @@ export async function verifyQuerySpecZtdCase<BeforeDb extends FixtureTree, Input
 function createQuerySpecExecutor(
   testkitClient: PostgresTestkitClient,
   trace: QueryExecutionTrace[],
-  querySpecCase: QuerySpecZtdCase<FixtureTree, unknown, unknown>,
 ): QuerySpecExecutorClient {
   return {
-    async query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]> {
-      const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
-      const sourceParams = querySpecCase.mapperProbe?.params ?? params;
-      const bound = bindNamedParams(sourceSql, sourceParams);
+    async query(query: Parameters<FeatureQueryExecutor['query']>[0], params: Parameters<FeatureQueryExecutor['query']>[1]) {
+      const bound = bindNamedParams(query.sql, params);
       trace.push({
-        originalSql: sourceSql,
+        originalSql: query.sql,
         boundSql: bound.boundSql,
         boundParams: bound.boundValues,
         rewriteApplied: false,
       });
       const result = await testkitClient.query(bound.boundSql, bound.boundValues);
-      return result.rows as T[];
+      return result.rows;
     },
   };
 }

@@ -99,17 +99,19 @@ export const COMMANDS: readonly CommandSpec[] = [
   {
     name: 'check',
     summary: 'Run the human-first Ashiba diagnostic gate.',
-    useCase: 'Use the fast local loop while editing; add --full before push, review, or CI to include mapper tests.',
+    useCase: 'Use the fast local loop while editing; add --full before push, review, or CI to include selected verification tests.',
     usage: 'ashiba check [options]',
     options: [
       commonRoot,
       commonFormat,
       { flags: '--warnings-as-errors', description: 'Treat warnings as check failures.', defaultValue: 'false' },
       { flags: '--fast', description: 'Run the fast local check only. This is the default.', defaultValue: 'false' },
-      { flags: '--full', description: 'Run the fast check and the configured mapper test command.', defaultValue: 'false' },
-      { flags: '--mapper-test-command <command>', description: 'Mapper test command used by --full.', defaultValue: 'vitest run' },
+      { flags: '--full', description: 'Run the fast check and the configured verification test command.', defaultValue: 'false' },
+      { flags: '--test-command <command>', description: 'Verification test command used by --full.', defaultValue: 'npx vitest run' },
+      { flags: '--mapper-test-command <command>', description: 'Deprecated alias for --test-command.' },
+      { flags: '--fix-generated', description: 'Refresh safe generated-owned artifacts, then report application-owned changes without editing them.', defaultValue: 'false' },
     ],
-    examples: ['npx ashiba check', 'npx ashiba check --full --mapper-test-command "vitest run"'],
+    examples: ['npx ashiba check', 'npx ashiba check --fix-generated', 'npx ashiba check --full --test-command "vitest run"'],
   },
   {
     name: 'init',
@@ -204,7 +206,7 @@ export const COMMANDS: readonly CommandSpec[] = [
   {
     name: 'feature scaffold',
     summary: 'Scaffold editable feature-local SQL boundaries.',
-    useCase: 'Create a reviewable feature entrypoint, query.ts, SQL, DTO contracts, and mapper tests from DDL.',
+    useCase: 'Create a reviewable feature entrypoint, query.ts, SQL, DTO contracts, and generated metadata from DDL.',
     usage: 'ashiba feature scaffold [options] <name>',
     arguments: [{ name: 'name', required: true, description: 'Feature name to create under the configured feature root.' }],
     options: [
@@ -223,7 +225,7 @@ export const COMMANDS: readonly CommandSpec[] = [
   {
     name: 'feature import',
     summary: 'Import an existing SQL file into a feature query boundary.',
-    useCase: 'Start from SQL that already exists, then generate the feature shell, DTO contracts, mapper metadata, and ZTD mapper tests around that visible SQL.',
+    useCase: 'Start from SQL that already exists, then generate the feature shell, DTO contracts, and query metadata around that visible SQL.',
     usage: 'ashiba feature import [options] <feature> <query>',
     arguments: [
       { name: 'feature', required: true, description: 'Feature name to create under the configured feature root.' },
@@ -238,7 +240,7 @@ export const COMMANDS: readonly CommandSpec[] = [
     notes: [
       'The source SQL file is copied, not moved.',
       'Ashiba formats the copied SQL only when the formatter safety check proves the token/comment/AST output is stable.',
-      'Generated mapper cases cover inferable DB/TypeScript mapping; business boundary-value cases remain human/AI-owned under tests/cases/.',
+      'Static and PostgreSQL-derived contract checks cover inferable DB/TypeScript mapping; add human/AI-owned SQL logic cases explicitly when behavior merits them.',
     ],
     examples: ['npx ashiba feature import users-search search --sql tmp/search-users.sql'],
   },
@@ -277,9 +279,34 @@ export const COMMANDS: readonly CommandSpec[] = [
     examples: ['npx ashiba feature query refresh users-list list'],
   },
   {
+    name: 'feature query postgres-contract',
+    summary: 'Validate visible SQL against a development PostgreSQL database and generate DB/driver metadata.',
+    useCase: 'Prove parameter/result database types and record the selected node-postgres representation profile without executing the application statement.',
+    usage: 'ashiba feature query postgres-contract [options] <feature> <query>',
+    arguments: [
+      { name: 'feature', required: true, description: 'Feature name.' },
+      { name: 'query', required: true, description: 'Query boundary name.' },
+    ],
+    options: [
+      { flags: '--database-url <url>', description: 'Development PostgreSQL URL; prefer an environment variable in shared scripts.' },
+      { flags: '--database-url-env <name>', description: 'URL environment variable. Defaults to ASHIBA_POSTGRES_DATABASE_URL.' },
+      { flags: '--driver-profile <profile>', description: 'node-postgres-default or custom:<stable-id>.' },
+      commonRoot,
+      commonDryRun,
+      commonFormat,
+    ],
+    notes: [
+      'The command uses PostgreSQL PREPARE/catalog metadata and does not execute the canonical application statement.',
+      'Custom driver profiles deliberately degrade generated driver value types to unknown; Ashiba does not configure node-postgres parsers.',
+    ],
+    examples: [
+      'ASHIBA_POSTGRES_DATABASE_URL=postgresql://localhost/app npx ashiba feature query postgres-contract users-list list',
+    ],
+  },
+  {
     name: 'feature tests scaffold',
-    summary: 'Scaffold feature-local mapper and logic test files.',
-    useCase: 'Add generated mapping cases and human-owned logic case placeholders to an existing query boundary.',
+    summary: 'Scaffold selective feature-local SQL logic tests.',
+    useCase: 'Add a ZTD wrapper, generated fixture types, and a human-owned logic case file only for a query whose behavior merits executable examples.',
     usage: 'ashiba feature tests scaffold [options] <feature>',
     arguments: [{ name: 'feature', required: true, description: 'Feature name.' }],
     options: [
@@ -292,24 +319,24 @@ export const COMMANDS: readonly CommandSpec[] = [
   },
   {
     name: 'feature tests check',
-    summary: 'Check and optionally fix generated mapping test assets.',
-    useCase: 'Detect missing generated mapping coverage after DDL or query changes.',
+    summary: 'Check and optionally fix explicitly scaffolded SQL logic-test support.',
+    useCase: 'Detect missing or stale ZTD wrappers and fixture types for selected query logic tests after DDL or query changes.',
     usage: 'ashiba feature tests check [options] [feature]',
     arguments: [{ name: 'feature', required: false, description: 'Optional feature name.' }],
     options: [
       { flags: '--boundary-dir <path>', description: 'Explicit feature boundary directory, including subgrouped boundaries.' },
       { flags: '--query <name>', description: 'Limit check to one query boundary.' },
       commonRoot,
-      { flags: '--fix', description: 'Rewrite generated mapping test assets and create missing logic-case stubs.', defaultValue: 'false' },
+      { flags: '--fix', description: 'Rewrite generated logic-test support and create missing human-owned logic-case stubs.', defaultValue: 'false' },
       commonFormat,
     ],
     examples: ['npx ashiba feature tests check', 'npx ashiba feature tests check users-list --fix'],
   },
   {
-    name: 'feature generated-mapper check',
+    name: 'feature contract check',
     summary: 'Check named-parameter and result-column drift between SQL and editable query contracts.',
     useCase: 'Find contract drift before running or publishing generated application code.',
-    usage: 'ashiba feature generated-mapper check [options] [feature]',
+    usage: 'ashiba feature contract check [options] [feature]',
     arguments: [{ name: 'feature', required: false, description: 'Optional feature name.' }],
     options: [
       { flags: '--boundary-dir <path>', description: 'Limit drift check to one explicit feature boundary directory, including subgrouped boundaries.' },
@@ -317,7 +344,45 @@ export const COMMANDS: readonly CommandSpec[] = [
       commonRoot,
       commonFormat,
     ],
-    examples: ['npx ashiba feature generated-mapper check', 'npx ashiba feature generated-mapper check users-list --query list'],
+    examples: ['npx ashiba feature contract check', 'npx ashiba feature contract check users-list --query list'],
+  },
+  {
+    name: 'sql-resource snapshot',
+    summary: 'Generate language-neutral SQL resources and a PostgreSQL-backed fleet snapshot.',
+    useCase: 'Describe canonical SQL files against a development database without making TypeScript application code the query source.',
+    usage: 'ashiba sql-resource snapshot [options]',
+    options: [
+      commonRoot,
+      { flags: '--database-url <url>', description: 'Development/test PostgreSQL connection URL.' },
+      { flags: '--database-url-env <name>', description: 'Environment variable containing the PostgreSQL URL.', defaultValue: 'ASHIBA_POSTGRES_DATABASE_URL' },
+      { flags: '--driver-profile <profile>', description: 'Driver representation profile.', defaultValue: 'node-postgres-default' },
+      { flags: '--out <path>', description: 'Fleet snapshot JSON path.', defaultValue: 'generated/sql-resource-fleet.snapshot.json' },
+      commonFormat,
+    ],
+    notes: [
+      'The canonical .sql file remains the authored source. Metadata points to it and generated PostgreSQL SQL is stored separately.',
+      'The command only prepares and describes statements; it does not execute application queries or apply migrations.',
+    ],
+    examples: ['ASHIBA_POSTGRES_DATABASE_URL=postgresql://localhost/app npx ashiba sql-resource snapshot'],
+  },
+  {
+    name: 'sql-resource compare',
+    summary: 'Compare before/after SQL resource fleets and classify schema compatibility.',
+    useCase: 'Reduce a database schema review to affected SQL resources and machine-derived reasons.',
+    usage: 'ashiba sql-resource compare [options]',
+    options: [
+      { flags: '--before <path>', description: 'Before fleet snapshot JSON.' },
+      { flags: '--after <path>', description: 'After fleet snapshot JSON.' },
+      { flags: '--out <path>', description: 'Persist the full deterministic comparison JSON.' },
+      { flags: '--query <id>', description: 'Drill into one stable query ID or canonical path.' },
+      { flags: '--details', description: 'Include all query details.', defaultValue: 'false' },
+      commonFormat,
+    ],
+    notes: [
+      'Classifications are unaffected, compatible, contract-changed, execution-breaking, and needs-review.',
+      'OID values are excluded from comparison identity because they are local to one PostgreSQL cluster.',
+    ],
+    examples: ['npx ashiba sql-resource compare --before before.json --after after.json --out report.json'],
   },
   {
     name: 'project check',
@@ -333,7 +398,7 @@ export const COMMANDS: readonly CommandSpec[] = [
   },
   {
     name: 'check-contract',
-    summary: 'Check visible SQL contracts against generated mapper boundaries.',
+    summary: 'Check visible SQL against editable parameter and result contracts.',
     useCase: 'Run a broad drift check before commit or release.',
     usage: 'ashiba check-contract [options]',
     options: [

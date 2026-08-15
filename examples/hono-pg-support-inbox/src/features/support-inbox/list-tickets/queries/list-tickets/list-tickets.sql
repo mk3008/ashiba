@@ -211,6 +211,20 @@ from
     left join aggregated_tags as tags on tags.ticket_id = st.ticket_id
 order by
     st.ticket_id
+    , cast(st.subject as text)
+    , cast(st.customer_name as text)
+    , cast(st.customer_tier as text)
+    , cast(st.status as text)
+    , st.priority_rank
+    , st.sla_due_at
+    , cast(st.sla_state as text)
+    , st.latest_message_at
+    , cast(st.language as text)
+    , cast(st.channel as text)
+    , st.updated_at desc
+    , st.action_required
+    , lcr.last_customer_reply_at desc
+    , st.vip_rank
 limit
     :limit
 offset

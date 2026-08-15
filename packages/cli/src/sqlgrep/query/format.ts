@@ -43,6 +43,9 @@ export function formatQueryUsageReport(report: QueryUsageReport, format: 'text' 
     `matches: ${report.summary.matches}`,
     `fallback matches: ${report.summary.fallbackMatches}`,
     `parse warnings: ${report.summary.parseWarnings}`,
+    `high confidence matches: ${report.summary.highConfidenceMatches}`,
+    `low confidence matches: ${report.summary.lowConfidenceMatches}`,
+    `unresolved matches: ${report.summary.unresolvedMatches}`,
     `unresolved sql files: ${report.summary.unresolvedSqlFiles}`
   ];
 
@@ -119,7 +122,7 @@ function appendImpactMatches(lines: string[], matches: QueryUsageMatchImpact[]):
   }
 
   for (const match of matches) {
-    lines.push(`- ${match.catalog_id} ${match.query_id} ${match.confidence}`);
+    lines.push(`- ${match.catalog_id} ${match.query_id} ${match.confidenceBand}`);
     lines.push(`  sql_file: ${match.sql_file}`);
     lines.push(`  statement_fingerprint: ${match.statement_fingerprint}`);
     lines.push(`  source: ${match.source}`);

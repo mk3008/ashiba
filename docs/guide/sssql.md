@@ -195,7 +195,7 @@ Refresh metadata after SQL edits:
 
 ```bash
 npx ashiba query optional refresh path/to/query.sql
-npx ashiba feature query refresh users-list list
+npx ashiba check --fix-generated
 ```
 
 Then run the passive checks:

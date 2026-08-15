@@ -21,6 +21,7 @@ import { registerPerfCommand } from './commands/perf.js';
 import { registerProjectCommand } from './commands/project.js';
 import { registerQueryCommand } from './commands/query.js';
 import { registerRfbaCommand } from './commands/rfba.js';
+import { registerSqlResourceCommand } from './commands/sql-resource.js';
 
 const currentFile = fileURLToPath(import.meta.url);
 const invokedFile = process.argv[1] ? path.resolve(process.argv[1]) : undefined;
@@ -43,6 +44,7 @@ export function buildProgram(): Command {
     'query uses table',
     'query slice',
     'query format',
+    'sql-resource snapshot',
     'ddl migration generate',
     'describe command',
   ]);
@@ -83,6 +85,7 @@ Detailed command catalog:
   registerProjectCommand(program);
   registerQueryCommand(program);
   registerRfbaCommand(program);
+  registerSqlResourceCommand(program);
   applyCommandCatalogToProgram(program);
 
   return program;

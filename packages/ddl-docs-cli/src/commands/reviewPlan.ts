@@ -216,7 +216,7 @@ const MANDATORY_TEST_POLICIES = [
   },
   {
     id: 'no-hot-path-runtime-validation',
-    reason: 'Mapper safety is shifted left to queryspec contracts, generated mapper checks, and DB-backed tests.',
+    reason: 'Mapping safety is shifted left to query contracts, PostgreSQL-derived checks, and selective DB-backed behavior tests.',
   },
 ] as const;
 

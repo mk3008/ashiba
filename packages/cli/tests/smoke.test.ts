@@ -69,7 +69,6 @@ describe('@ashiba-ts/cli smoke', () => {
     const program = buildProgram();
 
     expect(program.commands.some((command) => command.name() === 'config')).toBe(true);
-    expect(createDefaultConfig().tests.mapperLane).toBe('ztd');
     expect(createDefaultConfig().featureRoot).toBe('src/features');
     expect(createDefaultConfig().sqlRoots).toEqual(['src/features']);
     expect(formatDefaultConfig()).toContain('"parameterStyle": "both"');
@@ -125,6 +124,7 @@ describe('@ashiba-ts/cli smoke', () => {
       'query optional refresh',
       'feature import',
       'feature query scaffold',
+      'feature contract check',
       'feature tests scaffold',
       'feature tests check',
       'project check',
@@ -729,10 +729,7 @@ describe('@ashiba-ts/cli smoke', () => {
       const deleteQueryBoundary = readFileSync(path.join(rootDir, 'src/features/users-delete/queries/delete-users/query.ts'), 'utf8');
       const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.meta.ts'), 'utf8');
       const querySqlSource = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/generated/query.sql.ts'), 'utf8');
-      const queryZtdTest = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/insert-users.boundary.ztd.test.ts'), 'utf8');
-      const queryZtdTypes = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/boundary-ztd-types.ts'), 'utf8');
-      const queryTestPlan = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/TEST_PLAN.md'), 'utf8');
-      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/mapping.cases.ts'), 'utf8');
+      const queryTestsDir = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests');
       const querySql = readFileSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql'), 'utf8');
       const updateSql = readFileSync(path.join(rootDir, 'src/features/users-update/queries/update-users/update-users.sql'), 'utf8');
       const deleteSql = readFileSync(path.join(rootDir, 'src/features/users-delete/queries/delete-users/delete-users.sql'), 'utf8');
@@ -740,9 +737,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.featureName).toBe('users-insert');
       expect(query.queryName).toBe('get-user');
       expect(featureBoundary).toContain('parseRequest');
-      expect(featureReadme).toContain('Generated mapper cases prove DB-to-TypeScript result contracts.');
+      expect(featureReadme).toContain('Static and PostgreSQL-derived contract checks prove DB-to-TypeScript result contracts.');
       expect(featureReadme).toContain('passing the same FeatureQueryExecutor');
-      expect(featureReadme).toContain('TypeScript-to-DB inputs');
+      expect(featureReadme).toContain('route or integration tests for inputs');
       expect(featureBoundary).toContain('executeWorkflow');
       expect(featureBoundary).toContain('buildResult');
       expect(existsSync(path.join(rootDir, 'src/features/users-insert/input.ts'))).toBe(true);
@@ -753,7 +750,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'src/features/users-insert/output.ts'), 'utf8')).toContain('export interface UsersInsertResponse');
       expect(readFileSync(path.join(rootDir, 'src/features/users-insert/workflow.ts'), 'utf8')).toContain("from '#features/_shared/featureQueryExecutor.js'");
       expect(queryBoundary).not.toContain("from 'zod'");
-      expect(queryBoundary).toContain("import { queryOne } from '@ashiba-ts/driver-adapter-core';");
+      expect(queryBoundary).toContain("import { queryOne, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';");
       expect(queryBoundary).toContain("import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
       expect(queryBoundary).not.toContain("from '#features/_shared/loadSqlResource.js'");
       expect(queryBoundary).not.toContain("from 'node:fs'");
@@ -765,27 +762,28 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryBoundary).toContain('metadata');
       expect(queryBoundary).toContain('queryModel');
       expect(queryBoundary).toContain("from './generated/query.meta.js'");
-      expect(queryBoundary).toContain('return queryOne<QueryRow>(executor, insertUsersQuery, params as unknown as Record<string, unknown>);');
+      expect(queryBoundary).toContain('FeatureQuerySource<InsertUsersQueryParams, InsertUsersQueryResult>');
+      expect(queryBoundary).toContain('return queryOne(executor, insertUsersQuery, params);');
       expect(queryBoundary).not.toContain('optionalConditionCompression: true');
       expect(getByIdQueryBoundary).toContain('optionalConditionCompression: true');
-      expect(getByIdQueryBoundary).toContain("import { queryOneOrNull } from '@ashiba-ts/driver-adapter-core';");
+      expect(getByIdQueryBoundary).toContain("import { queryOneOrNull, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';");
       expect(getByIdQueryBoundary).toContain("import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
       expect(getByIdQueryBoundary).toContain('): Promise<GetUserQueryResult | null> {');
-      expect(getByIdQueryBoundary).toContain('return queryOneOrNull<QueryRow>(executor, getUserQuery, params as unknown as Record<string, unknown>);');
-      expect(listQueryBoundary).toContain("import { queryMany } from '@ashiba-ts/driver-adapter-core';");
-      expect(listQueryBoundary).toContain('return queryMany<QueryRow>(executor, listQuery, params as unknown as Record<string, unknown>);');
+      expect(getByIdQueryBoundary).toContain('return queryOneOrNull(executor, getUserQuery, params);');
+      expect(listQueryBoundary).toContain("import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';");
+      expect(listQueryBoundary).toContain('return queryMany(executor, listQuery, params);');
       expect(getByIdFeatureQueryBoundary).toContain('): Promise<GetByIdQueryResult | null> {');
       expect(getByIdFeatureWorkflow).toContain('export type UsersGetByIdWorkflowResult = GetByIdQueryResult | null;');
       expect(getByIdFeatureWorkflow).toContain(') => Promise<GetByIdQueryResult | null>;');
       expect(getByIdFeatureOutput).toContain('export type UsersGetByIdResponse = {');
       expect(getByIdFeatureOutput).toContain('} | null;');
       expect(getByIdFeatureOutput).toContain('if (result === null) return null;');
-      expect(updateQueryBoundary).toContain("import { queryMany } from '@ashiba-ts/driver-adapter-core';");
+      expect(updateQueryBoundary).toContain("import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';");
       expect(updateQueryBoundary).toContain('): Promise<UpdateUsersQueryResult[]> {');
-      expect(updateQueryBoundary).toContain('return queryMany<QueryRow>(executor, updateUsersQuery, params as unknown as Record<string, unknown>);');
+      expect(updateQueryBoundary).toContain('return queryMany(executor, updateUsersQuery, params);');
       expect(updateWorkflow).toContain('export type UsersUpdateWorkflowResult = UpdateUsersQueryResult[];');
       expect(updateOutput).toContain('items: Array<{');
-      expect(deleteQueryBoundary).toContain("import { queryMany } from '@ashiba-ts/driver-adapter-core';");
+      expect(deleteQueryBoundary).toContain("import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';");
       expect(deleteQueryBoundary).toContain('): Promise<DeleteUsersQueryResult[]> {');
       expect(queryMeta).toContain('Generated by Ashiba. Do not edit by hand.');
       expect(queryMeta).toContain('"postgres"');
@@ -794,19 +792,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(querySqlSource).toContain('Generated by Ashiba. Do not edit by hand.');
       expect(querySqlSource).toContain('export const querySql =');
       expect(existsSync(path.join(rootDir, 'src/features/_shared/loadSqlResource.ts'))).toBe(false);
-      expect(queryZtdTest).toContain("from '#tests/support/ztd/harness.js'");
-      expect(queryZtdTest).not.toContain('db/ddl/public.sql');
-      expect(queryZtdTest).not.toContain('existsSync');
-      expect(queryZtdTypes).toContain("from '#tests/support/ztd/case-types.js'");
-      expect(queryTestPlan).toContain('Unit tests are mapping-contract tests');
-      expect(queryTestPlan).toContain('RETURNING row compatibility only');
-      expect(queryTestPlan).toContain('TypeScript-to-DB inputs');
-      expect(queryTestPlan).toContain('DDL is loaded from the configured DDL source directory');
-      expect(queryMappingCases).toContain('mapperProbe');
-      expect(queryMappingCases).toContain('maps insert-users DB result values into the DTO');
-      expect(queryMappingCases).toContain('select\\n    cast(');
-      expect(queryMappingCases).not.toContain('binds insert-users insert params');
-      expect(queryMappingCases).not.toContain('inserts insert-users row');
+      expect(existsSync(queryTestsDir)).toBe(false);
       expect(querySql).toContain(':email');
       expect(querySql).not.toContain(':user_id');
       expect(querySql).toContain('returning\n    user_id\n    , email\n    , display_name');
@@ -859,7 +845,7 @@ describe('@ashiba-ts/cli smoke', () => {
         kind: 'file',
         written: true,
       });
-      expect(queryBoundary).toContain("import { queryMany } from '@ashiba-ts/driver-adapter-core';");
+      expect(queryBoundary).toContain("import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';");
       expect(queryBoundary).toContain("import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
       expect(queryBoundary).not.toContain("import { queryMany, type FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
     } finally {
@@ -922,7 +908,7 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
-  test('generates DB-valid mapping probe literals for timestamp, json, and array columns', () => {
+  test('does not persist synthetic mapping probes for timestamp, json, and array columns', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-mapping-literals-'));
 
     try {
@@ -939,17 +925,8 @@ describe('@ashiba-ts/cli smoke', () => {
 
       runFeatureScaffold({ rootDir, table: 'event_logs', action: 'insert' });
 
-      const queryMappingCases = readFileSync(path.join(rootDir, 'src/features/event-logs-insert/queries/insert-event-logs/tests/generated/mapping.cases.ts'), 'utf8');
-
-      expect(queryMappingCases).toContain("cast('2026-01-01T00:00:00.000Z' as timestamptz)");
-      expect(queryMappingCases).toContain('as jsonb');
-      expect(queryMappingCases).toContain("cast(array['tags-1'] as text[])");
-      expect(queryMappingCases).toContain('tags: [');
-      expect(queryMappingCases).toContain('sample');
-      expect(queryMappingCases).not.toContain('created_at-boundary-value');
-      expect(queryMappingCases).not.toContain('payload-boundary-value');
-      expect(queryMappingCases).not.toContain("cast('tags-1' as text[])");
-      expect(queryMappingCases).not.toContain('[object Object]');
+      expect(existsSync(path.join(rootDir, 'src/features/event-logs-insert/queries/insert-event-logs/tests'))).toBe(false);
+      expect(runFeatureGeneratedMapperCheck({ rootDir, feature: 'event-logs-insert' }).checked).toHaveLength(1);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -974,13 +951,9 @@ describe('@ashiba-ts/cli smoke', () => {
 
       const sqlPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/insert-users.sql');
       const queryPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/query.ts');
-      const mappingPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/mapping.cases.ts');
-      const analysisPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated/analysis.json');
 
       const sql = readFileSync(sqlPath, 'utf8');
       const queryBoundary = readFileSync(queryPath, 'utf8');
-      const queryMappingCases = readFileSync(mappingPath, 'utf8');
-      const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as { returningMode?: string };
 
       expect(sql).toContain('returning\n    user_id');
       expect(sql).toContain(':email');
@@ -993,14 +966,8 @@ describe('@ashiba-ts/cli smoke', () => {
       const resultContract = queryBoundary.split('export interface InsertUsersQueryResult')[1]?.split('}')[0] ?? '';
       expect(resultContract).not.toContain('email: string;');
       expect(resultContract).not.toContain('display_name: string');
-      expect(queryMappingCases).toContain('as \\"user_id\\"');
-      expect(queryMappingCases).not.toContain('as \\"email\\"');
-      expect(queryMappingCases).not.toContain('as \\"display_name\\"');
-      expect(analysis.returningMode).toBe('minimal');
-
-      const check = runFeatureTestsCheck({ rootDir, feature: 'users-insert', query: 'insert-users', fix: true });
-      expect(check.ok).toBe(true);
-      expect(readFileSync(mappingPath, 'utf8')).not.toContain('as \\"email\\"');
+      expect(existsSync(path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests'))).toBe(false);
+      expect(runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-insert', query: 'insert-users' }).ok).toBe(true);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1035,9 +1002,6 @@ describe('@ashiba-ts/cli smoke', () => {
 
       const sql = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/update-tickets.sql'), 'utf8');
       const queryBoundary = readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/query.ts'), 'utf8');
-      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/tests/generated/analysis.json'), 'utf8')) as {
-        optimisticLock?: { versionColumn?: string; expectedVersionParameter?: string };
-      };
 
       expect(sql).toContain('status = :status');
       expect(sql).toContain('subject = :subject');
@@ -1048,19 +1012,14 @@ describe('@ashiba-ts/cli smoke', () => {
       const paramsBlock = queryBoundary.split('export interface UpdateTicketsQueryParams')[1]?.split('}')[0] ?? '';
       expect(paramsBlock).not.toMatch(/^\s+version_key: number;/m);
       expect(queryBoundary).toContain('version_key: number;');
-      expect(analysis.optimisticLock).toEqual({
-        versionColumn: 'version_key',
-        expectedVersionParameter: 'expected_version_key',
-      });
-
-      const check = runFeatureTestsCheck({ rootDir, feature: 'tickets-update', query: 'update-tickets', fix: false });
-      expect(check.ok).toBe(true);
+      expect(existsSync(path.join(rootDir, 'src/features/tickets-update/queries/update-tickets/tests'))).toBe(false);
+      expect(runFeatureGeneratedMapperCheck({ rootDir, feature: 'tickets-update', query: 'update-tickets' }).ok).toBe(true);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('imports an existing SQL file into a feature with DTO mapper metadata and ZTD cases', () => {
+  test('imports existing SQL without persisted probes and scaffolds logic tests explicitly', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-sql-'));
 
     try {
@@ -1094,13 +1053,10 @@ describe('@ashiba-ts/cli smoke', () => {
       const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/query.ts'), 'utf8');
       const queryMeta = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/generated/query.meta.ts'), 'utf8');
       const querySqlSource = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/generated/query.sql.ts'), 'utf8');
-      const mappingCases = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/tests/generated/mapping.cases.ts'), 'utf8');
+      const testsDir = path.join(rootDir, 'src/features/users-search/queries/search/tests');
+      expect(existsSync(testsDir)).toBe(false);
+      const testsScaffold = runFeatureTestsScaffold({ rootDir, feature: 'users-search', query: 'search' });
       const ztdTypes = readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/tests/boundary-ztd-types.ts'), 'utf8');
-      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/users-search/queries/search/tests/generated/analysis.json'), 'utf8')) as {
-        status: string;
-        table: string;
-        action: string;
-      };
       const mapperCheck = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-search', query: 'search' });
 
       expect(result.featureName).toBe('users-search');
@@ -1114,7 +1070,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryBoundary).toContain('export interface SearchQueryParams');
       expect(queryBoundary).toContain('email: string;');
       expect(queryBoundary).toContain('export interface SearchQueryResult');
-      expect(queryBoundary).toContain('user_id: number | null;');
+      expect(queryBoundary).toContain('user_id: number;');
       expect(queryBoundary).toContain('display_name: string | null;');
       expect(queryBoundary).toContain('Promise<SearchQueryResult[]>');
       expect(queryBoundary).toContain("from './generated/query.meta.js'");
@@ -1125,16 +1081,13 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryMeta).toContain('"resultColumns"');
       expect(querySqlSource).toContain('export const querySql =');
       expect(querySqlSource).toContain('display_name');
-      expect(mappingCases).toContain('mapperProbe');
-      expect(mappingCases).toContain('maps search imported result columns into the DTO');
-      expect(mappingCases).toContain('nullable-output-mapping');
-      expect(mappingCases).toContain('alice@example.com');
       expect(ztdTypes).toContain('SearchQueryResult[]');
-      expect(analysis).toMatchObject({
-        status: 'generated-from-imported-sql',
-        table: 'public.users',
-        action: 'list',
-      });
+      expect(testsScaffold.outputs.map((output) => output.path)).toEqual(expect.arrayContaining([
+        'src/features/users-search/queries/search/tests/search.boundary.ztd.test.ts',
+        'src/features/users-search/queries/search/tests/boundary-ztd-types.ts',
+        'src/features/users-search/queries/search/tests/cases/logic.case.ts',
+      ]));
+      expect(existsSync(path.join(testsDir, 'generated'))).toBe(false);
       expect(mapperCheck.ok).toBe(true);
       expect(mapperCheck.checked[0]?.sqlParameters).toEqual(['email']);
       expect(mapperCheck.checked[0]?.sqlResultColumns).toEqual(['display_name', 'email', 'user_id']);
@@ -1143,7 +1096,7 @@ describe('@ashiba-ts/cli smoke', () => {
       writeFileSync(
         queryPath,
         readFileSync(queryPath, 'utf8')
-          .replace('user_id: number | null;', 'user_id: string | null;')
+          .replace('user_id: number;', 'user_id: string;')
           .replace('display_name: string | null;', 'display_name: string;'),
         'utf8',
       );
@@ -1152,7 +1105,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(typeDrift.ok).toBe(false);
       expect(typeDrift.checked[0]?.mismatchedResultTypes).toEqual([
         'display_name: mapper string / SQL string | null',
-        'user_id: mapper string | null / SQL number | null',
+        'user_id: mapper string / SQL number',
       ]);
       expect(typeDrift.checked[0]?.warningResultTypeMismatches).toEqual([]);
     } finally {
@@ -1196,7 +1149,7 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(queryBoundary).not.toContain('optionalConditionCompression: true');
       expect(queryMeta).toContain('"statementKind": "update"');
-      expect(queryMeta).not.toContain('"optionalConditionCompression"');
+      expect(queryMeta).not.toContain('"optionalConditionCompression": {');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1265,24 +1218,14 @@ describe('@ashiba-ts/cli smoke', () => {
         sql: 'tmp/users.sql',
       });
       const queryBoundary = readFileSync(path.join(rootDir, 'src/features/users-read/queries/read/query.ts'), 'utf8');
-      const analysis = JSON.parse(readFileSync(path.join(rootDir, 'src/features/users-read/queries/read/tests/generated/analysis.json'), 'utf8')) as {
-        table?: string;
-        primaryKeyColumn?: string;
-        mappingCaseSignature?: {
-          params?: Array<{ name: string; typeScriptType: string }>;
-        };
-      };
+      const mapperCheck = runFeatureGeneratedMapperCheck({ rootDir, feature: 'users-read', query: 'read' });
 
       expect(result.importedSqlFile).toBe('src/features/users-read/queries/read/read.sql');
       expect(queryBoundary).toContain('account_id: string;');
       expect(queryBoundary).toContain('display_name: string | null;');
-      expect(analysis).toMatchObject({
-        table: 'app.users',
-        primaryKeyColumn: 'account_id',
-      });
-      expect(analysis.mappingCaseSignature?.params).toEqual([
-        { name: 'account_id', typeScriptType: 'string' },
-      ]);
+      expect(mapperCheck.ok).toBe(true);
+      expect(mapperCheck.checked[0]?.sqlParameters).toEqual(['account_id']);
+      expect(existsSync(path.join(rootDir, 'src/features/users-read/queries/read/tests'))).toBe(false);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1340,19 +1283,8 @@ describe('@ashiba-ts/cli smoke', () => {
 
       const importedSql = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/list-tickets.sql'), 'utf8');
       const queryContract = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/query.ts'), 'utf8');
-      const analysisPath = path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/tests/generated/analysis.json');
-      const analysis = JSON.parse(readFileSync(analysisPath, 'utf8')) as {
-        anchorSource?: string;
-        anchorTable?: string;
-        table?: string;
-        physicalTables?: string[];
-        status?: string;
-        mappingCaseSignature?: {
-          anchorSource?: string;
-          anchorTable?: string;
-          physicalTables?: string[];
-        };
-      };
+      runFeatureTestsScaffold({ rootDir, feature: 'support-inbox', query: 'list-tickets' });
+      const ztdTypes = readFileSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/tests/boundary-ztd-types.ts'), 'utf8');
 
       expect(result.formatted).toBe(true);
       expect(result.formatSkippedReason).toBeUndefined();
@@ -1361,18 +1293,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(queryContract).toContain('created_at: string | null;');
       expect(queryContract).toContain('customer_name: string | null;');
       expect(queryContract).toContain('subject: string | null;');
-      expect(analysis).toMatchObject({
-        anchorSource: 'ticket_view',
-        anchorTable: 'public.tickets',
-        table: 'public.tickets',
-        status: 'generated-from-imported-sql',
-      });
-      expect(analysis.physicalTables).toEqual(['public.customers', 'public.tickets']);
-      expect(analysis.mappingCaseSignature).toMatchObject({
-        anchorSource: 'ticket_view',
-        anchorTable: 'public.tickets',
-        physicalTables: ['public.customers', 'public.tickets'],
-      });
+      expect(ztdTypes).toContain('customers: readonly {');
+      expect(ztdTypes).toContain('tickets: readonly {');
+      expect(existsSync(path.join(rootDir, 'src/features/support-inbox/queries/list-tickets/tests/generated'))).toBe(false);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1455,7 +1378,7 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
-  test('imports timestamp result columns with valid PostgreSQL mapper probe fixtures', () => {
+  test('checks timestamp result contracts without persisting probe fixtures', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-timestamp-fixture-'));
 
     try {
@@ -1482,16 +1405,14 @@ describe('@ashiba-ts/cli smoke', () => {
         sql: 'tmp/list-tickets.sql',
       });
 
-      const mappingCases = readFileSync(path.join(rootDir, 'src/features/tickets-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8');
-
-      expect(mappingCases).toContain("cast('2026-01-01T00:00:00.000Z' as timestamptz)");
-      expect(mappingCases).not.toContain("cast('created_at-1' as timestamptz)");
+      expect(runFeatureGeneratedMapperCheck({ rootDir, feature: 'tickets-list', query: 'list' }).ok).toBe(true);
+      expect(existsSync(path.join(rootDir, 'src/features/tickets-list/queries/list/tests'))).toBe(false);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('respects customer-owned DTO nullability when imported SQL nullability is uncertain', () => {
+  test('uses proved expression nullability in imported SQL contracts', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-code-is-yours-'));
 
     try {
@@ -1510,29 +1431,33 @@ describe('@ashiba-ts/cli smoke', () => {
       });
 
       const queryPath = path.join(rootDir, 'src/features/status-read/queries/status/query.ts');
-      const mappingPath = path.join(rootDir, 'src/features/status-read/queries/status/tests/generated/mapping.cases.ts');
 
-      expect(readFileSync(queryPath, 'utf8')).toContain('status_text: string | null;');
+      expect(readFileSync(queryPath, 'utf8')).toContain('status_text: string;');
       expect(readFileSync(queryPath, 'utf8')).toContain('message: string | null;');
-      expect(readFileSync(mappingPath, 'utf8')).toContain('nullable-output-mapping');
+
+      writeFileSync(
+        queryPath,
+        readFileSync(queryPath, 'utf8').replace('status_text: string;', 'status_text: string | null;'),
+        'utf8',
+      );
+
+      const result = runFeatureGeneratedMapperCheck({ rootDir, feature: 'status-read', query: 'status' });
+
+      expect(result.ok).toBe(false);
+      expect(result.checked[0]?.mismatchedResultTypes).toEqual([
+        'status_text: mapper string | null / SQL string',
+      ]);
+      expect(result.checked[0]?.warningResultTypeMismatches).toEqual([]);
+
+      const warningOnlyProject = runProjectCheck({ rootDir });
+      expect(warningOnlyProject.ok).toBe(false);
+      expect(warningOnlyProject.errors.map((issue) => issue.code)).toContain('ASHIBA_PROJECT_GENERATED_MAPPER_DRIFT');
 
       writeFileSync(
         queryPath,
         readFileSync(queryPath, 'utf8').replace('status_text: string | null;', 'status_text: string;'),
         'utf8',
       );
-
-      const result = runFeatureGeneratedMapperCheck({ rootDir, feature: 'status-read', query: 'status' });
-
-      expect(result.ok).toBe(true);
-      expect(result.checked[0]?.mismatchedResultTypes).toEqual([]);
-      expect(result.checked[0]?.warningResultTypeMismatches).toEqual([
-        "status_text: mapper string / SQL string | null (nullability unknown; customer-owned DTO is narrower than Ashiba's conservative import contract)",
-      ]);
-
-      const warningOnlyProject = runProjectCheck({ rootDir });
-      expect(warningOnlyProject.ok).toBe(true);
-      expect(warningOnlyProject.warnings.map((issue) => issue.code)).toContain('ASHIBA_PROJECT_GENERATED_MAPPER_RESULT_INFERENCE_WARNING');
 
       writeFileSync(
         queryPath,
@@ -1554,7 +1479,7 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
-  test('imports expression SQL and still generates FROM-less mapper probes without a root table', () => {
+  test('imports expression SQL and explicitly scaffolds FROM-less logic fixtures', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-import-expression-sql-'));
 
     try {
@@ -1572,51 +1497,30 @@ describe('@ashiba-ts/cli smoke', () => {
       });
 
       const queryBoundary = readFileSync(path.join(rootDir, 'src/features/health-check/queries/readiness/query.ts'), 'utf8');
+      expect(existsSync(path.join(rootDir, 'src/features/health-check/queries/readiness/tests'))).toBe(false);
+      const scaffold = runFeatureTestsScaffold({ rootDir, feature: 'health-check', query: 'readiness' });
       const ztdTypesPath = path.join(rootDir, 'src/features/health-check/queries/readiness/tests/boundary-ztd-types.ts');
-      const mappingPath = path.join(rootDir, 'src/features/health-check/queries/readiness/tests/generated/mapping.cases.ts');
-      const analysisPath = path.join(rootDir, 'src/features/health-check/queries/readiness/tests/generated/analysis.json');
       const ztdTypes = readFileSync(ztdTypesPath, 'utf8');
-      const mappingCases = readFileSync(mappingPath, 'utf8');
 
       expect(queryBoundary).toContain('status_code: string;');
       expect(queryBoundary).toContain('ratio: string | null;');
       expect(queryBoundary).toContain('message: string | null;');
       expect(ztdTypes).toContain('Record<string, unknown>');
-      expect(mappingCases).toContain('mapperProbe');
-      expect(mappingCases).toContain('beforeDb: {}');
-      expect(mappingCases).toContain('cast(\'1\' as bigint) as \\"status_code\\"');
-      expect(mappingCases).toContain('cast(\'1.25\' as numeric(10, 2)) as \\"ratio\\"');
-      expect(mappingCases).not.toContain('cast(\'value\' as bigint)');
-      expect(mappingCases).not.toContain('cast(\'value\' as numeric');
-      expect(mappingCases).toContain('cast(null as text) as \\"message\\"');
+      expect(scaffold.outputs.map((output) => output.path)).toEqual(expect.arrayContaining([
+        'src/features/health-check/queries/readiness/tests/readiness.boundary.ztd.test.ts',
+        'src/features/health-check/queries/readiness/tests/boundary-ztd-types.ts',
+        'src/features/health-check/queries/readiness/tests/cases/logic.case.ts',
+      ]));
+      expect(existsSync(path.join(rootDir, 'src/features/health-check/queries/readiness/tests/generated'))).toBe(false);
 
-      rmSync(mappingPath, { force: true });
-      rmSync(analysisPath, { force: true });
+      rmSync(ztdTypesPath, { force: true });
       const missing = runFeatureTestsCheck({ rootDir, feature: 'health-check', query: 'readiness' });
       const fixed = runFeatureTestsCheck({ rootDir, feature: 'health-check', query: 'readiness', fix: true });
 
       expect(missing.ok).toBe(false);
       expect(missing.checked[0]?.issues.length).toBeGreaterThan(0);
       expect(fixed.ok).toBe(true);
-      expect(readFileSync(mappingPath, 'utf8')).toContain('mapperProbe');
-      expect(JSON.parse(readFileSync(analysisPath, 'utf8'))).toMatchObject({
-        importSource: 'existing-sql',
-        status: 'generated-from-imported-sql-without-root-table',
-      });
-
-      rmSync(mappingPath, { force: true });
-      rmSync(analysisPath, { force: true });
-      const scaffold = runFeatureTestsScaffold({ rootDir, feature: 'health-check', query: 'readiness', force: true });
-
-      expect(scaffold.outputs.map((file) => file.path)).toEqual(expect.arrayContaining([
-        'src/features/health-check/queries/readiness/tests/generated/mapping.cases.ts',
-        'src/features/health-check/queries/readiness/tests/generated/analysis.json',
-      ]));
-      expect(readFileSync(mappingPath, 'utf8')).toContain('mapperProbe');
-      expect(JSON.parse(readFileSync(analysisPath, 'utf8'))).toMatchObject({
-        importSource: 'existing-sql',
-        status: 'generated-from-imported-sql-without-root-table',
-      });
+      expect(readFileSync(ztdTypesPath, 'utf8')).toContain('Record<string, unknown>');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -1720,7 +1624,9 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(listSql).toContain('    user_id\n    , email');
       const boundaryTest = readFileSync(path.join(rootDir, 'src/features/users-list/tests/users-list.boundary.test.ts'), 'utf8');
       expect(boundaryTest).toMatch(/expect\(params\)\.toEqual\(\{\n {8}limit: 1\n {6}\}\);/);
-      expect(boundaryTest).toMatch(/return \[\{\n {8}user_id: 1,\n {8}email: "email-value"/);
+      expect(boundaryTest).toMatch(/const rows: ListQueryResult\[\] = \[\{\n {2}user_id: 1,\n {2}email: "email-value"/);
+      expect(boundaryTest).toContain('return rows;');
+      expect(boundaryTest).not.toContain('as unknown[]');
       expect(boundaryTest).toMatch(/await expect\(execute\(executor, \{\n {4}limit: 1\n {2}\}\)\)\.resolves\.toEqual\(\{/);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -1810,44 +1716,41 @@ describe('@ashiba-ts/cli smoke', () => {
       const ztdTest = readFileSync(path.join(rootDir, boundaryDir, 'queries/get-user/tests/get-user.boundary.ztd.test.ts'), 'utf8');
 
       expect(queryResult.featureName).toBe('users-insert');
-      expect(testsResult.outputs.some((output) => output.path.endsWith('orders/write/users-insert/queries/get-user/tests/generated/TEST_PLAN.md'))).toBe(true);
+      expect(testsResult.outputs.some((output) => output.path.endsWith('orders/write/users-insert/queries/get-user/tests/boundary-ztd-types.ts'))).toBe(true);
       expect(checkResult.checked[0]?.feature).toBe('users-insert');
       expect(checkResult.checked[0]?.sqlFile).toBe('src/features/orders/write/users-insert/queries/get-user/get-user.sql');
       expect(queryBoundary).toContain("from '#features/_shared/featureQueryExecutor.js'");
       expect(queryBoundary).toContain("from './generated/query.sql.js'");
       expect(queryBoundary).not.toContain("from '#features/_shared/loadSqlResource.js'");
       expect(querySqlSource).toContain('export const querySql =');
-      expect(queryBoundary).toContain("import { queryOneOrNull } from '@ashiba-ts/driver-adapter-core';");
+      expect(queryBoundary).toContain("import { queryOneOrNull, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';");
       expect(queryBoundary).toContain("import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';");
-      expect(queryBoundary).toContain('return queryOneOrNull<QueryRow>(executor, getUserQuery, params as unknown as Record<string, unknown>);');
+      expect(queryBoundary).toContain('return queryOneOrNull(executor, getUserQuery, params);');
       expect(ztdTest).toContain("from '#tests/support/ztd/harness.js'");
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('scaffolds query-local ZTD test cases and generated analysis files', () => {
+  test('selectively scaffolds query-local SQL logic tests without generated probes', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-tests-'));
 
     try {
       mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
       writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
-
       const result = runFeatureTestsScaffold({ rootDir, feature: 'users-list' });
 
-      expect(result.outputs.some((output) => output.path.endsWith('generated/TEST_PLAN.md'))).toBe(true);
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/TEST_PLAN.md'), 'utf8')).toContain('library-owned');
       expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/list.boundary.ztd.test.ts'), 'utf8')).toContain('runQuerySpecZtdCases');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('db-type-mapping');
-      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts'), 'utf8')).toContain('boundary-value-mapping');
+      expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/boundary-ztd-types.ts'), 'utf8')).toContain('ListQueryBoundaryZtdCase');
       expect(readFileSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/cases/logic.case.ts'), 'utf8')).toContain('Human/AI-owned SQL logic cases');
+      expect(existsSync(path.join(rootDir, 'src/features/users-list/queries/list/tests/generated'))).toBe(false);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('detects and fixes generated mapping test drift without overwriting logic cases', () => {
+  test('detects and fixes generated logic fixture drift without overwriting logic cases', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-tests-check-'));
 
     try {
@@ -1861,25 +1764,55 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
-      const mappingPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts');
+      runFeatureTestsScaffold({ rootDir, feature: 'users-list', query: 'list' });
+      const fixtureTypesPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/boundary-ztd-types.ts');
       const logicPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/cases/logic.case.ts');
-      writeFileSync(mappingPath, 'drifted\n', 'utf8');
+      writeFileSync(fixtureTypesPath, 'drifted\n', 'utf8');
       writeFileSync(logicPath, 'human logic stays\n', 'utf8');
 
       const failed = runFeatureTestsCheck({ rootDir, feature: 'users-list' });
       const fixed = runFeatureTestsCheck({ rootDir, feature: 'users-list', fix: true });
 
       expect(failed.ok).toBe(false);
-      expect(failed.checked[0]?.issues.some((issue) => issue.includes('Drifted generated mapping test asset'))).toBe(true);
+      expect(failed.checked[0]?.issues.some((issue) => issue.includes('Drifted generated logic-test support'))).toBe(true);
       expect(fixed.ok).toBe(true);
-      expect(readFileSync(mappingPath, 'utf8')).toContain('nullable-output-mapping');
+      expect(readFileSync(fixtureTypesPath, 'utf8')).toContain('display_name?: unknown;');
       expect(readFileSync(logicPath, 'utf8')).toBe('human logic stays\n');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('detects and fixes DDL-driven generated mapping test drift', () => {
+  test('does not report success when generated-only repair leaves the human logic file missing', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-tests-partial-fix-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
+      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      runFeatureTestsScaffold({ rootDir, feature: 'users-list', query: 'list' });
+      const fixtureTypesPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/boundary-ztd-types.ts');
+      const logicPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/cases/logic.case.ts');
+      writeFileSync(fixtureTypesPath, 'drifted\n', 'utf8');
+      rmSync(logicPath, { force: true });
+
+      const partial = runFeatureTestsCheck({
+        rootDir,
+        feature: 'users-list',
+        fix: true,
+        generatedOnly: true,
+      });
+
+      expect(partial.ok).toBe(false);
+      expect(readFileSync(fixtureTypesPath, 'utf8')).toContain('email?: unknown;');
+      expect(existsSync(logicPath)).toBe(false);
+      expect(partial.checked[0]?.issues.some((issue) => issue.includes('Missing human-owned logic case stub'))).toBe(true);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('detects and fixes DDL-driven logic fixture type drift', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-ddl-drift-'));
 
     try {
@@ -1894,16 +1827,17 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
-      const mappingPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/generated/mapping.cases.ts');
+      runFeatureTestsScaffold({ rootDir, feature: 'users-list', query: 'list' });
+      const fixtureTypesPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/boundary-ztd-types.ts');
       const logicPath = path.join(rootDir, 'src/features/users-list/queries/list/tests/cases/logic.case.ts');
       writeFileSync(logicPath, 'human logic stays\n', 'utf8');
-      expect(readFileSync(mappingPath, 'utf8')).toContain('nullable-output-mapping');
+      expect(readFileSync(fixtureTypesPath, 'utf8')).toContain('display_name?: unknown;');
 
       writeFileSync(ddlPath, [
         'create table public.users (',
         '  user_id bigserial primary key,',
         '  email text not null,',
-        '  display_name text not null',
+        '  nickname text not null',
         ');',
         '',
       ].join('\n'), 'utf8');
@@ -1911,16 +1845,17 @@ describe('@ashiba-ts/cli smoke', () => {
       const fixed = runFeatureTestsCheck({ rootDir, feature: 'users-list', fix: true });
 
       expect(failed.ok).toBe(false);
-      expect(failed.checked[0]?.issues.some((issue) => issue.includes('Drifted generated mapping test asset'))).toBe(true);
+      expect(failed.checked[0]?.issues.some((issue) => issue.includes('Drifted generated logic-test support'))).toBe(true);
       expect(fixed.ok).toBe(true);
-      expect(readFileSync(mappingPath, 'utf8')).not.toContain('nullable-output-mapping');
+      expect(readFileSync(fixtureTypesPath, 'utf8')).toContain('nickname?: unknown;');
+      expect(readFileSync(fixtureTypesPath, 'utf8')).not.toContain('display_name?: unknown;');
       expect(readFileSync(logicPath, 'utf8')).toBe('human logic stays\n');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('fills missing generated mapping test assets from SQL and DDL metadata', () => {
+  test('fills missing generated logic-test support from SQL and DDL metadata', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-feature-tests-fill-'));
 
     try {
@@ -1933,24 +1868,22 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'insert' });
-      const generatedDir = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/generated');
-      const mappingPath = path.join(generatedDir, 'mapping.cases.ts');
-      const analysisPath = path.join(generatedDir, 'analysis.json');
+      runFeatureTestsScaffold({ rootDir, feature: 'users-insert', query: 'insert-users' });
+      const testPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/insert-users.boundary.ztd.test.ts');
+      const fixtureTypesPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/boundary-ztd-types.ts');
       const logicPath = path.join(rootDir, 'src/features/users-insert/queries/insert-users/tests/cases/logic.case.ts');
       writeFileSync(logicPath, 'human logic stays\n', 'utf8');
-      rmSync(mappingPath, { force: true });
-      rmSync(analysisPath, { force: true });
+      rmSync(testPath, { force: true });
+      rmSync(fixtureTypesPath, { force: true });
 
       const failed = runFeatureTestsCheck({ rootDir, feature: 'users-insert' });
       const fixed = runFeatureTestsCheck({ rootDir, feature: 'users-insert', fix: true });
 
       expect(failed.ok).toBe(false);
-      expect(failed.checked[0]?.issues.some((issue) => issue.includes('Missing or unreadable generated mapping test analysis'))).toBe(true);
-      expect(failed.checked[0]?.issues.some((issue) => issue.includes('Missing generated mapping test asset'))).toBe(true);
+      expect(failed.checked[0]?.issues.filter((issue) => issue.includes('Missing generated logic-test support'))).toHaveLength(2);
       expect(fixed.ok).toBe(true);
-      expect(readFileSync(mappingPath, 'utf8')).toContain('mapperProbe');
-      expect(readFileSync(mappingPath, 'utf8')).toContain('maps insert-users DB result values into the DTO');
-      expect(JSON.parse(readFileSync(analysisPath, 'utf8')).action).toBe('insert');
+      expect(readFileSync(testPath, 'utf8')).toContain('runQuerySpecZtdCases');
+      expect(readFileSync(fixtureTypesPath, 'utf8')).toContain('InsertUsersQueryBoundaryZtdCase');
       expect(readFileSync(logicPath, 'utf8')).toBe('human logic stays\n');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -2050,8 +1983,8 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(text).toContain('Attainment: partial');
       expect(text).toContain('Next: Update editable query boundary row contracts to match visible SQL result columns.');
       expect(text).toContain('named parameters: ok');
-      expect(text).toContain('missing result in mapper: email');
-      expect(text).toContain('unused result in mapper: email_address');
+      expect(text).toContain('missing result in boundary: email');
+      expect(text).toContain('unused result in boundary: email_address');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -2255,6 +2188,7 @@ describe('@ashiba-ts/cli smoke', () => {
       mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
       writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      runFeatureTestsScaffold({ rootDir, feature: 'users-list', query: 'list' });
 
       const result = runProjectCheck({ rootDir });
 
@@ -2285,7 +2219,7 @@ describe('@ashiba-ts/cli smoke', () => {
       ]);
       const text = formatProjectCheckResult(result);
       expect(text).toContain('duration ms:');
-      expect(text).toContain('coverage: ddlFiles=1, sqlFiles=1, mapperQueries=1, catalogSpecs=1, featureTestQueries=1, lintFiles=1');
+      expect(text).toContain('coverage: ddlFiles=1, sqlFiles=1, contractQueries=1, catalogSpecs=1, featureTestQueries=1, lintFiles=1');
       expect(text).toContain('timings:');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -2307,6 +2241,7 @@ describe('@ashiba-ts/cli smoke', () => {
         '',
       ].join('\n'), 'utf8');
       runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
+      runFeatureTestsScaffold({ rootDir, feature: 'users-list', query: 'list' });
 
       writeFileSync(ddlPath, [
         'create table public.users (',
@@ -2325,7 +2260,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(text).toContain('ASHIBA_PROJECT_FEATURE_TESTS_FAILED');
       expect(text).toContain('visible SQL: src/features/users-list/queries/list/list.sql');
       expect(text).toContain('editable mapper boundary: src/features/users-list/queries/list/query.ts');
-      expect(text).toContain('library-owned generated mapping tests: src/features/users-list/queries/list/tests/generated');
+      expect(text).toContain('generated logic-test fixture types: src/features/users-list/queries/list/tests/boundary-ztd-types.ts');
       expect(text).toContain('have a human or AI update the visible SQL and editable mapper boundary first');
       expect(text).toContain('ashiba feature tests check users-list --query list --fix');
     } finally {
@@ -2529,14 +2464,14 @@ describe('@ashiba-ts/cli smoke', () => {
     }
   });
 
-  test('ashiba check --full runs mapper command after the fast check passes', () => {
+  test('ashiba check --full runs the selected verification command after the fast check passes', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-full-'));
 
     try {
       const result = runAshibaCheck({
         rootDir,
         full: true,
-        mapperTestCommand: 'node -e "process.exit(0)"',
+        testCommand: 'node -e "process.exit(0)"',
       });
 
       expect(result.ok).toBe(true);
@@ -2546,13 +2481,13 @@ describe('@ashiba-ts/cli smoke', () => {
         ok: true,
         status: 0,
       });
-      expect(formatAshibaCheckResult(result)).toContain('Mapper test: ok');
+      expect(formatAshibaCheckResult(result)).toContain('Verification test: ok');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('ashiba check --full skips mapper command when fast check fails', () => {
+  test('ashiba check --full skips the verification command when fast check fails', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-check-full-skip-'));
 
     try {
@@ -2562,12 +2497,12 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runAshibaCheck({
         rootDir,
         full: true,
-        mapperTestCommand: 'node -e "process.exit(99)"',
+        testCommand: 'node -e "process.exit(99)"',
       });
 
       expect(result.ok).toBe(false);
       expect(result.mapperTest).toBeUndefined();
-      expect(formatAshibaCheckResult(result)).toContain('Mapper test: skipped');
+      expect(formatAshibaCheckResult(result)).toContain('Verification test: skipped');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -2592,7 +2527,7 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.files).toEqual([{ relativePath: 'package.json', action: 'update' }]);
       expect(packageJson.scripts.test).toBe('vitest run');
       expect(packageJson.scripts['ashiba:check']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check');
-      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --test-command "vitest run"');
       expect(packageJson.devDependencies?.husky).toBeUndefined();
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
@@ -2617,7 +2552,7 @@ describe('@ashiba-ts/cli smoke', () => {
         { relativePath: '.github/workflows/ashiba-contract.yml', action: 'create' },
         { relativePath: '.githooks/pre-push', action: 'create' },
       ]);
-      expect(JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8')).scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --test-command "vitest run"');
       expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm install');
       expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm run ashiba:verify');
       expect(readFileSync(path.join(rootDir, '.githooks', 'pre-push'), 'utf8')).toContain('npm run ashiba:verify');
@@ -2650,7 +2585,7 @@ describe('@ashiba-ts/cli smoke', () => {
         { relativePath: 'package.json', action: 'update' },
         { relativePath: '.githooks/pre-push', action: 'create' },
       ]);
-      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --mapper-test-command "vitest run"');
+      expect(packageJson.scripts['ashiba:verify']).toBe('node node_modules/@ashiba-ts/cli/dist/index.js check --full --test-command "vitest run"');
       expect(readFileSync(path.join(rootDir, '.github', 'workflows', 'ashiba-contract.yml'), 'utf8')).toContain('npm run ashiba:verify');
       expect(readFileSync(path.join(rootDir, '.githooks', 'pre-push'), 'utf8')).toContain('npm run ashiba:verify');
     } finally {
@@ -3540,13 +3475,9 @@ describe('@ashiba-ts/cli smoke', () => {
         sourceHash: expect.stringMatching(/^sha256:/),
         safeSort: {
           insertion: {
-            status: 'ready',
-            mode: 'order-by',
+            status: 'unresolved',
           },
-          sortable: {
-            email: { sql: 'email' },
-            user_id: { sql: 'user_id' },
-          },
+          sortable: {},
         },
         namedParameters: ['email', 'status'],
         resultColumns: ['email', 'user_id'],
@@ -4096,6 +4027,8 @@ describe('@ashiba-ts/cli smoke', () => {
         'select',
         '  base.user_id as id,',
         '  lower(base.email) as normalized_email,',
+        '  sum(base.user_id) as id_sum,',
+        '  avg(base.user_id) as id_average,',
         '  count(*) as match_count',
         'from base',
         'where base.email = :email',
@@ -4106,33 +4039,55 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/search/search.sql' });
 
       expect(result.parameters).toEqual(['email']);
-      expect(result.resultColumns).toEqual(['id', 'match_count', 'normalized_email']);
+      expect(result.resultColumns).toEqual(['id', 'id_average', 'id_sum', 'match_count', 'normalized_email']);
       expect(result.analysis.resultColumnTypes).toEqual({
         id: 'unknown',
-        match_count: 'number',
+        id_average: 'unknown',
+        id_sum: 'unknown',
+        match_count: 'string',
         normalized_email: 'string',
       });
-      expect(result.contents).toContain('match_count: number');
+      expect(result.contents).toContain('id_average: unknown');
+      expect(result.contents).toContain('id_sum: unknown');
+      expect(result.contents).toContain('match_count: string');
       expect(result.contents).toContain('normalized_email: string');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('does not silently fallback when model-gen SQL cannot be parsed by AST', () => {
+  test('degrades parser-dependent capabilities without blocking valid PostgreSQL syntax', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-ast-fail-'));
 
     try {
-      const sqlDir = path.join(rootDir, 'src/features/users/queries/broken');
-      const sqlPath = path.join(sqlDir, 'broken.sql');
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/fetch-page');
+      const sqlPath = path.join(sqlDir, 'fetch-page.sql');
       mkdirSync(sqlDir, { recursive: true });
       writeFileSync(sqlPath, [
-        'select * from ;',
+        'select user_id',
+        'from public.users',
+        'order by user_id',
+        'fetch first :limit rows with ties;',
         '',
       ].join('\n'), 'utf8');
 
-      expect(() => runModelGen({ rootDir, sqlFile: 'src/features/users/queries/broken/broken.sql' }))
-        .toThrow(/SQL AST parse failed while extracting result columns/);
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/fetch-page/fetch-page.sql' });
+      expect(result.analysis).toMatchObject({
+        astParse: 'failed',
+        hasTopLevelOrderBy: 'unknown',
+        namedParameters: ['limit'],
+        parameterTypes: { limit: 'number' },
+        parserCapabilities: {
+          parser: { status: 'degraded' },
+          execution: 'unaffected',
+          parameterBinding: 'unaffected',
+          resultContract: 'degraded',
+          optionalConditionCompression: 'blocked',
+          safeSort: 'blocked',
+          impactAnalysis: 'degraded',
+        },
+      });
+      expect(result.contents).toContain('[column: string]: unknown');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -4377,8 +4332,50 @@ describe('@ashiba-ts/cli smoke', () => {
         display_name: 'string',
         optional_id: 'number',
       });
+      expect(result.analysis.resultColumnNullability).toEqual({
+        display_name: 'non-null',
+        optional_id: 'nullable',
+      });
       expect(result.contents).toContain('display_name: string');
-      expect(result.contents).toContain('optional_id: number');
+      expect(result.contents).toContain('optional_id: number | null');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not overstate DDL non-nullability across outer joins', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-outer-join-nullability-'));
+
+    try {
+      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
+      writeFileSync(path.join(rootDir, 'db/ddl/public.sql'), [
+        'create table public.users (',
+        '  user_id integer primary key',
+        ');',
+        'create table public.profiles (',
+        '  user_id integer primary key,',
+        '  display_name text not null',
+        ');',
+        '',
+      ].join('\n'), 'utf8');
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/profile');
+      const sqlPath = path.join(sqlDir, 'profile.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select u.user_id, p.display_name',
+        'from public.users u',
+        'left join public.profiles p on p.user_id = u.user_id;',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/profile/profile.sql' });
+
+      expect(result.analysis.resultColumnNullability).toEqual({
+        display_name: 'nullable',
+        user_id: 'non-null',
+      });
+      expect(result.contents).toContain('display_name: string | null');
+      expect(result.contents).toContain('user_id: number');
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
@@ -4537,22 +4534,30 @@ describe('@ashiba-ts/cli smoke', () => {
         safeSort: {
           insertion: {
             status: 'ready',
-            mode: 'prepend-comma',
+            end: expect.any(Number),
+            mode: 'replace',
           },
           sortable: {
-            email: { sql: 'email' },
-            user_id: { sql: 'user_id' },
+            user_id: {
+              sql: 'user_id',
+              defaultDirection: 'asc',
+              allowedDirections: ['asc'],
+            },
           },
         },
       });
       expect(result.metadataContents).toContain('"hasTopLevelOrderBy": true');
       expect(result.metadataContents).toContain('"sourceHash": "sha256:');
+      expect(result.bindings.postgres.safeSortInsertion).toEqual({
+        index: expect.any(Number),
+        end: expect.any(Number),
+      });
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('records safe sort insertion before LIMIT without proprietary SQL markers', () => {
+  test('does not invent safe sort capability before LIMIT when source SQL has no ORDER BY', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-limit-'));
 
     try {
@@ -4571,21 +4576,38 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/page/page.sql' });
 
       expect(result.analysis.safeSort.insertion).toMatchObject({
-        status: 'ready',
-        mode: 'order-by',
+        status: 'unresolved',
       });
-      expect(result.analysis.safeSort.insertion.status === 'ready' ? result.analysis.safeSort.insertion.index : -1)
-        .toBe(readFileSync(sqlPath, 'utf8').indexOf('limit :limit'));
-      expect(result.analysis.safeSort.sortable).toMatchObject({
-        id: { sql: 'a.user_id' },
-        email: { sql: 'a.email' },
-      });
+      expect(result.analysis.safeSort.sortable).toEqual({});
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('records safe sort insertion before WINDOW without runtime clause realignment', () => {
+  test('blocks explicit NULLS ordering instead of silently changing its semantics', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-nulls-'));
+
+    try {
+      const sqlDir = path.join(rootDir, 'src/features/users/queries/null-order');
+      const sqlPath = path.join(sqlDir, 'null-order.sql');
+      mkdirSync(sqlDir, { recursive: true });
+      writeFileSync(sqlPath, [
+        'select u.user_id, u.deleted_at',
+        'from public.users u',
+        'order by u.deleted_at asc nulls last',
+        '',
+      ].join('\n'), 'utf8');
+
+      const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/null-order/null-order.sql' });
+
+      expect(result.analysis.safeSort.insertion).toMatchObject({ status: 'unresolved' });
+      expect(result.analysis.safeSort.sortable).toEqual({});
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('does not invent safe sort capability from window ORDER BY', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-window-'));
 
     try {
@@ -4604,17 +4626,15 @@ describe('@ashiba-ts/cli smoke', () => {
       const result = runModelGen({ rootDir, sqlFile: 'src/features/users/queries/windowed/windowed.sql' });
 
       expect(result.analysis.safeSort.insertion).toMatchObject({
-        status: 'ready',
-        mode: 'order-by',
+        status: 'unresolved',
       });
-      expect(result.analysis.safeSort.insertion.status === 'ready' ? result.analysis.safeSort.insertion.index : -1)
-        .toBe(readFileSync(sqlPath, 'utf8').indexOf('window w'));
+      expect(result.analysis.safeSort.sortable).toEqual({});
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('records safe sort metadata through ordinary SQL comments and FETCH clauses', () => {
+  test('does not read comments as source-visible sort capability before FETCH', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-comments-'));
 
     try {
@@ -4634,20 +4654,15 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(result.analysis.rootQueryShape).toBe('simple-select');
       expect(result.analysis.safeSort.insertion).toMatchObject({
-        status: 'ready',
-        mode: 'order-by',
+        status: 'unresolved',
       });
-      expect(result.analysis.safeSort.insertion.status === 'ready' ? result.analysis.safeSort.insertion.index : -1)
-        .toBe(readFileSync(sqlPath, 'utf8').indexOf('fetch first'));
-      expect(result.analysis.safeSort.sortable).toEqual({
-        id: { sql: 'u.user_id' },
-      });
+      expect(result.analysis.safeSort.sortable).toEqual({});
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('records safe sort metadata through postgres dollar-quoted strings', () => {
+  test('does not read dollar-quoted text as source-visible sort capability', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-dollar-quote-'));
 
     try {
@@ -4668,21 +4683,15 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(result.parameters).toEqual(['status', 'limit']);
       expect(result.analysis.safeSort.insertion).toMatchObject({
-        status: 'ready',
-        mode: 'order-by',
+        status: 'unresolved',
       });
-      expect(result.analysis.safeSort.insertion.status === 'ready' ? result.analysis.safeSort.insertion.index : -1)
-        .toBe(readFileSync(sqlPath, 'utf8').indexOf('limit :limit'));
-      expect(result.analysis.safeSort.sortable).toMatchObject({
-        id: { sql: 'u.user_id' },
-        note: { sql: '$tag$order by fake_column, :not_param;$tag$' },
-      });
+      expect(result.analysis.safeSort.sortable).toEqual({});
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('records safe sort metadata through postgres escape strings', () => {
+  test('does not read escape-string text as source-visible sort capability', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-escape-string-'));
 
     try {
@@ -4703,21 +4712,15 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(result.parameters).toEqual(['status', 'limit']);
       expect(result.analysis.safeSort.insertion).toMatchObject({
-        status: 'ready',
-        mode: 'order-by',
+        status: 'unresolved',
       });
-      expect(result.analysis.safeSort.insertion.status === 'ready' ? result.analysis.safeSort.insertion.index : -1)
-        .toBe(readFileSync(sqlPath, 'utf8').indexOf('limit :limit'));
-      expect(result.analysis.safeSort.sortable).toMatchObject({
-        note: { sql: String.raw`E'it\'s order by fake_column, :not_param; limit 1'` },
-        id: { sql: 'u.user_id' },
-      });
+      expect(result.analysis.safeSort.sortable).toEqual({});
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }
   });
 
-  test('records safe sort insertion before FOR UPDATE without proprietary SQL markers', () => {
+  test('does not invent safe sort capability before FOR UPDATE', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-model-gen-safe-sort-for-update-'));
 
     try {
@@ -4736,15 +4739,9 @@ describe('@ashiba-ts/cli smoke', () => {
 
       expect(result.analysis.rootQueryShape).toBe('simple-select');
       expect(result.analysis.safeSort.insertion).toMatchObject({
-        status: 'ready',
-        mode: 'order-by',
+        status: 'unresolved',
       });
-      expect(result.analysis.safeSort.insertion.status === 'ready' ? result.analysis.safeSort.insertion.index : -1)
-        .toBe(readFileSync(sqlPath, 'utf8').indexOf('for update'));
-      expect(result.analysis.safeSort.sortable).toMatchObject({
-        id: { sql: 'u.user_id' },
-        email: { sql: 'u.email' },
-      });
+      expect(result.analysis.safeSort.sortable).toEqual({});
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

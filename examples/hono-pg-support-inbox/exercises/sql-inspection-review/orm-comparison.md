@@ -42,7 +42,7 @@ That means the UI can expose dynamic filters and dynamic sort without turning th
 
 Ashiba also has a "code is yours" boundary. Generated code is meant to become application-owned code, not untouchable compiler output. Ashiba therefore does not claim total responsibility for every future edit to generated files.
 
-That does not mean the code is abandoned after generation. The workflow relies on query metadata, mapper tests, drift checks, and route-level tests to make unsafe or incomplete changes visible. The ownership model is customer-owned code with mechanical guardrails, not compiler-owned code and not untracked copy-paste.
+That does not mean the code is abandoned after generation. The workflow relies on query metadata, deterministic contract checks, selected SQL logic tests, and route-level tests to make unsafe or incomplete changes visible. The ownership model is customer-owned code with mechanical guardrails, not compiler-owned code and not untracked copy-paste.
 
 The strongest point is review shape:
 

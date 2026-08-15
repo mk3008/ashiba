@@ -2,9 +2,9 @@
 
 This example is a read-heavy web application demo for Ashiba with small Create and optimistic Update flows.
 
-It shows a support inbox built with Hono, PostgreSQL, `pg`, Ashiba feature query boundaries, optional-condition compression, safe sort, mapper tests, and drift checks.
+It shows a support inbox built with Hono, PostgreSQL, `pg`, Ashiba feature query boundaries, optional-condition compression, safe sort, deterministic contract checks, and selected SQL logic tests.
 
-The goal is not to prove every CRUD path. The main demo focuses on the `R` side: a real list screen where SQL remains visible, reviewable, and directly runnable while TypeScript support is generated around it. Small ticket registration and status-update flows are included to show that mutation boundaries can also stay visible, generated, mapper-tested, optimistic-lock aware, and transaction-owned by the application.
+The goal is not to prove every CRUD path. The main demo focuses on the `R` side: a real list screen where SQL remains visible, reviewable, and directly runnable while TypeScript support is generated around it. Small ticket registration and status-update flows show that mutation boundaries can also stay visible, contract-checked, optimistic-lock aware, and transaction-owned by the application.
 
 ## What This Demo Shows
 
@@ -19,21 +19,21 @@ The goal is not to prove every CRUD path. The main demo focuses on the `R` side:
 - Sort choices are mapped to reviewed safe sort keys from the generated query model.
 - The page shows a user-facing safe sort whitelist and a SQL inspection panel with compiled SQL and bound parameter names.
 - The main list logic remains in one visible SQL file.
-- DTOs, query metadata, mapper test assets, and ZTD tests live beside the feature query.
+- DTOs and query metadata live beside every query; selected ZTD logic cases live only beside the query whose semantics merit them.
 - Hono and `pg` stay application-owned; Ashiba does not add an ORM runtime or hidden SQL DSL.
 
 ## Mutation Test Boundaries
 
 Ashiba supports CUD query boundaries, but the demo separates what each test layer claims to prove.
 
-Generated mapper tests prove the DB-to-TypeScript contract. For `INSERT ... RETURNING`, `UPDATE ... RETURNING`, and `DELETE ... RETURNING`, they verify that representative DB result rows can map into the generated DTO shape.
-
-They do not replace mutation semantics tests. The TypeScript-to-DB path, affected rows, database state changes, transaction behavior, constraints, defaults, triggers, and read-after-write behavior are workflow concerns. Test those with route-level or integration tests that execute against PostgreSQL.
+Static/DDL checks, TypeScript, and optional PostgreSQL-derived contracts prove inferable DB-to-TypeScript obligations without persisting synthetic mapping rows. They do not replace mutation semantics tests. The TypeScript-to-DB path, affected rows, database state changes, transaction behavior, constraints, defaults, triggers, and read-after-write behavior are workflow concerns. Test those with route-level or integration tests that execute against PostgreSQL.
 
 In this demo:
 
-- `create-ticket` and `create-ticket-message` generated mapper tests cover the `RETURNING` result DTOs.
+- Contract checks cover the `create-ticket` and `create-ticket-message` `RETURNING` parameter/result shapes.
 - `POST /tickets` route tests cover the Create workflow: the application-owned transaction runs two inserts, and the created ticket appears through the existing list/detail read path.
+- A selected get-ticket-detail ZTD test covers JOIN, LEFT JOIN, and message order without creating physical tables.
+- A selected real-schema list test covers optional filters, aggregates, CASE, windows, and pagination.
 - `withPgTransaction` is starter-owned application code. Ashiba query boundaries can run inside it, but Ashiba does not own transaction policy.
 
 ## Header And Detail Create Pattern
@@ -60,18 +60,16 @@ If a mutation only needs the primary key from `RETURNING`, use `--returning mini
 npx ashiba feature query scaffold create-ticket create-ticket --table tickets --action insert --returning minimal
 ```
 
-After editing the generated SQL, refresh metadata and mapper fixtures for each query boundary:
+After editing the generated SQL, refresh metadata for each query boundary:
 
 ```sh
 npx ashiba feature query refresh create-ticket create-ticket
 npx ashiba feature query refresh create-ticket create-ticket-message
-npx ashiba feature tests check create-ticket --query create-ticket --fix
-npx ashiba feature tests check create-ticket --query create-ticket-message --fix
 ```
 
 The workflow code then composes the generated boundaries with normal application code. The `create-ticket` feature exposes `execute` as its boundary entrypoint; inside the feature, `input.ts`, `workflow.ts`, and `output.ts` keep parsing, orchestration, and response shaping reviewable. The workflow validates the input, looks up the selected customer, inserts the ticket header, inserts the first message detail, and returns the new ticket id. The web route owns HTTP parsing, redirect/error rendering, and the transaction scope.
 
-This is the point of the pattern: Ashiba does not hide the mutation behind an ORM runtime, but the repetitive SQL boundary, DTO, mapper fixture, metadata, and drift-check work can still be scaffolded.
+This is the point of the pattern: Ashiba does not hide the mutation behind an ORM runtime, but the repetitive SQL boundary, DTO, metadata, and drift-check work can still be scaffolded.
 
 ## Optimistic Update Pattern
 
@@ -143,7 +141,7 @@ boundary.ts  -> exposes execute as the feature entrypoint
 input.ts     -> parses and normalizes caller input
 workflow.ts  -> composes query boundaries through injectable Queries
 output.ts    -> shapes the caller-facing result
-queries/     -> visible SQL, query metadata, and mapper tests
+queries/     -> visible SQL, query metadata, and selected logic tests
 ```
 
 Run RFBA inspection after hand edits:
@@ -171,7 +169,7 @@ RFBA treats boundary files as module closure points. A boundary may expose more 
 - `docs/debug-visibility.md` explains how to reuse the adapter observer and Live Query Console pattern without leaking SQL text or parameter values in production logs.
 - `tests/support/ztd/verifier.ts` is the starter-owned ZTD verifier generated by Ashiba init and adjusted through dogfooding.
 - `DOGFOODING.md` records the customer-style build path and issues found.
-- `CUD_DOGFOODING.md` records what the Create lane revealed about mutation scaffolding, drift checks, and mapper tests.
+- `CUD_DOGFOODING.md` is a historical record of what the earlier Create lane revealed before the verification-value audit.
 
 ## Run Locally
 
@@ -281,12 +279,14 @@ Or run the example-owned verification gate:
 pnpm --dir examples/hono-pg-support-inbox verify
 ```
 
-`check:drift` must pass in a clean clone. If it reports that query contracts, metadata, or generated mapping assets are out of sync, the demo source SQL and generated Ashiba assets are not aligned. Refresh them before judging the web app:
+`check:drift` must pass in a clean clone. If it reports that query contracts or generated runtime metadata are out of sync, the demo source SQL and generated Ashiba assets are not aligned. Refresh them before judging the web app:
 
 ```sh
 pnpm --dir examples/hono-pg-support-inbox ashiba:generate
 pnpm --dir examples/hono-pg-support-inbox check:drift
 ```
+
+The verification-value audit also records a pre-existing example gap: requests that use application-owned sort profiles currently ask for keys that are not all source-visible in the canonical top-level `ORDER BY`, so the strict real-route safe-sort tests return 503. The focused no-dynamic-sort real-schema test remains the semantic proof for the complex list SQL until that application profile is reconciled with the safe-sort contract.
 
 If `test` fails before connecting to PostgreSQL, make sure `db:up` and `db:wait` have been run and the `ASHIBA_TEST_DB_PORT` in `.env` matches the container port.
 
@@ -346,7 +346,7 @@ Future demo lanes should cover:
 
 - update/delete workflows
 - advanced transaction patterns
-- mutation mapper tests
+- additional mutation behavior tests where they add unique coverage
 - optimistic locking or conflict handling
 - audit and operational error paths
 

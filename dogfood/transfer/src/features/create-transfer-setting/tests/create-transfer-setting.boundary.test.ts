@@ -164,7 +164,7 @@ function createMockTransactionalExecutor(
   options: { resolvedDestinations?: Array<Record<string, unknown>> } = {},
 ): FeatureQueryExecutor {
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+    async query(query, params) {
       seenQueries.push({ query, params });
       const kind = classifyQuery(query);
       if (kind === 'resolve-destinations') {
@@ -173,7 +173,7 @@ function createMockTransactionalExecutor(
             destination_definition_id: '10',
             destination_definition_name: 'journal',
           },
-        ]) as T[];
+        ]);
       }
       if (kind === 'insert-transfer-setting') {
         return [
@@ -193,7 +193,7 @@ function createMockTransactionalExecutor(
             updated_at: new Date('2026-05-02T00:00:00.000Z'),
             note: params.note,
           },
-        ] as T[];
+        ];
       }
       if (kind === 'insert-transfer-setting-destination') {
         return [
@@ -215,7 +215,7 @@ function createMockTransactionalExecutor(
             updated_at: new Date('2026-05-02T00:00:00.000Z'),
             note: params.note,
           },
-        ] as T[];
+        ];
       }
       throw new Error(`Unexpected query: ${query.id}`);
     },

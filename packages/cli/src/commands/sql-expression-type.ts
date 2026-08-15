@@ -24,6 +24,8 @@ export type SqlExpressionContractType =
   | 'boolean[]';
 
 export type DdlColumnTypeResolver = (reference: ColumnReference) => string | undefined;
+export type SqlExpressionNullability = 'non-null' | 'nullable' | 'unknown';
+export type DdlColumnNullabilityResolver = (reference: ColumnReference) => boolean | undefined;
 
 export function inferSqlExpressionContractType(
   expression: ValueComponent,
@@ -73,6 +75,82 @@ export function inferSqlExpressionContractType(
     return inferCaseExpressionType(expression, options);
   }
 
+  return 'unknown';
+}
+
+/**
+ * Infer only nullability facts that are visible in SQL or resolved DDL.
+ * Unknown expressions stay unknown instead of being promoted to non-null.
+ */
+export function inferSqlExpressionNullability(
+  expression: ValueComponent,
+  options: { resolveColumnNullability?: DdlColumnNullabilityResolver } = {},
+): SqlExpressionNullability {
+  if (expression instanceof LiteralValue) return expression.value === null ? 'nullable' : 'non-null';
+  if (expression instanceof RawString) {
+    const value = expression.value.toLowerCase();
+    if (value === 'null') return 'nullable';
+    if (value === 'true' || value === 'false') return 'non-null';
+    return 'unknown';
+  }
+  if (expression instanceof ColumnReference) {
+    const nullable = options.resolveColumnNullability?.(expression);
+    return nullable === undefined ? 'unknown' : nullable ? 'nullable' : 'non-null';
+  }
+  if (expression instanceof ParenExpression) {
+    return inferSqlExpressionNullability(expression.expression, options);
+  }
+  if (expression instanceof CastExpression) {
+    return inferSqlExpressionNullability(expression.input, options);
+  }
+  if (expression instanceof UnaryExpression) {
+    return inferSqlExpressionNullability(expression.expression, options);
+  }
+  if (expression instanceof BinaryExpression) {
+    const operator = expression.operator.value.toLowerCase();
+    if (operator === 'is' || operator === 'is not') return 'non-null';
+    return combineNullability([
+      inferSqlExpressionNullability(expression.left, options),
+      inferSqlExpressionNullability(expression.right, options),
+    ]);
+  }
+  if (expression instanceof FunctionCall) {
+    const functionName = getSqlName(expression.qualifiedName.name).toLowerCase();
+    const args = expression.argument instanceof ValueList
+      ? expression.argument.values
+      : expression.argument
+        ? [expression.argument]
+        : [];
+    if (functionName === 'count') return 'non-null';
+    if (/^(?:json_build_object|jsonb_build_object|json_build_array|jsonb_build_array)$/.test(functionName)) {
+      return 'non-null';
+    }
+    if (/^(?:sum|avg|min|max|array_agg|string_agg|json_agg|jsonb_agg)$/.test(functionName)) {
+      return 'nullable';
+    }
+    if (functionName === 'nullif') return 'nullable';
+    if (functionName === 'coalesce') {
+      const states = args.map((arg) => inferSqlExpressionNullability(arg, options));
+      if (states.includes('non-null')) return 'non-null';
+      return states.length > 0 && states.every((state) => state === 'nullable') ? 'nullable' : 'unknown';
+    }
+    return args.length > 0
+      ? combineNullability(args.map((arg) => inferSqlExpressionNullability(arg, options)))
+      : 'unknown';
+  }
+  if (expression instanceof CaseExpression) {
+    const states = expression.switchCase.cases.map((entry) => inferSqlExpressionNullability(entry.value, options));
+    states.push(expression.switchCase.elseValue
+      ? inferSqlExpressionNullability(expression.switchCase.elseValue, options)
+      : 'nullable');
+    return combineNullability(states);
+  }
+  return 'unknown';
+}
+
+function combineNullability(states: SqlExpressionNullability[]): SqlExpressionNullability {
+  if (states.includes('nullable')) return 'nullable';
+  if (states.length > 0 && states.every((state) => state === 'non-null')) return 'non-null';
   return 'unknown';
 }
 
@@ -199,7 +277,9 @@ function isBooleanOperator(operator: string): boolean {
 }
 
 function mapKnownSqlFunctionToContractType(functionName: string): SqlExpressionContractType {
-  if (/^(?:count|sum|avg|length|char_length|character_length)$/.test(functionName)) return 'number';
+  // PostgreSQL count returns int8; node-postgres preserves int8 as a string by default.
+  if (functionName === 'count') return 'string';
+  if (/^(?:length|char_length|character_length)$/.test(functionName)) return 'number';
   if (/^(?:lower|upper|trim|ltrim|rtrim|concat|substring|substr)$/.test(functionName)) return 'string';
   if (/^(?:now|current_timestamp|localtimestamp)$/.test(functionName)) return 'string';
   return 'unknown';

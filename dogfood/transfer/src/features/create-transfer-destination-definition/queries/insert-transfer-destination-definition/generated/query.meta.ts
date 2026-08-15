@@ -48,6 +48,23 @@ export const queryModel = {
       "transfer_model": "string",
       "updated_at": "string"
     },
+    "resultColumnNullability": {
+      "created_at": "non-null",
+      "description": "nullable",
+      "destination_columns": "non-null",
+      "destination_definition_id": "non-null",
+      "destination_definition_name": "non-null",
+      "destination_key_columns": "non-null",
+      "destination_table_name": "non-null",
+      "generated_red_transfer_sql_body": "non-null",
+      "generated_red_transfer_sql_error": "nullable",
+      "generated_red_transfer_sql_status": "non-null",
+      "note": "nullable",
+      "sequence_expression_definition": "nullable",
+      "sign_inversion_columns": "nullable",
+      "transfer_model": "non-null",
+      "updated_at": "non-null"
+    },
     "namedParameters": [
       "destination_definition_name",
       "description",
@@ -58,7 +75,24 @@ export const queryModel = {
       "transfer_model",
       "sign_inversion_columns",
       "note"
-    ]
+    ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "blocked",
+      "safeSort": "blocked",
+      "impactAnalysis": "supported"
+    },
+    "parameterTypes": {
+      "destination_key_columns": "string[]",
+      "sign_inversion_columns": "string[]"
+    }
   },
   "bindings": {
     "postgres": {

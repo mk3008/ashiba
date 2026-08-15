@@ -1,10 +1,10 @@
-import { queryMany } from '@ashiba-ts/driver-adapter-core';
+import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const listTicketsSql = querySql;
-export const listTicketsQuery = {
+export const listTicketsQuery: FeatureQuerySource<ListTicketsQueryParams, ListTicketsQueryResult> = {
   id: 'list-tickets',
   path: 'list-tickets.sql',
   sqlPath: 'list-tickets.sql',
@@ -17,18 +17,18 @@ export const listTicketsQuery = {
     sqlFile: 'list-tickets.sql',
     sqlPath: 'list-tickets.sql',
   },
-} as const;
+};
 
 export interface ListTicketsQueryParams {
-  tag: unknown;
-  status: unknown;
-  customerTier: unknown;
-  slaState: unknown;
-  language: unknown;
-  channel: unknown;
+  tag: string | null;
+  status: string | null;
+  customerTier: string | null;
+  slaState: string | null;
+  language: string | null;
+  channel: string | null;
   keyword: unknown;
-  limit: unknown;
-  offset: unknown;
+  limit: number;
+  offset: number;
 }
 
 export interface ListTicketsQueryResult {
@@ -51,16 +51,14 @@ export interface ListTicketsQueryResult {
   subject: string | null;
   tag_slugs: string[] | null;
   ticket_id: string | null;
-  total_count: number | null;
+  total_count: string;
   updated_at: string | null;
   vip_rank: number | null;
 }
-
-type QueryRow = ListTicketsQueryResult;
 
 export async function executeListTicketsQuery(
   executor: FeatureQueryExecutor,
   params: ListTicketsQueryParams
 ): Promise<ListTicketsQueryResult[]> {
-  return queryMany<QueryRow>(executor, listTicketsQuery, params as unknown as Record<string, unknown>);
+  return queryMany(executor, listTicketsQuery, params);
 }

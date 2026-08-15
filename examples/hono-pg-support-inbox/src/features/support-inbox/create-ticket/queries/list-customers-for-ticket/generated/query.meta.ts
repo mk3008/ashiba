@@ -11,23 +11,16 @@ export const queryModel = {
       "insertion": {
         "status": "ready",
         "index": 114,
-        "mode": "prepend-comma"
+        "end": 126,
+        "mode": "replace"
       },
       "sortable": {
         "customer_id": {
-          "sql": "customer_id"
-        },
-        "name": {
-          "sql": "name"
-        },
-        "tier": {
-          "sql": "tier"
-        },
-        "locale": {
-          "sql": "locale"
-        },
-        "created_at": {
-          "sql": "created_at"
+          "sql": "customer_id",
+          "defaultDirection": "asc",
+          "allowedDirections": [
+            "asc"
+          ]
         }
       }
     },
@@ -49,9 +42,32 @@ export const queryModel = {
       "name": "string",
       "tier": "string"
     },
+    "resultColumnNullability": {
+      "created_at": "non-null",
+      "customer_id": "non-null",
+      "locale": "non-null",
+      "name": "non-null",
+      "tier": "non-null"
+    },
     "namedParameters": [
       "limit"
-    ]
+    ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "supported",
+      "safeSort": "supported",
+      "impactAnalysis": "supported"
+    },
+    "parameterTypes": {
+      "limit": "number"
+    }
   },
   "bindings": {
     "postgres": {
@@ -61,7 +77,8 @@ export const queryModel = {
         "limit"
       ],
       "safeSortInsertion": {
-        "index": 114
+        "index": 114,
+        "end": 126
       },
       "optionalConditionCompression": {
         "branches": []

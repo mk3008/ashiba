@@ -1,8 +1,18 @@
 import { Pool, type PoolConfig } from 'pg';
-import { createPostgresAdapter, type AshibaPostgresAdapterOptions, type AshibaPostgresExecuteOptions } from '@ashiba-ts/driver-adapter-pg';
+import {
+  createPostgresAdapter,
+  type AshibaPostgresAdapterOptions,
+  type AshibaPostgresExecuteOptions,
+  type AshibaPostgresQuerySource,
+} from '@ashiba-ts/driver-adapter-pg';
 
 import { logSqlExecution } from '#adapters/logger/appLogger.js';
-import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
+import type {
+  AnyFeatureQuerySource,
+  AshibaQueryParams,
+  AshibaQueryRow,
+  FeatureQueryExecutor,
+} from '#features/_shared/featureQueryExecutor.js';
 
 export type PgConnectionSettings = {
   connectionString?: string;
@@ -63,13 +73,9 @@ export function createPgSqlClient(
     observer: observer ?? { emit: logSqlExecution },
   });
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
-      const queryAnalysis = query.queryModel.analysis as FeatureQuerySource['queryModel']['analysis'] & {
-        optionalConditionCompression?: { enabled?: boolean };
-        safeSort?: { insertion?: { status?: string } };
-      };
-      const result = await adapter.execute<T>(
-        {
+    async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
+      const queryAnalysis = query.queryModel.analysis;
+      const postgresQuery: AshibaPostgresQuerySource<AshibaQueryParams<Query>, AshibaQueryRow<Query>> = {
           sql: query.sql,
           sqlPath: query.sqlPath,
           queryModel: query.queryModel,
@@ -84,8 +90,10 @@ export function createPgSqlClient(
             queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
             queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
           },
-        },
-        params,
+      };
+      const result = await adapter.execute(
+        postgresQuery,
+        { ...params },
         {
           ...executeOptions,
           optionalConditionCompression: query.optionalConditionCompression ?? executeOptions?.optionalConditionCompression,

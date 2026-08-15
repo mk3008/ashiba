@@ -4,13 +4,11 @@ import { expect } from 'vitest';
 import { Pool } from 'pg';
 import type { PoolClient } from 'pg';
 
-import type { FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';
+import type { FeatureQueryExecutor } from '@ashiba-ts/driver-adapter-core';
 import type { PostgresTestkitClient } from '@ashiba-ts/testkit-adapter-pg';
 import type { QuerySpecTraditionalCase, QuerySpecZtdCase } from './case-types.js';
 
-type QuerySpecExecutorClient = {
-  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;
-};
+type QuerySpecExecutorClient = FeatureQueryExecutor;
 
 type QuerySpecExecutor<Input, Output> = (
   client: QuerySpecExecutorClient,
@@ -117,7 +115,7 @@ export async function verifyQuerySpecZtdCase<BeforeDb extends FixtureTree, Input
       }
     });
 
-    const actual = await execute(createQuerySpecExecutor(testkitClient, trace, querySpecCase), querySpecCase.input);
+    const actual = await execute(createQuerySpecExecutor(testkitClient, trace), querySpecCase.input);
     expect(normalizeActualByExpected(actual, querySpecCase.output)).toEqual(querySpecCase.output);
     if (trace.length === 0) {
       throw new Error(
@@ -170,7 +168,7 @@ export async function verifyQuerySpecTraditionalCase<BeforeDb extends FixtureTre
   let failure: unknown;
 
   try {
-    client = await createPhysicalQuerySpecExecutor(pool, defaults, querySpecCase.beforeDb, trace, querySpecCase);
+    client = await createPhysicalQuerySpecExecutor(pool, defaults, querySpecCase.beforeDb, trace);
     const actual = await execute(client, querySpecCase.input);
     expect(normalizeActualByExpected(actual, querySpecCase.output)).toEqual(querySpecCase.output);
     if (querySpecCase.afterDb) {
@@ -287,24 +285,21 @@ function normalizeActualByExpected(actual: unknown, expected: unknown): unknown 
 
 function createQuerySpecExecutor(
   testkitClient: PostgresTestkitClient,
-  trace: QueryExecutionTrace[],
-  querySpecCase: QuerySpecZtdCase<FixtureTree, unknown, unknown>
+  trace: QueryExecutionTrace[]
 ): QuerySpecExecutorClient {
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
-      const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
-      const sourceParams = querySpecCase.mapperProbe?.params ?? params;
-      const bound = bindNamedParams(sourceSql, sourceParams);
+    async query(query, params) {
+      const bound = bindNamedParams(query.sql, params);
       trace.push({
         index: trace.length + 1,
-        originalSql: sourceSql,
+        originalSql: query.sql,
         boundSql: bound.boundSql,
         boundParams: bound.boundValues,
         rewriteApplied: false
       });
 
       const result = await testkitClient.query(bound.boundSql, bound.boundValues);
-      return result.rows as T[];
+      return result.rows;
     }
   };
 }
@@ -313,8 +308,7 @@ async function createPhysicalQuerySpecExecutor(
   pool: Pool,
   defaults: StarterProjectDefaults,
   beforeDb: FixtureTree,
-  trace: QueryExecutionTrace[],
-  querySpecCase: QuerySpecTraditionalCase<FixtureTree, unknown, unknown>
+  trace: QueryExecutionTrace[]
 ): Promise<PhysicalQuerySpecExecutorClient> {
   const client = await pool.connect();
   const schemaName = createPhysicalSchemaName();
@@ -336,14 +330,12 @@ async function createPhysicalQuerySpecExecutor(
   }
 
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
-      const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
-      const sourceParams = querySpecCase.mapperProbe?.params ?? params;
-      const bound = bindNamedParams(sourceSql, sourceParams);
+    async query(query, params) {
+      const bound = bindNamedParams(query.sql, params);
       const executedSql = rewriteSchemaQualifiedSql(bound.boundSql, defaults.defaultSchema, schemaName);
       trace.push({
         index: trace.length + 1,
-        originalSql: sourceSql,
+        originalSql: query.sql,
         boundSql: bound.boundSql,
         boundParams: bound.boundValues,
         executedSql,
@@ -351,7 +343,7 @@ async function createPhysicalQuerySpecExecutor(
         rewriteApplied: false
       });
       const result = await client.query(executedSql, bound.boundValues);
-      return result.rows as T[];
+      return result.rows;
     },
     async assertAfterDb(afterDb: FixtureTree): Promise<void> {
       const expectedTables = flattenFixtureTableRows(afterDb);

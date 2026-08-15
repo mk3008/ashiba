@@ -71,10 +71,10 @@ The generated Vitest setup derives \`ASHIBA_TEST_DATABASE_URL\` from the starter
 
 SQL should stay SQL and be directly runnable in a SQL client for debugging.
 Do not dynamically rewrite SQL at runtime; the DB driver wrapper may use whitelisted sort profiles for sort conditions only.
-Use mapper tests and DB-backed integration tests for type safety; do not add Ashiba runtime row validation overhead.
+Use static checks, TypeScript, PostgreSQL-derived contracts, and selected DB-backed integration tests for type safety; do not add Ashiba runtime row validation overhead.
 Use named parameters such as :name or @name in SQL; the DB driver wrapper owns conversion to driver placeholders.
-Use Zero Table Dependency for mapper tests by default, and traditional DB-backed tests for performance tests.
-Generated-folder unit-test schema files are library-owned; other generated code is editable by humans and AI agents.
+Use Zero Table Dependency only for selected SQL logic tests whose semantics merit executable fixtures, and traditional DB-backed tests when physical schema or persisted-state behavior matters.
+Generated SQL logic-test fixture types are library-owned; human-authored logic cases and other editable application code remain owned by humans and AI agents.
 Errors should be selectable for human-oriented or AI-oriented output with cause and next action when possible.
 
 ## Project Shape
@@ -224,16 +224,29 @@ function redactPostgresUrl(value: string): string {
   type FeatureQueryExecutor,
   type FeatureQueryModel,
   type FeatureQuerySource,
+  type AnyFeatureQuerySource,
+  type AshibaQueryParams,
+  type AshibaQueryRow,
 } from '@ashiba-ts/driver-adapter-core';
 `,
   },
   {
     relativePath: 'src/adapters/pg/pool.ts',
     contents: `import { Pool, type PoolConfig } from 'pg';
-import { createPostgresAdapter, type AshibaPostgresAdapterOptions, type AshibaPostgresExecuteOptions } from '@ashiba-ts/driver-adapter-pg';
+import {
+  createPostgresAdapter,
+  type AshibaPostgresAdapterOptions,
+  type AshibaPostgresExecuteOptions,
+  type AshibaPostgresQuerySource,
+} from '@ashiba-ts/driver-adapter-pg';
 
 import { logSqlExecution } from '#adapters/logger/sqlLogger.js';
-import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
+import type {
+  AnyFeatureQuerySource,
+  AshibaQueryParams,
+  AshibaQueryRow,
+  FeatureQueryExecutor,
+} from '#features/_shared/featureQueryExecutor.js';
 
 export type PgConnectionSettings = {
   connectionString?: string;
@@ -294,13 +307,9 @@ export function createPgSqlClient(
     observer: observer ?? { emit: logSqlExecution },
   });
   return {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
-      const queryAnalysis = query.queryModel.analysis as FeatureQuerySource['queryModel']['analysis'] & {
-        optionalConditionCompression?: { enabled?: boolean };
-        safeSort?: { insertion?: { status?: string } };
-      };
-      const result = await adapter.execute<T>(
-        {
+    async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
+      const queryAnalysis = query.queryModel.analysis;
+      const postgresQuery: AshibaPostgresQuerySource<AshibaQueryParams<Query>, AshibaQueryRow<Query>> = {
           sql: query.sql,
           sqlPath: query.sqlPath,
           queryModel: query.queryModel,
@@ -315,8 +324,10 @@ export function createPgSqlClient(
             queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
             queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
           },
-        },
-        params,
+      };
+      const result = await adapter.execute(
+        postgresQuery,
+        { ...params },
         {
           ...executeOptions,
           optionalConditionCompression: query.optionalConditionCompression ?? executeOptions?.optionalConditionCompression,
@@ -493,27 +504,16 @@ export function logSqlExecution(event: SqlExecutionLogEvent): void {
   beforeDb: BeforeDb;
   input: Input;
   output: Output;
-  mapperProbe?: {
-    sql: string;
-    params?: Record<string, unknown>;
-  };
 }
 `,
   },
   {
     relativePath: 'tests/support/ztd/harness.ts',
-    contents: `import type { QuerySpecZtdCase } from './case-types.js';
+    contents: `import type { FeatureQueryExecutor } from '@ashiba-ts/driver-adapter-core';
+import type { QuerySpecZtdCase } from './case-types.js';
 import { createQuerySpecZtdVerifier, type QuerySpecExecutionEvidence } from './verifier.js';
 
-export type QuerySpecExecutorClient = {
-  query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]>;
-};
-
-export type QuerySpecSqlSource = {
-  id: string;
-  path: string;
-  sql: string;
-};
+export type QuerySpecExecutorClient = FeatureQueryExecutor;
 
 type QuerySpecExecutor<Input, Output> = (
   client: QuerySpecExecutorClient,
@@ -552,7 +552,7 @@ import { Pool } from 'pg';
 import type { PostgresTestkitClient } from '@ashiba-ts/testkit-adapter-pg';
 
 import type { QuerySpecZtdCase } from './case-types.js';
-import type { QuerySpecExecutorClient, QuerySpecSqlSource } from './harness.js';
+import type { QuerySpecExecutorClient } from './harness.js';
 
 type FixtureTree = Record<string, unknown>;
 type FixtureRow = Record<string, unknown>;
@@ -607,7 +607,7 @@ export async function createQuerySpecZtdVerifier(): Promise<QuerySpecZtdVerifier
       try {
         testkitClient = createPostgresTestkitClient({
           queryExecutor: async (sql, params) => {
-            const result = await pool.query(sql, params as unknown[]);
+            const result = await pool.query(sql, [...params]);
             return {
               rows: result.rows,
               rowCount: result.rowCount ?? undefined,
@@ -625,7 +625,7 @@ export async function createQuerySpecZtdVerifier(): Promise<QuerySpecZtdVerifier
           },
         });
 
-        const actual = await execute(createQuerySpecExecutor(testkitClient, trace, querySpecCase), querySpecCase.input);
+        const actual = await execute(createQuerySpecExecutor(testkitClient, trace), querySpecCase.input);
         expect(normalizeActualByExpected(actual, querySpecCase.output)).toEqual(querySpecCase.output);
         if (trace.length === 0) {
           throw new Error(\`ZTD verifier did not execute any SQL for case "\${querySpecCase.name}".\`);
@@ -662,21 +662,18 @@ export async function verifyQuerySpecZtdCase<BeforeDb extends FixtureTree, Input
 function createQuerySpecExecutor(
   testkitClient: PostgresTestkitClient,
   trace: QueryExecutionTrace[],
-  querySpecCase: QuerySpecZtdCase<FixtureTree, unknown, unknown>,
 ): QuerySpecExecutorClient {
   return {
-    async query<T = unknown>(query: QuerySpecSqlSource, params: Record<string, unknown>): Promise<T[]> {
-      const sourceSql = querySpecCase.mapperProbe?.sql ?? query.sql;
-      const sourceParams = querySpecCase.mapperProbe?.params ?? params;
-      const bound = bindNamedParams(sourceSql, sourceParams);
+    async query(query, params) {
+      const bound = bindNamedParams(query.sql, params);
       trace.push({
-        originalSql: sourceSql,
+        originalSql: query.sql,
         boundSql: bound.boundSql,
         boundParams: bound.boundValues,
         rewriteApplied: false,
       });
       const result = await testkitClient.query(bound.boundSql, bound.boundValues);
-      return result.rows as T[];
+      return result.rows;
     },
   };
 }
@@ -900,16 +897,16 @@ This starter was created by \`ashiba init\`.
 - Visible SQL starter exists.
 - Demo DDL is optional. Re-run \`ashiba init --db postgres --driver pg --with-demo-ddl --force\` if you want the tutorial DDL files.
 - Feature/query boundaries are created by explicit \`ashiba feature scaffold\` commands.
-- Mapper and traditional test lanes are available for scaffolded features.
-- Query-local generated test plan files are created with scaffolded query boundaries and are library-owned.
-- ZTD mapper cases share one pg Pool per query test file; traditional/performance tests should keep their own physical-state lifecycle.
+- Static/PostgreSQL-derived contract checks and traditional test lanes are available for scaffolded features.
+- Query-local SQL logic tests are opt-in through \`ashiba feature tests scaffold\`; Ashiba generates only their wrapper and fixture types.
+- ZTD logic cases share one pg Pool per query test file; traditional/performance tests should keep their own physical-state lifecycle.
 - A small application-owned \`pg\` Pool/transaction seam exists under \`src/adapters/pg\`.
 
 ## Next Steps
 
 - Wire \`src/adapters/pg/pool.ts\` from your application entry point and replace it if your connection policy differs.
-- Replace starter sample cases with project-specific mapper and feature cases when the query contract is ready.
-- Run \`ashiba feature tests check\` to inspect generated mapper coverage and drift.
+- Add project-specific SQL logic and feature cases only where static contracts cannot prove behavior.
+- Run \`ashiba feature tests check\` to inspect explicitly scaffolded logic-test support and drift.
 - Keep SQL visible and reviewable.
 `,
   },

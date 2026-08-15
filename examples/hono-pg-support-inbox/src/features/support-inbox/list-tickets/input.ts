@@ -7,19 +7,34 @@ export type SupportInboxRequest = ListTicketsQueryParams;
  * Add domain validation here after deciding the application boundary contract.
  */
 export function parseRequest(raw: unknown): SupportInboxRequest {
-  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+  if (!isRecord(raw)) {
     throw new Error('Feature request must be an object.');
   }
-  const record = raw as Partial<Record<keyof ListTicketsQueryParams, unknown>>;
+  const record = raw;
   return {
-    status: record["status"] as unknown,
-    customerTier: record["customerTier"] as unknown,
-    slaState: record["slaState"] as unknown,
-    language: record["language"] as unknown,
-    channel: record["channel"] as unknown,
-    tag: record["tag"] as unknown,
-    keyword: record["keyword"] as unknown,
-    limit: record["limit"] as unknown,
-    offset: record["offset"] as unknown,
+    status: readNullableString(record.status, 'status'),
+    customerTier: readNullableString(record.customerTier, 'customerTier'),
+    slaState: readNullableString(record.slaState, 'slaState'),
+    language: readNullableString(record.language, 'language'),
+    channel: readNullableString(record.channel, 'channel'),
+    tag: readNullableString(record.tag, 'tag'),
+    keyword: record.keyword,
+    limit: readNumber(record.limit, 'limit'),
+    offset: readNumber(record.offset, 'offset'),
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readNullableString(value: unknown, name: string): string | null {
+  if (value === null) return null;
+  if (typeof value === 'string') return value;
+  throw new Error(`Feature request parameter ${name} must be null or string.`);
+}
+
+function readNumber(value: unknown, name: string): number {
+  if (typeof value === 'number') return value;
+  throw new Error(`Feature request parameter ${name} must be number.`);
 }

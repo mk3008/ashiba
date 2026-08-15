@@ -1,10 +1,10 @@
-import { queryMany } from '@ashiba-ts/driver-adapter-core';
+import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const listCustomersForTicketSql = querySql;
-export const listCustomersForTicketQuery = {
+export const listCustomersForTicketQuery: FeatureQuerySource<ListCustomersForTicketQueryParams, ListCustomersForTicketQueryResult> = {
   id: 'list-customers-for-ticket',
   path: 'list-customers-for-ticket.sql',
   sqlPath: 'list-customers-for-ticket.sql',
@@ -17,7 +17,7 @@ export const listCustomersForTicketQuery = {
     sqlFile: 'list-customers-for-ticket.sql',
     sqlPath: 'list-customers-for-ticket.sql',
   },
-} as const;
+};
 
 export interface ListCustomersForTicketQueryParams {
   limit: number;
@@ -31,11 +31,9 @@ export interface ListCustomersForTicketQueryResult {
   created_at: string;
 }
 
-type QueryRow = ListCustomersForTicketQueryResult;
-
 export async function executeListCustomersForTicketQuery(
   executor: FeatureQueryExecutor,
   params: ListCustomersForTicketQueryParams
 ): Promise<ListCustomersForTicketQueryResult[]> {
-  return queryMany<QueryRow>(executor, listCustomersForTicketQuery, params as unknown as Record<string, unknown>);
+  return queryMany(executor, listCustomersForTicketQuery, params);
 }

@@ -192,12 +192,12 @@ export function formatProjectCheckResult(result: ProjectCheckResult, options: Pr
     `- duration ms: ${result.durationMs}`,
     `- feature root: ${result.checks.config.featureRoot}`,
     `- SQL roots: ${result.checks.config.sqlRoots.join(', ')}`,
-    `- coverage: ddlFiles=${result.coverage.ddlFiles}, sqlFiles=${result.coverage.sqlFiles}, mapperQueries=${result.coverage.mapperQueries}, catalogSpecs=${result.coverage.catalogSpecs}, featureTestQueries=${result.coverage.featureTestQueries}, lintFiles=${result.coverage.lintFiles}`,
+    `- coverage: ddlFiles=${result.coverage.ddlFiles}, sqlFiles=${result.coverage.sqlFiles}, contractQueries=${result.coverage.mapperQueries}, catalogSpecs=${result.coverage.catalogSpecs}, featureTestQueries=${result.coverage.featureTestQueries}, lintFiles=${result.coverage.lintFiles}`,
     `- errors: ${result.errors.length}`,
     `- warnings: ${result.warnings.length}${options.warningsAsErrors ? ' (treated as errors)' : ''}`,
     `- contract: ${result.checks.contract ? (result.checks.contract.ok ? 'ok' : 'failed') : 'skipped'}`,
     `- feature tests: ${result.checks.featureTests ? (result.checks.featureTests.ok ? 'ok' : 'failed') : 'skipped'}`,
-    `- generated mapper: ${result.checks.generatedMapper ? (result.checks.generatedMapper.ok ? 'ok' : 'failed') : 'skipped'}`,
+    `- query contract: ${result.checks.generatedMapper ? (result.checks.generatedMapper.ok ? 'ok' : 'failed') : 'skipped'}`,
     `- DDL diagnostics: ${result.checks.ddlDiagnostics ? (result.checks.ddlDiagnostics.diagnostics.length === 0 ? 'ok' : 'issues') : 'skipped'}`,
     `- SQL lint: ${result.checks.lint ? (result.checks.lint.ok ? 'ok' : 'failed') : 'skipped'}`,
   ];
@@ -402,7 +402,7 @@ function contractIssues(result: CheckContractResult): ProjectCheckIssue[] {
     issues.push({
       code: 'ASHIBA_PROJECT_CONTRACT_MAPPER_FAILED',
       severity: 'error',
-      message: 'Visible SQL and editable query mapper contracts are out of sync.',
+      message: 'Visible SQL and editable query parameter/result contracts are out of sync.',
       nextAction: 'Update query.ts contracts or refresh generated metadata, then rerun ashiba project check.',
     });
   }
@@ -423,7 +423,7 @@ function featureTestsIssues(result: FeatureTestsCheckResult, config: ProjectPath
     const queryDir = normalizePath(`${config.featureRoot}/${entry.feature}/queries/${entry.query}`);
     const sqlFile = normalizePath(`${queryDir}/${entry.query}.sql`);
     const queryFile = normalizePath(`${queryDir}/query.ts`);
-    const generatedTestDir = normalizePath(`${queryDir}/tests/generated`);
+    const generatedTestSupport = normalizePath(`${queryDir}/tests/boundary-ztd-types.ts`);
     for (const issue of entry.issues) {
       issues.push({
         code: 'ASHIBA_PROJECT_FEATURE_TESTS_FAILED',
@@ -433,9 +433,9 @@ function featureTestsIssues(result: FeatureTestsCheckResult, config: ProjectPath
         details: [
           `visible SQL: ${sqlFile}`,
           `editable mapper boundary: ${queryFile}`,
-          `library-owned generated mapping tests: ${generatedTestDir}`,
+          `generated logic-test fixture types: ${generatedTestSupport}`,
         ],
-        nextAction: `If the DDL change is intended, have a human or AI update the visible SQL and editable mapper boundary first, then run ashiba feature tests check ${entry.feature} --query ${entry.query} --fix to refresh generated mapping test assets.`,
+        nextAction: `If the DDL change is intended, have a human or AI update the visible SQL and editable mapper boundary first, then run ashiba feature tests check ${entry.feature} --query ${entry.query} --fix to refresh explicitly scaffolded logic-test support.`,
       });
     }
   }
@@ -480,9 +480,9 @@ function generatedMapperIssues(result: FeatureGeneratedMapperCheckResult): Proje
     issues.push({
       code: 'ASHIBA_PROJECT_GENERATED_MAPPER_DRIFT',
       severity: 'error',
-      message: `Generated mapper contract drift found in ${entry.feature}/${entry.query}.`,
+      message: `Query parameter/result contract drift found in ${entry.feature}/${entry.query}.`,
       file: entry.queryFile,
-      nextAction: 'Update editable mapper parameters, parameter types, or result columns to match visible SQL and DDL ownership.',
+      nextAction: 'Update editable query parameters, parameter types, or result columns to match visible SQL and DDL ownership.',
     });
   }
   return issues;

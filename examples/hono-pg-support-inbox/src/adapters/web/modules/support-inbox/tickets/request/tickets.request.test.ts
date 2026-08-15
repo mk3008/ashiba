@@ -38,6 +38,7 @@ describe('support inbox request parsing', () => {
     expect(toTicketSort(filters)).toEqual([
       { key: 'vip_rank', direction: 'asc' },
       { key: 'updated_at', direction: 'desc' },
+      { key: 'ticket_id', direction: 'asc' },
     ]);
   });
 
@@ -48,6 +49,7 @@ describe('support inbox request parsing', () => {
     expect(toTicketSort(filters)).toEqual([
       { key: 'customer_name', direction: 'asc' },
       { key: 'updated_at', direction: 'desc' },
+      { key: 'ticket_id', direction: 'asc' },
     ]);
   });
 
@@ -58,6 +60,7 @@ describe('support inbox request parsing', () => {
     expect(toTicketSort(filters)).toEqual([
       { key: 'customer_name', direction: 'asc' },
       { key: 'updated_at', direction: 'desc' },
+      { key: 'ticket_id', direction: 'asc' },
     ]);
   });
 });

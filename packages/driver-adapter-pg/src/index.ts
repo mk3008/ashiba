@@ -6,7 +6,11 @@ import {
   type AshibaSortProfile,
   type AshibaSqlExecutionMetadata,
   type AshibaSqlExecutionObserver,
+  type AshibaQueryParams,
+  type AshibaQueryRow,
+  type AshibaTypedQuerySource,
   type FeatureQueryPostgresDialectBinding,
+  type PostgresDriverRepresentationProfile,
   AshibaSortError,
   maskParams,
   normalizeError,
@@ -35,6 +39,11 @@ export type AshibaPostgresAdapterOptions = {
   observer?: AshibaSqlExecutionObserver;
   maskPolicy?: AshibaMaskPolicy;
   includeUnmaskedParamsInEvents?: boolean;
+  /**
+   * Representation profile used by the caller-owned pg client. Pass a stable
+   * `custom:<id>` value whenever custom node-postgres type parsers are active.
+   */
+  driverProfile?: PostgresDriverRepresentationProfile;
 };
 
 /**
@@ -50,12 +59,15 @@ export type AshibaPostgresQueryModel = {
 /**
  * File-backed SQL query source generated or loaded from a reviewed SQL file.
  */
-export type AshibaPostgresQuerySource = {
+export type AshibaPostgresQuerySource<Params extends object = Record<string, unknown>, Row = unknown> = AshibaTypedQuerySource<Params, Row> & {
   sql: string;
   sqlPath?: string;
   queryModel: AshibaPostgresQueryModel;
   metadata?: AshibaSqlExecutionMetadata;
 };
+
+/** PostgreSQL query source with a concrete type-only Params/Row contract. */
+export type AnyAshibaPostgresQuerySource = AshibaPostgresQuerySource<any, any>;
 
 /**
  * Per-execution metadata and safe sort options for PostgreSQL execution.
@@ -71,11 +83,28 @@ export type AshibaPostgresExecuteOptions = {
  * Thin PostgreSQL adapter interface exposed to application code.
  */
 export type AshibaPostgresAdapter = {
-  execute<Row = unknown>(
-    query: AshibaPostgresQuerySource,
-    params?: Readonly<Record<string, unknown>>,
+  execute<Query extends AnyAshibaPostgresQuerySource>(
+    query: Query,
+    params: AshibaQueryParams<Query>,
     options?: AshibaPostgresExecuteOptions,
-  ): Promise<NodePostgresQueryResult<Row>>;
+  ): Promise<NodePostgresQueryResult<AshibaQueryRow<Query>>>;
+};
+
+/**
+ * Ordinary PostgreSQL SQL plus ordered values derived from a reviewed source.
+ * This is intentionally a data result, not a runtime query AST or builder.
+ */
+export type AshibaPostgresCompiledQuery = {
+  canonicalSql: string;
+  sourceSql: string;
+  sql: string;
+  orderedNames: readonly string[];
+  values: readonly unknown[];
+  sourceHash?: string;
+  transformations: {
+    optionalConditionCompression: boolean;
+    safeSortKeys: readonly string[];
+  };
 };
 
 /**
@@ -120,6 +149,7 @@ export class AshibaParameterError extends Error {
 export class AshibaPostgresQueryModelError extends Error {
   readonly code:
     | 'ASHIBA_QUERY_MODEL_STALE'
+    | 'ASHIBA_DRIVER_PROFILE_MISMATCH'
     | 'ASHIBA_BINDING_METADATA_REQUIRED'
     | 'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_REQUIRED'
     | 'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_UNSUPPORTED_QUERY_MODEL'
@@ -180,11 +210,11 @@ export function createPostgresAdapter(
   options: AshibaPostgresAdapterOptions = {},
 ): AshibaPostgresAdapter {
   return {
-    async execute<Row = unknown>(
-      query: AshibaPostgresQuerySource,
-      params: Readonly<Record<string, unknown>> = {},
+    async execute<Query extends AnyAshibaPostgresQuerySource>(
+      query: Query,
+      params: AshibaQueryParams<Query>,
       executeOptions: AshibaPostgresExecuteOptions = {},
-    ): Promise<NodePostgresQueryResult<Row>> {
+    ): Promise<NodePostgresQueryResult<AshibaQueryRow<Query>>> {
       const sql = query.sql;
       const queryModel = query.queryModel;
       const metadata = {
@@ -201,23 +231,11 @@ export function createPostgresAdapter(
       let bound: { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } | undefined;
 
       try {
-        const sortInsertion = getSortInsertion({ ...query, queryModel }, executeOptions);
-        const prepared = preparePostgresExecution({ ...query, queryModel }, params, executeOptions);
-        sourceSql = prepared.sourceSql;
-        compiledSql = prepared.sql;
-        bound = prepared;
-        if (sortInsertion) {
-          const sourceInsertion = adjustInsertionForRewriteRanges(sortInsertion.insertion, prepared.sourceRewriteRanges);
-          sourceSql = spliceOrderBy(
-            prepared.sourceSql,
-            sourceInsertion,
-            sortInsertion.orderBy,
-          );
-          const compressedCompiledInsertion = adjustInsertionForRewriteRanges(sortInsertion.compiledInsertion, prepared.compiledRewriteRanges);
-          const compiledInsertion = adjustInsertionForRewriteRanges(compressedCompiledInsertion, prepared.compiledRenumberRanges);
-          compiledSql = spliceOrderBy(prepared.sql, compiledInsertion, sortInsertion.orderBy);
-          bound = { ...bound, sql: compiledSql };
-        }
+        validateDriverProfile(query, options.driverProfile ?? 'node-postgres-default');
+        const compiled = compilePostgresQuery(query, params, executeOptions);
+        sourceSql = compiled.sourceSql;
+        compiledSql = compiled.sql;
+        bound = compiled;
 
         options.observer?.emit({
           phase: 'start',
@@ -245,7 +263,7 @@ export function createPostgresAdapter(
           elapsedMs: Date.now() - startedAt,
           rowCount: result.rowCount ?? result.rows.length,
         });
-        return result as NodePostgresQueryResult<Row>;
+        return result as NodePostgresQueryResult<AshibaQueryRow<Query>>;
       } catch (error) {
         options.observer?.emit({
           phase: 'error',
@@ -266,6 +284,48 @@ export function createPostgresAdapter(
         });
         throw error;
       }
+    },
+  };
+}
+
+/**
+ * Compile one file-backed query into normal PostgreSQL SQL and ordered values
+ * without executing it. The returned SQL is suitable for logging, debugging,
+ * EXPLAIN tooling, or a generic query executor.
+ */
+export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
+  query: Query,
+  params: AshibaQueryParams<Query>,
+  options: AshibaPostgresExecuteOptions = {},
+): AshibaPostgresCompiledQuery {
+  const normalizedParams = Object.fromEntries(Object.entries(params));
+  const sortInsertion = getSortInsertion(query, options);
+  const prepared = preparePostgresExecution(query, normalizedParams, options);
+  let sourceSql = prepared.sourceSql;
+  let sql = prepared.sql;
+  if (sortInsertion) {
+    const sourceInsertion = adjustInsertionForRewriteRanges(sortInsertion.insertion, prepared.sourceRewriteRanges);
+    sourceSql = spliceOrderBy(prepared.sourceSql, sourceInsertion, sortInsertion.orderBy);
+    const compressedCompiledInsertion = adjustInsertionForRewriteRanges(
+      sortInsertion.compiledInsertion,
+      prepared.compiledRewriteRanges,
+    );
+    const compiledInsertion = adjustInsertionForRewriteRanges(
+      compressedCompiledInsertion,
+      prepared.compiledRenumberRanges,
+    );
+    sql = spliceOrderBy(prepared.sql, compiledInsertion, sortInsertion.orderBy);
+  }
+  return {
+    canonicalSql: normalizeSqlSource(query.sql),
+    sourceSql,
+    sql,
+    orderedNames: prepared.orderedNames,
+    values: prepared.values,
+    sourceHash: query.queryModel.analysis.sourceHash,
+    transformations: {
+      optionalConditionCompression: options.optionalConditionCompression === true,
+      safeSortKeys: (options.sort ?? []).map((entry) => entry.key),
     },
   };
 }
@@ -306,7 +366,7 @@ export function isPostgresTransientError(error: unknown): boolean {
 }
 
 function buildSqlSourceWarnings(
-  query: AshibaPostgresQuerySource,
+  query: AnyAshibaPostgresQuerySource,
   metadata: AshibaSqlExecutionMetadata,
 ): readonly { code: string; message: string; nextAction?: string }[] {
   if (query.sqlPath || metadata.sqlPath || metadata.sqlFile) {
@@ -321,7 +381,7 @@ function buildSqlSourceWarnings(
 }
 
 function preparePostgresExecution(
-  query: AshibaPostgresQuerySource,
+  query: AnyAshibaPostgresQuerySource,
   params: Readonly<Record<string, unknown>>,
   options: AshibaPostgresExecuteOptions,
 ): {
@@ -359,7 +419,7 @@ function preparePostgresExecution(
 }
 
 function validatePostgresBindingMetadata(
-  query: AshibaPostgresQuerySource,
+  query: AnyAshibaPostgresQuerySource,
 ): NonNullable<NonNullable<AshibaPostgresQueryModel['bindings']>['postgres']> {
   const precomputed = query.queryModel?.bindings?.postgres;
   if (!precomputed) {
@@ -375,7 +435,25 @@ function validatePostgresBindingMetadata(
       'Query model binding metadata was generated from different source SQL.',
     );
   }
+  if (precomputed.contract && precomputed.contract.sourceHash !== currentHash) {
+    throw new AshibaPostgresQueryModelError(
+      'ASHIBA_QUERY_MODEL_STALE',
+      'PostgreSQL-derived query contract was generated from different source SQL.',
+    );
+  }
   return precomputed;
+}
+
+function validateDriverProfile(
+  query: AnyAshibaPostgresQuerySource,
+  actualProfile: PostgresDriverRepresentationProfile,
+): void {
+  const expectedProfile = query.queryModel.bindings?.postgres?.contract?.driver.profile;
+  if (!expectedProfile || expectedProfile === actualProfile) return;
+  throw new AshibaPostgresQueryModelError(
+    'ASHIBA_DRIVER_PROFILE_MISMATCH',
+    `PostgreSQL query contract expects driver profile ${expectedProfile}, but the adapter uses ${actualProfile}.`,
+  );
 }
 
 function bindCompiledNamedParameters(
@@ -402,7 +480,7 @@ function bindCompiledNamedParameters(
 }
 
 function applyOptionalConditionCompression(
-  query: AshibaPostgresQuerySource,
+  query: AnyAshibaPostgresQuerySource,
   precomputed: NonNullable<NonNullable<AshibaPostgresQueryModel['bindings']>['postgres']>,
   params: Readonly<Record<string, unknown>>,
 ): {
@@ -627,23 +705,34 @@ function normalizeRanges(ranges: readonly TextRange[]): TextRange[] {
     .sort((left, right) => left.start - right.start);
 }
 
-function adjustInsertionForRewriteRanges<T extends { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' }>(
+function adjustInsertionForRewriteRanges<T extends { index: number; end?: number; mode: 'order-by' | 'prepend-comma' | 'comma' | 'replace' }>(
   insertion: T,
   ranges: readonly TextEdit[],
 ): T {
   let adjustedIndex = insertion.index;
+  let adjustedEnd = insertion.end;
   for (const range of normalizeTextEdits(ranges)) {
-    if (insertion.index > range.start && insertion.index < range.end) {
+    if (
+      (insertion.index > range.start && insertion.index < range.end)
+      || (insertion.end !== undefined && range.start < insertion.end && range.end > insertion.index)
+    ) {
       throw new AshibaPostgresQueryModelError(
         'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_STALE',
-        'Optional condition compression rewrote the safe-sort insertion point.',
+        'Optional condition compression rewrote the safe-sort source range.',
       );
     }
     if (insertion.index >= range.end) {
       adjustedIndex += range.text.length - (range.end - range.start);
     }
+    if (adjustedEnd !== undefined && insertion.end !== undefined && insertion.end >= range.end) {
+      adjustedEnd += range.text.length - (range.end - range.start);
+    }
   }
-  return { ...insertion, index: adjustedIndex };
+  return {
+    ...insertion,
+    index: adjustedIndex,
+    ...(adjustedEnd !== undefined ? { end: adjustedEnd } : {}),
+  };
 }
 
 function renumberPostgresPlaceholders(
@@ -745,11 +834,11 @@ function renumberPostgresPlaceholders(
 }
 
 function getSortInsertion(
-  query: AshibaPostgresQuerySource,
+  query: AnyAshibaPostgresQuerySource,
   options: AshibaPostgresExecuteOptions,
 ): {
-  insertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' };
-  compiledInsertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' };
+  insertion: { index: number; end?: number; mode: 'order-by' | 'prepend-comma' | 'comma' | 'replace' };
+  compiledInsertion: { index: number; end?: number; mode: 'order-by' | 'prepend-comma' | 'comma' | 'replace' };
   orderBy: string;
 } | undefined {
   if (!options.sort || options.sort.length === 0) return undefined;
@@ -810,10 +899,18 @@ function getSortInsertion(
       'Safe sort with metadata-based parameter binding requires Postgres compiled insertion metadata. Regenerate query model metadata.',
     );
   }
+  const compiledEnd = queryModel.bindings?.postgres?.safeSortInsertion?.end;
+  if (queryModel.analysis.safeSort.insertion.mode === 'replace' && compiledEnd === undefined) {
+    throw new AshibaSortError(
+      'ASHIBA_SORT_QUERY_MODEL_STALE',
+      'Safe sort replacement requires a compiled ORDER BY range. Regenerate query model metadata.',
+    );
+  }
   return {
     insertion: queryModel.analysis.safeSort.insertion,
     compiledInsertion: {
       index: compiledIndex,
+      ...(compiledEnd !== undefined ? { end: compiledEnd } : {}),
       mode: queryModel.analysis.safeSort.insertion.mode,
     },
     orderBy,
@@ -832,7 +929,7 @@ function resolveSortProfile(
     return queryModelProfile;
   }
 
-  const resolved: Record<string, { sql: string; defaultDirection?: 'asc' | 'desc' }> = {};
+  const resolved: Record<string, { sql: string; defaultDirection?: 'asc' | 'desc'; allowedDirections?: readonly ('asc' | 'desc')[] }> = {};
   for (const [key, queryModelEntry] of Object.entries(queryModelProfile)) {
     const explicitEntry = explicitProfile[key];
     if (explicitEntry && explicitEntry.sql !== queryModelEntry.sql) {
@@ -844,6 +941,7 @@ function resolveSortProfile(
     resolved[key] = {
       sql: queryModelEntry.sql,
       defaultDirection: explicitEntry?.defaultDirection ?? queryModelEntry.defaultDirection,
+      allowedDirections: queryModelEntry.allowedDirections,
     };
   }
 
@@ -864,6 +962,8 @@ function describeQueryModelErrorCause(code: AshibaPostgresQueryModelError['code'
       return 'The PostgreSQL adapter is running in metadata-based binding mode, but the query model did not include Postgres binding metadata.';
     case 'ASHIBA_QUERY_MODEL_STALE':
       return 'The query model metadata was generated from different SQL than the SQL passed to the adapter.';
+    case 'ASHIBA_DRIVER_PROFILE_MISMATCH':
+      return 'The generated result representation assumes a different node-postgres type-parser profile than the caller-owned client declares.';
     case 'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_REQUIRED':
       return 'Optional condition compression was requested, but the query model does not include compression metadata generated by the CLI.';
     case 'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_UNSUPPORTED_QUERY_MODEL':
@@ -879,6 +979,8 @@ function describeQueryModelErrorNextAction(code: AshibaPostgresQueryModelError['
       return 'Run Ashiba model generation for the visible SQL and pass queryModel.bindings.postgres to the adapter.';
     case 'ASHIBA_QUERY_MODEL_STALE':
       return 'Regenerate the query model from the current visible SQL and ensure the source SQL passed to the adapter is unchanged.';
+    case 'ASHIBA_DRIVER_PROFILE_MISMATCH':
+      return 'Use the node-postgres default parsers, regenerate the contract for the declared custom profile, or pass the matching custom:<id> adapter option. Ashiba does not configure driver parsers.';
     case 'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_REQUIRED':
       return 'Regenerate the query model with optional condition compression metadata, or disable optionalConditionCompression for this execution.';
     case 'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_UNSUPPORTED_QUERY_MODEL':
@@ -890,9 +992,22 @@ function describeQueryModelErrorNextAction(code: AshibaPostgresQueryModelError['
 
 function spliceOrderBy(
   sql: string,
-  insertion: { index: number; mode: 'order-by' | 'prepend-comma' | 'comma' },
+  insertion: { index: number; end?: number; mode: 'order-by' | 'prepend-comma' | 'comma' | 'replace' },
   orderBy: string,
 ): string {
+  if (insertion.mode === 'replace') {
+    if (insertion.end === undefined || insertion.end < insertion.index) {
+      throw new AshibaSortError(
+        'ASHIBA_SORT_QUERY_MODEL_STALE',
+        'Safe sort replacement range is missing or invalid.',
+      );
+    }
+    const replaced = sql.slice(insertion.index, insertion.end);
+    const trailingWhitespace = replaced.match(/\s*$/)?.[0] ?? '';
+    const suffix = sql.slice(insertion.end);
+    const separator = trailingWhitespace || (suffix.length > 0 && !isWhitespace(suffix[0] ?? '') ? ' ' : '');
+    return `${sql.slice(0, insertion.index)}${stripOrderByPrefix(orderBy)}${separator}${suffix}`;
+  }
   if (insertion.mode === 'prepend-comma') {
     const prefix = sql.slice(0, insertion.index).trimEnd();
     const suffix = sql.slice(insertion.index).trimStart();

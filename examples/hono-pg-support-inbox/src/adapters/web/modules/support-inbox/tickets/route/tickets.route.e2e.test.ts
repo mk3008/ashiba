@@ -3,6 +3,8 @@ import { Pool } from 'pg';
 
 import { createWebApp } from '#adapters/web/app.js';
 import { seedSupportInbox } from '../../../../../../../scripts/seed.js';
+import { parseTicketFilters } from '../request/tickets.request.js';
+import { loadSupportInbox } from '../view/tickets.presenter.js';
 
 const skipDbBackedTests = process.env.ASHIBA_SKIP_DB_BACKED_TESTS === '1';
 const describeDb = skipDbBackedTests ? describe.skip : describe;
@@ -56,6 +58,61 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('order by');
     expect(html).toContain('st.ticket_id');
     expect(html).not.toContain('order by case when t.sla_due_at is not null');
+  });
+
+  test('proves complex canonical list semantics without dynamic sort', async () => {
+    const context = {
+      requestId: 'verification-value-audit',
+      apiMethod: 'GET',
+      apiPath: '/tickets',
+      apiRoute: '/tickets',
+      operation: 'list-tickets-semantics',
+    };
+    const initial = await loadSupportInbox(
+      pool,
+      parseTicketFilters(new URL('http://localhost/tickets')),
+      context,
+    );
+    const billing = initial.tickets.find((ticket) => ticket.ticket_id === '10248');
+
+    expect(initial.tickets).toHaveLength(10);
+    expect(initial.pagination).toMatchObject({ totalCount: 31, totalPages: 4, hasNext: true });
+    expect(billing).toMatchObject({
+      total_count: '31',
+      subject: '請求書のダウンロードができない',
+      latest_sender_role: 'customer',
+      latest_message_body: '他のブラウザでも試しましたが、同じエラーが出ます。',
+      sla_state: 'breached',
+      tag_slugs: ['billing'],
+      action_required: 1,
+      priority_rank: 1,
+      vip_rank: 1,
+    });
+
+    const open = await loadSupportInbox(
+      pool,
+      parseTicketFilters(new URL('http://localhost/tickets?status=open')),
+      context,
+    );
+    expect(open.tickets.map((ticket) => ticket.subject)).toEqual([
+      'プランの変更方法を教えてください',
+      'ログインできません',
+    ]);
+
+    const keyword = await loadSupportInbox(
+      pool,
+      parseTicketFilters(new URL('http://localhost/tickets?keyword=ログイン')),
+      context,
+    );
+    expect(keyword.tickets.map((ticket) => ticket.subject)).toEqual(['ログインできません']);
+
+    const secondPage = await loadSupportInbox(
+      pool,
+      parseTicketFilters(new URL('http://localhost/tickets?status=waiting_agent&page=2')),
+      context,
+    );
+    expect(secondPage.tickets).toHaveLength(10);
+    expect(secondPage.pagination).toMatchObject({ totalCount: 21, totalPages: 3, hasPrevious: true, hasNext: true });
   });
 
   test('renders the new ticket form', async () => {
@@ -215,7 +272,7 @@ describeDb('support inbox HTTP filters', () => {
     expect(response.status).toBe(200);
     expectReadyHtml(html);
     expect(html).toContain('並び順: 顧客 昇順 → 更新日時 降順');
-    expect(html).toContain('order by cast(st.customer_name as text) asc, st.updated_at desc, st.ticket_id');
+    expect(html).toContain('cast(st.customer_name as text) asc, st.updated_at desc, st.ticket_id asc');
     expect(html).toContain('data-sort-key="customer_name">顧客<span class="sortMarker">↑</span>');
     expect(html).toContain('data-sort-key="updated_at">更新日時<span class="sortMarker">↓2</span>');
   });

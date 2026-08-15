@@ -119,9 +119,16 @@ export function toTicketSort(filters: TicketFilters): readonly SortInput[] {
     return [];
   }
   if (knownSorts.has(filters.sort as TicketSortKey)) {
-    return ticketSortInputs[filters.sort as TicketSortKey];
+    return withStableTicketId(ticketSortInputs[filters.sort as TicketSortKey]);
   }
-  return parseColumnSort(filters.sort);
+  return withStableTicketId(parseColumnSort(filters.sort));
+}
+
+function withStableTicketId(sort: readonly SortInput[]): readonly SortInput[] {
+  if (sort.some((item) => item.key === 'ticket_id')) {
+    return sort.slice(0, 4);
+  }
+  return [...sort.slice(0, 3), { key: 'ticket_id', direction: 'asc' }];
 }
 
 function normalizeSort(value: string | null): TicketSortValue {

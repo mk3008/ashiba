@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 
-import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
+import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { execute } from '../boundary.js';
 
 test('list-ticket-customer-options maps customers through the execute boundary', async () => {
   const executor: FeatureQueryExecutor = {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+    async query(query, params) {
       expect(query.id).toBe('list-customers-for-ticket');
       expect(params).toEqual({ limit: 50 });
       return [
@@ -16,7 +16,7 @@ test('list-ticket-customer-options maps customers through the execute boundary',
           locale: 'ja',
           created_at: '2026-06-01T00:00:00.000Z',
         },
-      ] as T[];
+      ];
     },
   };
 

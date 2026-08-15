@@ -11,59 +11,23 @@ export const queryModel = {
       "insertion": {
         "status": "ready",
         "index": 588,
-        "mode": "prepend-comma"
+        "end": 621,
+        "mode": "replace"
       },
       "sortable": {
-        "ticket_id": {
-          "sql": "t.ticket_id"
-        },
-        "subject": {
-          "sql": "t.subject"
-        },
-        "status": {
-          "sql": "t.status"
-        },
-        "priority": {
-          "sql": "t.priority"
-        },
-        "language": {
-          "sql": "t.language"
-        },
-        "channel": {
-          "sql": "t.channel"
-        },
-        "sla_due_at": {
-          "sql": "t.sla_due_at"
-        },
-        "created_at": {
-          "sql": "t.created_at"
-        },
-        "updated_at": {
-          "sql": "t.updated_at"
-        },
-        "version_key": {
-          "sql": "t.version_key"
-        },
-        "customer_name": {
-          "sql": "c.name"
-        },
-        "customer_tier": {
-          "sql": "c.tier"
+        "message_created_at": {
+          "sql": "tm.created_at",
+          "defaultDirection": "asc",
+          "allowedDirections": [
+            "asc"
+          ]
         },
         "message_id": {
-          "sql": "tm.message_id"
-        },
-        "sender_name": {
-          "sql": "tm.sender_name"
-        },
-        "sender_role": {
-          "sql": "tm.sender_role"
-        },
-        "message_body": {
-          "sql": "tm.body"
-        },
-        "message_created_at": {
-          "sql": "tm.created_at"
+          "sql": "tm.message_id",
+          "defaultDirection": "asc",
+          "allowedDirections": [
+            "asc"
+          ]
         }
       }
     },
@@ -109,9 +73,41 @@ export const queryModel = {
       "updated_at": "string",
       "version_key": "number"
     },
+    "resultColumnNullability": {
+      "channel": "non-null",
+      "created_at": "non-null",
+      "customer_name": "non-null",
+      "customer_tier": "non-null",
+      "language": "non-null",
+      "message_body": "nullable",
+      "message_created_at": "nullable",
+      "message_id": "nullable",
+      "priority": "non-null",
+      "sender_name": "nullable",
+      "sender_role": "nullable",
+      "sla_due_at": "nullable",
+      "status": "non-null",
+      "subject": "non-null",
+      "ticket_id": "non-null",
+      "updated_at": "non-null",
+      "version_key": "non-null"
+    },
     "namedParameters": [
       "ticketId"
     ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "supported",
+      "safeSort": "supported",
+      "impactAnalysis": "supported"
+    },
     "parameterTypes": {
       "ticketId": "string"
     }
@@ -124,7 +120,8 @@ export const queryModel = {
         "ticketId"
       ],
       "safeSortInsertion": {
-        "index": 581
+        "index": 581,
+        "end": 614
       },
       "optionalConditionCompression": {
         "branches": []

@@ -4,7 +4,7 @@ import {
   executeCreateTransferDestinationDefinitionEntrySpec,
   type CreateTransferDestinationDefinitionInput,
 } from '../boundary.js';
-import type { FeatureQueryExecutor, FeatureQuerySource } from '../../_shared/featureQueryExecutor.js';
+import type { FeatureQueryExecutor } from '../../_shared/featureQueryExecutor.js';
 
 const validInput: CreateTransferDestinationDefinitionInput = {
   name: 'journal',
@@ -28,7 +28,7 @@ const validInput: CreateTransferDestinationDefinitionInput = {
 test('maps camelCase feature input to snake_case query params and response fields', async () => {
   const seenParams: Record<string, unknown>[] = [];
   const executor: FeatureQueryExecutor = {
-    async query<T = unknown>(_query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+    async query(_query, params) {
       seenParams.push(params);
       return [
         {
@@ -48,7 +48,7 @@ test('maps camelCase feature input to snake_case query params and response field
           updated_at: new Date('2026-04-29T00:00:00.000Z'),
           note: 'reviewed',
         },
-      ] as T[];
+      ];
     },
   };
 

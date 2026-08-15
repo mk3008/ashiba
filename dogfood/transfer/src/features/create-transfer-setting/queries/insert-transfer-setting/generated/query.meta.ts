@@ -46,6 +46,22 @@ export const queryModel = {
       "source_sql_hash": "string",
       "updated_at": "string"
     },
+    "resultColumnNullability": {
+      "created_at": "non-null",
+      "description": "nullable",
+      "is_enabled": "non-null",
+      "note": "nullable",
+      "search_condition_analysis_result": "nullable",
+      "setting_id": "non-null",
+      "setting_name": "non-null",
+      "source_key_definition": "non-null",
+      "source_sql_analysis_error": "nullable",
+      "source_sql_analysis_result": "nullable",
+      "source_sql_analysis_status": "non-null",
+      "source_sql_body": "non-null",
+      "source_sql_hash": "non-null",
+      "updated_at": "non-null"
+    },
     "namedParameters": [
       "setting_name",
       "description",
@@ -59,6 +75,19 @@ export const queryModel = {
       "is_enabled",
       "note"
     ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "blocked",
+      "safeSort": "blocked",
+      "impactAnalysis": "supported"
+    },
     "parameterTypes": {
       "description": "string | null",
       "is_enabled": "boolean",

@@ -3,9 +3,8 @@ import { expect, test } from 'vitest';
 import { runQuerySpecZtdCases } from '#tests/support/ztd/harness.js';
 import { executeGetTicketDetailQuery } from '../query.js';
 import logicCases from './cases/logic.case.js';
-import mappingCases from './generated/mapping.cases.js';
 
-const cases = [...mappingCases, ...logicCases];
+const cases = logicCases;
 
 const shouldSkipZtd =
   process.env.ASHIBA_SKIP_DB_BACKED_TESTS === '1' ||

@@ -50,6 +50,24 @@ export const queryModel = {
       "setting_id": "string",
       "updated_at": "string"
     },
+    "resultColumnNullability": {
+      "created_at": "non-null",
+      "destination_definition_id": "non-null",
+      "destination_key_mapping": "non-null",
+      "destination_link_id": "non-null",
+      "diff_compare_excluded_columns": "nullable",
+      "execution_order": "non-null",
+      "generated_delete_transfer_sql_body": "non-null",
+      "generated_insert_transfer_sql_body": "non-null",
+      "generated_sql_error": "nullable",
+      "generated_sql_status": "non-null",
+      "generated_update_transfer_sql_body": "non-null",
+      "is_enabled": "non-null",
+      "mapping_definition": "non-null",
+      "note": "nullable",
+      "setting_id": "non-null",
+      "updated_at": "non-null"
+    },
     "namedParameters": [
       "setting_id",
       "destination_definition_id",
@@ -61,6 +79,19 @@ export const queryModel = {
       "is_enabled",
       "note"
     ],
+    "parserCapabilities": {
+      "parser": {
+        "status": "supported"
+      },
+      "sqlStorage": "unaffected",
+      "execution": "unaffected",
+      "parameterBinding": "unaffected",
+      "logging": "unaffected",
+      "resultContract": "supported",
+      "optionalConditionCompression": "blocked",
+      "safeSort": "blocked",
+      "impactAnalysis": "supported"
+    },
     "parameterTypes": {
       "destination_definition_id": "string",
       "destination_link_name": "string",

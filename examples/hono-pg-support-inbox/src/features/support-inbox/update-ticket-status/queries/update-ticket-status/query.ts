@@ -1,10 +1,10 @@
-import { queryMany } from '@ashiba-ts/driver-adapter-core';
+import { queryMany, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const updateTicketStatusSql = querySql;
-export const updateTicketStatusQuery = {
+export const updateTicketStatusQuery: FeatureQuerySource<UpdateTicketStatusQueryParams, UpdateTicketStatusQueryResult> = {
   id: 'update-ticket-status',
   path: 'update-ticket-status.sql',
   sqlPath: 'update-ticket-status.sql',
@@ -16,7 +16,7 @@ export const updateTicketStatusQuery = {
     sqlFile: 'update-ticket-status.sql',
     sqlPath: 'update-ticket-status.sql',
   },
-} as const;
+};
 
 export interface UpdateTicketStatusQueryParams {
   status: string;
@@ -26,17 +26,15 @@ export interface UpdateTicketStatusQueryParams {
 }
 
 export interface UpdateTicketStatusQueryResult {
-  status: string | null;
-  ticket_id: string | null;
-  updated_at: string | null;
-  version_key: number | null;
+  status: string;
+  ticket_id: string;
+  updated_at: string;
+  version_key: number;
 }
-
-type QueryRow = UpdateTicketStatusQueryResult;
 
 export async function executeUpdateTicketStatusQuery(
   executor: FeatureQueryExecutor,
   params: UpdateTicketStatusQueryParams
 ): Promise<UpdateTicketStatusQueryResult[]> {
-  return queryMany<QueryRow>(executor, updateTicketStatusQuery, params as unknown as Record<string, unknown>);
+  return queryMany(executor, updateTicketStatusQuery, params);
 }

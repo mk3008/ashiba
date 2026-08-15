@@ -19,6 +19,25 @@ Application code should call the adapter with a file-backed or generated query s
 
 The adapter verifies the source SQL hash and uses CLI-generated Postgres SQL plus ordered parameter names. If metadata is absent or stale, execution fails before the wrapped driver is called.
 
+When query metadata includes an optional PostgreSQL-derived contract, the
+adapter also rejects a stale contract and a declared driver representation
+profile mismatch before calling `pg`. The default profile is
+`node-postgres-default`. Applications that configure custom `pg` type parsers
+must pass a stable profile identifier:
+
+```ts
+const adapter = createPostgresAdapter(pool, {
+  driverProfile: 'custom:application-v1',
+});
+```
+
+This option is an assertion about caller-owned driver configuration, not a
+parser configuration API. Ashiba never installs, replaces, or introspects
+node-postgres type parsers. Generate the matching development contract with
+`ashiba feature query postgres-contract --driver-profile custom:application-v1`;
+custom profiles keep driver values as `unknown` until application-owned decoding
+proves a narrower type.
+
 Safe sort requires CLI-generated query model analysis when sort input is provided. Source SQL stays ordinary SQL without Ashiba-only comments or replacement markers. Runtime AST parsing is intentionally avoided by default. The adapter verifies the source SQL hash, treats query model sortable metadata as the maximum allowed sort surface, and uses query model safe-sort metadata to splice either a new `ORDER BY` clause or an additional comma-separated sort expression at the recorded insertion position. Sort keys must exactly match the query model whitelist; raw ORDER BY fragments, guessed column names, and case-folded matches are rejected. An explicit runtime sort profile may refine default directions, but it cannot replace query model SQL expressions.
 
 Root compound queries such as `UNION`, `INTERSECT`, and `EXCEPT` are rejected from query model shape metadata instead of being parsed at runtime. The reported next action is to wrap the compound query in an explicit subquery and expose stable sortable columns.
@@ -27,4 +46,4 @@ Current contract tests cover `pg` compatible query delegation, named parameter b
 
 For transient database failures, use `classifyPostgresTransientError` or `isPostgresTransientError` as input to an explicit retry boundary such as `withAshibaRetry` from `@ashiba-ts/driver-adapter-core`. The classifier only identifies retry candidates; application code still decides whether the operation is safe to run again.
 
-Live PostgreSQL smoke can be run by setting `ASHIBA_TEST_DATABASE_URL` or `DATABASE_URL` before `pnpm test`. Without that environment variable, the live smoke is skipped.
+Live PostgreSQL smoke can be run by setting `ASHIBA_TEST_DATABASE_URL` or `DATABASE_URL` before `pnpm verify:postgres-live`. Without that environment variable, the live smoke is skipped.

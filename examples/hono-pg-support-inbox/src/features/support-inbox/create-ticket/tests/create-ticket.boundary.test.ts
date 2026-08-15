@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 
-import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
+import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { execute } from '../boundary.js';
 
 test('create-ticket creates the ticket and first message through parsed boundary input', async () => {
   const calls: Array<{ id: string; params: Record<string, unknown> }> = [];
   const executor: FeatureQueryExecutor = {
-    async query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]> {
+    async query(query, params) {
       calls.push({ id: query.id, params });
       if (query.id === 'list-customers-for-ticket') {
         return [
@@ -17,7 +17,7 @@ test('create-ticket creates the ticket and first message through parsed boundary
             locale: 'ja',
             created_at: '2026-06-01T00:00:00.000Z',
           },
-        ] as T[];
+        ];
       }
       if (query.id === 'create-ticket') {
         return [
@@ -35,7 +35,7 @@ test('create-ticket creates the ticket and first message through parsed boundary
             version_key: 1,
             metadata: null,
           },
-        ] as T[];
+        ];
       }
       if (query.id === 'create-ticket-message') {
         return [
@@ -47,7 +47,7 @@ test('create-ticket creates the ticket and first message through parsed boundary
             body: params.body,
             created_at: params.created_at,
           },
-        ] as T[];
+        ];
       }
       throw new Error(`Unexpected query: ${query.id}`);
     },

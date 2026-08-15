@@ -160,6 +160,7 @@ export type AshibaSortDirection = 'asc' | 'desc';
 export type AshibaSortProfileEntry = {
   sql: string;
   defaultDirection?: AshibaSortDirection;
+  allowedDirections?: readonly AshibaSortDirection[];
 };
 
 /**
@@ -182,14 +183,29 @@ export type AshibaQueryModelAnalysis = {
   astParse: 'ok' | 'failed';
   statementKind: 'select' | 'insert' | 'update' | 'delete' | 'unknown';
   rootQueryShape?: 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';
-  hasTopLevelOrderBy: boolean;
+  hasTopLevelOrderBy: boolean | 'unknown';
+  parserCapabilities?: {
+    parser: {
+      status: 'supported' | 'degraded';
+      reason?: string;
+    };
+    sqlStorage: 'unaffected';
+    execution: 'unaffected';
+    parameterBinding: 'unaffected';
+    logging: 'unaffected';
+    resultContract: 'supported' | 'degraded';
+    optionalConditionCompression: 'supported' | 'blocked';
+    safeSort: 'supported' | 'blocked';
+    impactAnalysis: 'supported' | 'degraded';
+  };
   sourceHash?: string;
   safeSort?: {
     insertion:
       | {
         status: 'ready';
         index: number;
-        mode: 'order-by' | 'prepend-comma' | 'comma';
+        end?: number;
+        mode: 'order-by' | 'prepend-comma' | 'comma' | 'replace';
       }
       | {
         status: 'unresolved';
@@ -246,12 +262,147 @@ export type FeatureQueryDialectBinding = {
   orderedNames: readonly string[];
 };
 
+/** Evidence level attached to one generated query-contract fact. */
+export type AshibaQueryContractProvenance = 'proven' | 'inferred' | 'driver-mapped' | 'unknown';
+
+/** PostgreSQL catalog classification retained independently from TypeScript values. */
+export type PostgresDatabaseTypeKind =
+  | 'base'
+  | 'array'
+  | 'enum'
+  | 'domain'
+  | 'composite'
+  | 'range'
+  | 'multirange'
+  | 'pseudo'
+  | 'unknown';
+
+export type PostgresDomainConstraint = {
+  name: string;
+  definition: string;
+  validated: boolean;
+};
+
+/** Cluster-independent PostgreSQL type identity for deterministic snapshot comparison. */
+export type PostgresPortableDatabaseTypeIdentity = {
+  schema: string;
+  name: string;
+  formattedName: string;
+  kind: PostgresDatabaseTypeKind;
+  category: string;
+  typeModifier?: number;
+  elementType?: PostgresPortableDatabaseTypeIdentity;
+  baseType?: PostgresPortableDatabaseTypeIdentity;
+  enumValues?: readonly string[];
+  domainConstraints?: readonly PostgresDomainConstraint[];
+};
+
+/** PostgreSQL type identity reported by the development-time database oracle. */
+export type PostgresDatabaseTypeIdentity = {
+  oid: number;
+  schema: string;
+  name: string;
+  formattedName: string;
+  kind: PostgresDatabaseTypeKind;
+  category: string;
+  elementTypeOid?: number;
+  baseTypeOid?: number;
+  enumValues?: readonly string[];
+  typeModifier?: number;
+  domainConstraints?: readonly PostgresDomainConstraint[];
+  portableIdentity?: PostgresPortableDatabaseTypeIdentity;
+};
+
+/** Nullability evidence kept separate because PostgreSQL result type metadata does not generally prove it. */
+export type PostgresContractNullability = {
+  value: 'non-null' | 'nullable' | 'unknown';
+  provenance: Extract<AshibaQueryContractProvenance, 'inferred' | 'unknown'>;
+};
+
+/** One PostgreSQL-derived parameter position. */
+export type PostgresContractParameter = {
+  position: number;
+  name?: string;
+  databaseType: PostgresDatabaseTypeIdentity;
+  typeProvenance: Extract<AshibaQueryContractProvenance, 'proven'>;
+  nullability: PostgresContractNullability;
+  typeModifier?: number;
+};
+
+/** One PostgreSQL-derived result position. */
+export type PostgresContractResult = {
+  position: number;
+  name?: string;
+  nameProvenance: Extract<AshibaQueryContractProvenance, 'proven' | 'inferred' | 'unknown'>;
+  databaseType: PostgresDatabaseTypeIdentity;
+  typeProvenance: Extract<AshibaQueryContractProvenance, 'proven'>;
+  nullability: PostgresContractNullability;
+};
+
+/** Public identifier for the driver representation assumed by generated metadata. */
+export type PostgresDriverRepresentationProfile = 'node-postgres-default' | `custom:${string}`;
+
+/** Driver-side value representation, deliberately separate from the PostgreSQL database type. */
+export type PostgresDriverRepresentation = {
+  position: number;
+  name?: string;
+  runtimeType:
+    | 'number'
+    | 'string'
+    | 'boolean'
+    | 'Date'
+    | 'array'
+    | 'json-value'
+    | 'unknown';
+  typeScriptType: string;
+  provenance: Extract<AshibaQueryContractProvenance, 'driver-mapped' | 'unknown'>;
+};
+
+export type PostgresQueryDependency = {
+  kind: 'column' | 'relation' | 'function';
+  schema: string;
+  name: string;
+  relationKind?: string;
+  column?: string;
+  columnNotNull?: boolean;
+  columnType?: PostgresPortableDatabaseTypeIdentity;
+  columnTypeModifier?: number;
+  definitionHash?: string;
+  identityArguments?: string;
+  resultType?: string;
+};
+
+/** Deterministic, optional development-time PostgreSQL query contract. */
+export type PostgresDerivedQueryContract = {
+  version: 1;
+  sourceHash: string;
+  database: {
+    system: 'postgresql';
+    serverMajor: number;
+    parameters: readonly PostgresContractParameter[];
+    results: readonly PostgresContractResult[];
+    dependencies?: readonly PostgresQueryDependency[];
+  };
+  driver: {
+    profile: PostgresDriverRepresentationProfile;
+    parameters: readonly PostgresDriverRepresentation[];
+    results: readonly PostgresDriverRepresentation[];
+  };
+  diagnostics: readonly {
+    code: string;
+    message: string;
+  }[];
+};
+
 /**
  * PostgreSQL binding metadata used by safe sort and optional-condition rewrites.
  */
 export type FeatureQueryPostgresDialectBinding = FeatureQueryDialectBinding & {
+  /** Optional database-derived contract generated by the development CLI. */
+  contract?: PostgresDerivedQueryContract;
   safeSortInsertion?: {
     index: number;
+    end?: number;
   };
   optionalConditionCompression?: {
     branches: readonly {
@@ -305,16 +456,42 @@ export type FeatureQueryDialectBindings = {
  */
 export type FeatureQueryModel = {
   analysis: AshibaQueryModelAnalysis & {
+    /** Source-order result names when development-time AST extraction can prove them. */
+    resultColumnOrder?: readonly string[];
     resultColumnTypes?: Record<string, string>;
+    resultColumnNullability?: Record<string, 'non-null' | 'nullable' | 'unknown'>;
     parameterTypes?: Record<string, string>;
   };
   bindings?: FeatureQueryDialectBindings;
 };
 
 /**
- * File-backed SQL query source generated or loaded from a reviewed SQL file.
+ * Type-only contract carried by a file-backed query source.
+ *
+ * The invariant function properties prevent callers from substituting an
+ * unrelated Params or Row type through an explicit generic argument. The
+ * property is optional so generated runtime artifacts do not need to emit a
+ * value: a normal type annotation is enough to bind the source to its contract.
  */
-export interface FeatureQuerySource {
+export interface AshibaTypedQuerySource<Params extends object = Record<string, unknown>, Row = unknown> {
+  readonly __ashibaContract?: {
+    readonly params: (value: Params) => Params;
+    readonly row: (value: Row) => Row;
+  };
+}
+
+/** Extract the parameter object bound to a typed Ashiba query source. */
+export type AshibaQueryParams<Query> = Query extends AshibaTypedQuerySource<infer Params, infer _Row>
+  ? Params
+  : never;
+
+/** Extract the row object bound to a typed Ashiba query source. */
+export type AshibaQueryRow<Query> = Query extends AshibaTypedQuerySource<infer _Params, infer Row>
+  ? Row
+  : never;
+
+/** Runtime fields shared by every feature query source. */
+export interface FeatureQuerySourceBase {
   id: string;
   path: string;
   sqlPath: string;
@@ -325,13 +502,25 @@ export interface FeatureQuerySource {
 }
 
 /**
+ * File-backed SQL plus its mechanically checked Params/Row contract.
+ */
+export interface FeatureQuerySource<Params extends object = Record<string, unknown>, Row = unknown>
+  extends FeatureQuerySourceBase, AshibaTypedQuerySource<Params, Row> {}
+
+/** Any typed feature query source while preserving its concrete contract. */
+export type AnyFeatureQuerySource = FeatureQuerySourceBase & AshibaTypedQuerySource<any, any>;
+
+/**
  * Thin feature-level SQL execution boundary.
  *
  * Feature and workflow code depend on this instead of pg, logger packages, or
  * concrete adapter implementations.
  */
-export interface FeatureQueryExecutor {
-  query<T = unknown>(query: FeatureQuerySource, params: Record<string, unknown>): Promise<T[]>;
+export interface FeatureQueryExecutor<Query extends AnyFeatureQuerySource = AnyFeatureQuerySource> {
+  query(
+    query: Query,
+    params: AshibaQueryParams<Query>,
+  ): Promise<AshibaQueryRow<Query>[]>;
 }
 
 /**
@@ -364,38 +553,38 @@ export class FeatureQueryCardinalityError extends Error {
 /**
  * Execute a feature query and return every row.
  */
-export async function queryMany<T = unknown>(
-  executor: FeatureQueryExecutor,
-  query: FeatureQuerySource,
-  params: Record<string, unknown>,
-): Promise<T[]> {
-  return executor.query<T>(query, params);
+export async function queryMany<Query extends AnyFeatureQuerySource>(
+  executor: FeatureQueryExecutor<Query>,
+  query: Query,
+  params: AshibaQueryParams<Query>,
+): Promise<AshibaQueryRow<Query>[]> {
+  return executor.query(query, params);
 }
 
 /**
  * Execute a feature query that must return exactly one row.
  */
-export async function queryOne<T = unknown>(
-  executor: FeatureQueryExecutor,
-  query: FeatureQuerySource,
-  params: Record<string, unknown>,
-): Promise<T> {
-  const rows = await queryMany<T>(executor, query, params);
+export async function queryOne<Query extends AnyFeatureQuerySource>(
+  executor: FeatureQueryExecutor<Query>,
+  query: Query,
+  params: AshibaQueryParams<Query>,
+): Promise<AshibaQueryRow<Query>> {
+  const rows = await queryMany(executor, query, params);
   if (rows.length !== 1) {
     throw new FeatureQueryCardinalityError('ASHIBA_QUERY_EXPECTED_ONE_ROW', query, rows.length);
   }
-  return rows[0] as T;
+  return rows[0];
 }
 
 /**
  * Execute a feature query that may return no row, but must not return many.
  */
-export async function queryOneOrNull<T = unknown>(
-  executor: FeatureQueryExecutor,
-  query: FeatureQuerySource,
-  params: Record<string, unknown>,
-): Promise<T | null> {
-  const rows = await queryMany<T>(executor, query, params);
+export async function queryOneOrNull<Query extends AnyFeatureQuerySource>(
+  executor: FeatureQueryExecutor<Query>,
+  query: Query,
+  params: AshibaQueryParams<Query>,
+): Promise<AshibaQueryRow<Query> | null> {
+  const rows = await queryMany(executor, query, params);
   if (rows.length > 1) {
     throw new FeatureQueryCardinalityError('ASHIBA_QUERY_EXPECTED_ZERO_OR_ONE_ROW', query, rows.length);
   }
@@ -474,6 +663,7 @@ export async function withAshibaRetry<T>(
 export class AshibaSortError extends Error {
   readonly code:
     | 'ASHIBA_UNKNOWN_SORT_KEY'
+    | 'ASHIBA_DUPLICATE_SORT_KEY'
     | 'ASHIBA_INVALID_SORT_DIRECTION'
     | 'ASHIBA_EMPTY_SORT_PROFILE'
     | 'ASHIBA_SORT_QUERY_MODEL_REQUIRED'
@@ -510,15 +700,26 @@ export function renderSafeOrderBy(profile: AshibaSortProfile, input: readonly As
     throw new AshibaSortError('ASHIBA_EMPTY_SORT_PROFILE', 'Sort profile is empty.');
   }
 
+  const seen = new Set<string>();
   const fragments = input.map((item) => {
     const entry = profile[item.key];
     if (!entry) {
       throw new AshibaSortError('ASHIBA_UNKNOWN_SORT_KEY', `Unknown sort key: ${item.key}`);
     }
+    if (seen.has(item.key)) {
+      throw new AshibaSortError('ASHIBA_DUPLICATE_SORT_KEY', `Duplicate sort key: ${item.key}`);
+    }
+    seen.add(item.key);
 
     const direction = item.direction ?? entry.defaultDirection ?? 'asc';
     if (direction !== 'asc' && direction !== 'desc') {
       throw new AshibaSortError('ASHIBA_INVALID_SORT_DIRECTION', `Invalid sort direction for ${item.key}.`);
+    }
+    if (entry.allowedDirections && !entry.allowedDirections.includes(direction)) {
+      throw new AshibaSortError(
+        'ASHIBA_INVALID_SORT_DIRECTION',
+        `Sort direction ${direction} for ${item.key} is not present in the reviewed source SQL ORDER BY.`,
+      );
     }
 
     return `${entry.sql} ${direction}`;
@@ -599,6 +800,8 @@ function describeSortErrorCause(code: AshibaSortError['code']): string {
       return 'Safe sort was requested, but no reviewed sortable keys are available.';
     case 'ASHIBA_UNKNOWN_SORT_KEY':
       return 'The requested sort key is not present in the reviewed safe sort profile.';
+    case 'ASHIBA_DUPLICATE_SORT_KEY':
+      return 'The same reviewed sort key was requested more than once.';
     case 'ASHIBA_INVALID_SORT_DIRECTION':
       return 'The requested sort direction is outside the allowed asc/desc values.';
     case 'ASHIBA_SORT_QUERY_MODEL_REQUIRED':
@@ -620,6 +823,8 @@ function describeSortErrorNextAction(code: AshibaSortError['code']): string {
       return 'Regenerate query model metadata with safe-sort analysis or disable safe sort for this query.';
     case 'ASHIBA_UNKNOWN_SORT_KEY':
       return 'Use one of the sortable keys recorded in the query model, or update the SQL and regenerate metadata.';
+    case 'ASHIBA_DUPLICATE_SORT_KEY':
+      return 'Provide each reviewed sort key at most once.';
     case 'ASHIBA_INVALID_SORT_DIRECTION':
       return 'Use asc or desc for the requested sort direction.';
     case 'ASHIBA_SORT_QUERY_MODEL_REQUIRED':

@@ -195,20 +195,21 @@ function verifySingleDriverAdapterConsumer(root, entry) {
 
 function driverAdapterTypeSmokeSource(id) {
   if (id === 'pg') {
-    return `import { createPostgresAdapter } from '@ashiba-ts/driver-adapter-pg';
+    return `import { createPostgresAdapter, type AshibaPostgresQuerySource } from '@ashiba-ts/driver-adapter-pg';
 import { queryModel } from './generated/users.meta.js';
 
 const sourceSql = 'select * from users where id = :id';
+const query: AshibaPostgresQuerySource<{ id: number }, { id: number }> = {
+  sql: sourceSql,
+  sqlPath: 'users.sql',
+  queryModel,
+};
 
 createPostgresAdapter({
   async query() {
     return { rows: [{ id: 1 }], rowCount: 1 };
   },
-}).execute({
-  sql: sourceSql,
-  sqlPath: 'users.sql',
-  queryModel,
-}, { id: 1 });
+}).execute(query, { id: 1 });
 `;
   }
 

@@ -17,7 +17,10 @@ describe('fromPg', () => {
     const sql =
       'select * from transfer_destination_definition where destination_definition_name = any(:names) and is_enabled = :enabled';
     const sourceHash = `sha256:${createHash('sha256').update(sql).digest('hex')}`;
-    const query: FeatureQuerySource = {
+    const query: FeatureQuerySource<
+      { names: string[]; enabled: boolean },
+      { destination_definition_id: string }
+    > = {
       id: 'resolve-transfer-destination-definitions',
       path: 'resolve-transfer-destination-definitions.sql',
       sqlPath: 'resolve-transfer-destination-definitions.sql',
@@ -40,7 +43,7 @@ describe('fromPg', () => {
       },
     };
 
-    const rows = await client.query<{ destination_definition_id: string }>(query, {
+    const rows = await client.query(query, {
       names: ['journal', 'ledger'],
       enabled: true,
     });
