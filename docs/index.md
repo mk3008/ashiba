@@ -35,4 +35,6 @@ features:
 - [PostgreSQL-derived query contracts](./guide/postgres-contract.md)
 - [SQL resources and schema compatibility](./guide/sql-resource-compatibility.md)
 - [Verification value audit](./evaluations/verification-value-audit.md)
+- [AI maintenance Before/After evaluation](./evaluations/ai-maintenance-ab.md)
+- [SQL tooling competitive benchmark](./evaluations/sql-tooling-competitive-benchmark.md)
 - [Concept map](./concepts/concept-map.md)

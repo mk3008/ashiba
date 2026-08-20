@@ -15,10 +15,23 @@ import {
   runFeatureImport,
 } from '../src/commands/feature.js';
 import { runModelGen } from '../src/commands/model-gen.js';
+import { areTypeScriptTypesCompatible } from '../src/commands/sql-parameter-types.js';
 import { buildQueryUsageReport, classifyImpactConfidence } from '../src/sqlgrep/query/report.js';
 import type { QueryUsageMatchDetail } from '../src/sqlgrep/query/types.js';
 
 describe('Raw SQL hardening gates', () => {
+  test('accepts safe parameter literal subsets and normalizes quote style', () => {
+    expect(areTypeScriptTypesCompatible("'open' | 'resolved' | null", 'string | null')).toBe(true);
+    expect(areTypeScriptTypesCompatible("'open' | 'resolved' | null", '"open" | "resolved" | null')).toBe(true);
+    expect(areTypeScriptTypesCompatible('1 | 2', 'number')).toBe(true);
+    expect(areTypeScriptTypesCompatible('1n', 'string | bigint')).toBe(true);
+    expect(areTypeScriptTypesCompatible('true', 'boolean')).toBe(true);
+
+    expect(areTypeScriptTypesCompatible("'unknown' | null", '"open" | "resolved" | null')).toBe(false);
+    expect(areTypeScriptTypesCompatible('string | null', '"open" | "resolved" | null')).toBe(false);
+    expect(areTypeScriptTypesCompatible('number | null', 'number')).toBe(false);
+  });
+
   test('binds inferred Params/Row and PostgreSQL arrays to one query contract without generated probes', () => {
     const fixture = createSearchFixture();
     try {

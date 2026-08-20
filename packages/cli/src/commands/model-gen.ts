@@ -78,7 +78,13 @@ export interface QueryModelBindings {
     sourceHash: string;
     sql: string;
     orderedNames: string[];
-    contract?: import('./postgres-contract.js').PostgresDerivedQueryContract;
+    contract?: {
+      version: 1;
+      sourceHash: string;
+      driver: {
+        profile: import('./postgres-contract.js').PostgresDriverProfile;
+      };
+    };
     safeSortInsertion?: {
       index: number;
       end?: number;

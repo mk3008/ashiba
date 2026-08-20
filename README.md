@@ -181,6 +181,8 @@ See [Raw SQL change loop measurement](docs/evaluations/raw-sql-change-loop.md) f
 
 See [Verification value audit](docs/evaluations/verification-value-audit.md) for the measured responsibility graph, 25-category mutation matrix, generated-artifact reduction, selective logic-test rule, and ZTD/real-schema boundary.
 
+See the [AI maintenance Before/After evaluation](docs/evaluations/ai-maintenance-ab.md) and [SQL tooling competitive benchmark](docs/evaluations/sql-tooling-competitive-benchmark.md) for measured LLM maintenance results and the current Ashiba/sqlc/Drizzle/Kysely adoption boundaries.
+
 ### I changed DDL
 
 ```bash
