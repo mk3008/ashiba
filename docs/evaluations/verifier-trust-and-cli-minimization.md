@@ -142,6 +142,19 @@ application commands (D14). An agent that already has an explicit required
 lane can compensate by source-reading and direct testing; the verifier did
 not remove that work.
 
+### Operational measurements
+
+| Measurement | Observed value | Limit |
+|---|---|---|
+| Fresh-agent attempts | Five repair/adoption attempts plus two read-only evidence lanes and one corpus worker/retry | This is a pilot, not a sampled population. |
+| Orchestrated Luna attempts | 9; 8 successful first-or-final attempts; 1 `missing_evidence` retry | The retry corrected a non-green corpus control, not product code. |
+| Verification | Clean-control static/full checks; targeted repair reruns; A and C PostgreSQL evidence; repository `pnpm verify` | D09–D13 clean-control mutations lacked live behavior or transaction oracles and remain explicitly unproven. |
+| Commands, validation calls, and retries | Exact commands and outcomes are retained in each disposable run log; one measured orchestration retry | A cross-agent aggregate command count was not reliably observable, so it is not estimated. |
+| Files read / bytes read | Not reliably observable across fresh-agent hosts | Deliberately omitted rather than estimated. |
+| Runtime tokens / credits | Unavailable for all measured attempts | No token or credit estimate is claimed. |
+| Human intervention | None | Agents used only disposable copies and isolated test resources. |
+| Wall time | Whole audit run: about 44 minutes | This is elapsed orchestration time, not the sum of worker durations. |
+
 ## CLI responsibility classification
 
 | Responsibility | Classification | Evidence and limit |
