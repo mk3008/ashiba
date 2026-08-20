@@ -16,6 +16,7 @@ decision that every current mechanism is a universal guarantee.
 | Closed-world syntax construction when construction is unavoidable | **Strong hypothesis** | Safe-sort metadata is source-visible and finite; duplicate/unsafe choices are rejected. | The criterion for when construction is unavoidable is not yet formalized for every SQL construct. |
 | Independent SQL executability | **Strong hypothesis** | The Concept Map calls for SQL that remains usable in SQL clients, and SQL-resource work can emit PostgreSQL-executable derived SQL. | Named-parameter canonical source is not necessarily unmodified PostgreSQL client syntax; the executable resource relationship needs explicit preservation. |
 | PostgreSQL/application contract verification | **Strong hypothesis** | `feature query postgres-contract` prepares canonical SQL against PostgreSQL and derives catalog/driver evidence; live tests prove this lane. The [verifier trust audit](../evaluations/verifier-trust-and-cli-minimization.md) also measured true positives for stale generated metadata and a `BIGINT` mapper drift on a clean control. | It is optional and PostgreSQL-specific; it does not prove business semantics, transaction behavior, JSON DTO shape, all nullability implications, or that an arbitrary configured test command ran every required live lane. |
+| Declared proof-lane execution | **Open hypothesis** | The proof-lane pilot showed that an external strict manifest can aggregate application-declared command exit results and prevent a selected unit-only command from being treated as the result of separately declared live and transaction commands. | The declaration cannot establish that the declared set is sufficient, nor that a successful command proves the intended semantics. It must not be called application correctness or readiness without an explicit scope. |
 | Thin, replaceable runtime integration | **Strong hypothesis** | The core `FeatureQueryExecutor` seam and runtime boundary deliberately exclude an ORM runtime. | Replaceability is a migration claim that needs application-level evidence, not just an interface. |
 | Application architecture is not owned by Ashiba | **Intentional non-goal** | The runtime boundary leaves workflow, transaction composition, route/worker adapters, retry safety, and migration apply to the application. | Generated examples may still exert architectural pressure; construction pilots must measure it. |
 | Human review can focus primarily on SQL and transaction boundaries | **Open hypothesis** | Visible SQL and explicit transaction ownership are supported review targets. The verifier trust audit found a small generated-metadata repair surface but also necessary test-wiring review. | Current generated contracts, mappers, metadata, recovery output, and test-lane configuration may still dominate review. Only comparative review evidence can establish the priority. |
@@ -38,9 +39,13 @@ decision that every current mechanism is a universal guarantee.
    name what it does not prove. A green selected test command proves only that
    selected command; it is not proof that required PostgreSQL or transaction
    lanes were covered.
-7. Keep runtime integration thin. Application workflow, transaction policy,
+7. If an application elects to declare proof lanes, distinguish the
+   application-owned adequacy of the declaration from the mechanically
+   checkable fact that every declared required command was run and exited
+   successfully. Do not infer omitted obligations from a green aggregate.
+8. Keep runtime integration thin. Application workflow, transaction policy,
    migration application, and public architecture remain application-owned.
-8. Do not assume the desired human review surface. Measure whether the SQL and
+9. Do not assume the desired human review surface. Measure whether the SQL and
    transaction boundary are actually easier to review than generated and
    integration artifacts.
 
