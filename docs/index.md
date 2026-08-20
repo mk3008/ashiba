@@ -40,5 +40,6 @@ features:
 - [Verifier trust and CLI minimization audit](./evaluations/verifier-trust-and-cli-minimization.md)
 - [Proof Lane Declaration Pilot](./evaluations/proof-lane-declaration-pilot.md)
 - [Responsibility Placement Audit](./evaluations/responsibility-placement-audit.md)
+- [Dynamic SQL Necessity Audit](./evaluations/dynamic-sql-necessity-audit.md)
 - [SQL tooling competitive benchmark](./evaluations/sql-tooling-competitive-benchmark.md)
 - [Concept map](./concepts/concept-map.md)
