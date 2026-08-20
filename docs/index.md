@@ -37,5 +37,6 @@ features:
 - [Verification value audit](./evaluations/verification-value-audit.md)
 - [AI maintenance Before/After evaluation](./evaluations/ai-maintenance-ab.md)
 - [AI-native construction baseline](./evaluations/ai-native-construction-baseline.md)
+- [Verifier trust and CLI minimization audit](./evaluations/verifier-trust-and-cli-minimization.md)
 - [SQL tooling competitive benchmark](./evaluations/sql-tooling-competitive-benchmark.md)
 - [Concept map](./concepts/concept-map.md)
