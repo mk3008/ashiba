@@ -44,4 +44,5 @@ features:
 - [SQL tooling competitive benchmark](./evaluations/sql-tooling-competitive-benchmark.md)
 - [AI-native competitive value benchmark](./evaluations/ai-native-competitive-value-benchmark.md)
 - [Minimum responsibility controlled rerun](./evaluations/minimum-ashiba-controlled-rerun.md)
+- [Reproducibility and minimum enforcement ablation](./evaluations/reproducibility-minimum-enforcement-ablation.md)
 - [Concept map](./concepts/concept-map.md)
