@@ -43,4 +43,5 @@ features:
 - [Dynamic SQL Necessity Audit](./evaluations/dynamic-sql-necessity-audit.md)
 - [SQL tooling competitive benchmark](./evaluations/sql-tooling-competitive-benchmark.md)
 - [AI-native competitive value benchmark](./evaluations/ai-native-competitive-value-benchmark.md)
+- [Minimum responsibility controlled rerun](./evaluations/minimum-ashiba-controlled-rerun.md)
 - [Concept map](./concepts/concept-map.md)
