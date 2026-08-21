@@ -45,4 +45,5 @@ features:
 - [AI-native competitive value benchmark](./evaluations/ai-native-competitive-value-benchmark.md)
 - [Minimum responsibility controlled rerun](./evaluations/minimum-ashiba-controlled-rerun.md)
 - [Reproducibility and minimum enforcement ablation](./evaluations/reproducibility-minimum-enforcement-ablation.md)
+- [Verify repair-value ablation](./evaluations/verify-repair-value-ablation.md)
 - [Concept map](./concepts/concept-map.md)
