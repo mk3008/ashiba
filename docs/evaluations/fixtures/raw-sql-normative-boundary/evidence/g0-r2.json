@@ -1,0 +1,52 @@
+{
+  "candidateId": "g0-r2",
+  "schema": "raw_sql_audit_7996253fdfeb45a1826936254e716192",
+  "connection": "runner-owned PostgreSQL nonce schema",
+  "checks": [
+    {
+      "id": "source/no-obvious-runtime-sql-construction",
+      "status": "fail",
+      "detail": "source contains interpolation or concatenation in a SQL/query expression"
+    },
+    {
+      "id": "shape/queries",
+      "status": "fail",
+      "detail": "missing queries.search"
+    },
+    {
+      "id": "w1/all-null",
+      "status": "fail",
+      "detail": "Cannot read properties of undefined (reading 'execute')"
+    },
+    {
+      "id": "w1/status-owner-needle",
+      "status": "fail",
+      "detail": "Cannot read properties of undefined (reading 'execute')"
+    },
+    {
+      "id": "w1/hostile-value",
+      "status": "fail",
+      "detail": "Cannot read properties of undefined (reading 'execute')"
+    },
+    {
+      "id": "w2/reviewed-sort",
+      "status": "fail",
+      "detail": "Cannot read properties of undefined (reading 'execute')"
+    },
+    {
+      "id": "w2/hostile-sort-rejected-before-execution",
+      "status": "pass"
+    },
+    {
+      "id": "w3/local-purposeful-queries",
+      "status": "fail",
+      "detail": "Cannot read properties of undefined (reading 'execute')"
+    },
+    {
+      "id": "w4/lexically-correct-named-lowering",
+      "status": "fail",
+      "detail": "Cannot read properties of undefined (reading 'execute')"
+    }
+  ],
+  "pass": false
+}

@@ -1,0 +1,44 @@
+{
+  "candidateId": "g0-r6",
+  "schema": "raw_sql_audit_22bdbfd309b14ed4be2d55e586a3339a",
+  "connection": "runner-owned PostgreSQL nonce schema",
+  "checks": [
+    {
+      "id": "source/no-obvious-runtime-sql-construction",
+      "status": "pass"
+    },
+    {
+      "id": "shape/queries",
+      "status": "pass"
+    },
+    {
+      "id": "w1/all-null",
+      "status": "pass"
+    },
+    {
+      "id": "w1/status-owner-needle",
+      "status": "pass"
+    },
+    {
+      "id": "w1/hostile-value",
+      "status": "pass"
+    },
+    {
+      "id": "w2/reviewed-sort",
+      "status": "pass"
+    },
+    {
+      "id": "w2/hostile-sort-rejected-before-execution",
+      "status": "pass"
+    },
+    {
+      "id": "w3/local-purposeful-queries",
+      "status": "pass"
+    },
+    {
+      "id": "w4/lexically-correct-named-lowering",
+      "status": "pass"
+    }
+  ],
+  "pass": true
+}

@@ -1,0 +1,50 @@
+{
+  "candidateId": "g0-r1",
+  "schema": "raw_sql_audit_5753a608e765434985689a926101c99b",
+  "connection": "runner-owned PostgreSQL nonce schema",
+  "checks": [
+    {
+      "id": "source/no-obvious-runtime-sql-construction",
+      "status": "fail",
+      "detail": "source contains interpolation or concatenation in a SQL/query expression"
+    },
+    {
+      "id": "shape/queries",
+      "status": "fail",
+      "detail": "list does not expose named canonical SQL"
+    },
+    {
+      "id": "w1/all-null",
+      "status": "fail",
+      "detail": "could not determine data type of parameter $1"
+    },
+    {
+      "id": "w1/status-owner-needle",
+      "status": "fail",
+      "detail": "could not determine data type of parameter $1"
+    },
+    {
+      "id": "w1/hostile-value",
+      "status": "fail",
+      "detail": "could not determine data type of parameter $1"
+    },
+    {
+      "id": "w2/reviewed-sort",
+      "status": "pass"
+    },
+    {
+      "id": "w2/hostile-sort-rejected-before-execution",
+      "status": "pass"
+    },
+    {
+      "id": "w3/local-purposeful-queries",
+      "status": "pass"
+    },
+    {
+      "id": "w4/lexically-correct-named-lowering",
+      "status": "fail",
+      "detail": "binding edge-case result mismatch"
+    }
+  ],
+  "pass": false
+}

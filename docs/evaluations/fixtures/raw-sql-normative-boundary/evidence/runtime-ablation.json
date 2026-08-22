@@ -1,0 +1,33 @@
+{
+  "baseline": "d130dfe",
+  "control": "reference/runtime-ablation.mjs",
+  "database": "PostgreSQL 18 Docker container",
+  "input": { "note": "x", "status": "open" },
+  "r1": {
+    "implementation": "@ashiba-ts/driver-adapter-pg compilePostgresQuery",
+    "sql": "select $1::text as note, $2::text as status, ':not_a_parameter'::text as literal /* :not_a_parameter */ where $3::text = $4",
+    "orderedNames": ["note", "status", "status", "status"],
+    "values": ["x", "open", "open", "open"],
+    "postgres": "pass"
+  },
+  "r2": {
+    "implementation": "application-owned lexical named-to-positional lowerer",
+    "sql": "select $1::text as note, $2::text as status, ':not_a_parameter'::text as literal /* :not_a_parameter */ where $3::text = $4",
+    "orderedNames": ["note", "status", "status", "status"],
+    "values": ["x", "open", "open", "open"],
+    "postgres": "pass"
+  },
+  "poolTransaction": {
+    "control": "reference/pool-transaction-control.mjs",
+    "r1Sql": "select label from ablation_rows where id = $1::integer",
+    "r2Sql": "select label from ablation_rows where id = $1::integer",
+    "insideR1": "uncommitted",
+    "insideR2": "uncommitted",
+    "outsideBeforeCommitRows": 0,
+    "outsideAfterCommit": "uncommitted",
+    "conclusion": "Both paths use the caller-provided transaction client; neither owns or hides transaction scope."
+  },
+  "limits": [
+    "This control does not test source-hash rejection, optional-condition compression, safe sort, events, or transient-error classification."
+  ]
+}
