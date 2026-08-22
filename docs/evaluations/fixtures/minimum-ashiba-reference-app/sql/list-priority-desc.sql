@@ -1,0 +1,1 @@
+select w.id, w.name, w.priority, w.created_at from work_items w where w.state <> 'done' order by case when w.priority = 'urgent' then 1 when w.priority = 'normal' then 2 else 3 end desc, w.id asc limit :limit::integer offset :offset::integer;
