@@ -183,6 +183,8 @@ See [Verification value audit](docs/evaluations/verification-value-audit.md) for
 
 See the [AI maintenance Before/After evaluation](docs/evaluations/ai-maintenance-ab.md) and [SQL tooling competitive benchmark](docs/evaluations/sql-tooling-competitive-benchmark.md) for measured LLM maintenance results and the current Ashiba/sqlc/Drizzle/Kysely adoption boundaries.
 
+See the [AI-native PostgreSQL competitive benchmark v2](docs/evaluations/ai-native-postgresql-competitive-benchmark-v2.md) for the fixed five-arm Fresh-Agent execution, runner-owned strict results, and its limits.
+
 ### I changed DDL
 
 ```bash
