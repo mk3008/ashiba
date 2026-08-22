@@ -18,6 +18,10 @@ export const queries = {
 
 Every `execute` must resolve to a plain array of rows. `search` must use casts in null guards (for example, `cast(:status as text) is null`) so PostgreSQL can infer types. `list.sql` may be a named manifest for several complete SQL assets, but no raw runtime string may reach SQL. Do not claim test success based on your own report.
 
+### Post-run interpretation note
+
+The historical treatment heading below says “PostgreSQL general knowledge only,” but G0 did **not** receive an unconstrained programming task. Every treatment received the common packet above, which already fixes canonical named SQL, null-guard query shape requirements, a finite list boundary, and the prohibition on raw runtime strings reaching SQL. The final report therefore describes G0 as **common task specification only / no Ashiba-specific guidance**. This note changes no historical prompt or scored result; it prevents the treatment label from overstating what was absent.
+
 ## G0 insert — PostgreSQL general knowledge only
 
 No product guidance is supplied. Implement safe, maintainable PostgreSQL application queries according to your ordinary knowledge.
