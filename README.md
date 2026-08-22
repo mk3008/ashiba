@@ -143,7 +143,7 @@ Use this section as the entry point for daily work. The command API page links e
 | Run the full local or CI gate | `ashiba check --full` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-check) |
 | Scaffold passive gates without hook libraries | `ashiba gate scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-gate-scaffold) |
 | Start a SQL-first TypeScript project shape | `ashiba init` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-init) |
-| Generate a feature boundary from an existing DDL table | `ashiba feature scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-scaffold) |
+| Generate a feature boundary from an existing DDL table | `ashiba feature scaffold users-list --table users --action list` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-scaffold) |
 | Generate a feature boundary from existing SQL | `ashiba feature import <feature> <query> --sql <path>` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-import) |
 | Add another query to an existing feature | `ashiba feature query scaffold` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-scaffold) |
 | Refresh generated metadata after editing SQL | `ashiba feature query refresh` | [Command API](https://mk3008.github.io/ashiba/generated/api/commands#ashiba-feature-query-refresh) |
@@ -182,7 +182,6 @@ See [Raw SQL change loop measurement](docs/evaluations/raw-sql-change-loop.md) f
 See [Verification value audit](docs/evaluations/verification-value-audit.md) for the measured responsibility graph, 25-category mutation matrix, generated-artifact reduction, selective logic-test rule, and ZTD/real-schema boundary.
 
 See the [AI maintenance Before/After evaluation](docs/evaluations/ai-maintenance-ab.md) and [SQL tooling competitive benchmark](docs/evaluations/sql-tooling-competitive-benchmark.md) for measured LLM maintenance results and the current Ashiba/sqlc/Drizzle/Kysely adoption boundaries.
-See the [AI-Native PostgreSQL Competitive Benchmark v2](docs/evaluations/ai-native-postgresql-competitive-benchmark-v2.md) for the runner-owned PostgreSQL 18 workload record.
 
 See the [AI-native PostgreSQL competitive benchmark v2](docs/evaluations/ai-native-postgresql-competitive-benchmark-v2.md) for the fixed five-arm Fresh-Agent execution, runner-owned strict results, and its limits.
 
