@@ -43,7 +43,6 @@ features:
 - [Dynamic SQL Necessity Audit](./evaluations/dynamic-sql-necessity-audit.md)
 - [SQL tooling competitive benchmark](./evaluations/sql-tooling-competitive-benchmark.md)
 - [AI-native competitive value benchmark](./evaluations/ai-native-competitive-value-benchmark.md)
-- [AI-Native PostgreSQL Competitive Benchmark v2](./evaluations/ai-native-postgresql-competitive-benchmark-v2.md)
 - [AI-native PostgreSQL competitive benchmark v2](./evaluations/ai-native-postgresql-competitive-benchmark-v2.md)
 - [Minimum responsibility controlled rerun](./evaluations/minimum-ashiba-controlled-rerun.md)
 - [Reproducibility and minimum enforcement ablation](./evaluations/reproducibility-minimum-enforcement-ablation.md)
