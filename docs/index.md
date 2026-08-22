@@ -44,6 +44,7 @@ features:
 - [SQL tooling competitive benchmark](./evaluations/sql-tooling-competitive-benchmark.md)
 - [AI-native competitive value benchmark](./evaluations/ai-native-competitive-value-benchmark.md)
 - [AI-native PostgreSQL competitive benchmark v2](./evaluations/ai-native-postgresql-competitive-benchmark-v2.md)
+- [Evaluation report self-containment audit](./evaluations/report-quality-audit.md)
 - [Minimum responsibility controlled rerun](./evaluations/minimum-ashiba-controlled-rerun.md)
 - [Reproducibility and minimum enforcement ablation](./evaluations/reproducibility-minimum-enforcement-ablation.md)
 - [Verify repair-value ablation](./evaluations/verify-repair-value-ablation.md)
