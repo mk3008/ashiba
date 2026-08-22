@@ -185,6 +185,8 @@ See the [AI maintenance Before/After evaluation](docs/evaluations/ai-maintenance
 
 See the [AI-native PostgreSQL competitive benchmark v2](docs/evaluations/ai-native-postgresql-competitive-benchmark-v2.md) for the fixed five-arm Fresh-Agent execution, runner-owned strict results, and its limits.
 
+See the [AI-native PostgreSQL competitive benchmark v2 follow-up](docs/evaluations/ai-native-postgresql-competitive-benchmark-v2-followup.md) for the separately specified transfer, concurrent-claim, and bounded tuning evidence, including its strict/live distinction and limits.
+
 ### I changed DDL
 
 ```bash
