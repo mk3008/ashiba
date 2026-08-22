@@ -1,0 +1,17 @@
+{
+  "name": "ashiba-ai-native-postgresql-competitive-benchmark-v2-followup-evidence",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24.19.0 <25"
+  },
+  "scripts": {
+    "reference": "node reference/run-reference-controls.mjs",
+    "reference:t1-t2": "node evaluator/T1-T2/reference-evaluator.mjs",
+    "reference:w5": "node evaluator/W5/reference-evaluator.mjs"
+  },
+  "dependencies": {
+    "pg": "8.23.0"
+  }
+}

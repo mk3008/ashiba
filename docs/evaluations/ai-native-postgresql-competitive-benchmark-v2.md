@@ -238,3 +238,12 @@ whether a follow-up should target one clearly stated question—for example,
 repairing W4 convergence under the same runner, or designing a separate,
 fully specified open-ended composition benchmark—without changing the product
 to fit this result.
+
+### Later evidence
+
+The [v2 follow-up](./ai-native-postgresql-competitive-benchmark-v2-followup.md)
+separated W4 into an atomic-transfer workload and a concurrent-claim workload,
+then added a bounded brownfield tuning workload with a committed semantic
+fixture packet. It also classifies the preserved v2 non-passes. That later
+evidence does not alter this historical matrix, decisions, or durable-evidence
+limits.

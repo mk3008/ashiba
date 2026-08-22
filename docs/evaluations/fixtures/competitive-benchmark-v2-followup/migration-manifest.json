@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "purpose": "Inventory of temporary follow-up artifacts before durable evidence migration.",
+  "migration_source": "tmp/competitive-benchmark-v2-followup/",
+  "categories": {
+    "A_required_for_claim_recheck": [
+      { "source": "fixture.mjs", "destination": "reference/common/fixture.mjs", "source_sha256": "d80ffc767735154977c9e31be8812b7e8507c54ec74f6fcc3d4d2db2db90f834" },
+      { "source": "reference-application.mjs", "destination": "reference/common/reference-application.mjs", "source_sha256": "7ddadf5fe75f6d32f8be7bf7d7ab743c2960d22ea606b398e414698151bfc53e" },
+      { "source": "evaluator.mjs", "destination": "evaluator/reference-oracle.mjs", "source_sha256": "baab23ca846c6ec5b6bca3abd05afe7682d82a971c2d6069a54a7de7139894b5", "note": "Reorganized into workload-specific committed wrappers without changing the reference oracle semantics." },
+      { "source": "primary-runs/*/ASSIGNMENT.md", "destination": "prompts/assignment-template.md", "note": "Common exact instructions and workload bodies preserved; per-cell paths and later observations omitted." },
+      { "source": "w5-baseline-manifest.json", "destination": "starters/*/README.md", "note": "Historical W5 behavior and retained hashes only; editable starter source is not reconstructable." }
+    ],
+    "B_small_reproducibility_aids": [
+      { "source": "run-reference-controls.mjs", "destination": "reference/run-reference-controls.mjs" },
+      { "source": "run-in-pg18.ps1", "destination": "scripts/run-in-pg18.ps1" },
+      { "source": "w5-baseline-manifest.json", "destination": "starters/README.md", "note": "Compact retained baseline facts and source hashes." }
+    ],
+    "C_tmp_only_verbose_or_nondurable": [
+      "primary-runs/** (candidate working trees, node_modules, agent reports)",
+      "evaluations/**/records/** (per-run verbose runner records; distilled result summary is committed separately)",
+      "w5-starters/node_modules.partial-install/**",
+      "debug-p.mjs",
+      "before-evidence-w5-treatment-divergence.md",
+      "w5-treatment-repair-attempt.md"
+    ],
+    "D_not_committed": [
+      "node_modules and package caches",
+      "database dumps",
+      "long agent transcripts and shell stdout",
+      "duplicate generated artifacts not required by the current reference-source extract"
+    ]
+  },
+  "historical_limits": {
+    "exact_w5_fresh_agent_starting_trees": "Not reconstructable from durable evidence.",
+    "fresh_agent_execution_transcripts": "Not committed; comparative cells are represented by runner-owned summaries, not replayable agent sessions."
+  }
+}
