@@ -182,6 +182,9 @@ See [Raw SQL change loop measurement](docs/evaluations/raw-sql-change-loop.md) f
 See [Verification value audit](docs/evaluations/verification-value-audit.md) for the measured responsibility graph, 25-category mutation matrix, generated-artifact reduction, selective logic-test rule, and ZTD/real-schema boundary.
 
 See the [AI maintenance Before/After evaluation](docs/evaluations/ai-maintenance-ab.md) and [SQL tooling competitive benchmark](docs/evaluations/sql-tooling-competitive-benchmark.md) for measured LLM maintenance results and the current Ashiba/sqlc/Drizzle/Kysely adoption boundaries.
+See the [AI-Native PostgreSQL Competitive Benchmark v2](docs/evaluations/ai-native-postgresql-competitive-benchmark-v2.md) for the runner-owned PostgreSQL 18 workload record.
+
+See the [AI-native PostgreSQL competitive benchmark v2](docs/evaluations/ai-native-postgresql-competitive-benchmark-v2.md) for the fixed five-arm Fresh-Agent execution, runner-owned strict results, and its limits.
 
 ### I changed DDL
 
