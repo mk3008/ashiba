@@ -1,0 +1,121 @@
+{
+  "schema": "minimum_ashiba_533b2c4e409c4412bd108c42d5929f26",
+  "status": "pass",
+  "checks": [
+    {
+      "name": "named lowering preserves lexical contexts",
+      "status": "pass"
+    },
+    {
+      "name": "named lowering runs through PostgreSQL",
+      "status": "pass"
+    },
+    {
+      "name": "single-row lookup includes LEFT JOIN nullable result",
+      "status": "pass"
+    },
+    {
+      "name": "BIGINT survives as string through pg default representation",
+      "status": "pass"
+    },
+    {
+      "name": "omitted predicate does not filter",
+      "status": "pass"
+    },
+    {
+      "name": "explicit null searches SQL NULL",
+      "status": "pass"
+    },
+    {
+      "name": "concrete value uses bound predicate",
+      "status": "pass"
+    },
+    {
+      "name": "mixed three-state filters",
+      "status": "pass"
+    },
+    {
+      "name": "hostile parameter is data",
+      "status": "pass"
+    },
+    {
+      "name": "simple ordering and stable tie-breaker",
+      "status": "pass"
+    },
+    {
+      "name": "CASE business ordering",
+      "status": "pass"
+    },
+    {
+      "name": "pagination binds values",
+      "status": "pass"
+    },
+    {
+      "name": "hostile sort key",
+      "status": "pass",
+      "error": "Unsupported ordering capability"
+    },
+    {
+      "name": "hostile sort direction",
+      "status": "pass",
+      "error": "Unsupported ordering capability"
+    },
+    {
+      "name": "final table survives hostile ordering",
+      "status": "pass"
+    },
+    {
+      "name": "insert/update RETURNING",
+      "status": "pass"
+    },
+    {
+      "name": "transaction rollback on audit failure",
+      "status": "pass",
+      "error": "new row for relation \"claim_audit\" violates check constraint \"claim_audit_context_check\""
+    },
+    {
+      "name": "failed audit rolls back claim",
+      "status": "pass"
+    },
+    {
+      "name": "concurrent claim yields distinct work items",
+      "status": "pass"
+    },
+    {
+      "name": "claim audit is transactionally present",
+      "status": "pass"
+    },
+    {
+      "name": "canonical assets have no interpolation marker",
+      "status": "pass"
+    }
+  ],
+  "postgres": "18.1 (Debian 18.1-1.pgdg13+2)",
+  "finalState": [
+    {
+      "id": "101",
+      "state": "ready",
+      "assignee": null
+    },
+    {
+      "id": "102",
+      "state": "claimed",
+      "assignee": "one"
+    },
+    {
+      "id": "103",
+      "state": "claimed",
+      "assignee": "two"
+    },
+    {
+      "id": "104",
+      "state": "done",
+      "assignee": "lee"
+    },
+    {
+      "id": "105",
+      "state": "ready",
+      "assignee": null
+    }
+  ]
+}

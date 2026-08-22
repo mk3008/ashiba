@@ -1,0 +1,17 @@
+{
+  "evaluator": "brownfield-evaluator.mjs",
+  "database": "PostgreSQL 18.1 disposable local container",
+  "status": "pass",
+  "cells": [
+    { "candidate": "optional-state-r1", "task": "optional-state", "status": "pass", "checks": 14 },
+    { "candidate": "optional-state-r2", "task": "optional-state", "status": "pass", "checks": 14 },
+    { "candidate": "priority-order-r1", "task": "priority-order", "status": "pass", "checks": 11 },
+    { "candidate": "priority-order-r2", "task": "priority-order", "status": "pass", "checks": 11 },
+    { "candidate": "summary-rename-r1", "task": "summary-rename", "status": "pass", "checks": 12 },
+    { "candidate": "summary-rename-r2", "task": "summary-rename", "status": "pass", "checks": 12 }
+  ],
+  "commonChecks": [
+    "functional correctness", "omitted/null/value semantics", "hostile parameter", "hostile sort key", "computed ordering", "transaction rollback", "concurrent claim", "schema-change regression where applicable", "final database state"
+  ],
+  "limit": "Two cells per change are construction observations, not a population estimate."
+}
