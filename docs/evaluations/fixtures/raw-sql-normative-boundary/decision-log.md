@@ -71,3 +71,13 @@ Future entries must be written before changing a condition and must state the ob
 - Previous runs valid: v5 records remain calibration evidence of the oracle defect; candidate source and timebox ledger remain valid.
 - Calibration/invalid runs: all v5 timebox-controlled evaluator outputs are superseded by v6 outputs; no v5 tally is used.
 - Effect on comparability: only evaluator assertion normalization changes. The same six timeboxed artifacts are evaluated by v6.
+
+## 2026-08-22 — post-run interpretation narrowed after external review
+
+- Observed problem: the report's first interpretation overstated two points. It described G0 as “general knowledge only” even though every treatment received a strong common task/safety specification, and it generalized W2's finite ordering evidence into a broad rule allowing any finite runtime-selected SQL syntax. The W1 workload also covered only `NULL` and present values, not omitted/`NULL`/value three-state semantics.
+- Original assumption: differences between G0/G1/G2 could be interpreted primarily as guidance differences, and W2 safely supported a general bounded-syntax rule.
+- Why that assumption no longer holds: the common packet itself fixes canonical named SQL, null guards, a finite sort capability, and the raw-string prohibition. Those shared requirements plausibly compress treatment differences. W2 empirically exercises only runtime ordering, while optional-input omission semantics were never registered.
+- Protocol change: none to the scored experiment. Reporting and the post-experiment design proposal are corrected. G0 is interpreted as “common task specification only / no Ashiba-specific guidance”; the final proposed contract narrows the explicit syntax exception to application-specified finite ordering and complete-SQL-asset selection; omitted/`NULL`/value semantics are marked untested and requirement-owned.
+- Previous runs valid: all six v6 scored cells remain valid because no prompt, candidate, evaluator, or outcome is changed.
+- Calibration/invalid runs: unchanged.
+- Effect on comparability: none for the scored matrix. The correction narrows claims and separates empirical observations from post-experiment normative design.
