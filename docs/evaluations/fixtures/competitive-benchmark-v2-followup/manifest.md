@@ -12,10 +12,21 @@
 
 Every comparative cell uses `luna_worker` / `gpt-5.6-luna` / high effort, the same permissions, 45-minute timebox, portable Node, PostgreSQL fixture, workload body, and runner evaluator. Agents receive neither evaluator assertions nor another cell's outcome. The only arm-specific instruction is: “Use the installed tool according to its intended workflow.”
 
-## Result terms
+## Result axes
 
-- **P**: a runner-owned adapter invokes the submitted public boundary and the independent PostgreSQL oracle passes.
-- **F**: the boundary is invoked and an independent live assertion fails.
-- **U**: no compatible submitted boundary can be evaluated without changing candidate files. It is a strict non-pass, not a tool-wide conclusion.
+- **Live PostgreSQL result (`P` / `F` / `U`)**: the independent runner-owned
+  PostgreSQL behavioral oracle passed, failed after a compatible invocation, or
+  could not be invoked without changing candidate files. This is the primary
+  behavioral observation.
+- **Treatment fidelity (`pass` / `fail` / `unknown`)**: an evidence-linked
+  audit of whether retained evidence is compatible with the declared arm
+  workflow. The detailed boundary was under-specified before T1/T2 execution,
+  so this classification is post-hoc and secondary; `unknown` means evidence
+  cannot sustain a classification.
+- **Strict result (`P` / `F` / `U`)**: the composite runner outcome. Strict P
+  requires an evaluable frozen public boundary, live P, and treatment pass.
+  Strict F means an evaluable submission did not satisfy a frozen evaluator
+  assertion or the secondary treatment audit. Strict U means no compatible
+  submitted boundary can be evaluated without changing candidate files.
 
 Candidate self-tests and run records are observational evidence only. They are never the primary pass oracle.

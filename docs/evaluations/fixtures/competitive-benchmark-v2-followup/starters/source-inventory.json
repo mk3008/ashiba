@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "workload": "W5",
+  "purpose": "Durable historical facts only; this is not a recoverable starter source tree.",
+  "historical_source_status": "Not reconstructable from durable evidence.",
+  "declared_baseline": {
+    "behavior": "correct deep OFFSET pagination",
+    "keyset_boundary": "initially equivalent deep OFFSET pagination behind the fixed keysetPage callable boundary",
+    "intent": "a reproducibly slow PostgreSQL plan without prescribing a repair"
+  },
+  "assignment_sha256": "d57d342f3ef3cbac61d89334012c89688a58ea6980a8c1b3ceebaa71cf022fda",
+  "historical_candidate_sha256_by_arm": {
+    "A": "d33e3ec6c428843ac54f2ef989d91527c5b65946424e7b3018aa0b5d89176b52",
+    "P": "66c6b07b7350aa3b3daf47bb849ac5f70a302467145ae1afe54d029e8c173aab",
+    "S": "a1bd27630b79ee52c7429fb8f70b2885ad0603296c56e16f70651ced6687e60c",
+    "D": "435166cc8854137e734e91e9fdec371cf205f62e397e57c4a41be880368cefdf",
+    "K": "df9a68c8f612680073d9fe0bcee20a6878231836b808d5cc74344e281da815c5"
+  },
+  "fixed_runner_sha256": "8b81d6522979b3056dda3736129523c7e09d873117d08c06437ddcba0aa002fd",
+  "fixed_core_sha256": "15232bf2f544cdec47c134ca926c1d8dc28e9421ed075a21c99f2c065116c0a5",
+  "limit": "Hashes and declared behavior do not permit reconstruction or source-identical cross-arm fairness audit."
+}

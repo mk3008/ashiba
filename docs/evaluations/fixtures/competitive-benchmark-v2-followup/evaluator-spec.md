@@ -14,4 +14,11 @@ Run two candidate calls concurrently from separate connections. Assert distinct 
 
 Invoke the fixed starter entrypoint before and after the change. Assert the same page values/order and regression results, capture `EXPLAIN (FORMAT JSON)`, and independently establish that the final plan removes the intentionally slow deep-offset path or otherwise demonstrably improves the frozen plan metric.
 
-The evaluator records strict result, live PostgreSQL result, first failed assertion, nonce, actual versions, cleanup, final-state evidence, EXPLAIN evidence, and source-diff metadata. `P/F/U` have the definitions in the [manifest](./manifest.md). Reference controls must pass before any Fresh-Agent cell starts.
+The evaluator records strict result, live PostgreSQL result, treatment-fidelity
+classification, first failed assertion, nonce, actual versions, cleanup,
+final-state evidence, EXPLAIN evidence, and source-diff metadata. The
+three-axis definitions are in the [manifest](./manifest.md): live PostgreSQL
+is the behavioral oracle; treatment fidelity is a secondary, post-hoc T1/T2
+audit where its detailed boundary was under-specified before execution; strict
+is the composite outcome. Reference controls must pass before any Fresh-Agent
+cell starts.
