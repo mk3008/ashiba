@@ -6,6 +6,24 @@ title: Raw SQL Change Loop Measurement
 
 This record measures the deterministic development loop introduced by `ashiba check --fix-generated`. It uses the mutation fixtures in `packages/cli/tests/raw-sql-gates.test.ts`; it does not treat static analysis as proof of database execution.
 
+## Question, scope, and evidence boundary
+
+**Question:** did the new command reduce Ashiba command round trips and
+rediscovery for four defined source-contract mutations, while preserving the
+same final review surface? The comparison is the documented pre-change
+workflow versus `ashiba check --fix-generated`; it is not a user study, a
+Fresh-Agent experiment, or a live PostgreSQL correctness claim.
+
+The four rows are one run each of: a DDL column rename, a DDL nullable-to-
+non-null change, a SELECT projection addition, and a SELECT projection
+removal. The committed fixture is
+[`packages/cli/tests/raw-sql-gates.test.ts`](../../packages/cli/tests/raw-sql-gates.test.ts).
+Its mutation names and assertions are the oracle for generated-drift
+detection; the result table counts the prescribed workflows, rather than an
+agent self-report. The historical record does not preserve a pinned commit,
+Node version, exact command transcript, or separate fixture snapshot.
+Those details are **not reconstructable from durable evidence**.
+
 ## Method
 
 The baseline is the pre-change documented workflow and command ownership:

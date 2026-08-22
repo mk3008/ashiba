@@ -41,6 +41,28 @@ ran an independent evaluator, and cleaned up. A strict pass therefore means
 both a compatible public boundary and the runner-owned live PostgreSQL oracle
 passed. It does not mean that an agent's own test or run record passed.
 
+### Workload legend and retained definition boundary
+
+The primary matrix is **5 arms x 5 workloads x 2 Fresh-Agent replicates = 50
+primary runs**. B1 adds one non-scoring run per arm. The following is the
+maximum workload definition recoverable from this committed report. The exact
+prompts, SQL fixtures, expected values, and evaluator assertions were kept in
+disposable `tmp/` artifacts and are **not reconstructable from durable
+evidence**; this table intentionally does not infer them from a result label.
+
+| ID | Retained business / technical situation | Required behavior retained in this record | Important PostgreSQL / SQL characteristic retained in this record | Runner-owned pass oracle | Intended capability |
+| --- | --- | --- | --- | --- | --- |
+| W1 — find | A bounded ordinary lookup. The report's durable label is only “find.” | Expose the frozen public boundary and satisfy its live request/response contract. | Exact query shape, schema, and value contract are not reconstructable from durable evidence. | Compatible public boundary plus the independent live evaluator pass. | Deliver a bounded PostgreSQL lookup through the frozen interface. |
+| W2 — filtered list | A bounded filtered-list request. | Return the frozen list contract; P and D were remeasured after an evaluator-only enum-input correction. | The retained evidence identifies enum input and a list boundary, but not the complete filter, order, or pagination contract. | Compatible public boundary plus the independent live evaluator pass. | Implement a bounded list/filter contract without relying on self-report. |
+| W3 — create | A create request against the frozen users contract. | Expose a create boundary compatible with the evaluator's users contract. | A BigInt codec requirement and a users-contract mismatch appear in failures; the exact insert and schema contract are not reconstructable from durable evidence. | Compatible public boundary plus the independent live evaluator pass. | Implement a create path and preserve its database/value boundary. |
+| W4 — transfer + claim | A two-part state-changing workflow: transfer plus claim. | Produce the evaluator's required final state through the frozen public boundary. | It exercised a final-state transaction/concurrency contract; exact tables, locking and failure scenarios are not reconstructable from durable evidence. | Compatible public boundary plus the independent live final-state oracle. | Converge on a multi-step PostgreSQL state transition. |
+| W5 — finite ordering | A bounded ordering request. | Return the frozen ordered result and the required candidate SQL/EXPLAIN protocol evidence. | It concerns finite ordering and SQL/EXPLAIN evidence; exact allowed keys, row cardinality, and plan assertion are not reconstructable from durable evidence. | Compatible public boundary, required SQL/EXPLAIN protocol, and the independent live oracle pass. | Expose finite, reviewable ordering with query-plan evidence. |
+| B1 — open-ended composition control | A separate open-ended composition task. | Satisfy the frozen composition contract once per arm. | The report preserves that it was outside the primary score; its exact composition language and assertion set are not reconstructable from durable evidence. | Runner-owned composition oracle. | Explore a broader composition boundary without ranking W1–W5. |
+
+This is a documentation limit, not a new experimental result. A future
+reproduction needs a committed workload specification before it can claim to
+recreate the original v2 cells.
+
 In the table below, each value is `r1 / r2`:
 
 - **P** — strict runner-owned final pass with a live PostgreSQL pass.
@@ -196,6 +218,18 @@ evaluator specification, `primary-evaluator/` records/adapters, and the
 append-only orchestration metrics ledger. The reported matrix is repository
 documentation; the local runner and PostgreSQL execution artifacts are
 supplementary reproducibility evidence.
+
+### Durable-evidence limit
+
+The base commit, runtime versions, arm names, run matrix, notation, and
+observed results above are durable in this report. The named manifest,
+preregistration, workloads, runner script, adapters, evaluator source, and
+run records were intentionally left under ignored `tmp/`; they are not
+versioned reproduction inputs. Consequently, a third party can audit this
+record's stated conclusion but cannot reproduce its exact workload/evaluator
+contract from the repository alone. Do not substitute a newly designed
+workload or fresh run for the missing evidence and present it as v2; that
+would require a new experiment.
 
 ## What a reviewer should decide next
 
