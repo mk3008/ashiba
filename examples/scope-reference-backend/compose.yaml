@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:16
+    network_mode: bridge
+    environment:
+      POSTGRES_DB: scope_reference
+      POSTGRES_USER: scope_reference
+      POSTGRES_PASSWORD: scope_reference
+    ports:
+      - "55434:5432"
