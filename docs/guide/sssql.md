@@ -4,9 +4,17 @@ title: SSSQL Notation
 
 # SSSQL Notation
 
-SSSQL notation is Ashiba's name for optional-search SQL that stays valid SQL.
+> **Status: current/legacy implementation documentation.** This page documents
+> existing Ashiba implementation behavior and historical terminology. It is not
+> the normative product boundary. For the preferred product direction, see
+> [Ashiba Scope](../design/ashiba-scope.md). In particular, “SSSQL” is not
+> required vocabulary, and optional-condition subtraction is an opt-in
+> performance optimization rather than a default application semantic.
 
-Use the name when you want to ask a human or AI to write an optional condition without explaining the full predicate shape every time.
+SSSQL is an existing Ashiba name for optional-search SQL that stays valid SQL.
+Prefer the general terms *optional condition*, *optional predicate*, or
+*optional-condition subtraction* when no current implementation surface needs
+to be named.
 
 ```sql
 where (:email is null or u.email = :email)
@@ -60,15 +68,12 @@ Multiple predicate branches are allowed when they all belong to the same optiona
 
 Avoid treating SSSQL as a general boolean rewrite language. It is for one optional input parameter and the SQL predicates that should exist only when that parameter has a value.
 
-## How To Ask For It
+## Current Implementation Terminology
 
-For AI-assisted work, prefer a short instruction like this:
-
-```text
-Add an email filter using Ashiba SSSQL notation.
-```
-
-The intended output is ordinary SQL:
+When referring to this implementation's CLI and metadata, “SSSQL” is a
+descriptive historical term. It is not an instruction for humans or AI to use
+as a required Ashiba-specific vocabulary. For example, an ordinary optional
+condition can be written as:
 
 ```sql
 where (:email is null or u.email = :email)
@@ -115,9 +120,10 @@ where u.tenant_id = $1
 
 If every predicate in a `WHERE` scope is removed, Ashiba removes that `WHERE` clause instead of leaving dangling SQL. CTEs, derived subqueries, and the root query are handled by their own SQL ranges, so an optional branch in one scope does not remove a `WHERE` clause in another scope.
 
-## Default Behavior
+## Current Implementation Behavior
 
-Feature scaffolded query sources enable optional-condition compression by default:
+Current scaffolded feature query sources may enable optional-condition
+compression by default:
 
 ```ts
 export const listQuery = {
@@ -133,11 +139,19 @@ optionalConditionCompression:
   query.optionalConditionCompression ?? executeOptions?.optionalConditionCompression
 ```
 
-So, in normal scaffolded feature code, SSSQL compression is on by default.
+So, in current normal scaffolded feature code, compression is on by default.
 
 At the low-level driver adapter boundary, compression only runs when `optionalConditionCompression: true` is provided. This keeps hand-built adapter calls explicit.
 
-## Controlling Compression
+## Canonical Scope Direction
+
+The canonical Scope treats optional input meaning as application-owned.
+Optional-condition subtraction is a performance optimization: it is default
+off, requires explicit query opt-in, and has an execution-level off escape
+hatch. Aligning current implementation defaults with that direction is a
+follow-up task; this page does not redefine what existing scaffolds do.
+
+## Controlling Current Implementation Compression
 
 Compression is optional. The default scaffold turns it on for generated feature query sources, but you can change that at the query source or SQL client wiring.
 
@@ -181,7 +195,8 @@ If a generated query source explicitly sets `optionalConditionCompression: true`
 
 Compression depends on generated query metadata and source hashes. If the `.sql` file, generated `query.sql.ts` snapshot, compiled dialect binding, or `query.meta.ts` metadata no longer match, Ashiba rejects compression instead of emitting guessed SQL.
 
-This makes SSSQL a metadata-backed allowed runtime rewrite, not a general runtime SQL builder.
+This makes the current implementation's optional-condition subtraction a
+metadata-backed allowed runtime rewrite, not a general runtime SQL builder.
 
 The `query optional` commands also use a conservative rewrite plan before writing SQL files. Ashiba writes an SSSQL change only when `rawsql-ts` reports that the edit can be limited to the target optional branch. If the operation would require a full SQL reformat, or if comments and unrelated SQL could be touched, the command stops and asks you to review or edit the SQL manually.
 

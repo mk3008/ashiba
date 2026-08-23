@@ -19,19 +19,25 @@ export default defineConfig({
       {
         text: 'Guides',
         items: [
+          { text: 'Ashiba Scope', link: '/design/ashiba-scope' },
           { text: 'Guide Overview', link: '/guide/' },
-          { text: 'SSSQL Notation', link: '/guide/sssql' },
-          { text: 'Safe Sort', link: '/guide/safe-sort' },
+          { text: 'SQL Guidelines', link: '/guide/sql-guidelines' },
+          { text: 'SSSQL (current implementation)', link: '/guide/sssql' },
+          { text: 'Safe Sort (current implementation)', link: '/guide/safe-sort' },
           { text: 'SQL Format', link: '/guide/sql-format' },
         ],
       },
       { text: 'Concepts', link: '/concepts/concept-map' },
     ],
     sidebar: {
+      '/design/': [
+        { text: 'Ashiba Scope', link: '/design/ashiba-scope' },
+      ],
       '/guide/': [
         { text: 'Guide Overview', link: '/guide/' },
-        { text: 'SSSQL Notation', link: '/guide/sssql' },
-        { text: 'Safe Sort', link: '/guide/safe-sort' },
+        { text: 'SQL Guidelines', link: '/guide/sql-guidelines' },
+        { text: 'SSSQL (current implementation)', link: '/guide/sssql' },
+        { text: 'Safe Sort (current implementation)', link: '/guide/safe-sort' },
         { text: 'SQL Format', link: '/guide/sql-format' },
       ],
       '/generated/api/': [

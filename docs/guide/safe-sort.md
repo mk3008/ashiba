@@ -4,13 +4,14 @@ title: Safe Sort
 
 # Safe Sort
 
-Safe sort is Ashiba's boundary for dynamic `ORDER BY`.
+> **Status: current implementation documentation.** This page documents the
+> existing Safe Sort implementation; it is not the normative ordering ownership
+> model. [Ashiba Scope](../design/ashiba-scope.md) places reviewed ordering
+> expressions and business semantics in application code or configuration.
+> Ashiba may provide bounded mechanical placement and execution support.
 
-Use the name when you want to ask a human or AI to add user-selectable sorting without accepting raw SQL fragments.
-
-```text
-Add dynamic sorting with Ashiba safe sort.
-```
+Safe Sort is the current implementation name for a bounded dynamic `ORDER BY`
+surface. It is not required Ashiba vocabulary for humans or AI.
 
 The important rule is simple:
 
@@ -81,9 +82,13 @@ If one of those checks fails, Ashiba rejects the request before sending SQL to t
 
 This makes safe sort a finite selection over source-visible behavior, not a general runtime `ORDER BY` builder.
 
-## Source-Visible ORDER BY
+## Current Implementation Constraint: Source-Visible `ORDER BY`
 
-Safe sort is unavailable when source SQL has no top-level `ORDER BY`. Add every selectable expression and its allowed direction to the canonical SQL first. Ashiba treats that visible list as the maximum finite sort surface:
+The current Safe Sort implementation is unavailable when source SQL has no
+top-level `ORDER BY`. It requires every selectable expression and allowed
+direction to be visible in canonical SQL, then treats that list as its maximum
+finite sort surface. This is an implementation constraint, not a universal
+Ashiba rule or the normative ownership model:
 
 ```sql
 select
@@ -118,7 +123,7 @@ Ashiba replaces only the reviewed `ORDER BY` list with a selected subset of thos
 
 For clauses such as `LIMIT`, `OFFSET`, `FETCH`, and `FOR UPDATE`, Ashiba records the insertion point and places the dynamic `ORDER BY` before those clauses.
 
-## Runtime Sort Profile
+## Current Implementation: Runtime Sort Profile
 
 The generated query model is the maximum allowed sort surface.
 
@@ -191,6 +196,10 @@ npx ashiba check --full
 
 ## Boundary
 
-Safe sort does not decide which sorts your product should expose. That remains application logic.
+Safe Sort does not decide which sorts a product should expose. That remains
+application-owned ordering policy under the canonical Scope, including
+reviewed expressions such as CASE and multi-key composition.
 
-Ashiba's job is narrower: once your application chooses a public sort key, the driver adapter verifies that the key maps to a reviewed SQL expression and renders the `ORDER BY` without accepting raw SQL from the outside.
+In the current implementation, once an application chooses a public sort key,
+the driver adapter verifies that the key maps to a reviewed SQL expression and
+renders the `ORDER BY` without accepting raw SQL from the outside.

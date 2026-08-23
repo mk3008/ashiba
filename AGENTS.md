@@ -5,8 +5,8 @@ Deeper `AGENTS.md` files take precedence when they add narrower rules without we
 
 ## Development Model
 
-- Ashiba is a rebrand of `rawsql-ts/packages/ztd-cli`.
-- Treat `https://github.com/mk3008/rawsql-ts/tree/main/packages/ztd-cli` as the product baseline for behavior, package shape, and migration planning unless a later Ashiba Concept Spec explicitly changes that direction.
+- Ashiba is a rebrand of `rawsql-ts/packages/ztd-cli`; treat that repository as a historical implementation baseline, not as authority over current Ashiba product scope.
+- For product boundary, architecture, SQL/runtime responsibility, or ownership decisions, read `docs/design/ashiba-scope.md` first and use `$ashiba-scope-review` when proposing or reviewing a boundary-affecting change.
 - Develop Ashiba through Concept Specs before implementation work.
 - Treat Concept Specs, DFDs, and Process Maps as human-owned concept harnesses, not as generated implementation plans.
 - Use the user-level `concept-spec-review` skill when reviewing Concept Specs, DFDs, Process Maps, concept relationships, or conceptual consistency.
