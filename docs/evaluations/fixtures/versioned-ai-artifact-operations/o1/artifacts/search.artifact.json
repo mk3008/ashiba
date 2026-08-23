@@ -1,0 +1,6 @@
+{
+  "sourcePath": "queries/search.sql",
+  "sourceHash": "a3f70c6dec23c407266baa57c8ba45a6ad3fad8929cc54169678da78b9689612",
+  "optional": [{ "id": "status", "start": 87, "end": 109, "text": "AND o.status = :status" }],
+  "sort": { "anchor": "/* @sort:search */", "keys": ["newest", "oldest"] }
+}
