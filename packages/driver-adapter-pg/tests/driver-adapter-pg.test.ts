@@ -10,6 +10,7 @@ import {
   compilePostgresQuery,
   createPostgresAdapter,
   isPostgresTransientError,
+  preparePostgresQuery,
   type AshibaPostgresQueryModel,
   type NodePostgresQueryable,
 } from '../src/index.js';
@@ -22,6 +23,36 @@ import {
 } from '@ashiba-ts/driver-adapter-core';
 
 describe('@ashiba-ts/driver-adapter-pg', () => {
+  test('prepares product-generated metadata for application-owned native pg execution', async () => {
+    const sourceSql = 'select :id::integer as id where :id::integer = :id::integer';
+    const query = querySource(sourceSql, queryModelFor(sourceSql, {
+      sql: 'select $1::integer as id where $2::integer = $3::integer',
+      orderedNames: ['id', 'id', 'id'],
+    }));
+    const prepared = preparePostgresQuery(query, { id: 7, tracing: true });
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [{ id: 7 }], rowCount: 1 };
+      },
+    };
+
+    await client.query(prepared.sql, prepared.values);
+
+    expect(prepared).toMatchObject({
+      sourceHash: hashSql(sourceSql),
+      sql: 'select $1::integer as id where $2::integer = $3::integer',
+      orderedNames: ['id', 'id', 'id'],
+      values: [7, 7, 7],
+    });
+    expect(calls).toEqual([{ sql: prepared.sql, values: [7, 7, 7] }]);
+    expect(() => preparePostgresQuery(query, { id: 7, tracing: true }, { strictParameterNames: true }))
+      .toThrow(AshibaParameterError);
+    expect(() => preparePostgresQuery({ ...query, sql: sourceSql + ' -- edited' }, { id: 7 }))
+      .toThrow(/different source SQL/i);
+  });
+
   test('rejects edited canonical SQL from product-generated binding metadata', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-product-binding-stale-'));
     const sqlDir = path.join(rootDir, 'queries');
@@ -1028,9 +1059,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
         return { rows: [], rowCount: 0 };
       },
     };
-    const adapter = createPostgresAdapter(client);
-
-    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+    const query = querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
           orderedNames: ['tenant_id', 'status', 'status', 'limit'],
           safeSortInsertion: { index: compiledSql.indexOf('limit $4') },
@@ -1042,11 +1071,12 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
             sortable: { id: { sql: 'a.user_id' } },
           },
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
-        })),
-      { tenant_id: 7, status: null, limit: 10 },{
-        optionalConditionCompression: true,
-        sort: [{ key: 'id', direction: 'desc' }]},
-    );
+        }));
+    const prepared = preparePostgresQuery(query, { tenant_id: 7, status: null, limit: 10 }, {
+      optionalConditionCompression: true,
+      sort: [{ key: 'id', direction: 'desc' }],
+    });
+    await client.query(prepared.sql, prepared.values);
 
     expect(calls).toEqual([{
       sql: 'select a.user_id as id from users a where a.tenant_id = $1 order by a.user_id desc limit $2',

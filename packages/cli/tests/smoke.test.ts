@@ -297,12 +297,10 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('createPgPool');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('createPgSqlClient');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('createPgFeatureQueryExecutor');
-      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('query -> feature -> sqlClient -> logger');
-      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('../logger/sqlLogger.ts');
-      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelSourceHash');
-      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelStatementKind');
-      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelOptionalConditionCompression');
-      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryModelSafeSortInsertionStatus');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('preparePostgresQuery');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('queryable.query(prepared.sql, prepared.values)');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('retains logging, retry, pool, and transaction');
+      expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).not.toContain('createPostgresAdapter');
       expect(readFileSync(path.join(rootDir, 'src/adapters/logger/sqlLogger.ts'), 'utf8')).toContain('This is the intended hole for your application logger.');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgFeatureQueryExecutor');
       expect(readFileSync(path.join(rootDir, 'src/adapters/pg/pool.ts'), 'utf8')).toContain('withPgTransaction');

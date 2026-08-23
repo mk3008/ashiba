@@ -173,7 +173,7 @@ So:
 
 - edit the generated query source when one specific query should opt in or out
 - edit `createPgSqlClient(..., { executeOptions })` when you want a default for query sources that leave the setting unset
-- pass `{ optionalConditionCompression: true }` when calling the low-level PostgreSQL adapter directly
+- pass `{ optionalConditionCompression: true }` when calling `preparePostgresQuery` before your native PostgreSQL client directly
 
 If a generated query source explicitly sets `optionalConditionCompression: true`, change that query source when you want that specific query to opt out.
 

@@ -36,7 +36,7 @@ src/features/<feature>/queries/<query>/
 `postgres.contract.json` is deterministic for the same SQL, server major,
 schema types, and driver profile. Its source hash is embedded in runtime query
 metadata. SQL changes make the contract stale; `ashiba check` reports the issue
-and the PostgreSQL adapter rejects execution before calling the driver. Refresh
+and PostgreSQL preparation rejects execution before calling the driver. Refresh
 offline metadata as usual, then rerun `feature query postgres-contract` when DB
 proof is required.
 
@@ -83,9 +83,10 @@ npx ashiba feature query postgres-contract users-list list \
 ```
 
 ```ts
-const adapter = createPostgresAdapter(pool, {
+const prepared = preparePostgresQuery(query, params, {
   driverProfile: 'custom:application-v1',
 });
+await pool.query(prepared.sql, prepared.values);
 ```
 
 The IDs must match or execution fails before the wrapped client is called.

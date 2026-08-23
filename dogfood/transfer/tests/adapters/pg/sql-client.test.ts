@@ -5,7 +5,7 @@ import { fromPg } from '../../../src/adapters/pg/sql-client.js';
 import type { FeatureQuerySource } from '../../../src/features/_shared/featureQueryExecutor.js';
 
 describe('fromPg', () => {
-  test('compiles named parameters to node-postgres placeholders', async () => {
+  test('prepares named parameters before application-owned node-postgres execution', async () => {
     const calls: Array<{ text: string; values?: readonly unknown[] }> = [];
     const client = fromPg({
       async query(text, values) {

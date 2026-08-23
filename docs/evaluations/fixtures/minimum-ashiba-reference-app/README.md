@@ -12,5 +12,7 @@ Start here, in order:
 4. [Machine proof summary](./results.json)
 5. [Reproduction](./reproduce.md)
 
-The `app/` directory intentionally uses `pg` and the local `named-lowering.mjs`
+The `app/` directory intentionally uses `pg` and product-generated PostgreSQL
+execution artifacts through `preparePostgresQuery`; `named-lowering.mjs` remains
+only as a historical lexical-control check in the evaluator.
 only. It does not import an Ashiba driver adapter.

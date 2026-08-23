@@ -2,7 +2,7 @@
 
 ## Decision
 
-**done — evaluation only; no product reduction is proposed.** Named parameters
+**done — evaluation evidence.** Named parameters
 remain the minimum source-level Ashiba contract. The subsequent development-time
 lexical correctness follow-up repaired the registered nested-comment corpus and
 proved direct product-generated artifact execution; see
@@ -61,6 +61,11 @@ only source-hash validation plus ordered value mapping and a normal pg call
 when development tooling produces a correct dialect artifact. Precompiled
 coordinates move PostgreSQL lexical complexity to development time and reject
 source drift before execution.
+
+The product follow-up adopts that minimum boundary in
+[`fixtures/runtime-sql-mechanism-boundary/minimum-runtime-product-slice.md`](fixtures/runtime-sql-mechanism-boundary/minimum-runtime-product-slice.md):
+new PostgreSQL scaffolds and the reference application call
+`preparePostgresQuery` and then their application-owned `client.query`.
 
 ### O1–O3 optional predicates
 

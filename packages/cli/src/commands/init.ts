@@ -234,13 +234,11 @@ function redactPostgresUrl(value: string): string {
     relativePath: 'src/adapters/pg/pool.ts',
     contents: `import { Pool, type PoolConfig } from 'pg';
 import {
-  createPostgresAdapter,
-  type AshibaPostgresAdapterOptions,
   type AshibaPostgresExecuteOptions,
   type AshibaPostgresQuerySource,
+  preparePostgresQuery,
 } from '@ashiba-ts/driver-adapter-pg';
 
-import { logSqlExecution } from '#adapters/logger/sqlLogger.js';
 import type {
   AnyFeatureQuerySource,
   AshibaQueryParams,
@@ -253,7 +251,7 @@ export type PgConnectionSettings = {
   pool?: PoolConfig;
 };
 
-export type PgFeatureQueryExecutorOptions = AshibaPostgresAdapterOptions & {
+export type PgFeatureQueryExecutorOptions = {
   executeOptions?: AshibaPostgresExecuteOptions;
 };
 
@@ -289,43 +287,24 @@ export function createPgPool(settings: PgConnectionSettings = {}): Pool {
 /**
  * Create the SQL client that feature code should receive.
  *
- * Natural wiring:
- *   query -> feature -> sqlClient -> logger
- *
- * SQL logging is intentionally delegated to ../logger/sqlLogger.ts. Fill that
- * file with your application logger (pino, winston, console, etc.). Feature code
- * should receive only FeatureQueryExecutor; it should not import pg, pino,
- * the Ashiba driver adapter, or logger code directly.
+ * Ashiba prepares positional SQL and ordered values. The application-owned
+ * queryable invokes native pg, and retains logging, retry, pool, and transaction
+ * policy at this adapter boundary. Feature code receives only
+ * FeatureQueryExecutor.
  */
 export function createPgSqlClient(
   queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },
   options: PgFeatureQueryExecutorOptions = {},
 ): FeatureQueryExecutor {
-  const { executeOptions, observer, ...adapterOptions } = options;
-  const adapter = createPostgresAdapter(queryable, {
-    ...adapterOptions,
-    observer: observer ?? { emit: logSqlExecution },
-  });
+  const { executeOptions } = options;
   return {
     async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
-      const queryAnalysis = query.queryModel.analysis;
       const postgresQuery: AshibaPostgresQuerySource<AshibaQueryParams<Query>, AshibaQueryRow<Query>> = {
-          sql: query.sql,
-          sqlPath: query.sqlPath,
-          queryModel: query.queryModel,
-          metadata: {
-            ...query.metadata,
-            sqlId: query.metadata?.sqlId ?? query.id,
-            queryId: query.metadata?.queryId ?? query.id,
-            sqlPath: query.metadata?.sqlPath ?? query.sqlPath,
-            queryModelSourceHash: queryAnalysis.sourceHash,
-            queryModelStatementKind: queryAnalysis.statementKind,
-            queryModelRootQueryShape: queryAnalysis.rootQueryShape,
-            queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
-            queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
-          },
+        sql: query.sql,
+        sqlPath: query.sqlPath,
+        queryModel: query.queryModel,
       };
-      const result = await adapter.execute(
+      const prepared = preparePostgresQuery(
         postgresQuery,
         { ...params },
         {
@@ -333,14 +312,15 @@ export function createPgSqlClient(
           optionalConditionCompression: query.optionalConditionCompression ?? executeOptions?.optionalConditionCompression,
         },
       );
-      return result.rows;
+      const result = await queryable.query(prepared.sql, prepared.values);
+      return result.rows as AshibaQueryRow<Query>[];
     },
   };
 }
 
 /**
  * Low-level compatibility alias. Prefer createPgSqlClient in new application code
- * so logger wiring stays visibly attached to the SQL client boundary.
+ * so the application-owned PostgreSQL client boundary remains explicit.
  */
 export function createPgFeatureQueryExecutor(
   queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },

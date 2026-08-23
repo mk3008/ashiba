@@ -11,6 +11,11 @@
       "status": "pass"
     },
     {
+      "name": "stale execution artifact is rejected",
+      "status": "pass",
+      "error": "Query model binding metadata was generated from different source SQL."
+    },
+    {
       "name": "single-row lookup includes LEFT JOIN nullable result",
       "status": "pass"
     },

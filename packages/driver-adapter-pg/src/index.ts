@@ -77,6 +77,8 @@ export type AshibaPostgresExecuteOptions = {
   optionalConditionCompression?: boolean;
   sortProfile?: AshibaSortProfile;
   sort?: readonly AshibaSortInput[];
+  /** Reject unused parameter keys; Candidate B leaves this off by default. */
+  strictParameterNames?: boolean;
 };
 
 /**
@@ -106,6 +108,13 @@ export type AshibaPostgresCompiledQuery = {
     safeSortKeys: readonly string[];
   };
 };
+
+/**
+ * The minimum PostgreSQL runtime result: SQL and values ready for the native
+ * driver. Ashiba deliberately does not acquire clients, manage transactions,
+ * or call `pg.query` from this boundary.
+ */
+export type AshibaPostgresPreparedQuery = AshibaPostgresCompiledQuery;
 
 /**
  * Classification result for PostgreSQL errors that may be retried by a
@@ -232,7 +241,10 @@ export function createPostgresAdapter(
 
       try {
         validateDriverProfile(query, options.driverProfile ?? 'node-postgres-default');
-        const compiled = compilePostgresQuery(query, params, executeOptions);
+        const compiled = preparePostgresQuery(query, params, {
+          ...executeOptions,
+          strictParameterNames: executeOptions.strictParameterNames ?? true,
+        });
         sourceSql = compiled.sourceSql;
         compiledSql = compiled.sql;
         bound = compiled;
@@ -293,11 +305,11 @@ export function createPostgresAdapter(
  * without executing it. The returned SQL is suitable for logging, debugging,
  * EXPLAIN tooling, or a generic query executor.
  */
-export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
+export function preparePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
   query: Query,
   params: AshibaQueryParams<Query>,
   options: AshibaPostgresExecuteOptions = {},
-): AshibaPostgresCompiledQuery {
+): AshibaPostgresPreparedQuery {
   const normalizedParams = Object.fromEntries(Object.entries(params));
   const sortInsertion = getSortInsertion(query, options);
   const prepared = preparePostgresExecution(query, normalizedParams, options);
@@ -328,6 +340,23 @@ export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>
       safeSortKeys: (options.sort ?? []).map((entry) => entry.key),
     },
   };
+}
+
+/**
+ * @deprecated Prefer `preparePostgresQuery(query, params, options)` and call
+ * the application-owned native PostgreSQL client with `prepared.sql` and
+ * `prepared.values`. This compatibility name will remain until the next
+ * planned pre-1.0 surface review.
+ */
+export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
+  query: Query,
+  params: AshibaQueryParams<Query>,
+  options: AshibaPostgresExecuteOptions = {},
+): AshibaPostgresPreparedQuery {
+  return preparePostgresQuery(query, params, {
+    ...options,
+    strictParameterNames: options.strictParameterNames ?? true,
+  });
 }
 
 /**
@@ -408,7 +437,12 @@ function preparePostgresExecution(
       sql: precomputed.sql,
       orderedNames: [...precomputed.orderedNames],
     };
-  const bound = bindCompiledNamedParameters(compiled, params, compression?.compressedParameterNames);
+  const bound = bindCompiledNamedParameters(
+    compiled,
+    params,
+    compression?.compressedParameterNames,
+    options.strictParameterNames === true,
+  );
   return {
     sourceSql: compression?.sourceSql ?? sourceSql,
     ...bound,
@@ -460,6 +494,7 @@ function bindCompiledNamedParameters(
   compiled: { sql: string; orderedNames: readonly string[] },
   params: Readonly<Record<string, unknown>>,
   allowedUnusedNames: ReadonlySet<string> = new Set(),
+  strictParameterNames = false,
 ): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
   const uniqueNames = new Set(compiled.orderedNames);
   const missingNames = [...uniqueNames].filter((name) => !Object.prototype.hasOwnProperty.call(params, name));
@@ -468,7 +503,9 @@ function bindCompiledNamedParameters(
     throw new AshibaParameterError('ASHIBA_MISSING_PARAMETER', missingNames);
   }
 
-  const unusedNames = Object.keys(params).filter((name) => !uniqueNames.has(name) && !allowedUnusedNames.has(name));
+  const unusedNames = strictParameterNames
+    ? Object.keys(params).filter((name) => !uniqueNames.has(name) && !allowedUnusedNames.has(name))
+    : [];
   if (unusedNames.length > 0) {
     throw new AshibaParameterError('ASHIBA_UNUSED_PARAMETER', unusedNames);
   }
