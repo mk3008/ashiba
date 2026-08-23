@@ -1,7 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { lowerNamed } from '../named-lowering.mjs';
+import { preparePostgresQuery } from '../../../../../packages/driver-adapter-pg/dist/index.js';
+import { postgresArtifacts } from '../generated-artifacts.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const sql = async (name) => readFile(path.join(root, '..', 'sql', `${name}.sql`), 'utf8');
@@ -15,7 +16,18 @@ export async function createReferenceApp(pool) {
     'claim-next-work-item', 'mark-work-item-claimed', 'insert-claim-audit',
     ...['created-at', 'name', 'priority'].flatMap((key) => [`list-${key}-asc`, `list-${key}-desc`]),
   ].map(async (name) => [name, await sql(name)])));
-  const execute = async (client, asset, params = {}) => client.query(...Object.values(lowerNamed(assets[asset], params)) .slice(0, 2));
+  const execute = async (client, asset, params = {}) => {
+    const artifact = postgresArtifacts[asset];
+    if (!artifact) throw new Error(`Missing generated PostgreSQL artifact: ${asset}`);
+    const prepared = preparePostgresQuery({
+      sql: assets[asset],
+      queryModel: {
+        analysis: { sourceHash: artifact.sourceHash },
+        bindings: { postgres: artifact },
+      },
+    }, params);
+    return client.query(prepared.sql, prepared.values);
+  };
   const orderAssets = {
     createdAt: { asc: 'list-created-at-asc', desc: 'list-created-at-desc' },
     name: { asc: 'list-name-asc', desc: 'list-name-desc' },

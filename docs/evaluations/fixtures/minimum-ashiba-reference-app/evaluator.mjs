@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import pg from 'pg';
 import { lowerNamed } from './named-lowering.mjs';
+import { preparePostgresQuery } from '../../../../packages/driver-adapter-pg/dist/index.js';
+import { postgresArtifacts } from './generated-artifacts.mjs';
 import { createReferenceApp } from './app/reference-app.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -32,6 +34,13 @@ try {
     const lexical = lowerNamed(`select :x::text as a, :x::text as b, ':ignored' as ":ignored" -- :ignored\n /* :ignored */`, { x: 'ok' });
     check('named lowering preserves lexical contexts', lexical.sql.includes("$1::text") && lexical.sql.includes("$2::text") && lexical.sql.includes("':ignored'") && lexical.sql.includes('":ignored"') && lexical.orderedNames.join(',') === 'x,x');
     check('named lowering runs through PostgreSQL', (await pool.query(lexical.sql, lexical.values)).rows[0].a === 'ok');
+    await expectReject('stale execution artifact is rejected', async () => preparePostgresQuery({
+      sql: `${await readFile(path.join(root, 'sql', 'get-work-item.sql'), 'utf8')}-- edited\n`,
+      queryModel: {
+        analysis: { sourceHash: postgresArtifacts['get-work-item'].sourceHash },
+        bindings: { postgres: postgresArtifacts['get-work-item'] },
+      },
+    }, { id: 103 }));
     const joined = await app.getWorkItem(103);
     check('single-row lookup includes LEFT JOIN nullable result', joined?.id === '103' && joined.customer_name === null);
     check('BIGINT survives as string through pg default representation', (await app.getWorkItem('9007199254740991')) === null);
