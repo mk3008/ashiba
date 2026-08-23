@@ -1,0 +1,14 @@
+{
+  "databaseUrl": "postgresql://runtime_runner:***@127.0.0.1:55435/runtime_boundary",
+  "checks": [
+    {
+      "name": "present optional filter",
+      "ok": true
+    },
+    {
+      "name": "omitted optional filter and deterministic G1 values",
+      "ok": true
+    }
+  ],
+  "ok": true
+}

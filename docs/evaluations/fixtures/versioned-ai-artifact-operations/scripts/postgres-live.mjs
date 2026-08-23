@@ -1,8 +1,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import pg from 'pg';
 import { compile } from './runtime.mjs';
+const require = createRequire(new URL('../../../../../packages/driver-adapter-pg/package.json', import.meta.url));
+const pg = require('pg');
 const fixture = dirname(dirname(fileURLToPath(import.meta.url)));
 const databaseUrl = process.env.ASHIBA_VERSIONED_ARTIFACT_DATABASE_URL ?? 'postgresql://runtime_runner:runtime_runner_password@127.0.0.1:55435/runtime_boundary';
 const client = new pg.Client({ connectionString: databaseUrl });

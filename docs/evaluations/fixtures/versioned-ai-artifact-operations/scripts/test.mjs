@@ -15,6 +15,10 @@ assert.throws(() => compile('search', { sort: 'business' }), /unsupported sort/)
 assert.match(verify('o2').join(' '), /O2_REJECTED/);
 const corrupted = JSON.parse(original); corrupted.sourceHash = 'bad'; writeFileSync(searchArtifact, JSON.stringify(corrupted));
 assert.match(verify().join(' '), /SOURCE_HASH_MISMATCH/); writeFileSync(searchArtifact, original);
+const wrongRange = JSON.parse(original); wrongRange.optional[0].end -= 1; writeFileSync(searchArtifact, JSON.stringify(wrongRange));
+assert.match(verify().join(' '), /RANGE_TEXT_MISMATCH/); writeFileSync(searchArtifact, original);
+const wrongAnchor = JSON.parse(original); wrongAnchor.sort.anchor = '/* @sort:missing */'; writeFileSync(searchArtifact, JSON.stringify(wrongAnchor));
+assert.match(verify().join(' '), /SORT_ANCHOR_MISMATCH/); writeFileSync(searchArtifact, original);
 const orphan = join(fixture, 'o1/artifacts/orphan.artifact.json'); copyFileSync(searchArtifact, orphan);
 assert.match(verify().join(' '), /ORPHAN_ARTIFACT/); rmSync(orphan);
 const source = join(fixture, 'queries/inbox.sql'); const moved = join(fixture, 'queries/inbox.tmp.sql'); renameSync(source, moved);
