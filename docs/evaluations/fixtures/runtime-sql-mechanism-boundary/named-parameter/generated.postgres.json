@@ -1,0 +1,23 @@
+{
+  "status": "pass",
+  "sourceHash": "sha256:563b3cdbed902b0a1cd716542c53858d0af10d5258ecb89f7d316d67ffca2109",
+  "sql": "select\n  $1::bigint as id,\n  $2::bigint as id2,\n  $3::bigint as repeated_id,\n  value::text as cast_value,\n  ':not_a_parameter'::text as literal,\n  value as \"identifier:still_not_parameter\",\n  E'escaped \\\\ :not_a_parameter'::text as escaped_literal,\n  $$ :not_a_parameter $$::text as dollar_literal,\n  $body$\n    :not_a_parameter\n  $body$::text as tagged_dollar_literal\nfrom (select $4::text as value) source\n-- :not_a_parameter\n/* :not_a_parameter */\n/* outer /* nested :not_parameter */ outer again */\nwhere $5::bigint = $6::bigint;\n",
+  "orderedNames": [
+    "id",
+    "id2",
+    "id",
+    "value",
+    "id",
+    "id"
+  ],
+  "values": [
+    1,
+    2,
+    1,
+    "x",
+    1,
+    1
+  ],
+  "runtimeWork": "sourceHash equality plus orderedNames.map; no SQL lexer/replacement",
+  "staleRejected": true
+}

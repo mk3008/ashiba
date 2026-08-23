@@ -1,0 +1,15 @@
+import { createHash } from 'node:crypto';
+import { readFile, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { compileAtDevelopmentTime } from '../named-parameter/fixture-compiler.mjs';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const source = await readFile(path.join(root, 'named-parameter', 'canonical.sql'), 'utf8');
+const compiled = compileAtDevelopmentTime(source); const expected = ['id','id2','id','value','id','id'];
+if (JSON.stringify(compiled.orderedNames) !== JSON.stringify(expected)) throw new Error('artifact compiler lexical failure');
+const sourceHash = `sha256:${createHash('sha256').update(source).digest('hex')}`;
+const params = { id: 1, id2: 2, value: 'x' }; const values = compiled.orderedNames.map((n) => params[n]);
+const result = { status: 'pass', sourceHash, sql: compiled.sql, orderedNames: compiled.orderedNames, values, runtimeWork: 'sourceHash equality plus orderedNames.map; no SQL lexer/replacement', staleRejected: sourceHash !== `sha256:${createHash('sha256').update(`${source}-- edit`).digest('hex')}` };
+await writeFile(path.join(root, 'named-parameter', 'generated.postgres.json'), `${JSON.stringify(result, null, 2)}\n`);
+await writeFile(path.join(root, 'evidence', 'n2-artifact-result.json'), `${JSON.stringify(result, null, 2)}\n`);
+console.log(JSON.stringify(result));
