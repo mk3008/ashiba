@@ -77,6 +77,8 @@ export type AshibaPostgresExecuteOptions = {
   optionalConditionCompression?: boolean;
   sortProfile?: AshibaSortProfile;
   sort?: readonly AshibaSortInput[];
+  /** Reject unused parameter keys; Candidate B leaves this off by default. */
+  strictParameterNames?: boolean;
 };
 
 /**
@@ -239,7 +241,10 @@ export function createPostgresAdapter(
 
       try {
         validateDriverProfile(query, options.driverProfile ?? 'node-postgres-default');
-        const compiled = preparePostgresQuery(query, params, executeOptions);
+        const compiled = preparePostgresQuery(query, params, {
+          ...executeOptions,
+          strictParameterNames: executeOptions.strictParameterNames ?? true,
+        });
         sourceSql = compiled.sourceSql;
         compiledSql = compiled.sql;
         bound = compiled;
@@ -348,7 +353,10 @@ export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>
   params: AshibaQueryParams<Query>,
   options: AshibaPostgresExecuteOptions = {},
 ): AshibaPostgresPreparedQuery {
-  return preparePostgresQuery(query, params, options);
+  return preparePostgresQuery(query, params, {
+    ...options,
+    strictParameterNames: options.strictParameterNames ?? true,
+  });
 }
 
 /**
@@ -429,7 +437,12 @@ function preparePostgresExecution(
       sql: precomputed.sql,
       orderedNames: [...precomputed.orderedNames],
     };
-  const bound = bindCompiledNamedParameters(compiled, params, compression?.compressedParameterNames);
+  const bound = bindCompiledNamedParameters(
+    compiled,
+    params,
+    compression?.compressedParameterNames,
+    options.strictParameterNames === true,
+  );
   return {
     sourceSql: compression?.sourceSql ?? sourceSql,
     ...bound,
@@ -481,6 +494,7 @@ function bindCompiledNamedParameters(
   compiled: { sql: string; orderedNames: readonly string[] },
   params: Readonly<Record<string, unknown>>,
   allowedUnusedNames: ReadonlySet<string> = new Set(),
+  strictParameterNames = false,
 ): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
   const uniqueNames = new Set(compiled.orderedNames);
   const missingNames = [...uniqueNames].filter((name) => !Object.prototype.hasOwnProperty.call(params, name));
@@ -489,7 +503,9 @@ function bindCompiledNamedParameters(
     throw new AshibaParameterError('ASHIBA_MISSING_PARAMETER', missingNames);
   }
 
-  const unusedNames = Object.keys(params).filter((name) => !uniqueNames.has(name) && !allowedUnusedNames.has(name));
+  const unusedNames = strictParameterNames
+    ? Object.keys(params).filter((name) => !uniqueNames.has(name) && !allowedUnusedNames.has(name))
+    : [];
   if (unusedNames.length > 0) {
     throw new AshibaParameterError('ASHIBA_UNUSED_PARAMETER', unusedNames);
   }

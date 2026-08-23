@@ -43,7 +43,7 @@ the artifact is only an execution derivative.
 | observation, masking, driver profile, retry classification | optional utilities; not required by `prepare` |
 | runtime lexical/parser/AST analysis | removed from the product execution path (none added) |
 | missing selected parameter | kept: prevents accidental undefined-to-NULL binding |
-| unused parameter rejection | deferred for a later strict/development-time policy split; it is not necessary to make SQL safe |
+| unused parameter rejection | moved to an opt-in `strictParameterNames` policy; compatibility execution retains strict behavior, while Candidate B does not require it |
 
 ## Current outcome and limits
 

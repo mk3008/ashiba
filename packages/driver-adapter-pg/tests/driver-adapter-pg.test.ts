@@ -29,7 +29,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       sql: 'select $1::integer as id where $2::integer = $3::integer',
       orderedNames: ['id', 'id', 'id'],
     }));
-    const prepared = preparePostgresQuery(query, { id: 7 });
+    const prepared = preparePostgresQuery(query, { id: 7, tracing: true });
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const client: NodePostgresQueryable = {
       async query(sql, values) {
@@ -47,6 +47,8 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       values: [7, 7, 7],
     });
     expect(calls).toEqual([{ sql: prepared.sql, values: [7, 7, 7] }]);
+    expect(() => preparePostgresQuery(query, { id: 7, tracing: true }, { strictParameterNames: true }))
+      .toThrow(AshibaParameterError);
     expect(() => preparePostgresQuery({ ...query, sql: sourceSql + ' -- edited' }, { id: 7 }))
       .toThrow(/different source SQL/i);
   });
