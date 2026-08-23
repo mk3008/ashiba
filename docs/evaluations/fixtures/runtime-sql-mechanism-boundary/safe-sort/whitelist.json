@@ -1,0 +1,9 @@
+{
+  "maxKeys": 3,
+  "tieBreaker": "id ASC",
+  "keys": {
+    "createdAt": "created_at",
+    "name": "name",
+    "priority": "CASE WHEN priority = 'urgent' THEN 1 WHEN priority = 'normal' THEN 2 ELSE 3 END"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "status": "calibration-failure",
+  "expectedNames": [
+    "id",
+    "id2",
+    "id",
+    "value",
+    "id",
+    "id"
+  ],
+  "actualNames": [
+    "id",
+    "id2",
+    "id",
+    "not_a_parameter"
+  ],
+  "cause": "nested block comment pseudo-parameter was emitted by current compiler"
+}
