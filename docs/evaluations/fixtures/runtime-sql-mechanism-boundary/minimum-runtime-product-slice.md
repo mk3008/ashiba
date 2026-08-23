@@ -51,6 +51,8 @@ the artifact is only an execution derivative.
 `compilePostgresQuery` remains a deprecated pre-1.0 compatibility alias.
 The direct product regression proves positional SQL plus ordered values can be
 sent to a native pg-compatible client and that stale canonical SQL is rejected.
+The Transfer dogfood feature executor now uses this path directly, preserving
+its generated query source and application-owned native client invocation.
 
 This intentionally narrow slice does not yet migrate the PR #63 reference
 fixture or every starter application, nor does it remove the optional wrapper.
