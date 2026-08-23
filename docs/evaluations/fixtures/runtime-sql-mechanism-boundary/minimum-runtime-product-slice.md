@@ -54,6 +54,15 @@ sent to a native pg-compatible client and that stale canonical SQL is rejected.
 The Transfer dogfood feature executor now uses this path directly, preserving
 its generated query source and application-owned native client invocation.
 
+Supporting local reproduction reran the frozen 200k-row O1/O2/O3 evaluator in
+an isolated temporary copy. All nine states passed in `auto`,
+`force_custom_plan`, and `force_generic_plan`. In the representative
+`force_generic_plan` / `multiple-selective` case, O2 retained the recorded
+`Limit → Sort → Bitmap Heap Scan → Bitmap Index Scan` shape with 202 hit and 0
+read blocks, versus O1's 951 hit and 69 read blocks. `preparePostgresQuery`
+uses that existing precomputed-subtraction mechanism; it adds no SQL analysis
+or alternative plan construction.
+
 This intentionally narrow slice does not yet migrate the PR #63 reference
 fixture or every starter application, nor does it remove the optional wrapper.
 Those changes require preserving the fixture's complete behavior and the
