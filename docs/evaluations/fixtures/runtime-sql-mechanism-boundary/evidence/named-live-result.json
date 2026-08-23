@@ -1,0 +1,46 @@
+{
+  "status": "pass",
+  "n0": {
+    "rows": [
+      {
+        "id": "1",
+        "id2": "2",
+        "repeated_id": "1",
+        "value": "x"
+      }
+    ],
+    "runtimeWork": "caller-ordered values only"
+  },
+  "n2": {
+    "rows": [
+      {
+        "id": "1",
+        "id2": "2",
+        "repeated_id": "1",
+        "cast_value": "x",
+        "literal": ":not_a_parameter",
+        "identifier:still_not_parameter": "x",
+        "escaped_literal": "escaped \\ :not_a_parameter",
+        "dollar_literal": " :not_a_parameter ",
+        "tagged_dollar_literal": "\n    :not_a_parameter\n  "
+      }
+    ],
+    "orderedNames": [
+      "id",
+      "id2",
+      "id",
+      "value",
+      "id",
+      "id"
+    ],
+    "values": [
+      1,
+      2,
+      1,
+      "x",
+      1,
+      1
+    ],
+    "runtimeWork": "precompiled SQL plus orderedNames.map; no runtime SQL lexer or replacement"
+  }
+}

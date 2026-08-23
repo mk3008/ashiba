@@ -1,890 +1,1221 @@
 {
   "status": "pass",
+  "protocol": {
+    "preparedStatements": true,
+    "modes": [
+      "auto",
+      "force_custom_plan",
+      "force_generic_plan"
+    ],
+    "repetitions": 5,
+    "strategies": [
+      "O1 static guards",
+      "O2 precomputed subtraction",
+      "O3 selected customer/status asset"
+    ]
+  },
   "frozenDataset": {
     "rows": 200000,
+    "join": "items LEFT JOIN customers",
     "skew": "customer=999/status=rare each 1%",
     "indexes": [
       "customer_id",
       "status",
-      "assignee"
+      "assignee",
+      "category",
+      "priority",
+      "created_at"
     ]
   },
-  "correctness": {
-    "triCases": [
-      [
-        "all-omitted",
-        [
-          false,
-          false,
-          null,
-          false,
-          false,
-          null,
-          200000
-        ],
-        200000
-      ],
-      [
-        "customer-null",
-        [
-          true,
-          true,
-          null,
-          false,
-          false,
-          null,
-          200000
-        ],
-        0
-      ],
-      [
-        "customer-rare",
-        [
-          true,
-          false,
-          999,
-          false,
-          false,
-          null,
-          200000
-        ],
-        2200
-      ],
-      [
-        "status-null",
-        [
-          false,
-          false,
-          null,
-          true,
-          true,
-          null,
-          200000
-        ],
-        0
-      ],
-      [
-        "status-hot",
-        [
-          false,
-          false,
-          null,
-          true,
-          false,
-          "open",
-          200000
-        ],
-        198000
-      ],
-      [
-        "status-rare",
-        [
-          false,
-          false,
-          null,
-          true,
-          false,
-          "rare",
-          200000
-        ],
-        2000
-      ],
-      [
-        "mixed-selective",
-        [
-          true,
-          false,
-          999,
-          true,
-          false,
-          "rare",
-          200000
-        ],
-        2000
-      ]
-    ],
-    "explicitNull": 20000,
-    "rare": 2000
-  },
+  "correctness": [
+    {
+      "name": "all-omitted",
+      "count": 200000,
+      "o3Applicable": false
+    },
+    {
+      "name": "customer-rare",
+      "count": 200,
+      "o3Applicable": false
+    },
+    {
+      "name": "customer-hot-skewed",
+      "count": 2200,
+      "o3Applicable": false
+    },
+    {
+      "name": "status-hot",
+      "count": 198000,
+      "o3Applicable": false
+    },
+    {
+      "name": "assignee-null",
+      "count": 20000,
+      "o3Applicable": false
+    },
+    {
+      "name": "multiple-selective",
+      "count": 133,
+      "o3Applicable": false
+    },
+    {
+      "name": "hot-asset-customer-status",
+      "count": 2000,
+      "o3Applicable": true
+    },
+    {
+      "name": "mixed-omitted-null-value",
+      "count": 2000,
+      "o3Applicable": false
+    },
+    {
+      "name": "date-range-rare",
+      "count": 2000,
+      "o3Applicable": false
+    }
+  ],
   "sort": {
-    "composed": "CASE WHEN priority = 'urgent' THEN 1 WHEN priority = 'normal' THEN 2 ELSE 3 END ASC, created_at DESC, name ASC, id ASC",
-    "hostileRejected": true
+    "composed": "CASE WHEN i.priority = 'urgent' THEN 1 WHEN i.priority = 'normal' THEN 2 ELSE 3 END ASC, i.created_at DESC, i.name ASC, i.id ASC",
+    "hostileRejected": true,
+    "s1S2Identical": true,
+    "s1S3SingleIdentical": true,
+    "staleRejected": true,
+    "artifact": {
+      "sourceHash": "a2fadeaac2058e97324bb17a0084424d28e6542f2653cb24e1dd8a9d193edd36",
+      "insertionAt": 85
+    }
   },
   "plans": {
-    "force_custom_plan": {
-      "o1": {
-        "Plan": {
-          "Node Type": "Limit",
-          "Parallel Aware": false,
-          "Async Capable": false,
-          "Startup Cost": 126.46,
-          "Total Cost": 126.51,
-          "Plan Rows": 20,
-          "Plan Width": 16,
-          "Actual Startup Time": 1.508,
-          "Actual Total Time": 1.51,
-          "Actual Rows": 20,
-          "Actual Loops": 1,
-          "Disabled": false,
-          "Shared Hit Blocks": 2000,
-          "Shared Read Blocks": 7,
-          "Shared Dirtied Blocks": 0,
-          "Shared Written Blocks": 0,
-          "Local Hit Blocks": 0,
-          "Local Read Blocks": 0,
-          "Local Dirtied Blocks": 0,
-          "Local Written Blocks": 0,
-          "Temp Read Blocks": 0,
-          "Temp Written Blocks": 0,
-          "Plans": [
-            {
-              "Node Type": "Sort",
-              "Parent Relationship": "Outer",
-              "Parallel Aware": false,
-              "Async Capable": false,
-              "Startup Cost": 126.46,
-              "Total Cost": 126.52,
-              "Plan Rows": 21,
-              "Plan Width": 16,
-              "Actual Startup Time": 1.507,
-              "Actual Total Time": 1.508,
-              "Actual Rows": 20,
-              "Actual Loops": 1,
-              "Disabled": false,
-              "Sort Key": [
-                "created_at DESC",
-                "id"
-              ],
-              "Sort Method": "top-N heapsort",
-              "Sort Space Used": 25,
-              "Sort Space Type": "Memory",
-              "Shared Hit Blocks": 2000,
-              "Shared Read Blocks": 7,
-              "Shared Dirtied Blocks": 0,
-              "Shared Written Blocks": 0,
-              "Local Hit Blocks": 0,
-              "Local Read Blocks": 0,
-              "Local Dirtied Blocks": 0,
-              "Local Written Blocks": 0,
-              "Temp Read Blocks": 0,
-              "Temp Written Blocks": 0,
-              "Plans": [
-                {
-                  "Node Type": "Bitmap Heap Scan",
-                  "Parent Relationship": "Outer",
-                  "Parallel Aware": false,
-                  "Async Capable": false,
-                  "Relation Name": "items",
-                  "Alias": "items",
-                  "Startup Cost": 47.95,
-                  "Total Cost": 126,
-                  "Plan Rows": 21,
-                  "Plan Width": 16,
-                  "Actual Startup Time": 0.569,
-                  "Actual Total Time": 1.37,
-                  "Actual Rows": 2000,
-                  "Actual Loops": 1,
-                  "Disabled": false,
-                  "Recheck Cond": "((status = 'rare'::text) AND (customer_id = '999'::bigint))",
-                  "Rows Removed by Index Recheck": 0,
-                  "Exact Heap Blocks": 2000,
-                  "Lossy Heap Blocks": 0,
-                  "Shared Hit Blocks": 2000,
-                  "Shared Read Blocks": 7,
-                  "Shared Dirtied Blocks": 0,
-                  "Shared Written Blocks": 0,
-                  "Local Hit Blocks": 0,
-                  "Local Read Blocks": 0,
-                  "Local Dirtied Blocks": 0,
-                  "Local Written Blocks": 0,
-                  "Temp Read Blocks": 0,
-                  "Temp Written Blocks": 0,
-                  "Plans": [
-                    {
-                      "Node Type": "BitmapAnd",
-                      "Parent Relationship": "Outer",
-                      "Parallel Aware": false,
-                      "Async Capable": false,
-                      "Startup Cost": 47.95,
-                      "Total Cost": 47.95,
-                      "Plan Rows": 21,
-                      "Plan Width": 0,
-                      "Actual Startup Time": 0.42,
-                      "Actual Total Time": 0.42,
-                      "Actual Rows": 0,
-                      "Actual Loops": 1,
-                      "Disabled": false,
-                      "Shared Hit Blocks": 0,
-                      "Shared Read Blocks": 7,
-                      "Shared Dirtied Blocks": 0,
-                      "Shared Written Blocks": 0,
-                      "Local Hit Blocks": 0,
-                      "Local Read Blocks": 0,
-                      "Local Dirtied Blocks": 0,
-                      "Local Written Blocks": 0,
-                      "Temp Read Blocks": 0,
-                      "Temp Written Blocks": 0,
-                      "Plans": [
-                        {
-                          "Node Type": "Bitmap Index Scan",
-                          "Parent Relationship": "Member",
-                          "Parallel Aware": false,
-                          "Async Capable": false,
-                          "Index Name": "items_status_idx",
-                          "Startup Cost": 0,
-                          "Total Cost": 23.09,
-                          "Plan Rows": 1973,
-                          "Plan Width": 0,
-                          "Actual Startup Time": 0.253,
-                          "Actual Total Time": 0.253,
-                          "Actual Rows": 2000,
-                          "Actual Loops": 1,
-                          "Disabled": false,
-                          "Index Cond": "(status = 'rare'::text)",
-                          "Index Searches": 1,
-                          "Shared Hit Blocks": 0,
-                          "Shared Read Blocks": 4,
-                          "Shared Dirtied Blocks": 0,
-                          "Shared Written Blocks": 0,
-                          "Local Hit Blocks": 0,
-                          "Local Read Blocks": 0,
-                          "Local Dirtied Blocks": 0,
-                          "Local Written Blocks": 0,
-                          "Temp Read Blocks": 0,
-                          "Temp Written Blocks": 0
-                        },
-                        {
-                          "Node Type": "Bitmap Index Scan",
-                          "Parent Relationship": "Member",
-                          "Parallel Aware": false,
-                          "Async Capable": false,
-                          "Index Name": "items_customer_idx",
-                          "Startup Cost": 0,
-                          "Total Cost": 24.59,
-                          "Plan Rows": 2173,
-                          "Plan Width": 0,
-                          "Actual Startup Time": 0.135,
-                          "Actual Total Time": 0.135,
-                          "Actual Rows": 2200,
-                          "Actual Loops": 1,
-                          "Disabled": false,
-                          "Index Cond": "(customer_id = '999'::bigint)",
-                          "Index Searches": 1,
-                          "Shared Hit Blocks": 0,
-                          "Shared Read Blocks": 3,
-                          "Shared Dirtied Blocks": 0,
-                          "Shared Written Blocks": 0,
-                          "Local Hit Blocks": 0,
-                          "Local Read Blocks": 0,
-                          "Local Dirtied Blocks": 0,
-                          "Local Written Blocks": 0,
-                          "Temp Read Blocks": 0,
-                          "Temp Written Blocks": 0
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+    "auto": {
+      "all-omitted": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.126,
+            "executionTime": 0.053
+          },
+          "medianExecutionTime": 0.025,
+          "medianPlanningTime": 0.052,
+          "repetitions": 5
         },
-        "Planning": {
-          "Shared Hit Blocks": 88,
-          "Shared Read Blocks": 3,
-          "Shared Dirtied Blocks": 0,
-          "Shared Written Blocks": 0,
-          "Local Hit Blocks": 0,
-          "Local Read Blocks": 0,
-          "Local Dirtied Blocks": 0,
-          "Local Written Blocks": 0,
-          "Temp Read Blocks": 0,
-          "Temp Written Blocks": 0
-        },
-        "Planning Time": 0.193,
-        "Triggers": [],
-        "Execution Time": 1.552
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.04,
+            "executionTime": 0.027
+          },
+          "medianExecutionTime": 0.029,
+          "medianPlanningTime": 0.001,
+          "repetitions": 5
+        }
       },
-      "o2": {
-        "Plan": {
-          "Node Type": "Limit",
-          "Parallel Aware": false,
-          "Async Capable": false,
-          "Startup Cost": 126.46,
-          "Total Cost": 126.51,
-          "Plan Rows": 20,
-          "Plan Width": 16,
-          "Actual Startup Time": 1.459,
-          "Actual Total Time": 1.462,
-          "Actual Rows": 20,
-          "Actual Loops": 1,
-          "Disabled": false,
-          "Shared Hit Blocks": 2007,
-          "Shared Read Blocks": 0,
-          "Shared Dirtied Blocks": 0,
-          "Shared Written Blocks": 0,
-          "Local Hit Blocks": 0,
-          "Local Read Blocks": 0,
-          "Local Dirtied Blocks": 0,
-          "Local Written Blocks": 0,
-          "Temp Read Blocks": 0,
-          "Temp Written Blocks": 0,
-          "Plans": [
-            {
-              "Node Type": "Sort",
-              "Parent Relationship": "Outer",
-              "Parallel Aware": false,
-              "Async Capable": false,
-              "Startup Cost": 126.46,
-              "Total Cost": 126.52,
-              "Plan Rows": 21,
-              "Plan Width": 16,
-              "Actual Startup Time": 1.459,
-              "Actual Total Time": 1.46,
-              "Actual Rows": 20,
-              "Actual Loops": 1,
-              "Disabled": false,
-              "Sort Key": [
-                "created_at DESC",
-                "id"
-              ],
-              "Sort Method": "top-N heapsort",
-              "Sort Space Used": 25,
-              "Sort Space Type": "Memory",
-              "Shared Hit Blocks": 2007,
-              "Shared Read Blocks": 0,
-              "Shared Dirtied Blocks": 0,
-              "Shared Written Blocks": 0,
-              "Local Hit Blocks": 0,
-              "Local Read Blocks": 0,
-              "Local Dirtied Blocks": 0,
-              "Local Written Blocks": 0,
-              "Temp Read Blocks": 0,
-              "Temp Written Blocks": 0,
-              "Plans": [
-                {
-                  "Node Type": "Bitmap Heap Scan",
-                  "Parent Relationship": "Outer",
-                  "Parallel Aware": false,
-                  "Async Capable": false,
-                  "Relation Name": "items",
-                  "Alias": "items",
-                  "Startup Cost": 47.95,
-                  "Total Cost": 126,
-                  "Plan Rows": 21,
-                  "Plan Width": 16,
-                  "Actual Startup Time": 0.483,
-                  "Actual Total Time": 1.271,
-                  "Actual Rows": 2000,
-                  "Actual Loops": 1,
-                  "Disabled": false,
-                  "Recheck Cond": "((status = 'rare'::text) AND (customer_id = '999'::bigint))",
-                  "Rows Removed by Index Recheck": 0,
-                  "Exact Heap Blocks": 2000,
-                  "Lossy Heap Blocks": 0,
-                  "Shared Hit Blocks": 2007,
-                  "Shared Read Blocks": 0,
-                  "Shared Dirtied Blocks": 0,
-                  "Shared Written Blocks": 0,
-                  "Local Hit Blocks": 0,
-                  "Local Read Blocks": 0,
-                  "Local Dirtied Blocks": 0,
-                  "Local Written Blocks": 0,
-                  "Temp Read Blocks": 0,
-                  "Temp Written Blocks": 0,
-                  "Plans": [
-                    {
-                      "Node Type": "BitmapAnd",
-                      "Parent Relationship": "Outer",
-                      "Parallel Aware": false,
-                      "Async Capable": false,
-                      "Startup Cost": 47.95,
-                      "Total Cost": 47.95,
-                      "Plan Rows": 21,
-                      "Plan Width": 0,
-                      "Actual Startup Time": 0.308,
-                      "Actual Total Time": 0.308,
-                      "Actual Rows": 0,
-                      "Actual Loops": 1,
-                      "Disabled": false,
-                      "Shared Hit Blocks": 7,
-                      "Shared Read Blocks": 0,
-                      "Shared Dirtied Blocks": 0,
-                      "Shared Written Blocks": 0,
-                      "Local Hit Blocks": 0,
-                      "Local Read Blocks": 0,
-                      "Local Dirtied Blocks": 0,
-                      "Local Written Blocks": 0,
-                      "Temp Read Blocks": 0,
-                      "Temp Written Blocks": 0,
-                      "Plans": [
-                        {
-                          "Node Type": "Bitmap Index Scan",
-                          "Parent Relationship": "Member",
-                          "Parallel Aware": false,
-                          "Async Capable": false,
-                          "Index Name": "items_status_idx",
-                          "Startup Cost": 0,
-                          "Total Cost": 23.09,
-                          "Plan Rows": 1973,
-                          "Plan Width": 0,
-                          "Actual Startup Time": 0.141,
-                          "Actual Total Time": 0.141,
-                          "Actual Rows": 2000,
-                          "Actual Loops": 1,
-                          "Disabled": false,
-                          "Index Cond": "(status = 'rare'::text)",
-                          "Index Searches": 1,
-                          "Shared Hit Blocks": 4,
-                          "Shared Read Blocks": 0,
-                          "Shared Dirtied Blocks": 0,
-                          "Shared Written Blocks": 0,
-                          "Local Hit Blocks": 0,
-                          "Local Read Blocks": 0,
-                          "Local Dirtied Blocks": 0,
-                          "Local Written Blocks": 0,
-                          "Temp Read Blocks": 0,
-                          "Temp Written Blocks": 0
-                        },
-                        {
-                          "Node Type": "Bitmap Index Scan",
-                          "Parent Relationship": "Member",
-                          "Parallel Aware": false,
-                          "Async Capable": false,
-                          "Index Name": "items_customer_idx",
-                          "Startup Cost": 0,
-                          "Total Cost": 24.59,
-                          "Plan Rows": 2173,
-                          "Plan Width": 0,
-                          "Actual Startup Time": 0.134,
-                          "Actual Total Time": 0.134,
-                          "Actual Rows": 2200,
-                          "Actual Loops": 1,
-                          "Disabled": false,
-                          "Index Cond": "(customer_id = '999'::bigint)",
-                          "Index Searches": 1,
-                          "Shared Hit Blocks": 3,
-                          "Shared Read Blocks": 0,
-                          "Shared Dirtied Blocks": 0,
-                          "Shared Written Blocks": 0,
-                          "Local Hit Blocks": 0,
-                          "Local Read Blocks": 0,
-                          "Local Dirtied Blocks": 0,
-                          "Local Written Blocks": 0,
-                          "Temp Read Blocks": 0,
-                          "Temp Written Blocks": 0
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+      "customer-rare": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.085,
+            "executionTime": 0.11
+          },
+          "medianExecutionTime": 0.109,
+          "medianPlanningTime": 0.063,
+          "repetitions": 5
         },
-        "Planning": {
-          "Shared Hit Blocks": 0,
-          "Shared Read Blocks": 0,
-          "Shared Dirtied Blocks": 0,
-          "Shared Written Blocks": 0,
-          "Local Hit Blocks": 0,
-          "Local Read Blocks": 0,
-          "Local Dirtied Blocks": 0,
-          "Local Written Blocks": 0,
-          "Temp Read Blocks": 0,
-          "Temp Written Blocks": 0
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.049,
+            "executionTime": 0.121
+          },
+          "medianExecutionTime": 0.101,
+          "medianPlanningTime": 0.049,
+          "repetitions": 5
+        }
+      },
+      "customer-hot-skewed": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 53,
+            "sharedReadBlocks": 13,
+            "planningTime": 0.06,
+            "executionTime": 0.475
+          },
+          "medianExecutionTime": 0.419,
+          "medianPlanningTime": 0.06,
+          "repetitions": 5
         },
-        "Planning Time": 0.035,
-        "Triggers": [],
-        "Execution Time": 1.472
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 66,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.048,
+            "executionTime": 0.419
+          },
+          "medianExecutionTime": 0.42,
+          "medianPlanningTime": 0.047,
+          "repetitions": 5
+        }
+      },
+      "status-hot": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.064,
+            "executionTime": 0.027
+          },
+          "medianExecutionTime": 0.027,
+          "medianPlanningTime": 0.057,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.046,
+            "executionTime": 0.027
+          },
+          "medianExecutionTime": 0.027,
+          "medianPlanningTime": 0.048,
+          "repetitions": 5
+        }
+      },
+      "assignee-null": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 10,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.057,
+            "executionTime": 0.063
+          },
+          "medianExecutionTime": 0.063,
+          "medianPlanningTime": 0.055,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 10,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.042,
+            "executionTime": 0.065
+          },
+          "medianExecutionTime": 0.066,
+          "medianPlanningTime": 0.001,
+          "repetitions": 5
+        }
+      },
+      "multiple-selective": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.072,
+            "executionTime": 0.109
+          },
+          "medianExecutionTime": 0.109,
+          "medianPlanningTime": 0.068,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.058,
+            "executionTime": 0.103
+          },
+          "medianExecutionTime": 0.102,
+          "medianPlanningTime": 0.056,
+          "repetitions": 5
+        }
+      },
+      "hot-asset-customer-status": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 20,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.067,
+            "executionTime": 1.22
+          },
+          "medianExecutionTime": 1.06,
+          "medianPlanningTime": 0.067,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 20,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.057,
+            "executionTime": 1.051
+          },
+          "medianExecutionTime": 1.053,
+          "medianPlanningTime": 0.055,
+          "repetitions": 5
+        },
+        "o3": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 20,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.056,
+            "executionTime": 1.054
+          },
+          "medianExecutionTime": 1.051,
+          "medianPlanningTime": 0.055,
+          "repetitions": 5
+        }
+      },
+      "mixed-omitted-null-value": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 1,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.091,
+            "executionTime": 1.127
+          },
+          "medianExecutionTime": 1.105,
+          "medianPlanningTime": 0.091,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 1,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.078,
+            "executionTime": 1.124
+          },
+          "medianExecutionTime": 1.111,
+          "medianPlanningTime": 0.078,
+          "repetitions": 5
+        }
+      },
+      "date-range-rare": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 71,
+            "sharedReadBlocks": 1,
+            "planningTime": 0.089,
+            "executionTime": 0.503
+          },
+          "medianExecutionTime": 0.503,
+          "medianPlanningTime": 0.089,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 72,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.076,
+            "executionTime": 0.5
+          },
+          "medianExecutionTime": 0.5,
+          "medianPlanningTime": 0.076,
+          "repetitions": 5
+        }
+      }
+    },
+    "force_custom_plan": {
+      "all-omitted": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.06,
+            "executionTime": 0.027
+          },
+          "medianExecutionTime": 0.025,
+          "medianPlanningTime": 0.052,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.041,
+            "executionTime": 0.027
+          },
+          "medianExecutionTime": 0.029,
+          "medianPlanningTime": 0.002,
+          "repetitions": 5
+        }
+      },
+      "customer-rare": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.062,
+            "executionTime": 0.109
+          },
+          "medianExecutionTime": 0.103,
+          "medianPlanningTime": 0.062,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.061,
+            "executionTime": 0.127
+          },
+          "medianExecutionTime": 0.101,
+          "medianPlanningTime": 0.048,
+          "repetitions": 5
+        }
+      },
+      "customer-hot-skewed": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 66,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.06,
+            "executionTime": 0.415
+          },
+          "medianExecutionTime": 0.561,
+          "medianPlanningTime": 0.077,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 66,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.051,
+            "executionTime": 0.456
+          },
+          "medianExecutionTime": 0.443,
+          "medianPlanningTime": 0.051,
+          "repetitions": 5
+        }
+      },
+      "status-hot": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.062,
+            "executionTime": 0.036
+          },
+          "medianExecutionTime": 0.027,
+          "medianPlanningTime": 0.06,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.047,
+            "executionTime": 0.027
+          },
+          "medianExecutionTime": 0.035,
+          "medianPlanningTime": 0.052,
+          "repetitions": 5
+        }
+      },
+      "assignee-null": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 10,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.063,
+            "executionTime": 0.066
+          },
+          "medianExecutionTime": 0.066,
+          "medianPlanningTime": 0.063,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 10,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.043,
+            "executionTime": 0.065
+          },
+          "medianExecutionTime": 0.067,
+          "medianPlanningTime": 0.002,
+          "repetitions": 5
+        }
+      },
+      "multiple-selective": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.072,
+            "executionTime": 0.109
+          },
+          "medianExecutionTime": 0.104,
+          "medianPlanningTime": 0.067,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.058,
+            "executionTime": 0.103
+          },
+          "medianExecutionTime": 0.103,
+          "medianPlanningTime": 0.057,
+          "repetitions": 5
+        }
+      },
+      "hot-asset-customer-status": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 20,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.079,
+            "executionTime": 1.084
+          },
+          "medianExecutionTime": 1.084,
+          "medianPlanningTime": 0.069,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 20,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.057,
+            "executionTime": 1.066
+          },
+          "medianExecutionTime": 1.094,
+          "medianPlanningTime": 0.058,
+          "repetitions": 5
+        },
+        "o3": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 20,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.058,
+            "executionTime": 1.11
+          },
+          "medianExecutionTime": 1.11,
+          "medianPlanningTime": 0.059,
+          "repetitions": 5
+        }
+      },
+      "mixed-omitted-null-value": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 1,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.151,
+            "executionTime": 1.173
+          },
+          "medianExecutionTime": 1.132,
+          "medianPlanningTime": 0.091,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 1,
+            "actualRows": 50,
+            "sharedHitBlocks": 2007,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.08,
+            "executionTime": 1.112
+          },
+          "medianExecutionTime": 1.121,
+          "medianPlanningTime": 0.078,
+          "repetitions": 5
+        }
+      },
+      "date-range-rare": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 72,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.089,
+            "executionTime": 0.5
+          },
+          "medianExecutionTime": 0.496,
+          "medianPlanningTime": 0.085,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 72,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.077,
+            "executionTime": 0.5
+          },
+          "medianExecutionTime": 0.509,
+          "medianPlanningTime": 0.077,
+          "repetitions": 5
+        }
       }
     },
     "force_generic_plan": {
-      "o1": {
-        "Plan": {
-          "Node Type": "Limit",
-          "Parallel Aware": false,
-          "Async Capable": false,
-          "Startup Cost": 126.46,
-          "Total Cost": 126.51,
-          "Plan Rows": 20,
-          "Plan Width": 16,
-          "Actual Startup Time": 1.571,
-          "Actual Total Time": 1.574,
-          "Actual Rows": 20,
-          "Actual Loops": 1,
-          "Disabled": false,
-          "Shared Hit Blocks": 2007,
-          "Shared Read Blocks": 0,
-          "Shared Dirtied Blocks": 0,
-          "Shared Written Blocks": 0,
-          "Local Hit Blocks": 0,
-          "Local Read Blocks": 0,
-          "Local Dirtied Blocks": 0,
-          "Local Written Blocks": 0,
-          "Temp Read Blocks": 0,
-          "Temp Written Blocks": 0,
-          "Plans": [
-            {
-              "Node Type": "Sort",
-              "Parent Relationship": "Outer",
-              "Parallel Aware": false,
-              "Async Capable": false,
-              "Startup Cost": 126.46,
-              "Total Cost": 126.52,
-              "Plan Rows": 21,
-              "Plan Width": 16,
-              "Actual Startup Time": 1.571,
-              "Actual Total Time": 1.572,
-              "Actual Rows": 20,
-              "Actual Loops": 1,
-              "Disabled": false,
-              "Sort Key": [
-                "created_at DESC",
-                "id"
-              ],
-              "Sort Method": "top-N heapsort",
-              "Sort Space Used": 25,
-              "Sort Space Type": "Memory",
-              "Shared Hit Blocks": 2007,
-              "Shared Read Blocks": 0,
-              "Shared Dirtied Blocks": 0,
-              "Shared Written Blocks": 0,
-              "Local Hit Blocks": 0,
-              "Local Read Blocks": 0,
-              "Local Dirtied Blocks": 0,
-              "Local Written Blocks": 0,
-              "Temp Read Blocks": 0,
-              "Temp Written Blocks": 0,
-              "Plans": [
-                {
-                  "Node Type": "Bitmap Heap Scan",
-                  "Parent Relationship": "Outer",
-                  "Parallel Aware": false,
-                  "Async Capable": false,
-                  "Relation Name": "items",
-                  "Alias": "items",
-                  "Startup Cost": 47.95,
-                  "Total Cost": 126,
-                  "Plan Rows": 21,
-                  "Plan Width": 16,
-                  "Actual Startup Time": 0.505,
-                  "Actual Total Time": 1.366,
-                  "Actual Rows": 2000,
-                  "Actual Loops": 1,
-                  "Disabled": false,
-                  "Recheck Cond": "((status = 'rare'::text) AND (customer_id = '999'::bigint))",
-                  "Rows Removed by Index Recheck": 0,
-                  "Exact Heap Blocks": 2000,
-                  "Lossy Heap Blocks": 0,
-                  "Shared Hit Blocks": 2007,
-                  "Shared Read Blocks": 0,
-                  "Shared Dirtied Blocks": 0,
-                  "Shared Written Blocks": 0,
-                  "Local Hit Blocks": 0,
-                  "Local Read Blocks": 0,
-                  "Local Dirtied Blocks": 0,
-                  "Local Written Blocks": 0,
-                  "Temp Read Blocks": 0,
-                  "Temp Written Blocks": 0,
-                  "Plans": [
-                    {
-                      "Node Type": "BitmapAnd",
-                      "Parent Relationship": "Outer",
-                      "Parallel Aware": false,
-                      "Async Capable": false,
-                      "Startup Cost": 47.95,
-                      "Total Cost": 47.95,
-                      "Plan Rows": 21,
-                      "Plan Width": 0,
-                      "Actual Startup Time": 0.324,
-                      "Actual Total Time": 0.324,
-                      "Actual Rows": 0,
-                      "Actual Loops": 1,
-                      "Disabled": false,
-                      "Shared Hit Blocks": 7,
-                      "Shared Read Blocks": 0,
-                      "Shared Dirtied Blocks": 0,
-                      "Shared Written Blocks": 0,
-                      "Local Hit Blocks": 0,
-                      "Local Read Blocks": 0,
-                      "Local Dirtied Blocks": 0,
-                      "Local Written Blocks": 0,
-                      "Temp Read Blocks": 0,
-                      "Temp Written Blocks": 0,
-                      "Plans": [
-                        {
-                          "Node Type": "Bitmap Index Scan",
-                          "Parent Relationship": "Member",
-                          "Parallel Aware": false,
-                          "Async Capable": false,
-                          "Index Name": "items_status_idx",
-                          "Startup Cost": 0,
-                          "Total Cost": 23.09,
-                          "Plan Rows": 1973,
-                          "Plan Width": 0,
-                          "Actual Startup Time": 0.144,
-                          "Actual Total Time": 0.144,
-                          "Actual Rows": 2000,
-                          "Actual Loops": 1,
-                          "Disabled": false,
-                          "Index Cond": "(status = 'rare'::text)",
-                          "Index Searches": 1,
-                          "Shared Hit Blocks": 4,
-                          "Shared Read Blocks": 0,
-                          "Shared Dirtied Blocks": 0,
-                          "Shared Written Blocks": 0,
-                          "Local Hit Blocks": 0,
-                          "Local Read Blocks": 0,
-                          "Local Dirtied Blocks": 0,
-                          "Local Written Blocks": 0,
-                          "Temp Read Blocks": 0,
-                          "Temp Written Blocks": 0
-                        },
-                        {
-                          "Node Type": "Bitmap Index Scan",
-                          "Parent Relationship": "Member",
-                          "Parallel Aware": false,
-                          "Async Capable": false,
-                          "Index Name": "items_customer_idx",
-                          "Startup Cost": 0,
-                          "Total Cost": 24.59,
-                          "Plan Rows": 2173,
-                          "Plan Width": 0,
-                          "Actual Startup Time": 0.141,
-                          "Actual Total Time": 0.141,
-                          "Actual Rows": 2200,
-                          "Actual Loops": 1,
-                          "Disabled": false,
-                          "Index Cond": "(customer_id = '999'::bigint)",
-                          "Index Searches": 1,
-                          "Shared Hit Blocks": 3,
-                          "Shared Read Blocks": 0,
-                          "Shared Dirtied Blocks": 0,
-                          "Shared Written Blocks": 0,
-                          "Local Hit Blocks": 0,
-                          "Local Read Blocks": 0,
-                          "Local Dirtied Blocks": 0,
-                          "Local Written Blocks": 0,
-                          "Temp Read Blocks": 0,
-                          "Temp Written Blocks": 0
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+      "all-omitted": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.079,
+            "executionTime": 0.036
+          },
+          "medianExecutionTime": 0.036,
+          "medianPlanningTime": 0.007,
+          "repetitions": 5
         },
-        "Planning": {
-          "Shared Hit Blocks": 0,
-          "Shared Read Blocks": 0,
-          "Shared Dirtied Blocks": 0,
-          "Shared Written Blocks": 0,
-          "Local Hit Blocks": 0,
-          "Local Read Blocks": 0,
-          "Local Dirtied Blocks": 0,
-          "Local Written Blocks": 0,
-          "Temp Read Blocks": 0,
-          "Temp Written Blocks": 0
-        },
-        "Planning Time": 0.041,
-        "Triggers": [],
-        "Execution Time": 1.583
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.041,
+            "executionTime": 0.027
+          },
+          "medianExecutionTime": 0.028,
+          "medianPlanningTime": 0.001,
+          "repetitions": 5
+        }
       },
-      "o2": {
-        "Plan": {
-          "Node Type": "Limit",
-          "Parallel Aware": false,
-          "Async Capable": false,
-          "Startup Cost": 126.46,
-          "Total Cost": 126.51,
-          "Plan Rows": 20,
-          "Plan Width": 16,
-          "Actual Startup Time": 1.073,
-          "Actual Total Time": 1.075,
-          "Actual Rows": 20,
-          "Actual Loops": 1,
-          "Disabled": false,
-          "Shared Hit Blocks": 2007,
-          "Shared Read Blocks": 0,
-          "Shared Dirtied Blocks": 0,
-          "Shared Written Blocks": 0,
-          "Local Hit Blocks": 0,
-          "Local Read Blocks": 0,
-          "Local Dirtied Blocks": 0,
-          "Local Written Blocks": 0,
-          "Temp Read Blocks": 0,
-          "Temp Written Blocks": 0,
-          "Plans": [
-            {
-              "Node Type": "Sort",
-              "Parent Relationship": "Outer",
-              "Parallel Aware": false,
-              "Async Capable": false,
-              "Startup Cost": 126.46,
-              "Total Cost": 126.52,
-              "Plan Rows": 21,
-              "Plan Width": 16,
-              "Actual Startup Time": 1.072,
-              "Actual Total Time": 1.073,
-              "Actual Rows": 20,
-              "Actual Loops": 1,
-              "Disabled": false,
-              "Sort Key": [
-                "created_at DESC",
-                "id"
-              ],
-              "Sort Method": "top-N heapsort",
-              "Sort Space Used": 25,
-              "Sort Space Type": "Memory",
-              "Shared Hit Blocks": 2007,
-              "Shared Read Blocks": 0,
-              "Shared Dirtied Blocks": 0,
-              "Shared Written Blocks": 0,
-              "Local Hit Blocks": 0,
-              "Local Read Blocks": 0,
-              "Local Dirtied Blocks": 0,
-              "Local Written Blocks": 0,
-              "Temp Read Blocks": 0,
-              "Temp Written Blocks": 0,
-              "Plans": [
-                {
-                  "Node Type": "Bitmap Heap Scan",
-                  "Parent Relationship": "Outer",
-                  "Parallel Aware": false,
-                  "Async Capable": false,
-                  "Relation Name": "items",
-                  "Alias": "items",
-                  "Startup Cost": 47.95,
-                  "Total Cost": 126,
-                  "Plan Rows": 21,
-                  "Plan Width": 16,
-                  "Actual Startup Time": 0.406,
-                  "Actual Total Time": 0.943,
-                  "Actual Rows": 2000,
-                  "Actual Loops": 1,
-                  "Disabled": false,
-                  "Recheck Cond": "((status = 'rare'::text) AND (customer_id = '999'::bigint))",
-                  "Rows Removed by Index Recheck": 0,
-                  "Exact Heap Blocks": 2000,
-                  "Lossy Heap Blocks": 0,
-                  "Shared Hit Blocks": 2007,
-                  "Shared Read Blocks": 0,
-                  "Shared Dirtied Blocks": 0,
-                  "Shared Written Blocks": 0,
-                  "Local Hit Blocks": 0,
-                  "Local Read Blocks": 0,
-                  "Local Dirtied Blocks": 0,
-                  "Local Written Blocks": 0,
-                  "Temp Read Blocks": 0,
-                  "Temp Written Blocks": 0,
-                  "Plans": [
-                    {
-                      "Node Type": "BitmapAnd",
-                      "Parent Relationship": "Outer",
-                      "Parallel Aware": false,
-                      "Async Capable": false,
-                      "Startup Cost": 47.95,
-                      "Total Cost": 47.95,
-                      "Plan Rows": 21,
-                      "Plan Width": 0,
-                      "Actual Startup Time": 0.266,
-                      "Actual Total Time": 0.267,
-                      "Actual Rows": 0,
-                      "Actual Loops": 1,
-                      "Disabled": false,
-                      "Shared Hit Blocks": 7,
-                      "Shared Read Blocks": 0,
-                      "Shared Dirtied Blocks": 0,
-                      "Shared Written Blocks": 0,
-                      "Local Hit Blocks": 0,
-                      "Local Read Blocks": 0,
-                      "Local Dirtied Blocks": 0,
-                      "Local Written Blocks": 0,
-                      "Temp Read Blocks": 0,
-                      "Temp Written Blocks": 0,
-                      "Plans": [
-                        {
-                          "Node Type": "Bitmap Index Scan",
-                          "Parent Relationship": "Member",
-                          "Parallel Aware": false,
-                          "Async Capable": false,
-                          "Index Name": "items_status_idx",
-                          "Startup Cost": 0,
-                          "Total Cost": 23.09,
-                          "Plan Rows": 1973,
-                          "Plan Width": 0,
-                          "Actual Startup Time": 0.12,
-                          "Actual Total Time": 0.12,
-                          "Actual Rows": 2000,
-                          "Actual Loops": 1,
-                          "Disabled": false,
-                          "Index Cond": "(status = 'rare'::text)",
-                          "Index Searches": 1,
-                          "Shared Hit Blocks": 4,
-                          "Shared Read Blocks": 0,
-                          "Shared Dirtied Blocks": 0,
-                          "Shared Written Blocks": 0,
-                          "Local Hit Blocks": 0,
-                          "Local Read Blocks": 0,
-                          "Local Dirtied Blocks": 0,
-                          "Local Written Blocks": 0,
-                          "Temp Read Blocks": 0,
-                          "Temp Written Blocks": 0
-                        },
-                        {
-                          "Node Type": "Bitmap Index Scan",
-                          "Parent Relationship": "Member",
-                          "Parallel Aware": false,
-                          "Async Capable": false,
-                          "Index Name": "items_customer_idx",
-                          "Startup Cost": 0,
-                          "Total Cost": 24.59,
-                          "Plan Rows": 2173,
-                          "Plan Width": 0,
-                          "Actual Startup Time": 0.116,
-                          "Actual Total Time": 0.116,
-                          "Actual Rows": 2200,
-                          "Actual Loops": 1,
-                          "Disabled": false,
-                          "Index Cond": "(customer_id = '999'::bigint)",
-                          "Index Searches": 1,
-                          "Shared Hit Blocks": 3,
-                          "Shared Read Blocks": 0,
-                          "Shared Dirtied Blocks": 0,
-                          "Shared Written Blocks": 0,
-                          "Local Hit Blocks": 0,
-                          "Local Read Blocks": 0,
-                          "Local Dirtied Blocks": 0,
-                          "Local Written Blocks": 0,
-                          "Temp Read Blocks": 0,
-                          "Temp Written Blocks": 0
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+      "customer-rare": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 560,
+            "sharedReadBlocks": 125,
+            "planningTime": 0.085,
+            "executionTime": 7.049
+          },
+          "medianExecutionTime": 6.494,
+          "medianPlanningTime": 0.01,
+          "repetitions": 5
         },
-        "Planning": {
-          "Shared Hit Blocks": 0,
-          "Shared Read Blocks": 0,
-          "Shared Dirtied Blocks": 0,
-          "Shared Written Blocks": 0,
-          "Local Hit Blocks": 0,
-          "Local Read Blocks": 0,
-          "Local Dirtied Blocks": 0,
-          "Local Written Blocks": 0,
-          "Temp Read Blocks": 0,
-          "Temp Written Blocks": 0
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.054,
+            "executionTime": 0.118
+          },
+          "medianExecutionTime": 0.115,
+          "medianPlanningTime": 0.006,
+          "repetitions": 5
+        }
+      },
+      "customer-hot-skewed": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 66,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.084,
+            "executionTime": 0.66
+          },
+          "medianExecutionTime": 0.621,
+          "medianPlanningTime": 0.01,
+          "repetitions": 5
         },
-        "Planning Time": 0.04,
-        "Triggers": [],
-        "Execution Time": 1.083
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 2008,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.051,
+            "executionTime": 1.183
+          },
+          "medianExecutionTime": 0.982,
+          "medianPlanningTime": 0.006,
+          "repetitions": 5
+        }
+      },
+      "status-hot": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.081,
+            "executionTime": 0.038
+          },
+          "medianExecutionTime": 0.039,
+          "medianPlanningTime": 0.008,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 4,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.057,
+            "executionTime": 0.032
+          },
+          "medianExecutionTime": 0.032,
+          "medianPlanningTime": 0.004,
+          "repetitions": 5
+        }
+      },
+      "assignee-null": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 10,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.081,
+            "executionTime": 0.095
+          },
+          "medianExecutionTime": 0.095,
+          "medianPlanningTime": 0.007,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 10,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.058,
+            "executionTime": 0.067
+          },
+          "medianExecutionTime": 0.068,
+          "medianPlanningTime": 0.002,
+          "repetitions": 5
+        }
+      },
+      "multiple-selective": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 951,
+            "sharedReadBlocks": 69,
+            "planningTime": 0.082,
+            "executionTime": 9.922
+          },
+          "medianExecutionTime": 9.862,
+          "medianPlanningTime": 0.01,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 34,
+            "actualRows": 50,
+            "sharedHitBlocks": 202,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.076,
+            "executionTime": 0.14
+          },
+          "medianExecutionTime": 0.113,
+          "medianPlanningTime": 0.007,
+          "repetitions": 5
+        }
+      },
+      "hot-asset-customer-status": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 72,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.102,
+            "executionTime": 0.746
+          },
+          "medianExecutionTime": 0.693,
+          "medianPlanningTime": 0.01,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 2008,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.058,
+            "executionTime": 1
+          },
+          "medianExecutionTime": 1.005,
+          "medianPlanningTime": 0.006,
+          "repetitions": 5
+        },
+        "o3": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 2008,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.058,
+            "executionTime": 1.012
+          },
+          "medianExecutionTime": 1.031,
+          "medianPlanningTime": 0.006,
+          "repetitions": 5
+        }
+      },
+      "mixed-omitted-null-value": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 72,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.094,
+            "executionTime": 0.678
+          },
+          "medianExecutionTime": 0.678,
+          "medianPlanningTime": 0.012,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Sort",
+              "Bitmap Heap Scan",
+              "BitmapAnd",
+              "Bitmap Index Scan",
+              "Bitmap Index Scan"
+            ],
+            "estimatedRows": 1,
+            "actualRows": 50,
+            "sharedHitBlocks": 2003,
+            "sharedReadBlocks": 10,
+            "planningTime": 0.077,
+            "executionTime": 1.364
+          },
+          "medianExecutionTime": 1.259,
+          "medianPlanningTime": 0.009,
+          "repetitions": 5
+        }
+      },
+      "date-range-rare": {
+        "o1": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 72,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.083,
+            "executionTime": 0.823
+          },
+          "medianExecutionTime": 0.823,
+          "medianPlanningTime": 0.011,
+          "repetitions": 5
+        },
+        "o2": {
+          "first": {
+            "nodes": [
+              "Limit",
+              "Incremental Sort",
+              "Index Scan"
+            ],
+            "estimatedRows": 50,
+            "actualRows": 50,
+            "sharedHitBlocks": 72,
+            "sharedReadBlocks": 0,
+            "planningTime": 0.063,
+            "executionTime": 0.589
+          },
+          "medianExecutionTime": 0.527,
+          "medianPlanningTime": 0.007,
+          "repetitions": 5
+        }
       }
     }
   }

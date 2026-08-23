@@ -1,1 +1,5 @@
-select id, priority, created_at, name from runtime_boundary_items where status = :status::text /* ORDER_BY_INSERTION */ limit :limit::integer offset :offset::integer;
+select i.id, i.priority, i.created_at, i.name
+from items i
+where i.status = :status::text
+/* ORDER_BY_INSERTION */
+limit 50;

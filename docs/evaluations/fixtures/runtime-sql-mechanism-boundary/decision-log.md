@@ -61,3 +61,25 @@
 - Previous runs validity: compiler nested-comment evidence remains valid; psql attempts before this correction are calibration only.
 - Calibration / invalid classification: not a mechanism failure.
 - Effect on comparability: all subsequent execution checks use an executable lexical corpus.
+
+## 2026-08-23 — optional-predicate scoring protocol replacement
+
+- Observed problem: the first PostgreSQL runner exercised only customer and
+  status, and invoked parameterized statements directly. It therefore did not
+  cover the registered seven-property search or establish PostgreSQL prepared
+  statement behavior for `auto`, `force_custom_plan`, and
+  `force_generic_plan`.
+- Original assumption: two-predicate direct `EXPLAIN` captures were adequate
+  first evidence for O1/O2.
+- Evidence: the checked-in runner had two static guards, no `LEFT JOIN`, no
+  date bounds, no prepared `EXECUTE`, and no repetitions/median calculation.
+- Protocol change: retain the former capture as calibration only. Score O1,
+  O2, and bounded O3 with seven tri-state properties, a `LEFT JOIN`, frozen
+  data, server-side prepared statements, all three cache modes, and five
+  repeated `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` executions per case.
+- Previous runs validity: valid only as two-predicate calibration and
+  correctness observation; invalid for the required O1/O2/O3 comparison.
+- Calibration / invalid classification: initial O evidence is not discarded,
+  but it is not used for a winner.
+- Effect on comparability: all scored results produced after this entry share
+  the frozen 200k-row dataset and the same seven-property case ledger.

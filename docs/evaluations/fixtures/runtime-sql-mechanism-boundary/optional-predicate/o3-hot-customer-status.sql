@@ -1,1 +1,8 @@
-select id from runtime_boundary_items where customer_id = :customer_id::bigint and status = :status::text order by created_at desc, id asc limit :limit::integer;
+/* Selected hot asset: it is intentionally not one member of a 3^7 expansion. */
+select i.id
+from items i
+left join customers c on c.id = i.customer_id
+where i.customer_id = :customer_id::bigint
+  and i.status = :status::text
+order by i.created_at desc, i.id asc
+limit 50;
