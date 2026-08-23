@@ -63,8 +63,8 @@ read blocks, versus O1's 951 hit and 69 read blocks. `preparePostgresQuery`
 uses that existing precomputed-subtraction mechanism; it adds no SQL analysis
 or alternative plan construction.
 
-This intentionally narrow slice does not yet migrate the PR #63 reference
-fixture or every starter application, nor does it remove the optional wrapper.
-Those changes require preserving the fixture's complete behavior and the
-representative generic-plan comparison as a separate, reviewable migration
-slice.
+This intentionally narrow slice migrates the PR #63 reference application's
+runtime execution, but keeps its local named-lowering evaluator as an explicit
+historical control. It does not migrate every starter application or remove the
+optional compatibility wrapper; those changes require a separate, reviewable
+migration slice.
