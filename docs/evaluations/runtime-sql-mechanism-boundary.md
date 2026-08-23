@@ -3,10 +3,11 @@
 ## Decision
 
 **done — evaluation only; no product reduction is proposed.** Named parameters
-remain the minimum source-level Ashiba contract. A correct development-time
-artifact can remove runtime SQL lexing from direct PostgreSQL execution, but
-the current compiler fails the registered nested-comment corpus and therefore
-cannot yet support that reduction. Optional-predicate subtraction has a
+remain the minimum source-level Ashiba contract. The subsequent development-time
+lexical correctness follow-up repaired the registered nested-comment corpus and
+proved direct product-generated artifact execution; see
+fixtures/runtime-sql-mechanism-boundary/follow-up-lexical-correctness.md.
+Optional-predicate subtraction has a
 material generic-plan work advantage in this fixture. Multi-column sorting can
 use a closed application whitelist plus a development-time coordinate and
 mechanical runtime splice; Safe Sort adds shared placement and stale-artifact
@@ -37,8 +38,9 @@ evidence.
 **Evidence:** the canonical corpus covers repeated names, casts, quoted
 identifiers, escaped strings, dollar quotes, line comments, block comments, and
 nested block comments. N0 is direct positional PostgreSQL source; it has no
-name/reorder protection. N1/current lexical lowering emits the nested-comment
-pseudo-name, recorded before any remedy in evidence/named-parameter-result.json.
+name/reorder protection. At #64, N1/current lexical lowering emitted the
+nested-comment pseudo-name, recorded before any remedy in
+evidence/named-parameter-result.json.
 N2's fixture compiler creates positional SQL, ordered names, and a source hash,
 maps values mechanically, rejects stale source, and executes the compiled SQL
 directly through node-postgres with the same row result as an N0 positional
@@ -47,9 +49,10 @@ the current adapter uses that artifact shape plus optional/sort/wrapper work.
 N4 records that node-postgres accepts positional SQL and values, while psql
 offers client-side variable facilities rather than a portable Node named-binder.
 The canonical named source also executed through psql.
-**Gap:** the fixture compiler is evidence, not product code; current N3 cannot
-claim full lexical-corpus correctness until its nested-comment defect is fixed
-in a later product change.
+**Follow-up:** the product compiler now tracks nested block-comment depth and
+the product-generated N2 artifact executes directly through node-postgres; the
+follow-up document records the permanent lexical, stale-artifact, optional, and
+sort-coordinate regressions.
 
 Named SQL should remain a rule because it preserves source readability, direct
 maintenance, SQL-client investigation, and resilience to reordering. It does
