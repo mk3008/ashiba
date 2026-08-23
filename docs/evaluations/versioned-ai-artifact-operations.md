@@ -73,6 +73,10 @@ changing no placement artifact; test passed and Git named only the policy file.
 This demonstrates the intended separation between business semantics and a
 placement fact.
 
+A new clone passed offline install with zero downloads, marker-free verifier,
+fixture tests, workspace build, and 5/5 native PostgreSQL checks without AI.
+See [marker-free clean-clone results](./fixtures/versioned-ai-artifact-operations/marker-free-g4/clean-clone-results.md).
+
 ## Previously established evidence retained
 
 The prior fixture's per-query assets auto-merged for independent queries while
