@@ -6,101 +6,101 @@ title: Versioned AI-derived artifact operations audit
 
 ## Decision
 
-**Hybrid, with a Partial productization recommendation.** In the evaluated
-query form, AI-derived G3 optional segments and G4 finite-sort policy can be
-operated as small, per-query versioned assets. G1 remains a deterministic
-Ashiba-owned calculation. G2 source identity and G5 composition are also
-deterministic at build/runtime: the artifact supplies reviewed facts, while the
-small verifier and runtime consume them without AI.
+**Hybrid, with a Partial productization recommendation.** The corrected,
+marker-free holdout supports G4 as a per-query versioned AI-derived placement
+asset for the evaluated form. G1 named-parameter lowering remains deterministic;
+G2 source identity/hash is deterministically checked; G3 optional ranges remain
+a candidate derived asset; and the runtime is mechanical only.
 
-This is evaluation-only. No production schema, public API, CLI, product
-generator, or runtime was changed.
+This is evaluation-only. No product schema, public API, CLI, generator, or
+production runtime changed.
 
-## Models compared
+## Protocol correction
+
+The original O1 fixture used `/* @sort:... */` comments in canonical SQL.
+That result is retained as **marker-assisted calibration** only. It still
+supports per-query operation, stale/orphan rejection, Fresh-Agent repair,
+clean-clone operation, and rejection of build-time AI. It is not final G4
+evidence because it reduced placement to marker discovery.
+
+The corrected holdout is
+[`fixtures/versioned-ai-artifact-operations/marker-free-g4`](./fixtures/versioned-ai-artifact-operations/marker-free-g4/README.md).
+Its canonical source is complete ordinary SQL with no project marker, directive,
+or DSL. The observed problem, original assumption, consequence, correction, and
+previous-evidence validity are recorded in its
+[decision log](./fixtures/versioned-ai-artifact-operations/marker-free-g4/protocol-correction.md).
+
+## Corrected operating contract
+
+The application owns ordinary ordering policy code: reviewed key expressions,
+ASC/DESC forms, CASE business ordering, maximum count, ordered composition, and
+stable tie breaker. Runtime accepts only key/direction selections and never
+accepts a raw SQL fragment.
+
+The G4 derived artifact stores no sort semantics. It contains only source path,
+source hash, an insertion index, expected text, and local before/after context.
+The verifier checks registration/orphans, source existence and hash, index
+bounds, stored text, and local context. It does not parse SQL, locate `ORDER
+BY`, infer a tie breaker, infer a policy, or regenerate a coordinate. Runtime
+mechanically splices application-selected reviewed expressions, then performs
+deterministic G1 lowering.
+
+## O0/O1/O2 comparison
 
 | Model | Build input | Result |
 | --- | --- | --- |
-| O0 deterministic owned generator | Canonical SQL only, then one generated/global artifact. | Correct deterministic baseline, but an actual different-query branch test produced a conflict in its one global manifest. |
-| O1 versioned derived asset | Canonical SQL + requirements + per-query committed metadata; small verifier and deterministic runtime. | Accepted for the evaluated shape: clean/offline checkout, Fresh Agent repair, negative controls, Git merge behavior, and PostgreSQL runtime passed. |
-| O2 build-time AI | SQL + requirements but no committed derived asset. | Rejected early. A clean build has no deterministic G3/G4 input and must call an external AI service; verifier fails closed with `O2_REJECTED`. |
+| O0 deterministic owned generator | Canonical SQL only, then one generated/global artifact. | Deterministic baseline, but an actual different-query branch test conflicted in its one global manifest. |
+| O1 versioned derived asset | Canonical SQL + requirements/application policy + per-query committed placement metadata; small verifier and deterministic runtime. | Accepted for the evaluated form: marker-free Fresh-Agent repair, stale controls, clean/offline checkout, Git operation, and PostgreSQL runtime passed. |
+| O2 build-time AI | SQL + requirements but no committed derived asset. | Rejected: an AI service is an unreproducible clean-build dependency. |
 
-The durable protocol, commands, and raw records are in
-[`fixtures/versioned-ai-artifact-operations`](./fixtures/versioned-ai-artifact-operations/README.md).
+## Corrected G4 evidence
 
-## Operating contract
+Native PostgreSQL passed single-key, two-key direction-mixed CASE ordering,
+three-key composition, and no-request stable-tie-breaker behavior. Invalid
+direction, duplicate key, excessive key count, unknown key, and hostile
+raw-SQL-looking input fail before execution. The full result is in
+[marker-free Brownfield results](./fixtures/versioned-ai-artifact-operations/marker-free-g4/brownfield-results.md).
 
-The O1 artifact stores only `sourcePath`, `sourceHash`, exact optional segment
-range/text, and finite sort anchor/key policy. It does not store lowered SQL or
-ordered bind names. `g1-lower.mjs` calculates G1 each time from canonical SQL.
-The verifier checks only registered paths, missing/orphan assets, hash, stored
-range/text, and sort anchor/key shape. It does not parse SQL to discover ranges,
-infer policy, or generate an artifact.
+Two independent Fresh Agents received ordinary SQL maintenance requests only:
+one formatting/comment change and one structural CTE refactor. Neither received
+a marker coordinate or hidden answer. Both refreshed stale placement metadata
+through ordinary verifier/test feedback; runner-owned offline setup and native
+PostgreSQL then passed 5/5 checks for each. Human coordinate editing was zero.
+See the [Fresh Agent ledger](./fixtures/versioned-ai-artifact-operations/marker-free-g4/fresh-agent-ledger.md).
 
-Consequently, an AI agent may use temporary private tooling to update an
-artifact, but the committed state required by a clean build is only SQL,
-requirements, and the reviewable per-query JSON. No hidden service, old
-worktree, network call, or persistent generation program is needed by O1.
+An application-only policy commit added a reviewed business-order key while
+changing no placement artifact; test passed and Git named only the policy file.
+This demonstrates the intended separation between business semantics and a
+placement fact.
 
-## Brownfield, stale, and Fresh Agent evidence
+## Previously established evidence retained
 
-The [Brownfield results](./fixtures/versioned-ai-artifact-operations/brownfield-results.md)
-cover parameter-order derivation, optional range addition, formatting drift,
-sort-policy changes, rename/orphan detection, metadata-only policy change, and
-SQL-only stale state. Negative controls prove stale hash, missing source,
-orphan asset, invalid range text, and sort-anchor mismatch all fail closed;
-runtime refuses stale metadata.
+The prior fixture's per-query assets auto-merged for independent queries while
+a global manifest conflicted. Same-SQL concurrent edits conflicted in canonical
+SQL without an excess artifact conflict. Its verifier rejected stale source,
+missing source, and orphan assets. Its clean-clone check passed offline install
+with zero downloads and a PostgreSQL live run. These claims are independent of
+marker-free G4 semantics and remain in the fixture's
+[merge results](./fixtures/versioned-ai-artifact-operations/merge-conflict-results.md)
+and [clean-clone results](./fixtures/versioned-ai-artifact-operations/clean-clone-results.md).
 
-Two independent Fresh Agents received only normal change requests—not a
-directive to update artifacts. One added optional date bounds; the other
-renamed a query. Both used normal verification feedback to repair local
-metadata without human coordinate/hash synchronization and passed the fixture
-test. The exact limits and outcomes are in the
-[Fresh Agent ledger](./fixtures/versioned-ai-artifact-operations/fresh-agent-ledger.md).
-This establishes practical repair behavior for two cases, not a universal
-agent-reliability guarantee.
+## Final responsibility placement
 
-## Repository operation and reproducibility
+| Responsibility | Decision |
+| --- | --- |
+| G1 named-parameter lowering | Deterministic processing where a native driver does not already provide it |
+| G2 source identity/hash | Deterministic local calculation/check |
+| G3 optional-condition placement/ranges | Per-query versioned AI-derived candidate |
+| G4 sort placement coordinate | Per-query versioned AI-derived candidate, supported by marker-free holdout |
+| Sort semantics | Ordinary application code/configuration |
+| Verifier | Small deterministic local checks |
+| Semantic authority | Application and native PostgreSQL live tests |
+| Build-time AI | Rejected |
 
-An actual Git test found that O0's compact global manifest conflicted for two
-different query changes, whereas the O1 per-query case auto-merged with zero
-conflicts. Two concurrent changes to the same SQL file conflicted in that SQL
-file only; the artifact added no excess conflict. See
-[merge-conflict results](./fixtures/versioned-ai-artifact-operations/merge-conflict-results.md).
-Normal commits, checkout, and revert are sufficient to version O1 because SQL
-and its matching metadata travel in the same Git history.
+## Limits and next decision
 
-A new clone passed O1 verifier and fixture tests, `pnpm install --offline
---frozen-lockfile` with zero downloads, workspace build, and the dedicated
-PostgreSQL runtime checks. The recorded outcome is in
-[clean-clone results](./fixtures/versioned-ai-artifact-operations/clean-clone-results.md).
-
-## Direct answers
-
-* **Can derived artifacts be versioned safely?** Yes for this bounded contract,
-  provided per-query assets, a fail-closed verifier, and normal build/test/live
-  gates are retained.
-* **Can AI use temporary tooling while committed artifacts are durable?** Yes.
-  O1's clean clone contains no agent tooling requirement; only the durable
-  artifact and deterministic consumers are needed.
-* **Do developers need to hand-manage hash, coordinates, or freshness?** The
-  two normal-task replicates did not. They repaired through verification
-  feedback. The guard is essential: it makes a missed update loud rather than
-  silently acceptable.
-* **Which form merges better?** Per-query artifacts. A global artifact was a
-  real avoidable conflict point for otherwise independent edits.
-* **Is O2 appropriate?** No: it sacrifices reproducibility and offline build
-  determinism for a build-time external dependency.
-* **Is a human blocker present?** No blocker to this evaluation or to retaining
-  the component Hybrid. A human product decision remains required before
-  promotion: define the supported SQL/optional/sort corpus, establish review
-  ownership for requirement changes, and run a broader sandboxed reliability
-  study. The temporary PostgreSQL service was an environment prerequisite, not
-  a human coordination blocker.
-
-## Next decision
-
-Keep G1 deterministic and treat versioned AI-derived G3/G4 metadata as a
-candidate operational pattern only. Do not remove an owned generator or change
-product behavior from this study. Fund a larger corpus with independent,
-sandboxed agents and semantic PostgreSQL oracles before productizing the
-artifact contract.
+This supports the evaluated contract, not every SQL dialect or query shape.
+Before productization, choose a supported corpus, define review ownership for
+application policy/requirements, and run a broader sandboxed reliability study.
+Do not remove an owned deterministic mechanism or change product behavior based
+on this evaluation alone.
