@@ -1,0 +1,202 @@
+{
+  "treatment": "B",
+  "startedAt": "2026-08-23T14:33:19.253Z",
+  "completedAt": "2026-08-23T14:33:19.294Z",
+  "tool": "Ashiba current product model-gen / runModelGen",
+  "runtimeDependencies": [
+    "node",
+    "@ashiba-ts/cli",
+    "@ashiba-ts/driver-adapter-core"
+  ],
+  "sourceSurface": [
+    {
+      "relativePath": "packages/cli/src/commands/model-gen.ts",
+      "lines": 929
+    },
+    {
+      "relativePath": "packages/driver-adapter-core/src/index.ts",
+      "lines": 856
+    },
+    {
+      "relativePath": "packages/cli/tests/smoke.test.ts",
+      "lines": 5368
+    }
+  ],
+  "freshnessRequirement": "sourceHash is carried by analysis and postgres binding; runtime rejects a mismatch.",
+  "results": [
+    {
+      "workload": "w1-named-lexical",
+      "success": true,
+      "wallMs": 9.4,
+      "sourceHash": "sha256:a72474c006f0c7db38d85c440d26d1d91f7799dd410af771b039a8af216e7066",
+      "postgres": {
+        "sourceHash": "sha256:a72474c006f0c7db38d85c440d26d1d91f7799dd410af771b039a8af216e7066",
+        "sql": "select $1::bigint as account_id,\n       $2::bigint as repeated,\n       ':ignored' as literal,\n       E'\\\\:ignored' as escape_literal,\n       ':ignored' as \":ignored\",\n       $note$:ignored$note$ as dollar_literal\n-- :ignored\n/* outer :ignored /* nested :ignored */ still outer */\nwhere $3::bigint = $4::bigint;\n",
+        "orderedNames": [
+          "account_id",
+          "account_id",
+          "account_id",
+          "account_id"
+        ]
+      },
+      "optionalAnalysis": null,
+      "safeSort": {
+        "insertion": {
+          "status": "unresolved",
+          "reason": "Safe sort is blocked because SQL AST analysis degraded: [SqlParser] Failed to parse SELECT statement 1: [SqlParser] Unexpected token \"still\" in statement 1 at character 283."
+        },
+        "sortable": {}
+      }
+    },
+    {
+      "workload": "w2-optional-search",
+      "success": true,
+      "wallMs": 18.68,
+      "sourceHash": "sha256:c5935e3aced4e48018700ae7128499308be8ed246107102f422099b4a5bdf005",
+      "postgres": {
+        "sourceHash": "sha256:c5935e3aced4e48018700ae7128499308be8ed246107102f422099b4a5bdf005",
+        "sql": "select w.id, w.name, w.priority, w.assignee, c.name as customer_name\nfrom work_items w\nleft join customers c on c.id = w.customer_id\nwhere w.state <> 'done'\n  and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n  and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n  and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\norder by w.id asc\nlimit $13::integer offset $14::integer;\n",
+        "orderedNames": [
+          "assignee_supplied",
+          "assignee_is_null",
+          "assignee_is_null",
+          "assignee",
+          "customer_id_supplied",
+          "customer_id_is_null",
+          "customer_id_is_null",
+          "customer_id",
+          "priority_supplied",
+          "priority_is_null",
+          "priority_is_null",
+          "priority",
+          "limit",
+          "offset"
+        ],
+        "safeSortInsertion": {
+          "index": 462,
+          "end": 471
+        },
+        "optionalConditionCompression": {
+          "branches": []
+        }
+      },
+      "optionalAnalysis": {
+        "enabled": true,
+        "branches": []
+      },
+      "safeSort": {
+        "insertion": {
+          "status": "ready",
+          "index": 630,
+          "end": 639,
+          "mode": "replace"
+        },
+        "sortable": {
+          "id": {
+            "sql": "w.id",
+            "defaultDirection": "asc",
+            "allowedDirections": [
+              "asc"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "workload": "w3-sort",
+      "success": true,
+      "wallMs": 2.73,
+      "sourceHash": "sha256:668b227030cdf985b18d3448639cb9d488bd296796f80da7545669378c83d8cf",
+      "postgres": {
+        "sourceHash": "sha256:668b227030cdf985b18d3448639cb9d488bd296796f80da7545669378c83d8cf",
+        "sql": "select w.id, w.name, w.priority, w.created_at\nfrom work_items w\nwhere w.state <> 'done'\norder by w.id asc\nlimit $1::integer offset $2::integer;\n",
+        "orderedNames": [
+          "limit",
+          "offset"
+        ],
+        "safeSortInsertion": {
+          "index": 97,
+          "end": 106
+        },
+        "optionalConditionCompression": {
+          "branches": []
+        }
+      },
+      "optionalAnalysis": {
+        "enabled": true,
+        "branches": []
+      },
+      "safeSort": {
+        "insertion": {
+          "status": "ready",
+          "index": 97,
+          "end": 106,
+          "mode": "replace"
+        },
+        "sortable": {
+          "id": {
+            "sql": "w.id",
+            "defaultDirection": "asc",
+            "allowedDirections": [
+              "asc"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "workload": "w4-mixed-complex",
+      "success": true,
+      "wallMs": 6.41,
+      "sourceHash": "sha256:92cbab7c99464924156dc10bef592f5e1c6e48926ba57dbf95e6791aa90cc489",
+      "postgres": {
+        "sourceHash": "sha256:92cbab7c99464924156dc10bef592f5e1c6e48926ba57dbf95e6791aa90cc489",
+        "sql": "with visible_items as (\n  select w.id, w.name, w.priority, w.assignee, w.customer_id, w.created_at\n  from work_items w\n  where w.state <> 'done'\n    and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n    and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n    and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\n)\nselect v.id, v.name, v.priority, c.name as customer_name\nfrom visible_items v\nleft join customers c on c.id = v.customer_id\n/* ordinary formatting noise, not a directive */\norder by v.id asc\nlimit $13::integer offset $14::integer;\n",
+        "orderedNames": [
+          "assignee_supplied",
+          "assignee_is_null",
+          "assignee_is_null",
+          "assignee",
+          "customer_id_supplied",
+          "customer_id_is_null",
+          "customer_id_is_null",
+          "customer_id",
+          "priority_supplied",
+          "priority_is_null",
+          "priority_is_null",
+          "priority",
+          "limit",
+          "offset"
+        ],
+        "safeSortInsertion": {
+          "index": 631,
+          "end": 640
+        },
+        "optionalConditionCompression": {
+          "branches": []
+        }
+      },
+      "optionalAnalysis": {
+        "enabled": true,
+        "branches": []
+      },
+      "safeSort": {
+        "insertion": {
+          "status": "ready",
+          "index": 799,
+          "end": 808,
+          "mode": "replace"
+        },
+        "sortable": {
+          "id": {
+            "sql": "v.id",
+            "defaultDirection": "asc",
+            "allowedDirections": [
+              "asc"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

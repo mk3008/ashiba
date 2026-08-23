@@ -1,0 +1,500 @@
+{
+  "version": 1,
+  "artifacts": {
+    "m1-parameter-order": {
+      "sourceFile": "brownfield/m1-parameter-order.sql",
+      "sourceHash": "sha256:ff9a1ae17d1bd059865140a990f7e41e555020de6b32f448511eddec3802ad14",
+      "sql": "select w.id, w.name, w.priority, w.assignee, c.name as customer_name\nfrom work_items w\nleft join customers c on c.id = w.customer_id\nwhere w.state <> 'done'\n  and w.name <> $1\n  and ($2 = false or ($3 = true and w.assignee is null) or ($4 = false and w.assignee = $5))\n  and ($6 = false or ($7 = true and w.customer_id is null) or ($8 = false and w.customer_id = $9::bigint))\n  and ($10 = false or ($11 = true and w.priority is null) or ($12 = false and w.priority = $13))\norder by w.id asc\nlimit $14::integer offset $15::integer;\n",
+      "orderedNames": [
+        "excluded_name",
+        "assignee_supplied",
+        "assignee_is_null",
+        "assignee_is_null",
+        "assignee",
+        "customer_id_supplied",
+        "customer_id_is_null",
+        "customer_id_is_null",
+        "customer_id",
+        "priority_supplied",
+        "priority_is_null",
+        "priority_is_null",
+        "priority",
+        "limit",
+        "offset"
+      ],
+      "optional": [
+        {
+          "control": "assignee",
+          "sourceRange": {
+            "start": 188,
+            "end": 334,
+            "text": "  and (:assignee_supplied = false or (:assignee_is_null = true and w.assignee is null) or (:assignee_is_null = false and w.assignee = :assignee))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 176,
+            "end": 269,
+            "text": "  and ($2 = false or ($3 = true and w.assignee is null) or ($4 = false and w.assignee = $5))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.assignee is null\n",
+            "valueSql": "  and w.assignee = {{param:assignee}}\n",
+            "valueNames": [
+              "assignee"
+            ]
+          }
+        },
+        {
+          "control": "customer_id",
+          "sourceRange": {
+            "start": 334,
+            "end": 506,
+            "text": "  and (:customer_id_supplied = false or (:customer_id_is_null = true and w.customer_id is null) or (:customer_id_is_null = false and w.customer_id = :customer_id::bigint))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 269,
+            "end": 376,
+            "text": "  and ($6 = false or ($7 = true and w.customer_id is null) or ($8 = false and w.customer_id = $9::bigint))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.customer_id is null\n",
+            "valueSql": "  and w.customer_id = {{param:customer_id}}\n",
+            "valueNames": [
+              "customer_id"
+            ]
+          }
+        },
+        {
+          "control": "priority",
+          "sourceRange": {
+            "start": 506,
+            "end": 652,
+            "text": "  and (:priority_supplied = false or (:priority_is_null = true and w.priority is null) or (:priority_is_null = false and w.priority = :priority))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 376,
+            "end": 473,
+            "text": "  and ($10 = false or ($11 = true and w.priority is null) or ($12 = false and w.priority = $13))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.priority is null\n",
+            "valueSql": "  and w.priority = {{param:priority}}\n",
+            "valueNames": [
+              "priority"
+            ]
+          }
+        }
+      ],
+      "sort": {
+        "insertion": {
+          "index": 482,
+          "text": "w.id asc"
+        },
+        "keys": {
+          "created_at": "w.created_at",
+          "name": "w.name",
+          "priority": "case when w.priority = 'urgent' then 1 when w.priority = 'normal' then 2 else 3 end"
+        }
+      }
+    },
+    "m2-add-optional": {
+      "sourceFile": "brownfield/m2-add-optional.sql",
+      "sourceHash": "sha256:e6a82d6ddb9a1d41cb604943cf6fec6414b032d75c3afd7fbb39da9dae072906",
+      "sql": "select w.id, w.name, w.priority, w.assignee, c.name as customer_name\nfrom work_items w\nleft join customers c on c.id = w.customer_id\nwhere w.state <> 'done'\n  and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n  and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n  and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\n  and ($13 = false or ($14 = true and w.name is null) or ($15 = false and w.name = $16))\norder by w.id asc\nlimit $17::integer offset $18::integer;\n",
+      "orderedNames": [
+        "assignee_supplied",
+        "assignee_is_null",
+        "assignee_is_null",
+        "assignee",
+        "customer_id_supplied",
+        "customer_id_is_null",
+        "customer_id_is_null",
+        "customer_id",
+        "priority_supplied",
+        "priority_is_null",
+        "priority_is_null",
+        "priority",
+        "name_supplied",
+        "name_is_null",
+        "name_is_null",
+        "name",
+        "limit",
+        "offset"
+      ],
+      "optional": [
+        {
+          "control": "assignee",
+          "sourceRange": {
+            "start": 157,
+            "end": 303,
+            "text": "  and (:assignee_supplied = false or (:assignee_is_null = true and w.assignee is null) or (:assignee_is_null = false and w.assignee = :assignee))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 157,
+            "end": 250,
+            "text": "  and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.assignee is null\n",
+            "valueSql": "  and w.assignee = {{param:assignee}}\n",
+            "valueNames": [
+              "assignee"
+            ]
+          }
+        },
+        {
+          "control": "customer_id",
+          "sourceRange": {
+            "start": 303,
+            "end": 475,
+            "text": "  and (:customer_id_supplied = false or (:customer_id_is_null = true and w.customer_id is null) or (:customer_id_is_null = false and w.customer_id = :customer_id::bigint))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 250,
+            "end": 357,
+            "text": "  and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.customer_id is null\n",
+            "valueSql": "  and w.customer_id = {{param:customer_id}}\n",
+            "valueNames": [
+              "customer_id"
+            ]
+          }
+        },
+        {
+          "control": "priority",
+          "sourceRange": {
+            "start": 475,
+            "end": 621,
+            "text": "  and (:priority_supplied = false or (:priority_is_null = true and w.priority is null) or (:priority_is_null = false and w.priority = :priority))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 357,
+            "end": 453,
+            "text": "  and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.priority is null\n",
+            "valueSql": "  and w.priority = {{param:priority}}\n",
+            "valueNames": [
+              "priority"
+            ]
+          }
+        },
+        {
+          "control": "name",
+          "sourceRange": {
+            "start": 621,
+            "end": 743,
+            "text": "  and (:name_supplied = false or (:name_is_null = true and w.name is null) or (:name_is_null = false and w.name = :name))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 453,
+            "end": 542,
+            "text": "  and ($13 = false or ($14 = true and w.name is null) or ($15 = false and w.name = $16))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.name is null\n",
+            "valueSql": "  and w.name = {{param:name}}\n",
+            "valueNames": [
+              "name"
+            ]
+          }
+        }
+      ],
+      "sort": {
+        "insertion": {
+          "index": 551,
+          "text": "w.id asc"
+        },
+        "keys": {
+          "created_at": "w.created_at",
+          "name": "w.name",
+          "priority": "case when w.priority = 'urgent' then 1 when w.priority = 'normal' then 2 else 3 end"
+        }
+      }
+    },
+    "m3-format-comment": {
+      "sourceFile": "brownfield/m3-format-comment.sql",
+      "sourceHash": "sha256:5b5e0e75ede2d01715a4138bd67712c8e59c05046ebdf00b22b4ec992f0872f6",
+      "sql": "select w.id, w.name, w.priority, w.assignee, c.name as customer_name\nfrom work_items w left join customers c on c.id = w.customer_id\nwhere w.state <> 'done'\n  /* formatting-only drift before optional predicates */\n  and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n  and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n  and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\norder by w.id asc\nlimit $13::integer\noffset $14::integer;\n",
+      "orderedNames": [
+        "assignee_supplied",
+        "assignee_is_null",
+        "assignee_is_null",
+        "assignee",
+        "customer_id_supplied",
+        "customer_id_is_null",
+        "customer_id_is_null",
+        "customer_id",
+        "priority_supplied",
+        "priority_is_null",
+        "priority_is_null",
+        "priority",
+        "limit",
+        "offset"
+      ],
+      "optional": [
+        {
+          "control": "assignee",
+          "sourceRange": {
+            "start": 214,
+            "end": 360,
+            "text": "  and (:assignee_supplied = false or (:assignee_is_null = true and w.assignee is null) or (:assignee_is_null = false and w.assignee = :assignee))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 214,
+            "end": 307,
+            "text": "  and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.assignee is null\n",
+            "valueSql": "  and w.assignee = {{param:assignee}}\n",
+            "valueNames": [
+              "assignee"
+            ]
+          }
+        },
+        {
+          "control": "customer_id",
+          "sourceRange": {
+            "start": 360,
+            "end": 532,
+            "text": "  and (:customer_id_supplied = false or (:customer_id_is_null = true and w.customer_id is null) or (:customer_id_is_null = false and w.customer_id = :customer_id::bigint))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 307,
+            "end": 414,
+            "text": "  and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.customer_id is null\n",
+            "valueSql": "  and w.customer_id = {{param:customer_id}}\n",
+            "valueNames": [
+              "customer_id"
+            ]
+          }
+        },
+        {
+          "control": "priority",
+          "sourceRange": {
+            "start": 532,
+            "end": 678,
+            "text": "  and (:priority_supplied = false or (:priority_is_null = true and w.priority is null) or (:priority_is_null = false and w.priority = :priority))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 414,
+            "end": 510,
+            "text": "  and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.priority is null\n",
+            "valueSql": "  and w.priority = {{param:priority}}\n",
+            "valueNames": [
+              "priority"
+            ]
+          }
+        }
+      ],
+      "sort": {
+        "insertion": {
+          "index": 519,
+          "text": "w.id asc"
+        },
+        "keys": {
+          "created_at": "w.created_at",
+          "name": "w.name",
+          "priority": "case when w.priority = 'urgent' then 1 when w.priority = 'normal' then 2 else 3 end"
+        }
+      }
+    },
+    "m4-sort-case": {
+      "sourceFile": "brownfield/m4-sort-case.sql",
+      "sourceHash": "sha256:c5935e3aced4e48018700ae7128499308be8ed246107102f422099b4a5bdf005",
+      "sql": "select w.id, w.name, w.priority, w.assignee, c.name as customer_name\nfrom work_items w\nleft join customers c on c.id = w.customer_id\nwhere w.state <> 'done'\n  and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n  and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n  and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\norder by w.id asc\nlimit $13::integer offset $14::integer;\n",
+      "orderedNames": [
+        "assignee_supplied",
+        "assignee_is_null",
+        "assignee_is_null",
+        "assignee",
+        "customer_id_supplied",
+        "customer_id_is_null",
+        "customer_id_is_null",
+        "customer_id",
+        "priority_supplied",
+        "priority_is_null",
+        "priority_is_null",
+        "priority",
+        "limit",
+        "offset"
+      ],
+      "optional": [
+        {
+          "control": "assignee",
+          "sourceRange": {
+            "start": 157,
+            "end": 303,
+            "text": "  and (:assignee_supplied = false or (:assignee_is_null = true and w.assignee is null) or (:assignee_is_null = false and w.assignee = :assignee))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 157,
+            "end": 250,
+            "text": "  and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.assignee is null\n",
+            "valueSql": "  and w.assignee = {{param:assignee}}\n",
+            "valueNames": [
+              "assignee"
+            ]
+          }
+        },
+        {
+          "control": "customer_id",
+          "sourceRange": {
+            "start": 303,
+            "end": 475,
+            "text": "  and (:customer_id_supplied = false or (:customer_id_is_null = true and w.customer_id is null) or (:customer_id_is_null = false and w.customer_id = :customer_id::bigint))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 250,
+            "end": 357,
+            "text": "  and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.customer_id is null\n",
+            "valueSql": "  and w.customer_id = {{param:customer_id}}\n",
+            "valueNames": [
+              "customer_id"
+            ]
+          }
+        },
+        {
+          "control": "priority",
+          "sourceRange": {
+            "start": 475,
+            "end": 621,
+            "text": "  and (:priority_supplied = false or (:priority_is_null = true and w.priority is null) or (:priority_is_null = false and w.priority = :priority))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 357,
+            "end": 453,
+            "text": "  and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "  and w.priority is null\n",
+            "valueSql": "  and w.priority = {{param:priority}}\n",
+            "valueNames": [
+              "priority"
+            ]
+          }
+        }
+      ],
+      "sort": {
+        "insertion": {
+          "index": 462,
+          "text": "w.id asc"
+        },
+        "keys": {
+          "created_at": "w.created_at",
+          "name": "w.name",
+          "priority": "case when w.priority = 'low' then 1 when w.priority = 'normal' then 2 else 3 end"
+        }
+      }
+    },
+    "m5-cte-join": {
+      "sourceFile": "brownfield/m5-cte-join.sql",
+      "sourceHash": "sha256:4f7a76afeb98a4e2ed1bcd94e1b38365fa062eaf99b74b41fdb7661c2095a483",
+      "sql": "with visible_items as (\n  select w.id, w.name, w.priority, w.assignee, w.customer_id, w.created_at\n  from work_items w\n  where w.state <> 'done'\n    and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n    and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n    and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\n)\nselect v.id, v.name, v.priority, c.name as customer_name\nfrom visible_items v\njoin customers c on c.id = v.customer_id\norder by v.id asc\nlimit $13::integer offset $14::integer;\n",
+      "orderedNames": [
+        "assignee_supplied",
+        "assignee_is_null",
+        "assignee_is_null",
+        "assignee",
+        "customer_id_supplied",
+        "customer_id_is_null",
+        "customer_id_is_null",
+        "customer_id",
+        "priority_supplied",
+        "priority_is_null",
+        "priority_is_null",
+        "priority",
+        "limit",
+        "offset"
+      ],
+      "optional": [
+        {
+          "control": "assignee",
+          "sourceRange": {
+            "start": 145,
+            "end": 293,
+            "text": "    and (:assignee_supplied = false or (:assignee_is_null = true and w.assignee is null) or (:assignee_is_null = false and w.assignee = :assignee))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 145,
+            "end": 240,
+            "text": "    and ($1 = false or ($2 = true and w.assignee is null) or ($3 = false and w.assignee = $4))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "    and w.assignee is null\n",
+            "valueSql": "    and w.assignee = {{param:assignee}}\n",
+            "valueNames": [
+              "assignee"
+            ]
+          }
+        },
+        {
+          "control": "customer_id",
+          "sourceRange": {
+            "start": 293,
+            "end": 467,
+            "text": "    and (:customer_id_supplied = false or (:customer_id_is_null = true and w.customer_id is null) or (:customer_id_is_null = false and w.customer_id = :customer_id::bigint))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 240,
+            "end": 349,
+            "text": "    and ($5 = false or ($6 = true and w.customer_id is null) or ($7 = false and w.customer_id = $8::bigint))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "    and w.customer_id is null\n",
+            "valueSql": "    and w.customer_id = {{param:customer_id}}\n",
+            "valueNames": [
+              "customer_id"
+            ]
+          }
+        },
+        {
+          "control": "priority",
+          "sourceRange": {
+            "start": 467,
+            "end": 615,
+            "text": "    and (:priority_supplied = false or (:priority_is_null = true and w.priority is null) or (:priority_is_null = false and w.priority = :priority))\n"
+          },
+          "compiledRemovalRange": {
+            "start": 349,
+            "end": 447,
+            "text": "    and ($9 = false or ($10 = true and w.priority is null) or ($11 = false and w.priority = $12))\n"
+          },
+          "presentReplacement": {
+            "nullSql": "    and w.priority is null\n",
+            "valueSql": "    and w.priority = {{param:priority}}\n",
+            "valueNames": [
+              "priority"
+            ]
+          }
+        }
+      ],
+      "sort": {
+        "insertion": {
+          "index": 577,
+          "text": "v.id asc"
+        },
+        "keys": {
+          "created_at": "v.created_at",
+          "name": "v.name",
+          "priority": "case when v.priority = 'urgent' then 1 when v.priority = 'normal' then 2 else 3 end"
+        }
+      }
+    }
+  }
+}

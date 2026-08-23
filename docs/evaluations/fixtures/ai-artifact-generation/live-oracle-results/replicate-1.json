@@ -1,0 +1,46 @@
+{
+  "candidate": "replicate-1",
+  "databaseUrl": "postgresql://runtime_runner:***@127.0.0.1:55435/runtime_boundary",
+  "checks": [
+    {
+      "name": "small verifier accepts submitted artifact",
+      "ok": true
+    },
+    {
+      "name": "W1 direct native pg named value correctness",
+      "ok": false,
+      "error": "column \":ignored\" does not exist"
+    },
+    {
+      "name": "W2 omitted optional filters subtract predicates",
+      "ok": true
+    },
+    {
+      "name": "W2 null optional filter",
+      "ok": true
+    },
+    {
+      "name": "W2 value optional filter",
+      "ok": true
+    },
+    {
+      "name": "W2 multi-column CASE sort and stable tie breaker",
+      "ok": false,
+      "error": "syntax error at or near \"w\""
+    },
+    {
+      "name": "W3 multi-column direct native pg sort",
+      "ok": true
+    },
+    {
+      "name": "W4 CTE JOIN optional and pagination",
+      "ok": false,
+      "error": "CTE/JOIN filter mismatch"
+    },
+    {
+      "name": "stale source hash rejects before execution",
+      "ok": true
+    }
+  ],
+  "ok": false
+}
