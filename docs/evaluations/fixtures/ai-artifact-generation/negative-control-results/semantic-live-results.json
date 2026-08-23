@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "name": "wrong finite priority expression",
+      "liveRejected": true,
+      "actual": "3,2,1"
+    },
+    {
+      "name": "wrong optional control meaning",
+      "liveRejected": true,
+      "actual": "1,2,3"
+    }
+  ],
+  "allLiveRejected": true
+}

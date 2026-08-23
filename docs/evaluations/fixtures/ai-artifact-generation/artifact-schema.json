@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ashiba evaluation execution artifact v1",
+  "description": "Frozen evaluation contract. It is not a product API.",
+  "type": "object",
+  "required": ["version", "artifacts"],
+  "properties": {
+    "version": { "const": 1 },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["sourceFile", "sourceHash", "sql", "orderedNames"],
+        "properties": {
+          "sourceFile": { "type": "string" },
+          "sourceHash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "sql": { "type": "string" },
+          "orderedNames": { "type": "array", "items": { "type": "string" } },
+          "optional": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["control", "sourceRange", "compiledRemovalRange", "presentReplacement"],
+              "properties": {
+                "control": { "type": "string" },
+                "sourceRange": { "$ref": "#/$defs/range" },
+                "compiledRemovalRange": { "$ref": "#/$defs/range" },
+                "presentReplacement": {
+                  "type": "object",
+                  "required": ["nullSql", "valueSql", "valueNames"],
+                  "properties": {
+                    "nullSql": { "type": "string" },
+                    "valueSql": { "type": "string" },
+                    "valueNames": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          },
+          "sort": {
+            "type": "object",
+            "required": ["insertion", "keys"],
+            "properties": {
+              "insertion": { "$ref": "#/$defs/anchor" },
+              "keys": { "type": "object", "additionalProperties": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "range": {
+      "type": "object",
+      "required": ["start", "end", "text"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string" }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "required": ["index", "text"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string" }
+      }
+    }
+  }
+}

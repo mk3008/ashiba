@@ -1,0 +1,92 @@
+{
+  "candidate": "replicate-6",
+  "cases": [
+    {
+      "category": "mechanical",
+      "name": "stale sourceHash",
+      "verifierRejected": true,
+      "errors": [
+        "w3-sort: stale sourceHash"
+      ]
+    },
+    {
+      "category": "mechanical",
+      "name": "range plus one",
+      "verifierRejected": true,
+      "errors": [
+        "w2-optional-search: compiledRemovalRange: range text mismatch"
+      ]
+    },
+    {
+      "category": "mechanical",
+      "name": "range minus one",
+      "verifierRejected": true,
+      "errors": [
+        "w2-optional-search: compiledRemovalRange: range text mismatch"
+      ]
+    },
+    {
+      "category": "mechanical",
+      "name": "out of bounds range",
+      "verifierRejected": true,
+      "errors": [
+        "w2-optional-search: compiledRemovalRange: out-of-bounds range"
+      ]
+    },
+    {
+      "category": "mechanical",
+      "name": "range text mismatch",
+      "verifierRejected": true,
+      "errors": [
+        "w2-optional-search: compiledRemovalRange: range text mismatch"
+      ]
+    },
+    {
+      "category": "mechanical",
+      "name": "overlapping ranges",
+      "verifierRejected": true,
+      "errors": [
+        "w2-optional-search: compiledRemovalRange: range text mismatch",
+        "w2-optional-search: compiledRemovalRange: overlapping edit range"
+      ]
+    },
+    {
+      "category": "mechanical",
+      "name": "orderedNames missing",
+      "verifierRejected": true,
+      "errors": [
+        "w1-named-lexical: placeholder count does not equal orderedNames length"
+      ]
+    },
+    {
+      "category": "mechanical",
+      "name": "placeholder sequence mismatch",
+      "verifierRejected": true,
+      "errors": [
+        "w3-sort: placeholder sequence must be $1..$n"
+      ]
+    },
+    {
+      "category": "mechanical",
+      "name": "sort insertion outside source",
+      "verifierRejected": true,
+      "errors": [
+        "w3-sort: sort insertion outside source"
+      ]
+    },
+    {
+      "category": "semantic-locally-valid",
+      "name": "adjacent valid predicate declared as assignee",
+      "verifierRejected": false,
+      "errors": []
+    },
+    {
+      "category": "semantic-locally-valid",
+      "name": "wrong but finite priority expression",
+      "verifierRejected": false,
+      "errors": []
+    }
+  ],
+  "mechanicalAllRejected": true,
+  "semanticVerifierAccepted": true
+}

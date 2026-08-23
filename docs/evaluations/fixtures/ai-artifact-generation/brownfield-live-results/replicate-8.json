@@ -1,0 +1,30 @@
+{
+  "candidate": "replicate-8",
+  "checks": [
+    {
+      "name": "small verifier accepts Brownfield artifact",
+      "ok": true
+    },
+    {
+      "name": "M1 parameter reorder regenerates ordered values",
+      "ok": true
+    },
+    {
+      "name": "M2 added optional filter regenerates range",
+      "ok": true
+    },
+    {
+      "name": "M3 formatting drift preserves behavior",
+      "ok": true
+    },
+    {
+      "name": "M4 changed CASE ordering is live",
+      "ok": true
+    },
+    {
+      "name": "M5 CTE/JOIN change preserves optional and sort",
+      "ok": true
+    }
+  ],
+  "ok": true
+}
