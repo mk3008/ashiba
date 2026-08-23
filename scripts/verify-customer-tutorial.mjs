@@ -106,8 +106,9 @@ assertFileContains(path.join(starterRoot, 'src', 'features', '_shared', 'feature
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'createPgPool');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'createPgSqlClient');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'createPgFeatureQueryExecutor');
-assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'query -> feature -> sqlClient -> logger');
-assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), '../logger/sqlLogger.ts');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'preparePostgresQuery');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'queryable.query(prepared.sql, prepared.values)');
+assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'retains logging, retry, pool, and transaction');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'logger', 'sqlLogger.ts'), 'This is the intended hole for your application logger.');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'logger', 'sqlLogger.ts'), 'TODO: Replace this no-op with your application logger.');
 assertFileContains(path.join(starterRoot, 'src', 'adapters', 'pg', 'pool.ts'), 'withPgFeatureQueryExecutor');

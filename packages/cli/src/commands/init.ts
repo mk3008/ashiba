@@ -320,7 +320,7 @@ export function createPgSqlClient(
 
 /**
  * Low-level compatibility alias. Prefer createPgSqlClient in new application code
- * so logger wiring stays visibly attached to the SQL client boundary.
+ * so the application-owned PostgreSQL client boundary remains explicit.
  */
 export function createPgFeatureQueryExecutor(
   queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },
