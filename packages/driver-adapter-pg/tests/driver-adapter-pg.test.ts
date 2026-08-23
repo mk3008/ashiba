@@ -1057,9 +1057,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
         return { rows: [], rowCount: 0 };
       },
     };
-    const adapter = createPostgresAdapter(client);
-
-    await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
+    const query = querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
           orderedNames: ['tenant_id', 'status', 'status', 'limit'],
           safeSortInsertion: { index: compiledSql.indexOf('limit $4') },
@@ -1071,11 +1069,12 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
             sortable: { id: { sql: 'a.user_id' } },
           },
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
-        })),
-      { tenant_id: 7, status: null, limit: 10 },{
-        optionalConditionCompression: true,
-        sort: [{ key: 'id', direction: 'desc' }]},
-    );
+        }));
+    const prepared = preparePostgresQuery(query, { tenant_id: 7, status: null, limit: 10 }, {
+      optionalConditionCompression: true,
+      sort: [{ key: 'id', direction: 'desc' }],
+    });
+    await client.query(prepared.sql, prepared.values);
 
     expect(calls).toEqual([{
       sql: 'select a.user_id as id from users a where a.tenant_id = $1 order by a.user_id desc limit $2',
