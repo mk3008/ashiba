@@ -108,6 +108,13 @@ export type AshibaPostgresCompiledQuery = {
 };
 
 /**
+ * The minimum PostgreSQL runtime result: SQL and values ready for the native
+ * driver. Ashiba deliberately does not acquire clients, manage transactions,
+ * or call `pg.query` from this boundary.
+ */
+export type AshibaPostgresPreparedQuery = AshibaPostgresCompiledQuery;
+
+/**
  * Classification result for PostgreSQL errors that may be retried by a
  * caller-owned visible retry boundary.
  */
@@ -232,7 +239,7 @@ export function createPostgresAdapter(
 
       try {
         validateDriverProfile(query, options.driverProfile ?? 'node-postgres-default');
-        const compiled = compilePostgresQuery(query, params, executeOptions);
+        const compiled = preparePostgresQuery(query, params, executeOptions);
         sourceSql = compiled.sourceSql;
         compiledSql = compiled.sql;
         bound = compiled;
@@ -293,11 +300,11 @@ export function createPostgresAdapter(
  * without executing it. The returned SQL is suitable for logging, debugging,
  * EXPLAIN tooling, or a generic query executor.
  */
-export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
+export function preparePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
   query: Query,
   params: AshibaQueryParams<Query>,
   options: AshibaPostgresExecuteOptions = {},
-): AshibaPostgresCompiledQuery {
+): AshibaPostgresPreparedQuery {
   const normalizedParams = Object.fromEntries(Object.entries(params));
   const sortInsertion = getSortInsertion(query, options);
   const prepared = preparePostgresExecution(query, normalizedParams, options);
@@ -328,6 +335,20 @@ export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>
       safeSortKeys: (options.sort ?? []).map((entry) => entry.key),
     },
   };
+}
+
+/**
+ * @deprecated Prefer `preparePostgresQuery(query, params, options)` and call
+ * the application-owned native PostgreSQL client with `prepared.sql` and
+ * `prepared.values`. This compatibility name will remain until the next
+ * planned pre-1.0 surface review.
+ */
+export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
+  query: Query,
+  params: AshibaQueryParams<Query>,
+  options: AshibaPostgresExecuteOptions = {},
+): AshibaPostgresPreparedQuery {
+  return preparePostgresQuery(query, params, options);
 }
 
 /**

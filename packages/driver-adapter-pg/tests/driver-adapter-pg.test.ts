@@ -10,6 +10,7 @@ import {
   compilePostgresQuery,
   createPostgresAdapter,
   isPostgresTransientError,
+  preparePostgresQuery,
   type AshibaPostgresQueryModel,
   type NodePostgresQueryable,
 } from '../src/index.js';
@@ -22,6 +23,34 @@ import {
 } from '@ashiba-ts/driver-adapter-core';
 
 describe('@ashiba-ts/driver-adapter-pg', () => {
+  test('prepares product-generated metadata for application-owned native pg execution', async () => {
+    const sourceSql = 'select :id::integer as id where :id::integer = :id::integer';
+    const query = querySource(sourceSql, queryModelFor(sourceSql, {
+      sql: 'select $1::integer as id where $2::integer = $3::integer',
+      orderedNames: ['id', 'id', 'id'],
+    }));
+    const prepared = preparePostgresQuery(query, { id: 7 });
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [{ id: 7 }], rowCount: 1 };
+      },
+    };
+
+    await client.query(prepared.sql, prepared.values);
+
+    expect(prepared).toMatchObject({
+      sourceHash: hashSql(sourceSql),
+      sql: 'select $1::integer as id where $2::integer = $3::integer',
+      orderedNames: ['id', 'id', 'id'],
+      values: [7, 7, 7],
+    });
+    expect(calls).toEqual([{ sql: prepared.sql, values: [7, 7, 7] }]);
+    expect(() => preparePostgresQuery({ ...query, sql: sourceSql + ' -- edited' }, { id: 7 }))
+      .toThrow(/different source SQL/i);
+  });
+
   test('rejects edited canonical SQL from product-generated binding metadata', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-product-binding-stale-'));
     const sqlDir = path.join(rootDir, 'queries');
