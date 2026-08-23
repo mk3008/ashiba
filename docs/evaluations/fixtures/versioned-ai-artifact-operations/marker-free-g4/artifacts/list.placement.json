@@ -1,0 +1,10 @@
+{
+  "sourcePath": "queries/list.sql",
+  "sourceHash": "be83674b3d49b2a17aeac534fb6a3d6ea33cd95caa15f46ea7b44df6a5e151bb",
+  "sortInsertion": {
+    "index": 238,
+    "expectedText": "w.id ASC",
+    "beforeText": "ORDER BY ",
+    "afterText": ";\n"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "sourcePath": "queries/inbox.sql",
+  "sourceHash": "3107fe45f9c6292adced7c7de7d5446db123f1243ae39edc9e87dc3e7a32412f",
+  "optional": [],
+  "sort": { "anchor": "/* @sort:inbox */", "keys": ["priority", "oldest"] }
+}

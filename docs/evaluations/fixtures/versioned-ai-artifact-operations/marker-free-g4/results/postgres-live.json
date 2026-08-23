@@ -1,0 +1,26 @@
+{
+  "databaseUrl": "postgresql://runtime_runner:***@127.0.0.1:55435/runtime_boundary",
+  "checks": [
+    {
+      "name": "default stable tie breaker",
+      "ok": true
+    },
+    {
+      "name": "single name ordering",
+      "ok": true
+    },
+    {
+      "name": "two-key CASE and direction mix",
+      "ok": true
+    },
+    {
+      "name": "three-key composition",
+      "ok": true
+    },
+    {
+      "name": "deterministic G1 bind lowering",
+      "ok": true
+    }
+  ],
+  "ok": true
+}
