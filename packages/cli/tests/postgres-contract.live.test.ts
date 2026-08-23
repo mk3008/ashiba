@@ -1,10 +1,12 @@
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { createHash } from 'node:crypto';
 import pg from 'pg';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { derivePostgresQueryContractFromDatabase } from '../src/commands/postgres-contract.js';
 import { runFeatureGeneratedMapperCheck, runFeatureQueryPostgresContract } from '../src/commands/feature.js';
+import { runModelGen } from '../src/commands/model-gen.js';
 
 const databaseUrl =
   process.env.ASHIBA_TEST_DATABASE_URL ??
@@ -190,6 +192,61 @@ describe.skipIf(!databaseUrl)('PostgreSQL-derived query contract live', () => {
     expect(runtime.rows[0]?.date_value).toBeInstanceOf(Date);
     expect(runtime.rows[0]?.timestamp_value).toBeInstanceOf(Date);
     expect(runtime.rows[0]?.timestamptz_value).toBeInstanceOf(Date);
+  });
+
+  test('executes a product-generated named PostgreSQL artifact directly without the Thin Driver', async () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-product-n2-live-'));
+    const sqlDir = path.join(rootDir, 'queries');
+    const sqlPath = path.join(sqlDir, 'canonical.sql');
+    mkdirSync(sqlDir, { recursive: true });
+    const sourceSql = [
+      'select',
+      '  :id::integer as id,',
+      '  :id2::integer as id2,',
+      '  :id::integer as repeated_id,',
+      '  value::text as cast_value,',
+      "  ':not_a_parameter'::text as literal,",
+      '  value as "identifier:still_not_parameter",',
+      "  E'escaped \\\\ :not_a_parameter'::text as escaped_literal,",
+      '  $$ :not_a_parameter $$::text as dollar_literal,',
+      '  $body$',
+      '    :not_a_parameter',
+      '  $body$::text as tagged_dollar_literal,',
+      '  $function$',
+      '  BEGIN',
+      '    -- :not_a_parameter',
+      '  END',
+      '  $function$::text as function_body',
+      'from (select :value::text as value) source',
+      '-- :not_a_parameter',
+      '/* :not_a_parameter */',
+      '/* outer /* nested :not_a_parameter */ outer again */',
+      'where :id::integer = :id::integer;',
+      '',
+    ].join('\n');
+    writeFileSync(sqlPath, sourceSql, 'utf8');
+
+    try {
+      const generated = runModelGen({ rootDir, sqlFile: 'queries/canonical.sql' });
+      const binding = generated.bindings.postgres;
+      const params = { id: 1, id2: 2, value: 'x' };
+      const values = binding.orderedNames.map((name) => params[name as keyof typeof params]);
+      const direct = await setup.query(binding.sql, values);
+
+      expect(binding.sourceHash).toBe(generated.analysis.sourceHash);
+      expect(binding.orderedNames).toEqual(['id', 'id2', 'id', 'value', 'id', 'id']);
+      expect(values).toEqual([1, 2, 1, 'x', 1, 1]);
+      expect(direct.rows).toHaveLength(1);
+      expect(direct.rows[0]).toMatchObject({ id: 1, id2: 2, repeated_id: 1, cast_value: 'x' });
+      expect(() => {
+        const edited = sourceSql + '-- source edit\n';
+        if (generated.analysis.sourceHash !== 'sha256:' + createHash('sha256').update(edited).digest('hex')) {
+          throw new Error('stale artifact rejected');
+        }
+      }).toThrow('stale artifact rejected');
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
   });
 
   test('describes complex PostgreSQL SQL and mutation results without executing either statement', async () => {

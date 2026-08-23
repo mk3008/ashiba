@@ -29,6 +29,7 @@ export function compileNamedParameters(
   let state: ScannerState = 'normal';
   let dollarTag: string | undefined;
   let singleQuoteBackslashEscapes = false;
+  let blockCommentDepth = 0;
 
   for (let index = 0; index < sql.length; index += 1) {
     const current = sql[index] ?? '';
@@ -42,10 +43,15 @@ export function compileNamedParameters(
 
     if (state === 'blockComment') {
       output += current;
-      if (current === '*' && next === '/') {
+      if (current === '/' && next === '*') {
         output += next;
         index += 1;
-        state = 'normal';
+        blockCommentDepth += 1;
+      } else if (current === '*' && next === '/') {
+        output += next;
+        index += 1;
+        blockCommentDepth -= 1;
+        if (blockCommentDepth === 0) state = 'normal';
       }
       continue;
     }
@@ -99,6 +105,7 @@ export function compileNamedParameters(
       output += current + next;
       index += 1;
       state = 'blockComment';
+      blockCommentDepth = 1;
       continue;
     }
 

@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import fc from 'fast-check';
 import { describe, expect, test } from 'vitest';
 import {
@@ -11,6 +13,7 @@ import {
   type AshibaPostgresQueryModel,
   type NodePostgresQueryable,
 } from '../src/index.js';
+import { runModelGen } from '../../cli/src/commands/model-gen.js';
 import {
   AshibaSortError,
   type AshibaSqlExecutionEvent,
@@ -19,6 +22,33 @@ import {
 } from '@ashiba-ts/driver-adapter-core';
 
 describe('@ashiba-ts/driver-adapter-pg', () => {
+  test('rejects edited canonical SQL from product-generated binding metadata', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-product-binding-stale-'));
+    const sqlDir = path.join(rootDir, 'queries');
+    const sourceSql = [
+      'select :id::integer as id',
+      '/* outer /* nested :not_a_parameter */ outer */',
+      'where :id::integer = :id::integer',
+    ].join('\n');
+    mkdirSync(sqlDir, { recursive: true });
+    writeFileSync(path.join(sqlDir, 'canonical.sql'), sourceSql, 'utf8');
+
+    try {
+      const generated = runModelGen({ rootDir, sqlFile: 'queries/canonical.sql' });
+      const source = querySource(sourceSql, { analysis: generated.analysis, bindings: generated.bindings });
+
+      expect(compilePostgresQuery(source, { id: 7 })).toMatchObject({
+        sql: 'select $1::integer as id\n/* outer /* nested :not_a_parameter */ outer */\nwhere $2::integer = $3::integer',
+        orderedNames: ['id', 'id', 'id'],
+        values: [7, 7, 7],
+      });
+      expect(() => compilePostgresQuery({ ...source, sql: sourceSql + '\n-- edited' }, { id: 7 }))
+        .toThrow(/different source SQL/i);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   test('classifies PostgreSQL transient retry candidates without deciding idempotency', () => {
     expect(classifyPostgresTransientError({ code: '40001' })).toEqual({
       retryable: true,

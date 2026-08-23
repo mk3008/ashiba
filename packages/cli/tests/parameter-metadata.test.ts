@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { buildPostgresOptionalConditionCompressionBindingMetadata } from '../src/commands/model-gen.js';
+import {
+  buildPostgresOptionalConditionCompressionBindingMetadata,
+  buildPostgresSafeSortBindingMetadata,
+} from '../src/commands/model-gen.js';
 import { compileNamedParameters } from '../src/parameter-metadata.js';
 
 describe('CLI parameter metadata generation', () => {
@@ -73,6 +76,40 @@ describe('CLI parameter metadata generation', () => {
     expect(result.orderedNames).toEqual(['id']);
   });
 
+  test('preserves the registered PostgreSQL lexical corpus including nested block comments', () => {
+    const sql = [
+      'select',
+      '  :id::bigint as id,',
+      '  :id2::bigint as id2,',
+      '  :id::bigint as repeated_id,',
+      '  value::text as cast_value,',
+      "  ':not_a_parameter'::text as literal,",
+      '  value as "identifier:still_not_parameter",',
+      "  E'escaped \\\\ :not_a_parameter'::text as escaped_literal,",
+      '  $$ :not_a_parameter $$::text as dollar_literal,',
+      '  $body$',
+      '    :not_a_parameter',
+      '  $body$::text as tagged_dollar_literal,',
+      '  $function$',
+      '  BEGIN',
+      '    -- :not_a_parameter',
+      '  END',
+      '  $function$::text as function_body',
+      'from (select :value::text as value) source',
+      '-- :not_a_parameter',
+      '/* :not_a_parameter */',
+      '/* outer /* nested :not_a_parameter */ outer again */',
+      'where :id::bigint = :id::bigint;',
+    ].join('\n');
+
+    const result = compileNamedParameters(sql);
+
+    expect(result.orderedNames).toEqual(['id', 'id2', 'id', 'value', 'id', 'id']);
+    expect(result.sql).toContain('/* outer /* nested :not_a_parameter */ outer again */');
+    expect(result.sql).toContain('$function$\n  BEGIN\n    -- :not_a_parameter\n  END\n  $function$');
+    expect(result.sql).toContain('where $5::bigint = $6::bigint;');
+  });
+
   test('ignores named-parameter-like text after escaped quotes in postgres escape strings', () => {
     const sql = String.raw`select E'it\'s :not_param' as body from users where id = :id`;
 
@@ -121,5 +158,54 @@ describe('CLI parameter metadata generation', () => {
         text: 'status = $2',
       },
     }]);
+  });
+
+  test('keeps optional and safe-sort compiled coordinates aligned after nested comments', () => {
+    const sql = [
+      'select id',
+      'from users',
+      '/* outer /* nested :not_a_parameter */ outer */',
+      'where tenant_id = :tenant_id',
+      '  and (:status is null or status = :status)',
+      'order by id',
+      'limit :limit',
+    ].join('\n');
+    const compiled = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
+    const branchText = '(:status is null or status = :status)';
+    const branchStart = sql.indexOf(branchText);
+    const removalText = 'and ' + branchText;
+    const removalStart = sql.indexOf(removalText);
+    const optional = buildPostgresOptionalConditionCompressionBindingMetadata(sql, {
+      enabled: true,
+      branches: [{
+        parameterName: 'status',
+        kind: 'expression',
+        sourceRange: { start: branchStart, end: branchStart + branchText.length, text: branchText },
+        removalRange: { start: removalStart, end: removalStart + removalText.length, text: removalText },
+        presentReplacement: {
+          start: branchStart,
+          end: branchStart + branchText.length,
+          text: 'status = :status',
+        },
+      }],
+    });
+    const safeSort = buildPostgresSafeSortBindingMetadata(sql, {
+      insertion: { status: 'ready', index: sql.indexOf('order by') },
+      sortable: {},
+    });
+
+    expect(compiled.orderedNames).toEqual(['tenant_id', 'status', 'status', 'limit']);
+    expect(optional.optionalConditionCompression?.branches[0]).toMatchObject({
+      removalRange: {
+        start: compiled.sql.indexOf('and ($2 is null or status = $3)'),
+        end: compiled.sql.indexOf('and ($2 is null or status = $3)') + 'and ($2 is null or status = $3)'.length,
+      },
+      presentReplacement: {
+        start: compiled.sql.indexOf('($2 is null or status = $3)'),
+        end: compiled.sql.indexOf('($2 is null or status = $3)') + '($2 is null or status = $3)'.length,
+        text: 'status = $2',
+      },
+    });
+    expect(safeSort.safeSortInsertion).toEqual({ index: compiled.sql.indexOf('order by') });
   });
 });
