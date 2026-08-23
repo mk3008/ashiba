@@ -80,14 +80,12 @@ function verifyPostgresCustomer(port) {
 
   run(corepack, ['pnpm', 'install'], root);
   run(corepack, ['pnpm', 'exec', 'ashiba', 'init', '--db', 'postgres', '--driver', 'pg', '--force'], root);
-  // This must stay on the init-generated SQL client boundary. A test that calls
-  // createPostgresAdapter directly would prove the library, but not the customer
-  // Getting Started experience.
+  // This must stay on the init-generated SQL client boundary. Calling prepare
+  // directly would prove the library, but not the customer Getting Started path.
   assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), 'createPgSqlClient');
-  assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), 'query -> feature -> sqlClient -> logger');
-  assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), '../logger/sqlLogger.ts');
-  assertFileContains(path.join(root, 'src', 'adapters', 'logger', 'sqlLogger.ts'), 'This is the intended hole for your application logger.');
-  writePostgresPinoSqlLogger(root);
+  assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), 'preparePostgresQuery');
+  assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), 'queryable.query(prepared.sql, prepared.values)');
+  assertFileContains(path.join(root, 'src', 'adapters', 'pg', 'pool.ts'), 'retains logging, retry, pool, and transaction');
   writePostgresUsersSqlFiles(root);
   generatePostgresUsersQueryModels(root);
   writeFileSync(path.join(root, 'src', 'features', 'users', 'users-pino.test.ts'), renderPostgresPinoVitestTest(port), 'utf8');
@@ -441,7 +439,6 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 
 import { createPgPool, createPgSqlClient } from '#adapters/pg/pool.js';
-import { sqlLogRecords } from '#adapters/logger/sqlLogger.js';
 import type { FeatureQueryExecutor, FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 
 type UserRow = {
@@ -452,8 +449,8 @@ type UserRow = {
   external_account_id: string | number;
 };
 
-describe('generated pg pool logger integration', () => {
-  test('routes query -> feature -> sqlclient -> pino logger', async () => {
+describe('generated pg prepared-query integration', () => {
+  test('routes query -> feature -> sqlclient -> native pg', async () => {
     const pool = createPgPool({
       connectionString: 'postgres://postgres:ashiba@127.0.0.1:${port}/ashiba',
     });
@@ -476,11 +473,6 @@ describe('generated pg pool logger integration', () => {
       expect(fileRows[0]?.login_count).toBe(0);
       expect(String(fileRows[0]?.external_account_id)).toBe('9223372036854775807');
 
-      const stringRows = await runStringSqlLoggingFeature(sqlClient);
-      expect(stringRows[0]?.email).toBe('postgres-default@example.test');
-
-      assertNoWarningsForQuery(sqlLogRecords, 'select-user-file');
-      assertWarningsForQuery(sqlLogRecords, 'select-user-string', 'ASHIBA_STRING_SQL_SOURCE');
     } finally {
       await pool.end();
     }
@@ -494,12 +486,6 @@ async function runFileBackedLoggingFeature(executor: FeatureQueryExecutor): Prom
     external_account_id: '9223372036854775807',
   });
   return executor.query(fileBackedQuery('select-user', 'select-user-file'), {
-    email: 'postgres-default@example.test',
-  });
-}
-
-async function runStringSqlLoggingFeature(executor: FeatureQueryExecutor): Promise<UserRow[]> {
-  return executor.query(stringSqlQuery('select-user', 'select-user-string'), {
     email: 'postgres-default@example.test',
   });
 }
