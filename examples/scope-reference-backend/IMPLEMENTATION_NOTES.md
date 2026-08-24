@@ -56,3 +56,16 @@ detector partially covers it**. For this sample, one representative runtime
 assertion is smaller and more direct than introducing generated metadata or a
 new detector. The repository verification guidance now states the general rule;
 the local AGENTS rule keeps it collocated with this repeatedly reviewed sample.
+
+### PR #45 durable placement audit
+
+| Area | Status | Current durable location |
+| --- | --- | --- |
+| A. Product implementation | present | `feature query postgres-contract`, `postgres.contract.json` parsing/staleness checks, driver-profile checks, and live CLI tests under `packages/cli` and `packages/driver-adapter-pg` |
+| B. Docs/evaluation | present | `docs/guide/postgres-contract.md`, runtime-boundary/README guidance, and verification-value/responsibility-placement evaluations |
+| C. Developer guidance / Scope routing | absent | `docs/design/ashiba-scope.md` and `$ashiba-scope-review` define ownership and mechanical-verifier limits, but do not route a developer to PostgreSQL-derived contracts; the general verification guidance also does not name this command as a selection rule |
+
+This is not a Scope-review failure: that skill answers responsibility ownership,
+not which correctness lane to select. It is a developer-workflow routing gap.
+The reference keeps the smaller native-driver runtime assertion because its
+manual row types are outside the generated feature-query contract surface.
