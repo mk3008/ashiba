@@ -22,6 +22,7 @@ import { registerProjectCommand } from './commands/project.js';
 import { registerQueryCommand } from './commands/query.js';
 import { registerRfbaCommand } from './commands/rfba.js';
 import { registerSqlResourceCommand } from './commands/sql-resource.js';
+import { registerStandalonePostgresContractCommand } from './commands/standalone-postgres-contract.js';
 
 const currentFile = fileURLToPath(import.meta.url);
 const invokedFile = process.argv[1] ? path.resolve(process.argv[1]) : undefined;
@@ -86,6 +87,7 @@ Detailed command catalog:
   registerQueryCommand(program);
   registerRfbaCommand(program);
   registerSqlResourceCommand(program);
+  registerStandalonePostgresContractCommand(program);
   applyCommandCatalogToProgram(program);
 
   return program;

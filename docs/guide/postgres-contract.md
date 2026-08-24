@@ -114,3 +114,36 @@ without overstating result-level proof.
 This feature does not apply migrations, configure drivers, construct queries,
 or change the canonical SQL ownership model. It is an optional validation and
 enrichment step between offline generation and normal thin-adapter runtime.
+
+## Standalone canonical SQL
+
+For a direct native-driver application that deliberately does not use a
+generated feature boundary, persist the same PostgreSQL-derived evidence beside
+the canonical SQL and check its row type explicitly:
+
+```bash
+npx ashiba postgres-contract write src/tickets/list.sql \
+  --database-url "$ASHIBA_POSTGRES_DATABASE_URL" \
+  --out src/tickets/generated/list.postgres.contract.json
+
+npx ashiba postgres-contract check src/tickets/list.sql \
+  --contract src/tickets/generated/list.postgres.contract.json \
+  --result-type-file src/tickets/types.ts \
+  --result-type Ticket \
+  --params-type-file src/tickets/types.ts \
+  --params-type ListTicketParams
+```
+
+`check` rejects a stale SQL source and a named field whose manual TypeScript
+type disagrees with the selected driver representation. For example, default
+node-postgres makes a PostgreSQL `bigint` result `string`, so declaring that
+field as `number` fails. Result-returning SQL requires the row-type options;
+named parameters likewise require an explicitly named parameter type and use
+the same input compatibility rule as the feature-query contract check. Extra
+or missing fields fail. For a statement with no result fields, `check` still
+validates its persisted source identity without inventing a row type. The type
+reader deliberately supports only flat exported interfaces or object type
+literals with semicolon-terminated fields; unsupported syntax fails closed.
+This adds development-time evidence only: it does not
+create a feature scaffold, mapper, runtime adapter, pool, transaction, or
+application ordering policy.
