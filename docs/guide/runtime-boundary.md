@@ -37,7 +37,8 @@ The CLI generator is development-time tooling. It scaffolds, analyzes, refreshes
 
 At runtime, applications normally own a native database client, pool,
 transaction, and `query(sql, values)` call. Ashiba may deterministically prepare
-reviewed SQL text into driver SQL and ordered values. For PostgreSQL,
+reviewed SQL text into driver SQL and ordered values. Optional adapters may
+delegate execution to an application-supplied native driver. For PostgreSQL,
 `@ashiba-ts/driver-adapter-pg` remains an optional compatibility/convenience
 surface around a `pg`-compatible client or pool, with narrow concerns:
 
@@ -51,7 +52,8 @@ surface around a `pg`-compatible client or pool, with narrow concerns:
 
 The optional adapter still executes SQL through the wrapped driver. It does not
 expose a SQL builder DSL, ORM model, object graph, or relation loader. It is not
-the normal required Ashiba runtime architecture.
+the normal required Ashiba runtime architecture, and it does not acquire
+connections, manage pools or transactions, or own application execution policy.
 
 ## SQL Text At Runtime
 
@@ -66,6 +68,11 @@ Ashiba does not thereby claim support for every edge or lightweight runtime.
 Driver compatibility remains an application-selected concern. The portability
 rule is narrower: Ashiba itself does not require filesystem access merely to
 load a canonical SQL asset at runtime.
+
+Ashiba-provided runtime examples and scaffolds should likewise prefer SQL text
+supplied without runtime filesystem access, unless an example explicitly
+targets a Node/filesystem-specific environment. This does not prohibit an
+application from choosing filesystem loading for its own Node runtime.
 
 ### Runtime Node built-in audit
 
