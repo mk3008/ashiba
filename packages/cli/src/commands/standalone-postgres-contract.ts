@@ -5,6 +5,7 @@ import type { Command } from 'commander';
 import { compileNamedParameters } from '../parameter-metadata.js';
 import { normalizeSqlSource } from '../sql-source.js';
 import { buildQueryResultColumnContracts } from './model-gen.js';
+import { extractSqlResultColumnAstItems } from './sql-result-columns.js';
 import { areTypeScriptTypesCompatible } from './sql-parameter-types.js';
 import {
   derivePostgresQueryContractFromDatabase,
@@ -35,11 +36,12 @@ export async function writeStandalonePostgresContract(options: StandalonePostgre
   const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
   const binding = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
   const resultColumns = buildQueryResultColumnContracts(sql, rootDir);
+  const resultColumnOrder = extractSqlResultColumnAstItems(sql).map((column) => column.name);
   const contract = await derivePostgresQueryContractFromDatabase(resolveDatabaseUrl(options), {
     sql,
     compiledSql: binding.sql,
     parameterNames: binding.orderedNames,
-    resultColumnOrder: resultColumns.map((column) => column.name),
+    resultColumnOrder,
     resultColumnNullability: Object.fromEntries(resultColumns.map((column) => [column.name, column.nullability])),
     driverProfile: parseDriverProfile(options.driverProfile),
   });

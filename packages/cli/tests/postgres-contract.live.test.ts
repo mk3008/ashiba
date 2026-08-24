@@ -464,6 +464,11 @@ describe.skipIf(!databaseUrl)('PostgreSQL-derived query contract live', () => {
       databaseUrl: connectionString,
     });
     expect(written.contract.database.parameters.map((field) => field.name)).toEqual(['amount', 'id']);
+    expect(written.contract.driver.results.map((field) => [field.position, field.name, field.typeScriptType])).toEqual([
+      [1, 'id', 'string | null'],
+      [2, 'amount', 'string | null'],
+      [3, 'observed_at', 'Date | null'],
+    ]);
     expect(written.contract.driver.results).toEqual(expect.arrayContaining([
       expect.objectContaining({ name: 'id', runtimeType: 'string', typeScriptType: 'string | null' }),
       expect.objectContaining({ name: 'amount', runtimeType: 'string', typeScriptType: 'string | null' }),
