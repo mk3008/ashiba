@@ -3,7 +3,7 @@ export type Ticket = {
   assignee_id: string | null; created_at: Date | null; updated_at: Date | null;
 };
 
-export interface ListTicketsSqlParams {
+export type ListTicketsSqlParams = {
   status: string | null;
   customerId: string | null;
   assigneeMode: string;
@@ -12,16 +12,16 @@ export interface ListTicketsSqlParams {
   offset: number;
 }
 
-export interface TicketIdSqlParams {
+export type TicketIdSqlParams = {
   id: string;
 }
 
-export interface AssignTicketSqlParams {
+export type AssignTicketSqlParams = {
   assigneeId: string;
   ticketId: string;
 }
 
-export interface InsertTicketEventSqlParams {
+export type InsertTicketEventSqlParams = {
   ticketId: string;
   actorId: string;
   note: string | null;

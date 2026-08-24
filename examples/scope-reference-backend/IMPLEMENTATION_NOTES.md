@@ -19,7 +19,28 @@
   values after a caller-owned, finite ordering policy without taking ownership
   of business ordering or transactions.
 
-## Reference status: not-yet-a-credible-reference
+## Reference status: reference-ready-with-friction
+
+The standalone `postgres-contract` surface added in PR #71 and corrected for
+RETURNING-column position in PR #72 now applies directly to this reference.
+`pnpm verify` requires a development/test PostgreSQL URL, initializes the
+reference schema through its native-pg integration test, then derives all four
+contracts from PostgreSQL and default node-postgres representation. It checks
+the application-owned flat TypeScript parameter and `Ticket` result types, and
+rejects bigint-as-number result/parameter and stale-SQL controls.
+
+The checked-in artifacts are not source-hash-only evidence: verification
+rewrites them from the live database and fails if that evidence differs from
+the committed artifacts. This preserves the direct canonical SQL → PostgreSQL
+→ node-postgres → manual TypeScript → native runtime path.
+
+The remaining friction is intentionally unchanged: application-owned ordering
+is placed before the sample-local named preparation, which cannot use the
+source-hash-bound product preparation artifact. That is a local integration
+friction, not a type-contract gap, and no mapper/repository/UoW/runtime adapter
+was introduced to conceal it.
+
+## Historical blocker: not-yet-a-credible-reference
 
 ### Observation
 

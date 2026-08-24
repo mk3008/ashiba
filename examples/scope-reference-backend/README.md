@@ -13,3 +13,9 @@ generic mapper layer.
 
 `pnpm --filter scope-reference-backend test` runs PostgreSQL integration tests
 when `DATABASE_URL` is set. `docker compose up -d` starts the local database.
+
+With `DATABASE_URL` set, `pnpm --filter scope-reference-backend verify` runs
+type checking, the PostgreSQL integration test, then live PostgreSQL-derived
+contract derivation and deterministic TypeScript parameter/result checks for
+`list.sql`, `get.sql`, `assign-ticket.sql`, and `insert-event.sql`. It also
+rejects bigint-as-number result/parameter controls and a stale SQL control.

@@ -57,7 +57,7 @@
     "results": [
       {
         "position": 1,
-        "name": "assignee_id",
+        "name": "id",
         "nameProvenance": "inferred",
         "databaseType": {
           "oid": 20,
@@ -82,7 +82,7 @@
       },
       {
         "position": 2,
-        "name": "created_at",
+        "name": "customer_id",
         "nameProvenance": "inferred",
         "databaseType": {
           "oid": 20,
@@ -107,7 +107,7 @@
       },
       {
         "position": 3,
-        "name": "customer_id",
+        "name": "subject",
         "nameProvenance": "inferred",
         "databaseType": {
           "oid": 25,
@@ -132,7 +132,7 @@
       },
       {
         "position": 4,
-        "name": "id",
+        "name": "status",
         "nameProvenance": "inferred",
         "databaseType": {
           "oid": 25,
@@ -182,7 +182,7 @@
       },
       {
         "position": 6,
-        "name": "status",
+        "name": "assignee_id",
         "nameProvenance": "inferred",
         "databaseType": {
           "oid": 20,
@@ -207,7 +207,7 @@
       },
       {
         "position": 7,
-        "name": "subject",
+        "name": "created_at",
         "nameProvenance": "inferred",
         "databaseType": {
           "oid": 1184,
@@ -278,28 +278,28 @@
     "results": [
       {
         "position": 1,
-        "name": "assignee_id",
+        "name": "id",
         "runtimeType": "string",
         "typeScriptType": "string | null",
         "provenance": "driver-mapped"
       },
       {
         "position": 2,
-        "name": "created_at",
-        "runtimeType": "string",
-        "typeScriptType": "string | null",
-        "provenance": "driver-mapped"
-      },
-      {
-        "position": 3,
         "name": "customer_id",
         "runtimeType": "string",
         "typeScriptType": "string | null",
         "provenance": "driver-mapped"
       },
       {
+        "position": 3,
+        "name": "subject",
+        "runtimeType": "string",
+        "typeScriptType": "string | null",
+        "provenance": "driver-mapped"
+      },
+      {
         "position": 4,
-        "name": "id",
+        "name": "status",
         "runtimeType": "string",
         "typeScriptType": "string | null",
         "provenance": "driver-mapped"
@@ -313,14 +313,14 @@
       },
       {
         "position": 6,
-        "name": "status",
+        "name": "assignee_id",
         "runtimeType": "string",
         "typeScriptType": "string | null",
         "provenance": "driver-mapped"
       },
       {
         "position": 7,
-        "name": "subject",
+        "name": "created_at",
         "runtimeType": "Date",
         "typeScriptType": "Date | null",
         "provenance": "driver-mapped"
