@@ -28,6 +28,10 @@ Use this subagent to validate whether the work satisfies the planned acceptance 
 
 - Do not treat file existence alone as sufficient evidence when the item requires behavior, workflow usefulness, or real-task validation.
 - Prefer direct observation over inferred confidence.
+- For DB-backed TypeScript with manually declared row/result types, a generic
+  query annotation is not runtime evidence. When runtime type fidelity matters,
+  verify representative native-driver values or an existing deterministic DB
+  contract.
 - If evidence is indirect, partial, environment-dependent, or blocked, state that explicitly.
 - Confirm whether the planned verification methods were actually satisfied; do not silently replace them.
 - Unless the request explicitly says not to, behavior changes should add or update tests in the same change.
