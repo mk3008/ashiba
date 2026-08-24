@@ -55,6 +55,24 @@ expose a SQL builder DSL, ORM model, object graph, or relation loader. It is not
 the normal required Ashiba runtime architecture, and it does not acquire
 connections, manage pools or transactions, or own application execution policy.
 
+## Named Parameters Preserve Driver Parameterization
+
+Canonical application values use meaningful named parameters. A DB/driver
+ecosystem that naturally supports named parameters keeps its native syntax; if
+it does not, `:name` is the canonical fallback. Deterministic preparation may
+lower that syntax to the driver's parameter form and a separate values array:
+
+```ts
+const prepared = prepare(canonicalSql, params);
+await nativeDriver.query(prepared.sql, prepared.values);
+```
+
+Lowering never turns application values into SQL literals. It must not use
+interpolation, quoting, escaping, or hard-coded substitution in the SQL text;
+values remain separate until the native driver boundary. This does not make an
+Ashiba adapter mandatory—the same prepared SQL and values can be passed to a
+native driver directly.
+
 ## SQL Text At Runtime
 
 Canonical SQL is normally file-backed for review and development tooling, but a

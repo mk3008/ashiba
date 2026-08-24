@@ -69,6 +69,26 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     });
   });
 
+  test('keeps hostile named values out of SQL text and passes them separately to native pg', async () => {
+    const sourceSql = 'select :name::text as name';
+    const hostileValue = "x' ); drop table users; --";
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const client: NodePostgresQueryable = {
+      async query(sql, values) {
+        calls.push({ sql, values });
+        return { rows: [], rowCount: 0 };
+      },
+    };
+
+    await createPostgresAdapter(client).execute(querySource(sourceSql, queryModelFor(sourceSql, {
+      sql: 'select $1::text as name',
+      orderedNames: ['name'],
+    })), { name: hostileValue }, {});
+
+    expect(calls).toEqual([{ sql: 'select $1::text as name', values: [hostileValue] }]);
+    expect(calls[0]?.sql).not.toContain(hostileValue);
+  });
+
   test('rejects edited canonical SQL from product-generated binding metadata', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-product-binding-stale-'));
     const sqlDir = path.join(rootDir, 'queries');
