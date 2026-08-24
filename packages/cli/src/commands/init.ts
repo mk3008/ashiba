@@ -72,7 +72,7 @@ The generated Vitest setup derives \`ASHIBA_TEST_DATABASE_URL\` from the starter
 SQL should stay SQL and be directly runnable in a SQL client for debugging.
 Do not dynamically rewrite SQL at runtime; the DB driver wrapper may use whitelisted sort profiles for sort conditions only.
 Use static checks, TypeScript, PostgreSQL-derived contracts, and selected DB-backed integration tests for type safety; do not add Ashiba runtime row validation overhead.
-Use named parameters such as :name or @name in SQL; the DB driver wrapper owns conversion to driver placeholders.
+Use named parameters such as :name or @name in SQL; optional Ashiba preparation can convert them to driver placeholders, while the application still owns native driver execution.
 Use Zero Table Dependency only for selected SQL logic tests whose semantics merit executable fixtures, and traditional DB-backed tests when physical schema or persisted-state behavior matters.
 Generated SQL logic-test fixture types are library-owned; human-authored logic cases and other editable application code remain owned by humans and AI agents.
 Errors should be selectable for human-oriented or AI-oriented output with cause and next action when possible.
@@ -88,9 +88,9 @@ Errors should be selectable for human-oriented or AI-oriented output with cause 
 
 ## Runtime Policy
 
-No ORM runtime in CLI-generated application code. Thin SQL execution adapter only where needed.
+No ORM runtime in CLI-generated application code. Native driver execution stays application-owned; use Ashiba preparation or adapter convenience only where it is useful.
 
-No ORM runtime does not mean there is no database driver, driver adapter, or feature query contract at runtime. It means the CLI generator is not in the runtime path, SQL remains canonical, and generated application code does not add an ORM object layer or hidden SQL DSL.
+No ORM runtime does not mean there is no database driver, optional adapter, or feature query contract at runtime. It means the CLI generator is not in the runtime path, SQL remains canonical, and generated application code does not add an ORM object layer or hidden SQL DSL.
 That avoids forced security updates for an unused Ashiba runtime dependency. If generated code needs a fix, patch the local application code directly.
 `,
   },

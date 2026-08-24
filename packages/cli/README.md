@@ -32,7 +32,7 @@ The CLI owns development-time scaffolding, query analysis, DDL review, model
 generation, contract checks, RFBA inspection, sqlgrep-style query tools, and
 performance evidence.
 
-Generated application code is expected to be editable and free of an ORM runtime or hidden query DSL. The CLI generator is not in the runtime path; the application-selected thin SQL execution adapter may be. The CLI may generate query model metadata such as source hashes, statement shape, named-parameter binding metadata, result contracts, safe-sort insertion positions, optional-condition compression ranges, and sortable dictionaries so driver adapters can avoid runtime AST parsing.
+Generated application code is expected to be editable and free of an ORM runtime or hidden query DSL. The CLI generator is not in the runtime path. Native database drivers are the runtime execution baseline; an application may opt into Ashiba preparation or an Ashiba adapter as a compatibility/convenience seam. The CLI may generate query model metadata such as source hashes, statement shape, named-parameter binding metadata, result contracts, safe-sort insertion positions, optional-condition compression ranges, and sortable dictionaries so those optional surfaces can avoid runtime AST parsing.
 
 Performance scenario commands are manual traditional DB-backed tuning aids. They record target row counts, response-time requirements, timeout status, timing evidence, and index adoption guidance; they do not choose or adopt indexes.
 

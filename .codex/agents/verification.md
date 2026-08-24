@@ -31,6 +31,23 @@ Use this subagent to validate whether the work satisfies the planned acceptance 
 - If evidence is indirect, partial, environment-dependent, or blocked, state that explicitly.
 - Confirm whether the planned verification methods were actually satisfied; do not silently replace them.
 - Unless the request explicitly says not to, behavior changes should add or update tests in the same change.
+- Test organization and file placement remain application-owned. Select evidence
+  for the changed Ashiba mechanism; an end-to-end happy path alone is not proof
+  of a mechanism's lexical, rejection, or fail-closed boundary.
+- When named-parameter lowering is provided or changed, reuse the deterministic
+  compiler coverage to verify repeated-name binding order/value, missing-value
+  rejection, supported lexical contexts (strings, quoted identifiers, comments,
+  casts, and any claimed dollar/E-string/nested-comment forms), and stale
+  metadata failure when metadata-backed.
+- When bounded ordering is provided or changed, verify its accepted and rejected
+  keys/directions, duplicate and maximum-key policy when present, required
+  stable tie-breaker, reviewed ordering expression/result, stale insertion
+  failure, and rejection of raw SQL ordering input.
+- When optional-condition transformation is provided or changed, verify the
+  application-owned semantics with mechanism OFF/ON, intended removal or
+  rewrite, required-predicate preservation, multiple-branch interaction,
+  stale/unsupported fail-closed behavior, and representative ON/OFF result
+  equivalence. Ashiba does not define omitted/null/value meanings.
 - For QuerySpec work used for product behavior, the required verification is a ZTD-backed test that executes the SQL through the rewriter.
 - A property-only validation test is not sufficient verification for a product-behavior QuerySpec.
 - If a required ZTD-backed test cannot be completed yet, keep the related item incomplete.

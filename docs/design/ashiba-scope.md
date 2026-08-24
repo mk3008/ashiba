@@ -34,8 +34,21 @@ product contract). Do not promote the last category by implication.
   commit/rollback, retry and idempotency policy, logging, telemetry, type
   parsing, streams/cursors, business ordering, optional-filter semantics, DTO
   and domain architecture, and migration application policy.
-- Ashiba may offer a thin preparation/execution convenience, but it does not
-  replace the native driver or own those policies.
+- Native database drivers are the baseline runtime execution owner. Ashiba may
+  provide deterministic preparation and optional adapters that delegate
+  execution to an application-supplied native driver. Ashiba does not acquire
+  connections, manage pools or transactions, or own application execution
+  policy.
+- Ashiba-specific execution adapters are optional compatibility or convenience
+  surfaces, not required application architecture. They do not replace the
+  native driver or own application execution policy.
+- Canonical SQL being file-backed does not require runtime filesystem access.
+  Applications/build tooling own loading, bundling, embedding, or otherwise
+  supplying SQL text; development-time Ashiba tooling may use filesystem access.
+- Ashiba-provided runtime examples and scaffolds prefer supplied SQL text
+  without runtime filesystem access unless the example explicitly targets a
+  Node/filesystem-specific environment. This does not restrict an application's
+  own runtime loading choice.
 - Valid ordinary SQL execution is not unnecessarily blocked when Ashiba cannot
   analyze it. A proof-required Ashiba transformation fails closed when its
   local evidence is stale, absent, or inconsistent.

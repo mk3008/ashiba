@@ -22,7 +22,7 @@ features:
   - title: "Safety is checked"
     details: "Deterministic contract checks catch stale SQL, DDL, metadata, and editable TypeScript boundaries; selected behavior tests cover semantics those checks cannot prove."
   - title: "No ORM runtime"
-    details: "Your app runs explicit SQL through a selected thin SQL execution adapter and ordinary TypeScript boundaries. No hidden query DSL or object layer."
+    details: "Your app owns native-driver execution of explicit SQL; optional Ashiba preparation/adapters add narrow deterministic convenience. No hidden query DSL or object layer."
 ---
 
 ## Documentation

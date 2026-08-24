@@ -11,7 +11,9 @@ The short version:
 - the `.sql` file is the canonical source
 - the CLI generator is not in the runtime path
 - generated `query.sql.ts` is a runtime snapshot, not the source of truth
-- applications may use a selected thin SQL execution adapter
+- native database drivers own baseline runtime execution
+- applications may optionally use Ashiba deterministic preparation or an
+  adapter convenience surface
 - Ashiba does not add an ORM runtime or hidden SQL DSL
 
 ## No ORM Runtime
@@ -29,11 +31,16 @@ Your application still owns:
 
 Ashiba generates support artifacts around the SQL so humans and AI agents can review the persistence boundary without turning the application into an ORM-controlled runtime.
 
-## Thin SQL Execution Adapter
+## Native Driver Baseline And Optional Ashiba Convenience
 
 The CLI generator is development-time tooling. It scaffolds, analyzes, refreshes, tests, and checks SQL contracts.
 
-At runtime, the selected driver adapter can be used as a thin SQL execution boundary. For PostgreSQL, `@ashiba-ts/driver-adapter-pg` wraps a `pg`-compatible client or pool and owns narrow execution concerns:
+At runtime, applications normally own a native database client, pool,
+transaction, and `query(sql, values)` call. Ashiba may deterministically prepare
+reviewed SQL text into driver SQL and ordered values. Optional adapters may
+delegate execution to an application-supplied native driver. For PostgreSQL,
+`@ashiba-ts/driver-adapter-pg` remains an optional compatibility/convenience
+surface around a `pg`-compatible client or pool, with narrow concerns:
 
 - named-parameter binding
 - parameter contract checks
@@ -43,11 +50,41 @@ At runtime, the selected driver adapter can be used as a thin SQL execution boun
 - observer events for logging
 - transient DB error classification for caller-owned retry policies
 
-The adapter still executes SQL through the wrapped driver. It does not expose a SQL builder DSL, ORM model, object graph, or relation loader.
+The optional adapter still executes SQL through the wrapped driver. It does not
+expose a SQL builder DSL, ORM model, object graph, or relation loader. It is not
+the normal required Ashiba runtime architecture, and it does not acquire
+connections, manage pools or transactions, or own application execution policy.
+
+## SQL Text At Runtime
+
+Canonical SQL is normally file-backed for review and development tooling, but a
+canonical file does not imply that application runtime code calls `node:fs`.
+Runtime surfaces accept SQL as data. The application or its build tooling owns
+loading, bundling, embedding, or otherwise supplying that text, and may attach
+an optional source path for logs. Ashiba's CLI may use filesystem access during
+development-time generation and verification.
+
+Ashiba does not thereby claim support for every edge or lightweight runtime.
+Driver compatibility remains an application-selected concern. The portability
+rule is narrower: Ashiba itself does not require filesystem access merely to
+load a canonical SQL asset at runtime.
+
+Ashiba-provided runtime examples and scaffolds should likewise prefer SQL text
+supplied without runtime filesystem access, unless an example explicitly
+targets a Node/filesystem-specific environment. This does not prohibit an
+application from choosing filesystem loading for its own Node runtime.
+
+### Runtime Node built-in audit
+
+| Classification | Current observation | Consequence |
+| --- | --- | --- |
+| A. Development-time only | `@ashiba-ts/cli` and DDL documentation tooling import `node:fs`, `node:path`, `node:child_process`, and related built-ins for generation, discovery, and verification. | Not a runtime SQL-loading requirement. |
+| B. Application-selected driver | Database drivers are peer/application choices (`pg`, `mysql2`, `mssql`); their compatibility is not claimed by Ashiba. | Application-owned. |
+| C. Ashiba runtime incidental | Current driver-adapter packages import `node:crypto` for source hashes and execution IDs; they do not import `node:fs`. | Optional adapter surfaces remain Node-oriented; any reduction of `node:crypto` is a follow-up, not an edge-runtime support claim. |
 
 ## Visible Retry Boundary
 
-Thin drivers may help applications handle transient database failures, but retry must stay visible.
+Optional Ashiba adapters may help applications handle transient database failures, but retry must stay visible.
 
 `@ashiba-ts/driver-adapter-core` provides `withAshibaRetry`, a small helper for caller-owned retry loops. It retries only when the caller passes an explicit `retryOn` classifier. The final error is rethrown as-is, and retry / give-up events can be observed by application logging.
 
@@ -82,13 +119,13 @@ This is intentionally not hidden automatic retry. Application code still owns:
 - SAGA / compensation workflows
 - how retries are logged, alerted, and capped
 
-Do not use a thin-driver retry helper to silently re-run arbitrary mutations after the application has performed non-database side effects. For commit-unknown or compensation-heavy workflows, keep the retry decision in application/SAGA code and use the driver classifier only as one input.
+Do not use an adapter retry helper to silently re-run arbitrary mutations after the application has performed non-database side effects. For commit-unknown or compensation-heavy workflows, keep the retry decision in application/SAGA code and use the driver classifier only as one input.
 
 ## Feature Query Boundary
 
 Generated feature query code depends on the shared `FeatureQueryExecutor` contract from `@ashiba-ts/driver-adapter-core`.
 
-Existing projects created before the thin execution boundary helpers should add `@ashiba-ts/driver-adapter-core` as a direct dependency before scaffolding new query boundaries.
+Existing projects that choose the optional execution boundary helpers should add `@ashiba-ts/driver-adapter-core` as a direct dependency before scaffolding new query boundaries.
 
 That contract is intentionally small:
 
@@ -101,9 +138,11 @@ export interface FeatureQueryExecutor<Query extends AnyFeatureQuerySource> {
 }
 ```
 
-Feature code receives this boundary instead of importing `pg`, the concrete driver adapter, or logger packages directly.
+Generated feature boundaries may receive this optional convenience contract.
+Applications may instead keep the native driver directly visible; Ashiba does
+not prescribe either application architecture.
 
-The Params/Row link is a compile-time contract derived from visible SQL and available DDL facts; the thin adapter does not validate every returned value at runtime. Unproved expressions remain `unknown` instead of accepting a caller-supplied result generic. PostgreSQL contracts follow default `pg` representations: `bigint`, `numeric`, and `count(...)` are strings unless source SQL explicitly casts them to another database type. Applications that install custom `pg` type parsers must keep that conversion visible at their driver/application boundary or express the intended type with a reviewed SQL cast.
+The Params/Row link is a compile-time contract derived from visible SQL and available DDL facts; optional Ashiba adapters do not validate every returned value at runtime. Unproved expressions remain `unknown` instead of accepting a caller-supplied result generic. PostgreSQL contracts follow default `pg` representations: `bigint`, `numeric`, and `count(...)` are strings unless source SQL explicitly casts them to another database type. Applications that install custom `pg` type parsers must keep that conversion visible at their driver/application boundary or express the intended type with a reviewed SQL cast.
 
 For convenience, `@ashiba-ts/driver-adapter-core` also provides cardinality helpers:
 
@@ -115,7 +154,9 @@ These helpers do not change SQL meaning. They only make row cardinality expectat
 
 ## Dialect Binding Metadata
 
-`FeatureQueryModel` is shared by feature query boundaries and thin adapters. It has dialect binding slots for PostgreSQL, mysql2, mssql, and future SQLite-compatible adapters.
+`FeatureQueryModel` is shared by optional feature query boundaries and adapter
+surfaces. It has dialect binding slots for PostgreSQL, mysql2, mssql, and
+future SQLite-compatible adapters.
 
 PostgreSQL is the most complete runtime binding today because it supports metadata-backed safe sort and optional-condition compression. The shared core type is intentionally dialect-extensible so additional adapters can add their own binding metadata without turning the query model into an ORM model.
 
@@ -146,7 +187,7 @@ Generated files have narrower roles:
 
 | File | Role | Edit policy |
 |---|---|---|
-| `query.sql.ts` | runtime snapshot of the canonical SQL | generated, do not edit by hand |
+| `query.sql.ts` | generated SQL-text snapshot; one runtime supply option | generated, do not edit by hand |
 | `query.meta.ts` | query model, source hash, binding metadata, safe rewrite metadata | generated, do not edit by hand |
 | `query.ts` | feature query boundary that chooses source, params, result type, and cardinality helper | application-owned after generation |
 

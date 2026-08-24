@@ -17,7 +17,7 @@ The current ConceptSpec format is provisional. This page is optimized for human 
 |---|---|---|
 | Repository Philosophy | Repository-wide concepts and policies | Defines the product promise, runtime policy, SQL-first posture, and boundaries that every package must preserve. |
 | CLI | `@ashiba-ts/cli` | Owns user-facing commands, scaffolding workflows, generated review artifacts, and migration from `ztd-cli`. |
-| Driver Packages | `@ashiba-ts/sql-*`, `@ashiba-ts/driver-adapter-*`, `@ashiba-ts/testkit-adapter-*`, `@ashiba-ts/dialect-*` | Own thin driver seams, named parameters, sort profiles, dialect details, and testkit/production adapter separation. |
+| Driver Packages | `@ashiba-ts/sql-*`, `@ashiba-ts/driver-adapter-*`, `@ashiba-ts/testkit-adapter-*`, `@ashiba-ts/dialect-*` | Own optional driver compatibility seams, named parameters, sort profiles, dialect details, and testkit/production adapter separation. |
 | Extension Packages | `@ashiba-ts/sql-transform-*`, future `@ashiba-ts/extension-*` | Own future SQL-first transforms without becoming ORM query planning or a query DSL. |
 
 ## Customer Contact Review Lanes
@@ -39,7 +39,7 @@ These concepts apply to the whole repository and constrain all packages.
 | `ashiba` | Ashiba | mostly done | Product identity for the `ztd-cli` rebrand; package and command surfaces now use Ashiba naming. Ashiba is not PostgreSQL-only; product-level vocabulary stays DBMS-neutral while DBMS-specific wrappers name their concrete driver or tool. Setup requires explicit DBMS starter selection and keeps package manager state application-owned. |
 | `visible-sql` | Visible SQL | mostly done | SQL remains readable, reviewable, editable, executable, searchable, and uses named parameters for maintainability. |
 | `boring-parts` | Boring Parts | mostly done | DTO definitions, mappers, query ID numbering, tests, optional migration review, sqlgrep, and impact analysis have initial Ashiba surfaces; richer row typing remains. |
-| `runtime-boundary` | No ORM Runtime / Thin Adapter | mostly done | `@ashiba-ts/cli` is development-time tooling and is not in the runtime path; generated application code may use the selected thin driver adapter and `@ashiba-ts/driver-adapter-core` feature query contracts at runtime. |
+| `runtime-boundary` | No ORM Runtime / Native Driver Baseline | mostly done | `@ashiba-ts/cli` is development-time tooling and is not in the runtime path; native drivers own runtime execution, while Ashiba preparation and driver adapters are optional convenience surfaces. |
 | `no-orm-runtime` | No ORM Runtime | mostly done | Rejects entities, relation loading, lazy loading, unit-of-work tracking, dirty tracking, and runtime model ownership; feature code owns orchestration. |
 | `no-query-dsl-ceremony` | No Query DSL Ceremony | mostly done | SQL remains SQL, directly runnable in a SQL client, and free of Ashiba-only SQL notation. |
 | `editable-generated-code` | Editable Generated Code | mostly done | Generated code remains visible customer-owned repository code, may be edited by humans and AI agents, and stays under drift checks after generation. Generated-owned metadata and human-editable code must be physically separated. |
@@ -48,7 +48,7 @@ These concepts apply to the whole repository and constrain all packages.
 | `mapper-tested-type-safety` | Mapper-Tested Type Safety | mostly done | DTO and mapper type safety is guaranteed by mapper probes and DB-backed integration tests, not runtime result-row validation. Generated mapper tests should focus on whether DB result values can map into the customer-owned DTO shape. They should not prove SQL business logic, row cardinality, affected-row counts, or final database state. Nullability is leveled as nullable, unknown, or non-null. When nullability is unknown, Ashiba should prefer nullable output at initial generation but treat a customer-owned non-null DTO as warning-level drift unless NULL is known possible. |
 | `error-output-modes` | Error Output Modes | mostly done | Shared formatter and CLI option support human-oriented and AI-oriented modes. Both modes include cause and next action/hint; known production errors in the current package set expose structured cause/action metadata, with formatter fallbacks kept as a safety net for unexpected errors. |
 | `tooling-ast-dependency-policy` | Tooling AST Dependency Policy | partial | Ashiba tooling may depend on `rawsql-ts` core AST APIs through npm; development-only SQL verification support capabilities should be folded into `@ashiba-ts/cli` unless a real non-CLI consumer exists. Dev-time SQL structural analysis should prefer tested AST APIs over regex/lexical parsing; remaining non-AST helpers are parser/AST capability debt unless limited to source offsets, generated TypeScript artifact extraction, or explicit diagnostics. Silent fallback is rejected. |
-| `file-backed-runtime-sql` | File-Backed Runtime SQL | partial | Runtime execution boundaries accept reviewed SQL files or generated query source objects with SQL path and query model metadata, not arbitrary SQL string input. This applies to scaffolded/generated SQL clients and executors as well as driver adapter packages. The underlying driver still receives a string internally after metadata checks. |
+| `file-backed-runtime-sql` | Canonical SQL Text At Runtime | partial | Canonical SQL is normally file-backed for review and tooling, but runtime surfaces accept SQL text supplied by application/build tooling and do not require `node:fs`. Optional provenance paths and metadata may accompany the text. The underlying driver still receives a string after metadata checks. |
 | `query-model-metadata-contract` | Query Model Metadata Contract | partial | Metadata-backed runtime rewrites such as safe sort and optional-condition compression may use development-time AST analysis metadata only when `.sql`, generated `query.sql.ts`, dialect binding metadata, and `query.meta.ts` are drift-checked by source hashes or equivalent checks. Stale metadata must fail before execution. |
 | `public-api-and-help-surface` | Public API and Help Surface | partial | Public exported functions require JSDoc. CLI commands require help surfaces before execution, with AI-oriented help allowed when a structured form is safer. |
 | `human-first-command-interface` | Human-First Command Interface | partial | Ashiba should provide a small, memorable diagnostic entry point for people who do not know every specialized command. Higher-level commands may wrap narrower capabilities when that makes the ordinary loop easier to understand, fast enough to repeat, and safer to recover from. Default command paths should prefer one clear action over target selection; advanced flags may exist, but beginners should not need them. Names of commands, directories, files, and functions are part of the interface because they guide both humans and AI agents. |
@@ -80,7 +80,7 @@ These concepts belong to driver-neutral SQL libraries, production driver adapter
 
 | ID | Display name | Status | Notes |
 |---|---|---|---|
-| `thin-driver-adapter` | Thin Driver Adapter | mostly done | `pg` adapter owns named binding, parameter checks, query-model-gated safe sort, optional-condition compression, stale metadata rejection, observer events, and transient-error classification while avoiding ORM, relation loading, unit-of-work, query DSL, hidden automatic retry, SAGA compensation, and transaction ownership. Starter code should keep the standard path option-light, expose frequent connection, transaction, and explicit retry controls nearby, and leave business retry safety to customer-owned code. Wrapper package names include the wrapped driver or tool name. |
+| `thin-driver-adapter` | Optional Driver Adapter | mostly done | `pg` adapter is an optional compatibility/convenience surface for named binding, parameter checks, query-model-gated safe sort, optional-condition compression, stale metadata rejection, observer events, and transient-error classification. Native drivers remain the baseline execution owner; the adapter avoids ORM, relation loading, unit-of-work, query DSL, hidden automatic retry, SAGA compensation, and transaction ownership. |
 | `named-parameter-binding` | Named Parameter Binding | mostly done | Source SQL uses named parameters such as `:name` or `@name`; DB driver wrappers compile them to driver placeholders. |
 | `parameter-contract-check` | Parameter Contract Check | mostly done | Missing and unused parameters fail before execution in binder and PostgreSQL adapter paths. |
 | `safe-sort-profile` | Safe Sort Profile | mostly done | DB driver wrapper-owned safe sort surface based on whitelisted profiles and CLI-generated query model metadata: source hash, root query shape, insertion position, order-by/comma mode, and sortable dictionary. Sort keys must exactly match the query model whitelist. |
@@ -128,10 +128,10 @@ flowchart TD
   Migration --> MigrationQuery["Migration Query Generation"]
   CLI --> ScaffoldGuidance["Scaffold As Guidance"]
 
-  Drivers --> ThinAdapter["Thin Driver Adapter"]
+  Drivers --> ThinAdapter["Optional Driver Adapter"]
   ThinAdapter --> NamedParams["Named Parameter Binding"]
   ThinAdapter --> ParamCheck["Parameter Contract Check"]
-  ThinAdapter --> FileBackedSql["File-Backed Runtime SQL"]
+  ThinAdapter --> FileBackedSql["Canonical SQL Text At Runtime"]
   ThinAdapter --> SafeSort["Safe Sort Profile"]
   ThinAdapter --> OptionalCompression["Optional Condition Compression"]
   ThinAdapter --> LoggerEvent["Logger-Ready Execution Event"]
@@ -194,8 +194,8 @@ flowchart TD
 - Recovery is part of detection. A good error points to the next command or mechanical fix, and a safe mechanical recovery should be available as an explicit refresh/fix command where possible.
 - Gate scaffolding must not generate a CI workflow or hook that fails because Ashiba's own package scripts are missing. The default path should create a complete passive gate surface, and advanced target flags must still preserve a working customer path.
 - `ashiba init` may create ordinary project documentation, but Ashiba must not distribute AI behavior files such as `AGENTS.md`, `SKILL.md`, skills, or prompts; AI guidance should come from visible scaffolds, contracts, and AI-oriented errors.
-- Use "No ORM runtime / thin SQL execution adapter" for external docs.
-- The CLI generator is not in the runtime path; this does not mean there is no database driver, thin driver adapter, or feature query contract at runtime.
+- Use "No ORM runtime / native driver baseline with optional Ashiba convenience" for external docs.
+- The CLI generator is not in the runtime path; native drivers remain the execution owner, while an adapter or feature query contract is optional.
 - Tooling AST dependencies, including `rawsql-ts` core, are allowed for Ashiba development packages and must not leak into generated application runtime code.
 - Development-time capabilities that only support SQL-first verification should be integrated into `@ashiba-ts/cli`; `sqlgrep` is the representative case.
 - CLI concepts must cover practical ORM-like development support through scaffolding and checks, without implying an ORM runtime.
@@ -224,7 +224,7 @@ flowchart TD
 - Migration generation is optional review support. Ashiba may emit migration SQL and risk reports, but it must not present itself as the owner of applying migrations, rollback policy, deployment timing, or migration-platform governance.
 - Core CLI scaffolding must not hide SQL transformation or dynamic SQL building inside generated application code; keep SQL visible and use driver/extension concepts for their bounded responsibilities.
 - Driver package concepts must stay thin and must not own business SQL.
-- Driver execution boundaries should not expose arbitrary SQL string input; use file-backed/generated query source objects and keep the final driver SQL string internal.
+- Driver execution boundaries should keep provenance and metadata explicit, accept application-supplied SQL text without requiring runtime filesystem access, and keep the final driver SQL string internal.
 - Safe sort requests must exactly match query model whitelist keys; raw ORDER BY fragments and guessed column names are not accepted.
 - Metadata that enables safe sort or optional-condition compression must be treated as part of the query contract, not a loose cache; stale metadata must fail before use.
 - Optional condition compression must be explicit, metadata-backed, source-hash-checked, and free of Ashiba-only SQL markers.

@@ -52,11 +52,12 @@ export type AshibaMssqlQueryModel = {
 };
 
 /**
- * File-backed SQL query source generated or loaded from a reviewed SQL file.
+ * SQL text source supplied by the application or build tooling. `sqlPath` is
+ * optional provenance; this runtime package never loads the SQL from disk.
  */
 export type AshibaMssqlQuerySource = {
   sql: string;
-  sqlPath: string;
+  sqlPath?: string;
   queryModel: AshibaMssqlQueryModel;
   metadata?: AshibaSqlExecutionMetadata;
 };
@@ -117,7 +118,7 @@ export class AshibaMssqlQueryModelError extends Error {
 }
 
 /**
- * Create a thin adapter around an mssql request factory.
+ * Create an optional Ashiba convenience adapter around an mssql request factory.
  */
 export function createMssqlAdapter(
   factory: MssqlRequestFactory,

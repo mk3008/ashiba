@@ -57,7 +57,8 @@ export type AshibaPostgresQueryModel = {
 };
 
 /**
- * File-backed SQL query source generated or loaded from a reviewed SQL file.
+ * SQL text source supplied by the application or build tooling. `sqlPath` is
+ * optional provenance; this runtime package never loads the SQL from disk.
  */
 export type AshibaPostgresQuerySource<Params extends object = Record<string, unknown>, Row = unknown> = AshibaTypedQuerySource<Params, Row> & {
   sql: string;
@@ -82,7 +83,7 @@ export type AshibaPostgresExecuteOptions = {
 };
 
 /**
- * Thin PostgreSQL adapter interface exposed to application code.
+ * Optional PostgreSQL adapter convenience interface exposed to application code.
  */
 export type AshibaPostgresAdapter = {
   execute<Query extends AnyAshibaPostgresQuerySource>(
@@ -212,7 +213,7 @@ const POSTGRES_TRANSIENT_NODE_ERROR_CODES = new Set([
 ]);
 
 /**
- * Create a thin adapter around a pg-compatible client or pool.
+ * Create an optional Ashiba convenience adapter around a pg-compatible client or pool.
  */
 export function createPostgresAdapter(
   client: NodePostgresQueryable,
@@ -301,7 +302,7 @@ export function createPostgresAdapter(
 }
 
 /**
- * Compile one file-backed query into normal PostgreSQL SQL and ordered values
+ * Compile one application-supplied SQL text query into normal PostgreSQL SQL and ordered values
  * without executing it. The returned SQL is suitable for logging, debugging,
  * EXPLAIN tooling, or a generic query executor.
  */
@@ -404,8 +405,8 @@ function buildSqlSourceWarnings(
 
   return [{
     code: 'ASHIBA_STRING_SQL_SOURCE',
-    message: 'SQL execution did not include a file-backed sqlPath or sqlFile.',
-    nextAction: 'Prefer generated or file-backed query sources so logs can point reviewers to the SQL owner.',
+    message: 'SQL execution did not include optional SQL provenance metadata.',
+    nextAction: 'Supply sqlPath or sqlFile metadata when application logging needs to point reviewers to the SQL owner.',
   }];
 }
 

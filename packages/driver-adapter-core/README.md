@@ -1,6 +1,6 @@
 # @ashiba-ts/driver-adapter-core
 
-Core contracts and helpers for thin Ashiba SQL execution adapters.
+Core contracts and helpers for optional Ashiba SQL preparation and adapter conveniences.
 
 This package is shared infrastructure for Ashiba driver adapters and generated
 feature query boundaries. It is not an ORM runtime and does not provide a SQL DSL.
@@ -23,8 +23,9 @@ It provides shared types and helpers for:
 - safe sort profile rendering
 - common query execution contracts used by driver adapters
 
-Application projects that use generated feature query boundaries should install
-this package alongside a concrete adapter such as `@ashiba-ts/driver-adapter-pg`.
+Application projects may use generated feature query boundaries with this
+package and a concrete adapter such as `@ashiba-ts/driver-adapter-pg`; native
+driver execution remains an equally valid application-owned baseline.
 
 `withAshibaRetry` is intentionally policy-driven. It does not decide that SQL,
 transactions, external side effects, or SAGA workflows are safe to execute again.

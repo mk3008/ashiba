@@ -28,7 +28,7 @@ export type AshibaSqlExecutionMetadata = {
 };
 
 /**
- * Structured event emitted by thin driver adapters around SQL execution.
+ * Structured event emitted by optional Ashiba driver adapters around SQL execution.
  */
 export type AshibaSqlExecutionEvent = {
   phase: 'start' | 'end' | 'error';
@@ -110,7 +110,7 @@ export type AshibaRetryObserver = {
 };
 
 /**
- * Explicit retry policy for thin-driver retry boundaries.
+ * Explicit retry policy for optional Ashiba adapter retry boundaries.
  *
  * The policy intentionally requires a retry classifier. Ashiba does not infer
  * that arbitrary SQL or workflow code is safe to execute again.
@@ -461,7 +461,7 @@ export type FeatureQueryDialectBindings = {
  *
  * This is intentionally a contract type, not an ORM model. The SQL file remains
  * the canonical source; generated metadata and runtime snapshots only prove that
- * the thin adapter is executing the reviewed SQL contract.
+ * an optional Ashiba adapter is executing the reviewed SQL contract.
  */
 export type FeatureQueryModel = {
   analysis: AshibaQueryModelAnalysis & {
@@ -475,7 +475,7 @@ export type FeatureQueryModel = {
 };
 
 /**
- * Type-only contract carried by a file-backed query source.
+ * Type-only contract carried by an application-supplied SQL text source.
  *
  * The invariant function properties prevent callers from substituting an
  * unrelated Params or Row type through an explicit generic argument. The
@@ -503,7 +503,8 @@ export type AshibaQueryRow<Query> = Query extends AshibaTypedQuerySource<infer _
 export interface FeatureQuerySourceBase {
   id: string;
   path: string;
-  sqlPath: string;
+  /** Optional application/build-tool provenance for the supplied SQL text. */
+  sqlPath?: string;
   sql: string;
   queryModel: FeatureQueryModel;
   optionalConditionCompression?: boolean;
@@ -511,7 +512,7 @@ export interface FeatureQuerySourceBase {
 }
 
 /**
- * File-backed SQL plus its mechanically checked Params/Row contract.
+ * SQL text plus its mechanically checked Params/Row contract.
  */
 export interface FeatureQuerySource<Params extends object = Record<string, unknown>, Row = unknown>
   extends FeatureQuerySourceBase, AshibaTypedQuerySource<Params, Row> {}
@@ -520,7 +521,7 @@ export interface FeatureQuerySource<Params extends object = Record<string, unkno
 export type AnyFeatureQuerySource = FeatureQuerySourceBase & AshibaTypedQuerySource<any, any>;
 
 /**
- * Thin feature-level SQL execution boundary.
+ * Optional feature-level SQL execution convenience boundary.
  *
  * Feature and workflow code depend on this instead of pg, logger packages, or
  * concrete adapter implementations.
