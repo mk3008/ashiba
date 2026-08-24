@@ -6,7 +6,7 @@ import type { Ticket } from './types.js';
 
 const updateSql = readFileSync(fileURLToPath(new URL('./assign-ticket.sql', import.meta.url)), 'utf8');
 const eventSql = readFileSync(fileURLToPath(new URL('./insert-event.sql', import.meta.url)), 'utf8');
-export async function assignTicket(pool: Pool, input: { ticketId: number; assigneeId: number; actorId: number; note?: string }): Promise<Ticket | undefined> {
+export async function assignTicket(pool: Pool, input: { ticketId: string; assigneeId: string; actorId: string; note?: string }): Promise<Ticket | undefined> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

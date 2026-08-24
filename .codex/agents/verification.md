@@ -61,6 +61,12 @@ Use this subagent to validate whether the work satisfies the planned acceptance 
   3. Repository bug or rewriter bug
 - Do not use DDL execution or manual database repair as the default fix path for ZTD validation failures.
 - Prefer repository evidence over supplementary evidence whenever both are available.
+- For PostgreSQL-backed parameter/result type fidelity, generated feature-query
+  work should prefer the existing PostgreSQL-derived contract against a live
+  development/test database. Direct canonical-SQL/native-driver work must use
+  that contract when a supported surface applies; if none applies, report the
+  verification/product gap instead of treating TypeScript generics or runtime
+  spot checks as an equivalent guarantee.
 - If dogfooding or real-task validation was required, report whether it was completed, partial, or not done.
 - Do not treat a pre-PR gate as satisfied while a retro item marked `open` still blocks PR readiness.
 

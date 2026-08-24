@@ -1,4 +1,4 @@
 export type Ticket = {
-  id: number; customer_id: number; subject: string; status: string; priority: string;
-  assignee_id: number | null; created_at: Date; updated_at: Date;
+  id: string; customer_id: string; subject: string; status: string; priority: string;
+  assignee_id: string | null; created_at: Date; updated_at: Date;
 };

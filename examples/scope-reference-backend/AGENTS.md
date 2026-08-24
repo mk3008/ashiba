@@ -6,3 +6,6 @@ change Ashiba product code to make the example fit.
 
 Manual TypeScript result types must reflect actual native-driver output; do not
 use test coercion to conceal a mismatch.
+
+Do not downgrade PostgreSQL-derived type-contract coverage to runtime spot
+checks without recording the resulting reference blocker.

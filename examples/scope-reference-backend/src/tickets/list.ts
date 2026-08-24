@@ -6,8 +6,8 @@ import { placeTicketOrdering, type SortInput } from './ordering.js';
 import type { Ticket } from './types.js';
 
 const source = readFileSync(fileURLToPath(new URL('./list.sql', import.meta.url)), 'utf8');
-export type AssigneeFilter = undefined | null | number;
-export type ListTicketsInput = { status?: string; customerId?: number; assignee?: AssigneeFilter; limit?: number; offset?: number; sort?: SortInput[] };
+export type AssigneeFilter = undefined | null | string;
+export type ListTicketsInput = { status?: string; customerId?: string; assignee?: AssigneeFilter; limit?: number; offset?: number; sort?: SortInput[] };
 
 export async function listTickets(pool: Pool, input: ListTicketsInput = {}): Promise<Ticket[]> {
   const assigneeMode = input.assignee === undefined ? 'any' : input.assignee === null ? 'unassigned' : 'assigned';

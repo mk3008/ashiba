@@ -19,18 +19,17 @@
   values after a caller-owned, finite ordering policy without taking ownership
   of business ordering or transactions.
 
-## Type mismatch escape analysis
+## Reference status: not-yet-a-credible-reference
 
 ### Observation
 
-Before this correction, the live PostgreSQL container returned `typeof id`,
-`customer_id`, and non-null `assignee_id` as `string` for the `bigint` DDL.
-`pg` defaults to string representation for `int8`; `client.query<Ticket>()` is
-a TypeScript-only generic annotation and performs no runtime decoding or OID
-compatibility validation. The reference now uses PostgreSQL `integer`/`serial`,
-whose default native `pg` result representation matches its `number` fields.
-The reduced integer range is acceptable here because 64-bit identifiers are not
-part of this fixed challenge's business behavior.
+The first version declared `Ticket.id` as `number` against PostgreSQL `bigint`.
+Live PostgreSQL showed that default `pg` represents this `int8` value as a
+`string`; `client.query<Ticket>()` is a TypeScript-only generic and does no
+runtime decoding or OID compatibility validation. The reference has restored
+natural 64-bit identifiers and now declares their result fields as `string`.
+The native-driver assertions remain useful supplementary integration evidence.
+They are not PostgreSQL-derived deterministic contract coverage.
 
 ### Why it escaped
 
@@ -46,16 +45,29 @@ part of this fixed challenge's business behavior.
 - **Non-cause:** the earlier fresh review packet asked architecture/scope
   questions, not a native driver type-fidelity audit.
 
-### Existing mechanism and prevention choice
+### Existing mechanism and blocker classification
 
 Ashiba's optional `feature query postgres-contract` derives PostgreSQL and
-default-driver representation evidence for generated feature-query contracts.
-This direct native-pg/manual-row-type reference does not route through that
-generated feature surface, so the applicable classification is **existing
-detector partially covers it**. For this sample, one representative runtime
-assertion is smaller and more direct than introducing generated metadata or a
-new detector. The repository verification guidance now states the general rule;
-the local AGENTS rule keeps it collocated with this repeatedly reviewed sample.
+default-driver representation evidence, source staleness, and false mapper type
+claims for a VSA-local `src/features/<feature>/queries/<query>/query.ts` path.
+The direct canonical-SQL/native-`pg` reference has no supported connection from
+the derived contract to its manual `Ticket` type. Its classification is **D**:
+the current product cannot make a false `bigint`-to-`number` application claim
+fail without reintroducing the old generated feature/query architecture.
+
+This is a product blocker, not permission for a sample-local comparator or for
+using runtime assertions as the type proof. PR #70 must remain unmerged until a
+separate, narrow standalone canonical-SQL contract surface provides parameter,
+result, driver-representation, and source-staleness evidence and connects it
+deterministically to the application-declared types. It must not take ownership
+of application ordering, transaction handling, a mapper framework, or SQL
+ownership.
+
+The ordering/preparation mismatch is independent: application-owned ordering
+changes SQL text after the source-hash-bound `preparePostgresQuery` input, so
+this sample uses a deliberately local named-value preparer. Solving the
+development-time type-contract blocker must not conceal or merge that runtime
+preparation problem.
 
 ### PR #45 durable placement audit
 
@@ -63,9 +75,8 @@ the local AGENTS rule keeps it collocated with this repeatedly reviewed sample.
 | --- | --- | --- |
 | A. Product implementation | present | `feature query postgres-contract`, `postgres.contract.json` parsing/staleness checks, driver-profile checks, and live CLI tests under `packages/cli` and `packages/driver-adapter-pg` |
 | B. Docs/evaluation | present | `docs/guide/postgres-contract.md`, runtime-boundary/README guidance, and verification-value/responsibility-placement evaluations |
-| C. Developer guidance / Scope routing | absent | `docs/design/ashiba-scope.md` and `$ashiba-scope-review` define ownership and mechanical-verifier limits, but do not route a developer to PostgreSQL-derived contracts; the general verification guidance also does not name this command as a selection rule |
+| C. Developer guidance / Scope routing | partial | `docs/design/ashiba-scope.md` and `$ashiba-scope-review` still define ownership rather than lane selection. `.codex/agents/verification.md` now routes generated feature-query work to the existing live PostgreSQL-derived contract and requires direct native-driver work to record a product gap when no supported surface applies. |
 
 This is not a Scope-review failure: that skill answers responsibility ownership,
-not which correctness lane to select. It is a developer-workflow routing gap.
-The reference keeps the smaller native-driver runtime assertion because its
-manual row types are outside the generated feature-query contract surface.
+not which correctness lane to select. It was a developer-workflow routing gap;
+the routing rule does not remove the standalone-product blocker.
