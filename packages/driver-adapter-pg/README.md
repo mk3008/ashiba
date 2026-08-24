@@ -1,10 +1,11 @@
 # @ashiba-ts/driver-adapter-pg
 
-Thin Ashiba adapter for [`pg`](https://www.npmjs.com/package/pg) compatible clients.
+Optional Ashiba convenience adapter for [`pg`](https://www.npmjs.com/package/pg) compatible clients.
 
-This package is the thin PostgreSQL SQL execution adapter used by Ashiba-generated
-TypeScript code. It is normally paired with `@ashiba-ts/cli` and
-`@ashiba-ts/testkit-adapter-pg`.
+This package is an optional PostgreSQL compatibility/convenience surface. Native
+`pg` clients, pools, transactions, and `query(sql, values)` calls remain the
+application-owned baseline. It may be paired with `@ashiba-ts/cli` and
+`@ashiba-ts/testkit-adapter-pg`, but is not required application architecture.
 
 Start with the repository README for the full SQL-first workflow:
 
@@ -15,7 +16,12 @@ Start with the repository README for the full SQL-first workflow:
 
 It owns named parameter binding, parameter contract checks, logger-ready execution events, metadata-backed optional-condition compression, metadata-backed safe sort rendering, and PostgreSQL transient-error classification for caller-owned retry policies. It does not own transactions, business SQL, ORM behavior, relation loading, lazy loading, unit of work, SAGA/compensation workflows, hidden automatic retry, or DDL pull.
 
-Application code should call the adapter with a file-backed or generated query source object containing SQL text, SQL path, and query model metadata. The adapter still passes a SQL string to the wrapped `pg` client internally, but it does not expose an `execute(sql: string, ...)` convenience boundary for arbitrary runtime SQL input.
+Application code supplies SQL text and query-model metadata to the adapter.
+Loading, bundling, embedding, and optional source-path provenance are
+application/build-tool owned; this package does not load SQL through `node:fs`.
+The adapter still passes a SQL string to the wrapped `pg` client internally, but
+it does not expose an `execute(sql: string, ...)` convenience boundary for
+arbitrary runtime SQL input.
 
 The adapter verifies the source SQL hash and uses CLI-generated Postgres SQL plus ordered parameter names. If metadata is absent or stale, execution fails before the wrapped driver is called.
 

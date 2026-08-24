@@ -26,7 +26,10 @@ Using SQL should not mean hand-writing every DTO, mapper glue file, test scaffol
 
 The SQL is yours. Edit it freely, keep it as application-owned source code, and let Ashiba generate the TypeScript support around it.
 
-Ashiba's generator is not in your runtime path. Your application stays under your control: explicit SQL, a selected thin driver adapter, and ordinary TypeScript.
+Ashiba's generator is not in your runtime path. Your application stays under
+your control: explicit SQL, application-owned native driver execution, and
+ordinary TypeScript. Deterministic preparation and driver adapters are optional
+Ashiba convenience surfaces.
 
 ## Getting Started
 
@@ -95,7 +98,8 @@ At this point, you should have the core Ashiba experience:
 - TypeScript DTO and mapper support exists around it.
 - Required generated assets are reviewable files.
 - Contract checks and selected behavior tests tell you when the relevant obligation drifts.
-- Runtime stays ordinary: canonical SQL, a thin SQL execution adapter, and TypeScript application code.
+- Runtime stays ordinary: canonical SQL, application-owned native driver calls,
+  and TypeScript application code; Ashiba preparation/adapters are optional.
 
 ### 6. Change the code
 
@@ -280,9 +284,19 @@ npx ashiba config
 
 Ashiba is not an ORM runtime or SQL DSL. The CLI generator, SQL analysis, scaffolding, tests, and drift checks are development-time tools.
 
-At runtime, applications may use a selected thin SQL execution adapter such as `@ashiba-ts/driver-adapter-pg`. That adapter owns narrow execution concerns: named-parameter binding, metadata-backed optional-condition compression, metadata-backed safe sort, stale metadata rejection, observer events, and transient-error classification for explicit retry policies. It does not own entities, relations, lazy loading, unit of work, dirty tracking, query planning, hidden automatic retry, or SAGA compensation.
+At runtime, native database drivers own baseline execution. Applications may
+optionally use `@ashiba-ts/driver-adapter-pg` or deterministic preparation for
+narrow concerns such as named-parameter lowering, metadata-backed optional
+condition compression or safe sort, stale metadata rejection, observer events,
+and transient-error classification. Those optional surfaces do not own
+connections, pools, transactions, entities, relations, lazy loading, unit of
+work, query planning, hidden automatic retry, or SAGA compensation.
 
-The `.sql` file is the canonical source. Generated `query.sql.ts` is a runtime snapshot and must not be hand edited. After SQL-only edits, run refresh/check so `.sql`, `query.sql.ts`, and `query.meta.ts` stay synchronized.
+The `.sql` file is the canonical source. Generated `query.sql.ts` is one
+runtime SQL-text supply option and must not be hand edited. File-backed
+canonical SQL does not require runtime filesystem access: loading, bundling, or
+embedding SQL text is application/build-tool owned. After SQL-only edits, run
+refresh/check so `.sql`, `query.sql.ts`, and `query.meta.ts` stay synchronized.
 
 See [Runtime boundary](docs/guide/runtime-boundary.md) for the exact wording and safety boundary.
 

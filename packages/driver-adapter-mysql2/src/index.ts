@@ -51,11 +51,12 @@ export type AshibaMysql2QueryModel = {
 };
 
 /**
- * File-backed SQL query source generated or loaded from a reviewed SQL file.
+ * SQL text source supplied by the application or build tooling. `sqlPath` is
+ * optional provenance; this runtime package never loads the SQL from disk.
  */
 export type AshibaMysql2QuerySource = {
   sql: string;
-  sqlPath: string;
+  sqlPath?: string;
   queryModel: AshibaMysql2QueryModel;
   metadata?: AshibaSqlExecutionMetadata;
 };
@@ -116,7 +117,7 @@ export class AshibaMysql2QueryModelError extends Error {
 }
 
 /**
- * Create a thin adapter around a mysql2-compatible client or pool.
+ * Create an optional Ashiba convenience adapter around a mysql2-compatible client or pool.
  */
 export function createMysql2Adapter(
   client: Mysql2Queryable,

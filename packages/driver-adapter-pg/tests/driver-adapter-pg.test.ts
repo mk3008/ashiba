@@ -53,6 +53,22 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       .toThrow(/different source SQL/i);
   });
 
+  test('prepares application-supplied SQL text without filesystem provenance', () => {
+    const sourceSql = 'select :id::integer as id';
+    const prepared = preparePostgresQuery({
+      sql: sourceSql,
+      queryModel: queryModelFor(sourceSql, {
+        sql: 'select $1::integer as id',
+        orderedNames: ['id'],
+      }),
+    }, { id: 7 });
+
+    expect(prepared).toMatchObject({
+      sql: 'select $1::integer as id',
+      values: [7],
+    });
+  });
+
   test('rejects edited canonical SQL from product-generated binding metadata', () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-product-binding-stale-'));
     const sqlDir = path.join(rootDir, 'queries');
