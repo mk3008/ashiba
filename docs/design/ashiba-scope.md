@@ -22,14 +22,25 @@ product contract). Do not promote the last category by implication.
 
 - Canonical SQL is a complete, independently reviewable source asset. A `.sql`
   file is the normal form, not a requirement for trivial SQL.
-- Canonical SQL must be usable outside Ashiba: it can be reviewed, investigated
-  in SQL tools, and brought from existing/external sources. Ashiba-specific
-  markers, directives, and DSL are not required in it.
+- Canonical SQL must be usable outside Ashiba: its query structure remains
+  ordinary target-dialect SQL, can be reviewed or investigated in SQL tools,
+  and can be brought from existing/external sources. This does not require
+  unmodified execution in every SQL client: a target driver may need a small,
+  mechanical placeholder conversion. Ashiba-specific query DSL, directives, or
+  markers such as `&#123;&#123;optional(...)&#125;&#125;` are not part of canonical SQL, and the
+  SQL asset remains usable if Ashiba is removed.
 - Runtime does not freely construct SQL syntax from arbitrary fragments, and
   Ashiba core does not provide a generic query builder.
-- SQL values should be meaningfully named in the ecosystem's natural style.
-  Native named-parameter support remains native; where it is absent, Ashiba may
-  deterministically lower reviewed names to driver bindings.
+- Application-supplied values in canonical SQL must use meaningful named
+  parameters. Use the selected DB/driver ecosystem's natural named syntax when
+  it has one; where it does not, canonical SQL uses the `:name` convention.
+  A native `@name`-style ecosystem is not forced through `:name`.
+- When a native driver does not accept the canonical named syntax, deterministic
+  lowering produces native parameterized SQL plus a separate ordered values
+  collection (for example, PostgreSQL `:id` becomes `$1` and its value). The
+  lowering must preserve parameterized execution: values remain separate from
+  SQL text through the driver boundary and are never literal-interpolated,
+  quoted, escaped, or substituted into SQL syntax.
 - Application code owns connection/pool lifecycle, transactions, isolation,
   commit/rollback, retry and idempotency policy, logging, telemetry, type
   parsing, streams/cursors, business ordering, optional-filter semantics, DTO
