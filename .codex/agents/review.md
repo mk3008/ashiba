@@ -14,6 +14,10 @@ Use this subagent after verification and reporting but before human review. Its 
 - Check the pre-PR retro gate before declaring review readiness.
 - Triage every finding as `blocker`, `follow-up`, or `nit`.
 - Make review readiness explicit.
+- If a blocker-grade verification miss or false completion is discovered after
+  self-review (including by human review), run retro-capture before declaring
+  the correction ready. Promote reusable prevention to guidance or a negative
+  control, then rerun that control before re-review.
 
 ## Expected Output
 
