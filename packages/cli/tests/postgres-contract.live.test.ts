@@ -7,6 +7,7 @@ import path from 'node:path';
 import { derivePostgresQueryContractFromDatabase } from '../src/commands/postgres-contract.js';
 import { runFeatureGeneratedMapperCheck, runFeatureQueryPostgresContract } from '../src/commands/feature.js';
 import { runModelGen } from '../src/commands/model-gen.js';
+import { checkStandalonePostgresContract, writeStandalonePostgresContract } from '../src/commands/standalone-postgres-contract.js';
 
 const databaseUrl =
   process.env.ASHIBA_TEST_DATABASE_URL ??
@@ -427,5 +428,96 @@ describe.skipIf(!databaseUrl)('PostgreSQL-derived query contract live', () => {
     expect(stale.checked[0]?.postgresContractIssues).toEqual([
       'generated/postgres.contract.json is stale; rerun feature query postgres-contract.',
     ]);
+  });
+
+  test('supports standalone canonical SQL without a feature boundary and rejects bigint as number', async () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-standalone-postgres-contract-'));
+    const sqlFile = 'ticket.sql';
+    const contractFile = 'generated/ticket.postgres.contract.json';
+    const typeFile = 'ticket-row.ts';
+    const paramsTypeFile = 'ticket-params.ts';
+    writeFileSync(path.join(rootDir, sqlFile), [
+      'update ashiba_contract_live.events',
+      'set amount = :amount::numeric',
+      'where id = :id::bigint',
+      'returning id, amount, now() as observed_at',
+    ].join('\n'), 'utf8');
+    writeFileSync(path.join(rootDir, paramsTypeFile), [
+      'export interface TicketParams {',
+      '  amount: number;',
+      '  id: string;',
+      '}',
+      '',
+    ].join('\n'), 'utf8');
+    writeFileSync(path.join(rootDir, typeFile), [
+      'export interface TicketRow {',
+      '  id: string | null;',
+      '  amount: string | null;',
+      '  observed_at: Date | null;',
+      '}',
+      '',
+    ].join('\n'), 'utf8');
+    const written = await writeStandalonePostgresContract({
+      rootDir,
+      sqlFile,
+      out: contractFile,
+      databaseUrl: connectionString,
+    });
+    expect(written.contract.database.parameters.map((field) => field.name)).toEqual(['amount', 'id']);
+    expect(written.contract.driver.results).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'id', runtimeType: 'string', typeScriptType: 'string | null' }),
+      expect.objectContaining({ name: 'amount', runtimeType: 'string', typeScriptType: 'string | null' }),
+      expect.objectContaining({ name: 'observed_at', runtimeType: 'Date', typeScriptType: 'Date | null' }),
+    ]));
+    const checkOptions = { rootDir, sqlFile, contract: contractFile, resultTypeFile: typeFile, resultType: 'TicketRow', paramsTypeFile, paramsType: 'TicketParams' };
+    expect(checkStandalonePostgresContract(checkOptions)).toEqual({ ok: true, issues: [] });
+
+    writeFileSync(path.join(rootDir, typeFile), 'export type TicketRow = { id: number; amount: string | null; observed_at: Date | null; };\n', 'utf8');
+    const falseClaim = checkStandalonePostgresContract(checkOptions);
+    expect(falseClaim.ok).toBe(false);
+    expect(falseClaim.issues).toEqual(expect.arrayContaining([
+      expect.stringContaining('id: TypeScript number / node-postgres string'),
+    ]));
+
+    writeFileSync(path.join(rootDir, sqlFile), `${readFileSync(path.join(rootDir, sqlFile), 'utf8')}\n-- stale\n`, 'utf8');
+    expect(checkStandalonePostgresContract(checkOptions).issues)
+      .toContain('PostgreSQL contract is stale; rerun postgres-contract write.');
+  });
+
+  test('rejects wrong standalone parameter types and extra result fields', async () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-standalone-postgres-contract-negative-'));
+    writeFileSync(path.join(rootDir, 'query.sql'), 'select :id::bigint as id\n', 'utf8');
+    writeFileSync(path.join(rootDir, 'row.ts'), 'export interface Row { id: string | null; nonexistent: number; }\n', 'utf8');
+    writeFileSync(path.join(rootDir, 'params.ts'), 'export interface Params { id: number; }\n', 'utf8');
+    await writeStandalonePostgresContract({ rootDir, sqlFile: 'query.sql', out: 'query.contract.json', databaseUrl: connectionString });
+    const checked = checkStandalonePostgresContract({
+      rootDir, sqlFile: 'query.sql', contract: 'query.contract.json',
+      resultTypeFile: 'row.ts', resultType: 'Row', paramsTypeFile: 'params.ts', paramsType: 'Params',
+    });
+    expect(checked.ok).toBe(false);
+    expect(checked.issues).toEqual(expect.arrayContaining([
+      expect.stringContaining('id: TypeScript number / node-postgres input string | bigint | null.'),
+      'nonexistent: extra field in Row; absent from PostgreSQL results.',
+    ]));
+    writeFileSync(path.join(rootDir, 'row.ts'), 'export interface Row { id: string | null; unsupported(): void; }\n', 'utf8');
+    expect(() => checkStandalonePostgresContract({
+      rootDir, sqlFile: 'query.sql', contract: 'query.contract.json',
+      resultTypeFile: 'row.ts', resultType: 'Row', paramsTypeFile: 'params.ts', paramsType: 'Params',
+    })).toThrow('Unsupported syntax in Row');
+  });
+
+  test('checks source staleness for a standalone DML statement with no result row', async () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-standalone-postgres-contract-dml-'));
+    writeFileSync(path.join(rootDir, 'insert.sql'), 'insert into ashiba_contract_live.mutation_probe (id) values (:id::integer)\n', 'utf8');
+    writeFileSync(path.join(rootDir, 'params.ts'), 'export interface Params { id: number; }\n', 'utf8');
+    await writeStandalonePostgresContract({
+      rootDir,
+      sqlFile: 'insert.sql',
+      out: 'generated/insert.postgres.contract.json',
+      databaseUrl: connectionString,
+    });
+    expect((await setup.query('select * from ashiba_contract_live.mutation_probe')).rows).toEqual([]);
+    expect(checkStandalonePostgresContract({ rootDir, sqlFile: 'insert.sql', contract: 'generated/insert.postgres.contract.json', paramsTypeFile: 'params.ts', paramsType: 'Params' }))
+      .toEqual({ ok: true, issues: [] });
   });
 });
