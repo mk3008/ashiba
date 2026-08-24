@@ -5,6 +5,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
+    "verify:postgres-contract": "node ../../packages/cli/dist/index.js postgres-contract check src/tickets/list.sql --contract src/tickets/generated/list.postgres.contract.json --result-type-file src/tickets/types.ts --result-type Ticket --params-type-file src/tickets/types.ts --params-type ListTicketsSqlParams && node ../../packages/cli/dist/index.js postgres-contract check src/tickets/get.sql --contract src/tickets/generated/get.postgres.contract.json --result-type-file src/tickets/types.ts --result-type Ticket --params-type-file src/tickets/types.ts --params-type TicketIdSqlParams && node ../../packages/cli/dist/index.js postgres-contract check src/tickets/assign-ticket.sql --contract src/tickets/generated/assign-ticket.postgres.contract.json --result-type-file src/tickets/types.ts --result-type Ticket --params-type-file src/tickets/types.ts --params-type AssignTicketSqlParams && node ../../packages/cli/dist/index.js postgres-contract check src/tickets/insert-event.sql --contract src/tickets/generated/insert-event.postgres.contract.json --params-type-file src/tickets/types.ts --params-type InsertTicketEventSqlParams",
     "db:up": "docker compose up -d"
   },
   "dependencies": { "pg": "^8.16.3" },

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Pool } from 'pg';
 import { prepareNamedSql } from '../sql.js';
-import type { Ticket } from './types.js';
+import type { AssignTicketSqlParams, InsertTicketEventSqlParams, Ticket } from './types.js';
 
 const updateSql = readFileSync(fileURLToPath(new URL('./assign-ticket.sql', import.meta.url)), 'utf8');
 const eventSql = readFileSync(fileURLToPath(new URL('./insert-event.sql', import.meta.url)), 'utf8');
@@ -10,10 +10,14 @@ export async function assignTicket(pool: Pool, input: { ticketId: string; assign
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const update = prepareNamedSql(updateSql, input);
+    const updateParams: AssignTicketSqlParams = { assigneeId: input.assigneeId, ticketId: input.ticketId };
+    const update = prepareNamedSql(updateSql, updateParams);
     const ticket = (await client.query<Ticket>(update.sql, update.values)).rows[0];
     if (!ticket) throw new Error(`Ticket not found: ${input.ticketId}`);
-    const event = prepareNamedSql(eventSql, { ...input, note: input.note ?? null });
+    const eventParams: InsertTicketEventSqlParams = {
+      ticketId: input.ticketId, actorId: input.actorId, note: input.note ?? null,
+    };
+    const event = prepareNamedSql(eventSql, eventParams);
     await client.query(event.sql, event.values);
     await client.query('COMMIT');
     return ticket;

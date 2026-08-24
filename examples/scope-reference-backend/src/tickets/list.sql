@@ -6,4 +6,4 @@ where (cast(:status as text) is null or t.status = :status)
     or (:assigneeMode = 'unassigned' and t.assignee_id is null)
     or (:assigneeMode = 'assigned' and t.assignee_id = cast(:assigneeId as bigint)))
 order by t.id asc
-limit :limit offset :offset;
+limit cast(:limit as integer) offset cast(:offset as integer);
