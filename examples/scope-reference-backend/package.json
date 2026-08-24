@@ -5,6 +5,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
+    "preverify:postgres-contract": "pnpm --filter @ashiba-ts/cli build",
     "verify:postgres-contract": "node scripts/verify-postgres-contract.mjs",
     "verify": "pnpm typecheck && pnpm test && pnpm verify:postgres-contract",
     "db:up": "docker compose up -d"

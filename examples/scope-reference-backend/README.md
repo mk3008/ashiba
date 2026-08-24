@@ -16,6 +16,7 @@ when `DATABASE_URL` is set. `docker compose up -d` starts the local database.
 
 With `DATABASE_URL` set, `pnpm --filter scope-reference-backend verify` runs
 type checking, the PostgreSQL integration test, then live PostgreSQL-derived
-contract derivation and deterministic TypeScript parameter/result checks for
-`list.sql`, `get.sql`, `assign-ticket.sql`, and `insert-event.sql`. It also
-rejects bigint-as-number result/parameter controls and a stale SQL control.
+contract derivation and deterministic TypeScript parameter checks for all four
+SQL files. It checks the `Ticket` result type for `list.sql`, `get.sql`, and
+`assign-ticket.sql`; `insert-event.sql` has no result type. It also rejects
+bigint-as-number result/parameter controls and a stale SQL control.
