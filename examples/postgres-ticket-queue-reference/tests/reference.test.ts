@@ -2,27 +2,18 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { createPostgresPreparedQuerySource, preparePostgresQuery, type AshibaPostgresQuerySource } from '@ashiba-ts/driver-adapter-pg';
+import { bindNamedParameters } from '@ashiba-ts/named-parameters';
 import { queries } from '../src/generated/queries.js';
-import { assignTicket, getTicket, listTickets, orderTickets } from '../src/tickets.js';
-import type { GetParams, Ticket } from '../src/types.js';
-
-const getQuery = createPostgresPreparedQuerySource<GetParams>(queries.get.sql, {
-  ...queries.get.postgres,
-  sourceHash: queries.get.sourceHash,
-});
+import { assignTicket, getTicket, listTickets, ticketOrderBy } from '../src/tickets.js';
+import type { Ticket } from '../src/types.js';
 
 describe('reference named preparation', () => {
   test('keeps repeated values ordered, rejects missing input, and keeps hostile data out of SQL', async () => {
-    expect(queries.list.postgres.orderedNames).toEqual([
+    expect(queries.list.orderedNames).toEqual([
       'status', 'status', 'customerId', 'customerId', 'assigneeMode',
       'assigneeMode', 'assigneeMode', 'assigneeId', 'limit', 'offset',
     ]);
-    expect(() => preparePostgresQuery(
-      getQuery as AshibaPostgresQuerySource<Record<string, unknown>>,
-      {},
-      { strictParameterNames: true },
-    )).toThrow('Missing SQL parameter');
+    expect(() => bindNamedParameters(queries.get, {}, { strict: true })).toThrow('Missing SQL parameter');
 
     const hostile = "x'); drop table tickets; --";
     const calls: Array<{ sql: string; values: unknown[] }> = [];
@@ -72,23 +63,25 @@ if (!url) {
     });
 
     test('permits only static ordering choices and retains the id tie-breaker', () => {
-      expect(orderTickets(queries.list.postgres.sql, [
+      expect(ticketOrderBy([
         { key: 'priority', direction: 'asc' },
         { key: 'createdAt', direction: 'desc' },
         { key: 'subject', direction: 'asc' },
       ])).toMatch(/subject asc, t\.id asc/);
-      expect(() => orderTickets('select 1', [])).toThrow('stable ticket ordering');
-      expect(() => orderTickets(queries.list.postgres.sql, [
+      expect(() => ticketOrderBy([
         { key: 'priority', direction: 'asc' },
         { key: 'priority', direction: 'desc' },
       ])).toThrow('Duplicate sort key');
-      expect(() => orderTickets(queries.list.postgres.sql, [
+      expect(() => ticketOrderBy([
         { key: 'priority', direction: 'sideways' as 'asc' },
       ])).toThrow('Invalid sort direction');
-      expect(() => orderTickets(queries.list.postgres.sql, [
+      expect(() => ticketOrderBy([
         { key: 'sql' as 'priority', direction: 'asc' },
       ])).toThrow('Invalid sort key');
-      expect(() => orderTickets(queries.list.postgres.sql, [
+      expect(() => ticketOrderBy([
+        { key: 'toString' as 'priority', direction: 'asc' },
+      ])).toThrow('Invalid sort key');
+      expect(() => ticketOrderBy([
         { key: 'priority', direction: 'asc' },
         { key: 'createdAt', direction: 'asc' },
         { key: 'subject', direction: 'asc' },

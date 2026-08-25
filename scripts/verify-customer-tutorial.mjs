@@ -42,6 +42,9 @@ if (!tarballs.has('@ashiba-ts/cli')) {
 if (!tarballs.has('@ashiba-ts/driver-adapter-pg')) {
   throw new Error('Missing @ashiba-ts/driver-adapter-pg tarball.');
 }
+if (!tarballs.has('@ashiba-ts/named-parameters')) {
+  throw new Error('Missing @ashiba-ts/named-parameters tarball.');
+}
 writePackageJson(starterRoot, {
   name: 'ashiba-starter',
   private: true,
@@ -70,6 +73,7 @@ writePackageJson(starterRoot, {
       '@ashiba-ts/cli',
       '@ashiba-ts/driver-adapter-core',
       '@ashiba-ts/driver-adapter-pg',
+      '@ashiba-ts/named-parameters',
       '@ashiba-ts/testkit-adapter-pg',
     ])),
   },

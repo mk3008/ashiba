@@ -9,7 +9,6 @@ import {
   classifyPostgresTransientError,
   compilePostgresQuery,
   createPostgresAdapter,
-  createPostgresPreparedQuerySource,
   isPostgresTransientError,
   preparePostgresQuery,
   type AshibaPostgresQueryModel,
@@ -68,17 +67,6 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       sql: 'select $1::integer as id',
       values: [7],
     });
-  });
-
-  test('creates a minimal source for native execution from precomputed binding metadata', () => {
-    const sourceSql = 'select :id::integer as id';
-    const prepared = preparePostgresQuery(createPostgresPreparedQuerySource(sourceSql, {
-      sourceHash: hashSql(sourceSql),
-      sql: 'select $1::integer as id',
-      orderedNames: ['id'],
-    }), { id: 7 });
-
-    expect(prepared).toMatchObject({ sql: 'select $1::integer as id', values: [7] });
   });
 
   test('keeps hostile named values out of SQL text and passes them separately to native pg', async () => {

@@ -143,9 +143,9 @@ importers:
 
   examples/postgres-ticket-queue-reference:
     dependencies:
-      '@ashiba-ts/driver-adapter-pg':
+      '@ashiba-ts/named-parameters':
         specifier: workspace:*
-        version: link:../../packages/driver-adapter-pg
+        version: link:../../packages/named-parameters
       pg:
         specifier: ^8.16.3
         version: 8.21.0
@@ -168,6 +168,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@ashiba-ts/named-parameters':
+        specifier: workspace:*
+        version: link:../named-parameters
       commander:
         specifier: ^12.0.0
         version: 12.1.0
@@ -269,6 +272,15 @@ importers:
       pg:
         specifier: ^8.21.0
         version: 8.21.0
+
+  packages/named-parameters:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.18.7
+      vitest:
+        specifier: ^4.1.7
+        version: 4.1.7(@types/node@22.18.7)(vite@6.4.3(@types/node@22.18.7)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
 
   packages/testkit-adapter-pg:
     dependencies:

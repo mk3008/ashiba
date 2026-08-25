@@ -3,14 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "pnpm --filter @ashiba-ts/cli build && node scripts/generate.mjs",
+    "generate": "pnpm --filter @ashiba-ts/named-parameters build && pnpm --filter @ashiba-ts/cli build && node scripts/generate.mjs",
     "check:generated": "pnpm generate && git diff --exit-code -- src/generated",
-    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/driver-adapter-pg build && tsc --noEmit -p tsconfig.json",
+    "typecheck": "pnpm --filter @ashiba-ts/named-parameters build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "verify:contract": "pnpm --filter @ashiba-ts/cli build && node scripts/verify-contract.mjs",
+    "verify:contract": "pnpm --filter @ashiba-ts/named-parameters build && pnpm --filter @ashiba-ts/cli build && node scripts/verify-contract.mjs",
     "verify": "pnpm typecheck && pnpm check:generated && pnpm test && pnpm verify:contract",
     "db:up": "docker compose up -d"
   },
-  "dependencies": { "@ashiba-ts/driver-adapter-pg": "workspace:*", "pg": "^8.16.3" },
+  "dependencies": { "@ashiba-ts/named-parameters": "workspace:*", "pg": "^8.16.3" },
   "devDependencies": { "@ashiba-ts/cli": "workspace:*", "@types/node": "^22.13.10", "@types/pg": "^8.15.5", "typescript": "^5.9.3", "vitest": "^4.1.7" }
 }

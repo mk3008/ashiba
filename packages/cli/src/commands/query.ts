@@ -21,7 +21,7 @@ import type {
   SssqlScaffoldSpec as OptionalConditionScaffoldSpec,
 } from 'rawsql-ts';
 import { LexemeCursor, SqlFormatter, SqlParser, type Lexeme } from 'rawsql-ts';
-import { compileNamedParameters } from '../parameter-metadata.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 import { loadSqlFormatOptions } from '../sql-format.js';
 import { loadProjectPathConfig } from './config.js';
 import {

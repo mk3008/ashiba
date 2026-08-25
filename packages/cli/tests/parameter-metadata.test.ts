@@ -3,7 +3,7 @@ import {
   buildPostgresOptionalConditionCompressionBindingMetadata,
   buildPostgresSafeSortBindingMetadata,
 } from '../src/commands/model-gen.js';
-import { compileNamedParameters } from '../src/parameter-metadata.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 
 describe('CLI parameter metadata generation', () => {
   test('compiles colon parameters for postgres metadata', () => {

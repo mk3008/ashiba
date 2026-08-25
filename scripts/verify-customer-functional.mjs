@@ -74,6 +74,7 @@ function verifyPostgresCustomer(port) {
       '@ashiba-ts/cli',
       '@ashiba-ts/driver-adapter-core',
       '@ashiba-ts/driver-adapter-pg',
+      '@ashiba-ts/named-parameters',
       '@ashiba-ts/testkit-adapter-pg',
     ]),
   });
@@ -111,6 +112,7 @@ function verifyMysql2Customer(port) {
       '@ashiba-ts/cli',
       '@ashiba-ts/driver-adapter-core',
       '@ashiba-ts/driver-adapter-mysql2',
+      '@ashiba-ts/named-parameters',
     ]),
   });
   writeFunctionalSqlFiles(root);
@@ -137,6 +139,7 @@ function verifyMssqlCustomer(port) {
       '@ashiba-ts/cli',
       '@ashiba-ts/driver-adapter-core',
       '@ashiba-ts/driver-adapter-mssql',
+      '@ashiba-ts/named-parameters',
     ]),
   });
   writeFunctionalSqlFiles(root);

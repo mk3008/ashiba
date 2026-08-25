@@ -1,6 +1,5 @@
 services:
   postgres:
     image: postgres:16
-    network_mode: bridge
     environment: { POSTGRES_DB: ticket_queue, POSTGRES_USER: ticket_queue, POSTGRES_PASSWORD: ticket_queue }
     ports: ["55435:5432"]

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { Command } from 'commander';
-import { compileNamedParameters } from '../parameter-metadata.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 import { normalizeSqlSource } from '../sql-source.js';
 import { buildQueryResultColumnContracts } from './model-gen.js';
 import { extractSqlResultColumnAstItems } from './sql-result-columns.js';

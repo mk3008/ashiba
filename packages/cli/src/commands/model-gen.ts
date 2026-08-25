@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { Command } from 'commander';
-import { compileNamedParameters } from '../parameter-metadata.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 import { BinarySelectQuery, ColumnReference, DeleteQuery, FunctionCall, InsertQuery, SimpleSelectQuery, SqlParser, SubQuerySource, TableSource, UpdateQuery, ValuesQuery, type SelectItem, type SourceExpression } from 'rawsql-ts';
 import { loadDdlSchemaModel, type DdlSchemaColumn, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
 import { extractSqlResultColumnAstItems, extractSqlResultColumnContracts, type SqlResultColumnContract } from './sql-result-columns.js';

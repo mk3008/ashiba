@@ -19,23 +19,26 @@ integration tests.
 ## Execution path
 
 The build-time generator reads the canonical `.sql` files and produces one
-checked-in TypeScript module containing canonical SQL, a source hash, PostgreSQL
-`$n` SQL, and ordered parameter names. At runtime the application calls
-`preparePostgresQuery`, then gives the resulting SQL and separate values directly
-to `pg`:
+checked-in TypeScript module containing PostgreSQL `$n` SQL and ordered parameter
+names. At runtime the application binds those names to values, then gives the
+result directly to `pg`:
 
 ```ts
-const prepared = preparePostgresQuery(query, params, { strictParameterNames: true });
+const prepared = bindNamedParameters(query, params, { strict: true });
 const result = await pool.query(prepared.sql, [...prepared.values]);
 ```
 
 `pg` owns pool acquisition and the assignment/audit transaction. The application
 owns the small, static ordering allowlist; all application-supplied values remain
 separate from SQL text. No value is interpolated, quoted, or escaped into SQL.
+The canonical SQL and generated-artifact drift check are build-time evidence,
+not runtime inputs.
 
 ## Evidence included
 
-- All list, get, assign, and audit SQL has a real PostgreSQL-derived contract.
+- All list, get, assign, and audit SQL receives a real PostgreSQL-derived
+  contract during verification; verbose database snapshots are temporary rather
+  than committed application artifacts.
 - Contracts compare named parameter and result TypeScript types with the default
   node-postgres representation (`bigint` results are `string`, not `number`).
 - The contract gate rejects stale SQL plus false `bigint → number` result and

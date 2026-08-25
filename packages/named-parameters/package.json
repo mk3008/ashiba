@@ -1,0 +1,30 @@
+{
+  "name": "@ashiba-ts/named-parameters",
+  "version": "0.1.0",
+  "description": "Minimal runtime binding for precompiled named SQL parameters.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mk3008/ashiba"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./compiler": "./dist/compiler.js"
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "vitest": "^4.1.7"
+  },
+  "engines": { "node": ">=20" },
+  "license": "MIT",
+  "publishConfig": { "access": "public" }
+}

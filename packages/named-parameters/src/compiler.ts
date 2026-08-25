@@ -19,6 +19,10 @@ const defaultOptions: Required<CompileNamedParametersOptions> = {
   placeholderStyle: 'postgres',
 };
 
+/**
+ * Lowers canonical named parameters without rewriting values or recognised SQL
+ * syntax. It belongs to the build path; runtime code receives only the output.
+ */
 export function compileNamedParameters(
   sql: string,
   options: CompileNamedParametersOptions = {},
@@ -141,7 +145,6 @@ export function compileNamedParameters(
     }
 
     const isParameterStart = (canUseColon && current === ':' && !isColonCast) || (canUseAt && current === '@');
-
     if (isParameterStart && isNameStart(next)) {
       let end = index + 2;
       while (end < sql.length && isNamePart(sql[end] ?? '')) end += 1;
@@ -155,10 +158,7 @@ export function compileNamedParameters(
     output += current;
   }
 
-  return {
-    sql: output,
-    orderedNames,
-  };
+  return { sql: output, orderedNames };
 }
 
 function renderPlaceholder(style: PlaceholderStyle, position: number, name: string): string {

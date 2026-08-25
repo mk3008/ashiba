@@ -1,22 +1,12 @@
-import { createPostgresPreparedQuerySource, preparePostgresQuery, type AshibaPostgresQuerySource } from '@ashiba-ts/driver-adapter-pg';
+import { bindNamedParameters, type PreparedNamedSql } from '@ashiba-ts/named-parameters';
 import type { Pool } from 'pg';
 import { queries } from './generated/queries.js';
 import type { AssignParams, AuditParams, GetParams, ListParams, Ticket } from './types.js';
 
-type Query<P extends object> = AshibaPostgresQuerySource<P>;
-
-const query = <P extends object>(entry: typeof queries[keyof typeof queries]): Query<P> => ({
-  ...createPostgresPreparedQuerySource<P>(entry.sql, {
-    sourceHash: entry.sourceHash,
-    sql: entry.postgres.sql,
-    orderedNames: entry.postgres.orderedNames,
-  }),
-});
-
-const listQuery = query<ListParams>(queries.list);
-const getQuery = query<GetParams>(queries.get);
-const assignQuery = query<AssignParams>(queries.assign);
-const auditQuery = query<AuditParams>(queries.audit);
+const listQuery: PreparedNamedSql = queries.list;
+const getQuery: PreparedNamedSql = queries.get;
+const assignQuery: PreparedNamedSql = queries.assign;
+const auditQuery: PreparedNamedSql = queries.audit;
 
 const order = {
   priority: "case t.priority when 'urgent' then 1 when 'normal' then 2 when 'low' then 3 else 4 end",
@@ -26,19 +16,25 @@ const order = {
 
 export type Sort = { key: keyof typeof order; direction: 'asc' | 'desc' };
 
-export function orderTickets(sql: string, sort: readonly Sort[] = []): string {
+export function ticketOrderBy(sort: readonly Sort[] = []): string {
   if (sort.length > 3) throw new Error('At most three sort keys are allowed.');
   const seen = new Set<string>();
   const terms = sort.map(({ key, direction }) => {
-    if (!(key in order)) throw new Error('Invalid sort key.');
+    // Business-owned finite allowlist: inherited keys are never valid input.
+    if (!Object.hasOwn(order, key)) throw new Error('Invalid sort key.');
     if (direction !== 'asc' && direction !== 'desc') throw new Error('Invalid sort direction.');
     if (seen.has(key)) throw new Error('Duplicate sort key.');
     seen.add(key);
     return `${order[key]} ${direction}`;
   });
 
-  if (!sql.includes('order by t.id asc')) throw new Error('Expected stable ticket ordering is missing.');
-  return sql.replace('order by t.id asc', `order by ${[...terms, 't.id asc'].join(', ')}`);
+  return `order by ${[...terms, 't.id asc'].join(', ')}`;
+}
+
+function orderedListSql(sort: readonly Sort[] = []): string {
+  const anchor = 'order by t.id asc';
+  if (!listQuery.sql.includes(anchor)) throw new Error('Expected stable ticket ordering is missing.');
+  return listQuery.sql.replace(anchor, ticketOrderBy(sort));
 }
 
 export async function listTickets(
@@ -60,12 +56,12 @@ export async function listTickets(
     limit: input.limit ?? 50,
     offset: input.offset ?? 0,
   };
-  const prepared = preparePostgresQuery(listQuery, params, { strictParameterNames: true });
-  return (await pool.query<Ticket>(orderTickets(prepared.sql, input.sort), [...prepared.values])).rows;
+  const prepared = bindNamedParameters(listQuery, params, { strict: true });
+  return (await pool.query<Ticket>(orderedListSql(input.sort), [...prepared.values])).rows;
 }
 
 export async function getTicket(pool: Pool, id: string): Promise<Ticket | undefined> {
-  const prepared = preparePostgresQuery(getQuery, { id }, { strictParameterNames: true });
+  const prepared = bindNamedParameters(getQuery, { id }, { strict: true });
   return (await pool.query<Ticket>(prepared.sql, [...prepared.values])).rows[0];
 }
 
@@ -77,19 +73,15 @@ export async function assignTicket(
 
   try {
     await client.query('BEGIN');
-    const assigned = preparePostgresQuery(
-      assignQuery,
-      { ticketId: input.ticketId, assigneeId: input.assigneeId },
-      { strictParameterNames: true },
-    );
+    const assigned = bindNamedParameters(assignQuery, { ticketId: input.ticketId, assigneeId: input.assigneeId }, { strict: true });
     const ticket = (await client.query<Ticket>(assigned.sql, [...assigned.values])).rows[0];
     if (!ticket) throw new Error('Ticket not found.');
 
-    const audit = preparePostgresQuery(
-      auditQuery,
-      { ticketId: input.ticketId, actorId: input.actorId, note: input.note ?? null },
-      { strictParameterNames: true },
-    );
+    const audit = bindNamedParameters(auditQuery, {
+      ticketId: input.ticketId,
+      actorId: input.actorId,
+      note: input.note ?? null,
+    }, { strict: true });
     await client.query(audit.sql, [...audit.values]);
     await client.query('COMMIT');
     return ticket;
