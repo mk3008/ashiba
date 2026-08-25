@@ -14,7 +14,7 @@ Start with the repository README for the full SQL-first workflow:
 
 ## What This Package Owns
 
-It owns named parameter binding, parameter contract checks, logger-ready execution events, metadata-backed optional-condition compression, metadata-backed safe sort rendering, and PostgreSQL transient-error classification for caller-owned retry policies. It does not own transactions, business SQL, ORM behavior, relation loading, lazy loading, unit of work, SAGA/compensation workflows, hidden automatic retry, or DDL pull.
+It consumes shared `@ashiba-ts/named-parameters` binding metadata, then owns PostgreSQL-specific parameter contract checks, logger-ready execution events, metadata-backed optional-condition compression, metadata-backed safe sort rendering, and transient-error classification for caller-owned retry policies. It does not own transactions, business SQL, ORM behavior, relation loading, lazy loading, unit of work, SAGA/compensation workflows, hidden automatic retry, or DDL pull.
 
 Application code supplies SQL text and query-model metadata to the adapter.
 Loading, bundling, embedding, and optional source-path provenance are
@@ -23,7 +23,7 @@ The adapter still passes a SQL string to the wrapped `pg` client internally, but
 it does not expose an `execute(sql: string, ...)` convenience boundary for
 arbitrary runtime SQL input.
 
-The adapter verifies the source SQL hash and uses CLI-generated Postgres SQL plus ordered parameter names. If metadata is absent or stale, execution fails before the wrapped driver is called.
+The adapter verifies the source SQL hash and uses CLI-generated indexed PostgreSQL SQL plus its `parameterNames` identity list. Binding is performed by the shared package; the adapter never parses or rewrites canonical SQL at runtime. If metadata is absent or stale, execution fails before the wrapped driver is called.
 
 When query metadata includes an optional PostgreSQL-derived contract, the
 adapter also rejects a stale contract and a declared driver representation

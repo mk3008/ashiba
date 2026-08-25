@@ -79,8 +79,6 @@ export type AshibaPostgresExecuteOptions = {
   optionalConditionCompression?: boolean;
   sortProfile?: AshibaSortProfile;
   sort?: readonly AshibaSortInput[];
-  /** Reject unused parameter keys; Candidate B leaves this off by default. */
-  strictParameterNames?: boolean;
 };
 
 /**
@@ -102,7 +100,7 @@ export type AshibaPostgresCompiledQuery = {
   canonicalSql: string;
   sourceSql: string;
   sql: string;
-  orderedNames: readonly string[];
+  parameterNames: readonly string[];
   values: readonly unknown[];
   sourceHash?: string;
   transformations: {
@@ -235,14 +233,11 @@ export function createPostgresAdapter(
       const executionId = randomUUID();
       let sourceSql = sql;
       let compiledSql = sql;
-      let bound: { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } | undefined;
+      let bound: { sql: string; parameterNames: readonly string[]; values: readonly unknown[] } | undefined;
 
       try {
         validateDriverProfile(query, options.driverProfile ?? 'node-postgres-default');
-        const compiled = preparePostgresQuery(query, params, {
-          ...executeOptions,
-          strictParameterNames: executeOptions.strictParameterNames ?? true,
-        });
+        const compiled = preparePostgresQuery(query, params, executeOptions);
         sourceSql = compiled.sourceSql;
         compiledSql = compiled.sql;
         bound = compiled;
@@ -254,7 +249,7 @@ export function createPostgresAdapter(
           ...(warnings.length > 0 ? { warnings } : {}),
           sourceSql,
           compiledSql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bound.parameterNames,
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
         });
@@ -267,7 +262,7 @@ export function createPostgresAdapter(
           ...(warnings.length > 0 ? { warnings } : {}),
           sourceSql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bound.parameterNames,
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
           elapsedMs: Date.now() - startedAt,
@@ -284,7 +279,7 @@ export function createPostgresAdapter(
           ...(bound
             ? {
               compiledSql: bound.sql,
-              orderedNames: bound.orderedNames,
+              parameterNames: bound.parameterNames,
               maskedParams: maskParams(bound.values, options.maskPolicy),
               ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
             }
@@ -330,7 +325,7 @@ export function preparePostgresQuery<Query extends AnyAshibaPostgresQuerySource>
     canonicalSql: normalizeSqlSource(query.sql),
     sourceSql,
     sql,
-    orderedNames: prepared.orderedNames,
+    parameterNames: prepared.parameterNames,
     values: prepared.values,
     sourceHash: query.queryModel.analysis.sourceHash,
     transformations: {
@@ -351,10 +346,7 @@ export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>
   params: AshibaQueryParams<Query>,
   options: AshibaPostgresExecuteOptions = {},
 ): AshibaPostgresPreparedQuery {
-  return preparePostgresQuery(query, params, {
-    ...options,
-    strictParameterNames: options.strictParameterNames ?? true,
-  });
+  return preparePostgresQuery(query, params, options);
 }
 
 /**
@@ -414,7 +406,7 @@ function preparePostgresExecution(
 ): {
   sourceSql: string;
   sql: string;
-  orderedNames: readonly string[];
+  parameterNames: readonly string[];
   values: readonly unknown[];
   sourceRewriteRanges: readonly TextEdit[];
   compiledRewriteRanges: readonly TextEdit[];
@@ -429,17 +421,18 @@ function preparePostgresExecution(
   const compiled = compression
     ? {
       sql: compression.compiledSql,
-      orderedNames: compression.orderedNames,
+      style: 'indexed' as const,
+      parameterNames: compression.parameterNames,
     }
     : {
       sql: precomputed.sql,
-      orderedNames: [...precomputed.orderedNames],
+      style: 'indexed' as const,
+      parameterNames: [...precomputed.parameterNames],
     };
   const bound = bindCompiledNamedParameters(
     compiled,
     params,
     compression?.compressedParameterNames,
-    options.strictParameterNames === true,
   );
   return {
     sourceSql: compression?.sourceSql ?? sourceSql,
@@ -489,16 +482,14 @@ function validateDriverProfile(
 }
 
 function bindCompiledNamedParameters(
-  compiled: { sql: string; orderedNames: readonly string[] },
+  compiled: { style: 'indexed'; sql: string; parameterNames: readonly string[] },
   params: Readonly<Record<string, unknown>>,
   allowedUnusedNames: ReadonlySet<string> = new Set(),
-  strictParameterNames = false,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
+): Extract<ReturnType<typeof bindNamedParameters>, { style: 'indexed' }> {
   try {
     return bindNamedParameters(compiled, params, {
-      strict: strictParameterNames,
       allowedUnusedNames,
-    });
+    }) as Extract<ReturnType<typeof bindNamedParameters>, { style: 'indexed' }>;
   } catch (error) {
     if (error instanceof NamedParameterError) {
       throw new AshibaParameterError(error.code, error.parameterNames);
@@ -514,7 +505,7 @@ function applyOptionalConditionCompression(
 ): {
   sourceSql: string;
   compiledSql: string;
-  orderedNames: readonly string[];
+  parameterNames: readonly string[];
   compressedParameterNames: ReadonlySet<string>;
   sourceRewriteRanges: readonly TextEdit[];
   compiledRewriteRanges: readonly TextEdit[];
@@ -578,7 +569,7 @@ function applyOptionalConditionCompression(
     return {
       sourceSql: query.sql,
       compiledSql: precomputed.sql,
-      orderedNames: [...precomputed.orderedNames],
+      parameterNames: [...precomputed.parameterNames],
       compressedParameterNames: new Set(),
       sourceRewriteRanges: [],
       compiledRewriteRanges: [],
@@ -637,12 +628,12 @@ function applyOptionalConditionCompression(
   ]);
   const sourceSql = rewriteTextRanges(query.sql, sourceRewriteRanges);
   const compressedCompiledSql = rewriteTextRanges(precomputed.sql, compiledRewriteRanges);
-  const renumbered = renumberPostgresPlaceholders(compressedCompiledSql, precomputed.orderedNames);
+  const renumbered = renumberPostgresPlaceholders(compressedCompiledSql, precomputed.parameterNames);
 
   return {
     sourceSql,
     compiledSql: renumbered.sql,
-    orderedNames: renumbered.orderedNames,
+    parameterNames: renumbered.parameterNames,
     compressedParameterNames: new Set(activeBranches.map((branch) => branch.source.parameterName)),
     sourceRewriteRanges,
     compiledRewriteRanges,
@@ -765,10 +756,10 @@ function adjustInsertionForRewriteRanges<T extends { index: number; end?: number
 
 function renumberPostgresPlaceholders(
   sql: string,
-  originalOrderedNames: readonly string[],
-): { sql: string; orderedNames: readonly string[]; rewriteRanges: readonly TextEdit[] } {
+  originalParameterNames: readonly string[],
+): { sql: string; parameterNames: readonly string[]; rewriteRanges: readonly TextEdit[] } {
   let output = '';
-  const orderedNames: string[] = [];
+  const parameterNames: string[] = [];
   const rewriteRanges: TextEdit[] = [];
   let cursor = 0;
   let quote: '"' | "'" | undefined;
@@ -836,7 +827,7 @@ function renumberPostgresPlaceholders(
       let end = index + 2;
       while (isDigit(sql[end] ?? '')) end += 1;
       const originalIndex = Number(sql.slice(index + 1, end));
-      const name = originalOrderedNames[originalIndex - 1];
+      const name = originalParameterNames[originalIndex - 1];
       if (!name) {
         throw new AshibaPostgresQueryModelError(
           'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_STALE',
@@ -844,8 +835,8 @@ function renumberPostgresPlaceholders(
         );
       }
       output += sql.slice(cursor, index);
-      orderedNames.push(name);
-      const replacement = `$${orderedNames.length}`;
+      if (!parameterNames.includes(name)) parameterNames.push(name);
+      const replacement = `$${parameterNames.indexOf(name) + 1}`;
       output += replacement;
       rewriteRanges.push({
         start: index,
@@ -858,7 +849,7 @@ function renumberPostgresPlaceholders(
   }
 
   output += sql.slice(cursor);
-  return { sql: output, orderedNames, rewriteRanges };
+  return { sql: output, parameterNames, rewriteRanges };
 }
 
 function getSortInsertion(

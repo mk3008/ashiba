@@ -35,6 +35,13 @@ export const queryModel = {
       "name",
       "tier"
     ],
+    "resultColumnOrder": [
+      "customer_id",
+      "name",
+      "tier",
+      "locale",
+      "created_at"
+    ],
     "resultColumnTypes": {
       "created_at": "string",
       "customer_id": "string",
@@ -72,8 +79,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:1ab9c8fcb8b7803f52f62682c7e9c59afef6352d049d78be4a6ee0a5cf4a5c76",
+      "style": "indexed",
       "sql": "select\n    customer_id\n    , name\n    , tier\n    , locale\n    , created_at\nfrom\n    public.customers\norder by\n    customer_id\nlimit\n    $1;\n",
-      "orderedNames": [
+      "parameterNames": [
         "limit"
       ],
       "safeSortInsertion": {

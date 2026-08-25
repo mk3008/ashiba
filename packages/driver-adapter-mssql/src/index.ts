@@ -8,7 +8,7 @@ import {
   maskParams,
   normalizeError,
 } from '@ashiba-ts/driver-adapter-core';
-import { bindNamedParameters, NamedParameterError } from '@ashiba-ts/named-parameters';
+import { bindNamedParameters, bindingParameterNames, NamedParameterError, type ParameterBinding } from '@ashiba-ts/named-parameters';
 
 /**
  * Minimal mssql-compatible query result consumed by the adapter.
@@ -127,7 +127,7 @@ export function createMssqlAdapter(
     ): Promise<MssqlQueryResult<Row>> {
       const metadata = { ...query.metadata, sqlPath: query.metadata?.sqlPath ?? query.sqlPath, dialect: 'sqlserver' };
       const startedAt = Date.now();
-      let bound: { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } | undefined;
+      let bound: ReturnType<typeof bindNamedParameters> | undefined;
 
       try {
         bound = prepareMssqlExecution(query, params);
@@ -136,13 +136,14 @@ export function createMssqlAdapter(
           metadata,
           sourceSql: query.sql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bindingParameterNames(bound),
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
         });
 
         const request = factory.request<Row>();
-        for (const name of bound.orderedNames) {
+        if (bound.style !== 'named') throw new AshibaMssqlQueryModelError('ASHIBA_BINDING_METADATA_REQUIRED', 'mssql execution requires named binding metadata.');
+        for (const name of bound.parameterNames) {
           request.input(name, params[name]);
         }
         const result = await request.query(bound.sql);
@@ -151,7 +152,7 @@ export function createMssqlAdapter(
           metadata,
           sourceSql: query.sql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bindingParameterNames(bound),
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
           elapsedMs: Date.now() - startedAt,
@@ -166,7 +167,7 @@ export function createMssqlAdapter(
           ...(bound
             ? {
               compiledSql: bound.sql,
-              orderedNames: bound.orderedNames,
+              parameterNames: bindingParameterNames(bound),
               maskedParams: maskParams(bound.values, options.maskPolicy),
               ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
             }
@@ -183,7 +184,7 @@ export function createMssqlAdapter(
 function prepareMssqlExecution(
   query: AshibaMssqlQuerySource,
   params: Readonly<Record<string, unknown>>,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
+): ReturnType<typeof bindNamedParameters> {
   const binding = query.queryModel.bindings?.mssql;
   if (!binding) {
     throw new AshibaMssqlQueryModelError(
@@ -203,11 +204,11 @@ function prepareMssqlExecution(
 }
 
 function bindCompiledNamedParameters(
-  compiled: { sql: string; orderedNames: readonly string[] },
+  compiled: ParameterBinding,
   params: Readonly<Record<string, unknown>>,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
+): ReturnType<typeof bindNamedParameters> {
   try {
-    return bindNamedParameters(compiled, params, { strict: true });
+    return bindNamedParameters(compiled, params);
   } catch (error) {
     if (error instanceof NamedParameterError) {
       throw new AshibaMssqlParameterError(error.code, error.parameterNames);

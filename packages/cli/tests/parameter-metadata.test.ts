@@ -49,10 +49,10 @@ describe('CLI parameter metadata generation', () => {
         presentReplacement: { start: branchStart, end: branchStart + branch.length, text: 'status = :status' },
       }],
     });
-    const compiled = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
+    const compiled = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
     const safeSort = buildPostgresSafeSortBindingMetadata(sql, { insertion: { status: 'ready', index: sql.indexOf('order by') }, sortable: {} });
 
-    expect(compiled.orderedNames).toEqual(['tenant_id', 'status', 'status', 'limit']);
+    expect(compiled.parameterNames).toEqual(['tenant_id', 'status', 'limit']);
     expect(optional.optionalConditionCompression?.branches[0]?.presentReplacement.text).toBe('status = $2');
     expect(safeSort.safeSortInsertion).toEqual({ index: compiled.sql.indexOf('order by') });
   });

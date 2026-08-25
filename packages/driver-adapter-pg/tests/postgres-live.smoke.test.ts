@@ -38,7 +38,7 @@ describe.skipIf(!databaseUrl)('@ashiba-ts/driver-adapter-pg live PostgreSQL smok
             postgres: {
               sourceHash: hashSql(sourceSql),
               sql: 'select $1::int as value',
-              orderedNames: ['value'],
+              parameterNames: ['value'],
             },
           },
         },
@@ -58,7 +58,7 @@ describe.skipIf(!databaseUrl)('@ashiba-ts/driver-adapter-pg live PostgreSQL smok
 
       const compiled = compilePostgresQuery(source, { value: 7 });
       expect(compiled.canonicalSql).toBe(sourceSql);
-      expect(compiled.orderedNames).toEqual(['value']);
+      expect(compiled.parameterNames).toEqual(['value']);
       expect(compiled.values).toEqual([7]);
       const explain = await client.query(`explain ${compiled.sql}`, [...compiled.values]);
       expect(explain.rows.length).toBeGreaterThan(0);
@@ -78,7 +78,7 @@ describe.skipIf(!databaseUrl)('@ashiba-ts/driver-adapter-pg live PostgreSQL smok
             postgres: {
               sourceHash: hashSql(countSql),
               sql: countSql,
-              orderedNames: [],
+              parameterNames: [],
             },
           },
         },
@@ -183,7 +183,7 @@ describe.skipIf(!databaseUrl)('@ashiba-ts/driver-adapter-pg live PostgreSQL smok
 function liveSource<Params extends object, Row>(
   sql: string,
   compiledSql: string,
-  orderedNames: readonly string[],
+  parameterNames: readonly string[],
   sqlPath: string,
 ): AshibaPostgresQuerySource<Params, Row> {
   return {
@@ -200,7 +200,7 @@ function liveSource<Params extends object, Row>(
         postgres: {
           sourceHash: hashSql(sql),
           sql: compiledSql,
-          orderedNames,
+          parameterNames,
         },
       },
     },

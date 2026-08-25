@@ -22,6 +22,14 @@ export const queryModel = {
       "sender_role",
       "ticket_id"
     ],
+    "resultColumnOrder": [
+      "message_id",
+      "ticket_id",
+      "sender_name",
+      "sender_role",
+      "body",
+      "created_at"
+    ],
     "resultColumnTypes": {
       "body": "string",
       "created_at": "string",
@@ -69,8 +77,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:5128087066ffa331539555443048721834b857c262b3e349074ed79cfe74158f",
+      "style": "indexed",
       "sql": "insert into public.ticket_messages(\n    ticket_id\n    , sender_name\n    , sender_role\n    , body\n    , created_at\n)\nvalues\n    ($1, $2, $3, $4, $5)\nreturning\n    message_id\n    , ticket_id\n    , sender_name\n    , sender_role\n    , body\n    , created_at;\n",
-      "orderedNames": [
+      "parameterNames": [
         "ticket_id",
         "sender_name",
         "sender_role",

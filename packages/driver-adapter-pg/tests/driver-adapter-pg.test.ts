@@ -27,9 +27,9 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     const sourceSql = 'select :id::integer as id where :id::integer = :id::integer';
     const query = querySource(sourceSql, queryModelFor(sourceSql, {
       sql: 'select $1::integer as id where $2::integer = $3::integer',
-      orderedNames: ['id', 'id', 'id'],
+      parameterNames: ['id', 'id', 'id'],
     }));
-    const prepared = preparePostgresQuery(query, { id: 7, tracing: true });
+    const prepared = preparePostgresQuery(query, { id: 7 });
     const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
     const client: NodePostgresQueryable = {
       async query(sql, values) {
@@ -43,11 +43,11 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(prepared).toMatchObject({
       sourceHash: hashSql(sourceSql),
       sql: 'select $1::integer as id where $2::integer = $3::integer',
-      orderedNames: ['id', 'id', 'id'],
+      parameterNames: ['id', 'id', 'id'],
       values: [7, 7, 7],
     });
     expect(calls).toEqual([{ sql: prepared.sql, values: [7, 7, 7] }]);
-    expect(() => preparePostgresQuery(query, { id: 7, tracing: true }, { strictParameterNames: true }))
+    expect(() => preparePostgresQuery(query, { id: 7, tracing: true }))
       .toThrow(AshibaParameterError);
     expect(() => preparePostgresQuery({ ...query, sql: sourceSql + ' -- edited' }, { id: 7 }))
       .toThrow(/different source SQL/i);
@@ -59,7 +59,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       sql: sourceSql,
       queryModel: queryModelFor(sourceSql, {
         sql: 'select $1::integer as id',
-        orderedNames: ['id'],
+        parameterNames: ['id'],
       }),
     }, { id: 7 });
 
@@ -82,7 +82,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await createPostgresAdapter(client).execute(querySource(sourceSql, queryModelFor(sourceSql, {
       sql: 'select $1::text as name',
-      orderedNames: ['name'],
+      parameterNames: ['name'],
     })), { name: hostileValue }, {});
 
     expect(calls).toEqual([{ sql: 'select $1::text as name', values: [hostileValue] }]);
@@ -105,9 +105,9 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
       const source = querySource(sourceSql, { analysis: generated.analysis, bindings: generated.bindings });
 
       expect(compilePostgresQuery(source, { id: 7 })).toMatchObject({
-        sql: 'select $1::integer as id\n/* outer /* nested :not_a_parameter */ outer */\nwhere $2::integer = $3::integer',
-        orderedNames: ['id', 'id', 'id'],
-        values: [7, 7, 7],
+        sql: 'select $1::integer as id\n/* outer /* nested :not_a_parameter */ outer */\nwhere $1::integer = $1::integer',
+        parameterNames: ['id'],
+        values: [7],
       });
       expect(() => compilePostgresQuery({ ...source, sql: sourceSql + '\n-- edited' }, { id: 7 }))
         .toThrow(/different source SQL/i);
@@ -156,7 +156,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     const result = await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
         sql: 'select * from users where id = $1',
-        orderedNames: ['id'],
+        parameterNames: ['id'],
       })), { id: 1 },{});
 
     expect(result.rows).toEqual([{ user_id: 1 }]);
@@ -185,7 +185,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
             postgres: {
               sourceHash: hashSql(sourceSql),
               sql: 'select * from users where id = $1 and status = $2',
-              orderedNames: ['id', 'status'],
+              parameterNames: ['id', 'status'],
             },
           },
         }),
@@ -223,7 +223,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
         postgres: {
           sourceHash: hashSql(sourceSql),
           sql: 'select *\nfrom users\nwhere id = $1\n',
-          orderedNames: ['id'],
+          parameterNames: ['id'],
         },
       },
     }), { id: 1 }, {});
@@ -253,7 +253,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
             postgres: {
               sourceHash: hashSql('select * from other_users where id = :id'),
               sql: 'select * from other_users where id = $1',
-              orderedNames: ['id'],
+              parameterNames: ['id'],
             },
           },
         }),
@@ -275,7 +275,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
     const queryModel = queryModelFor(sourceSql, {
       sql: 'select $1::integer as id',
-      orderedNames: ['id'],
+      parameterNames: ['id'],
       contract: contractFor(hashSql('select :other::integer as id')),
     });
 
@@ -296,7 +296,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client, { driverProfile: 'custom:application-v2' });
     const queryModel = queryModelFor(sourceSql, {
       sql: 'select $1::integer as id',
-      orderedNames: ['id'],
+      parameterNames: ['id'],
       contract: contractFor(hashSql(sourceSql), 'node-postgres-default'),
     });
 
@@ -353,7 +353,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     const sourceSql = 'select :secret';
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
         sql: 'select $1',
-        orderedNames: ['secret'],
+        parameterNames: ['secret'],
       })), { secret: 'value' },{
       metadata: { queryId: 'q1' }});
 
@@ -385,7 +385,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await expect(adapter.execute(querySource('select :id', queryModelFor('select :id', {
           sql: 'select $1',
-          orderedNames: ['id'],
+          parameterNames: ['id'],
         })),
       {},{
         metadata: { queryId: 'users.get', sqlPath: 'src/features/users/queries/get/get.sql' }},
@@ -426,7 +426,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'status', 'status'],
+          parameterNames: ['tenant_id', 'status', 'status'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or status = $3)'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)'),
@@ -455,7 +455,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'keyword', 'keyword'],
+          parameterNames: ['tenant_id', 'keyword', 'keyword'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'keyword', "and ($2 is null or users.email ilike '%' || $3 || '%')"),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'keyword', "and (:keyword is null or users.email ilike '%' || :keyword || '%')"),
@@ -485,7 +485,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['email', 'email'],
+          parameterNames: ['email', 'email'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', 'where ($1 is null or email = $2)'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', 'where (:email is null or email = :email)'),
@@ -515,7 +515,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['email', 'email'],
+          parameterNames: ['email', 'email'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', 'where ($1 is null or email = $2)'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', 'where (:email is null or email = :email)'),
@@ -545,7 +545,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['email', 'email', 'tenant_id'],
+          parameterNames: ['email', 'email', 'tenant_id'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', '(:email is null or email = :email) and'),
@@ -575,7 +575,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['email', 'email', 'status', 'status'],
+          parameterNames: ['email', 'email', 'status', 'status'],
           optionalConditionCompression: {
             branches: [
               optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
@@ -616,7 +616,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['email', 'email', 'status', 'status', 'tenant_id'],
+          parameterNames: ['email', 'email', 'status', 'status', 'tenant_id'],
           optionalConditionCompression: {
             branches: [
               optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
@@ -657,7 +657,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['email', 'email', 'tier', 'tier'],
+          parameterNames: ['email', 'email', 'tier', 'tier'],
           optionalConditionCompression: {
             branches: [
               optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
@@ -697,7 +697,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     const adapter = createPostgresAdapter(client);
     const source = querySource(sourceSql, queryModelFor(sourceSql, {
       sql: compiledSql,
-      orderedNames: ['email', 'email', 'tenant_id', 'x', 'x'],
+      parameterNames: ['email', 'email', 'tenant_id', 'x', 'x'],
       optionalConditionCompression: {
         branches: [
           optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
@@ -751,7 +751,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'email', 'email', 'x'],
+          parameterNames: ['tenant_id', 'email', 'email', 'x'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'email', 'and ($2 is null or email = $3)'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'email', 'and (:email is null or email = :email)'),
@@ -787,7 +787,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
       await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
             sql: compiledSql,
-            orderedNames: ['email', 'email', 'status', 'status'],
+            parameterNames: ['email', 'email', 'status', 'status'],
             optionalConditionCompression: {
               branches: [
                 optionalCompressionBinding(compiledSql, 'email', '($1 is null or email = $2) and').branches[0],
@@ -829,7 +829,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['p', 'p', 'id', 'id'],
+          parameterNames: ['p', 'p', 'id', 'id'],
           optionalConditionCompression: {
             branches: [
               optionalCompressionBinding(compiledSql, 'p', 'where ($1 is null or col = $2)').branches[0],
@@ -870,7 +870,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['p', 'p', 'tenant_id', 'id', 'id', 'status'],
+          parameterNames: ['p', 'p', 'tenant_id', 'id', 'id', 'status'],
           optionalConditionCompression: {
             branches: [
               optionalCompressionBinding(compiledSql, 'p', '($1 is null or col = $2) and').branches[0],
@@ -911,7 +911,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['p', 'p', 'id', 'id'],
+          parameterNames: ['p', 'p', 'id', 'id'],
           optionalConditionCompression: {
             branches: [
               optionalCompressionBinding(compiledSql, 'p', 'where ($1 is null or col = $2)').branches[0],
@@ -952,7 +952,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['p', 'p', 'id', 'id'],
+          parameterNames: ['p', 'p', 'id', 'id'],
           optionalConditionCompression: {
             branches: [
               optionalCompressionBinding(compiledSql, 'id', 'where ($3 is null or id = $4)').branches[0],
@@ -993,7 +993,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['id', 'id'],
+          parameterNames: ['id', 'id'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'id', 'and ($1 is null or id = $2)'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'id', 'and (:id is null or id = :id)'),
@@ -1023,7 +1023,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'status', 'status'],
+          parameterNames: ['tenant_id', 'status', 'status'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or status = $3)'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)'),
@@ -1050,7 +1050,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await expect(adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
         sql: 'select * from users where id = $1',
-        orderedNames: ['id'],
+        parameterNames: ['id'],
       })), { id: 1 },{
       optionalConditionCompression: true})).rejects.toMatchObject({
       code: 'ASHIBA_OPTIONAL_CONDITION_COMPRESSION_METADATA_REQUIRED',
@@ -1072,7 +1072,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await expect(adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
         sql: 'select * from users where id = $1',
-        orderedNames: ['id'],
+        parameterNames: ['id'],
         optionalConditionCompression: { branches: [] },
       }, {
         astParse: 'failed',
@@ -1097,7 +1097,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     };
     const query = querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'status', 'status', 'limit'],
+          parameterNames: ['tenant_id', 'status', 'status', 'limit'],
           safeSortInsertion: { index: compiledSql.indexOf('limit $4') },
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or a.status = $3)'),
         }, {
@@ -1135,7 +1135,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'status', 'status', 'limit'],
+          parameterNames: ['tenant_id', 'status', 'status', 'limit'],
           safeSortInsertion: { index: compiledSql.indexOf('limit $4') },
           optionalConditionCompression: {
             branches: compression.branches.map((branch) => ({
@@ -1189,7 +1189,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: [...beforeNames, 'status', 'status', ...afterNames],
+          parameterNames: [...beforeNames, 'status', 'status', ...afterNames],
           safeSortInsertion: { index: compiledSql.length },
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($10 is null or a.status = $11)'),
         }, {
@@ -1230,7 +1230,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'status', 'status', 'email', 'email'],
+          parameterNames: ['tenant_id', 'status', 'status', 'email', 'email'],
           safeSortInsertion: { index: compiledSql.length },
           optionalConditionCompression: {
             branches: [
@@ -1281,7 +1281,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: [...beforeNames, 'status', 'status', 'email'],
+          parameterNames: [...beforeNames, 'status', 'status', 'email'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($10 is null or a.status = $11)'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
@@ -1343,7 +1343,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
       await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
             sql: compiledSql,
-            orderedNames: ['p01', 'status', 'status', 'email'],
+            parameterNames: ['p01', 'status', 'status', 'email'],
             optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or a.status = $3)'),
           }, {
             optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or a.status = :status)'),
@@ -1403,7 +1403,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
         await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
               sql: compiledSql,
-              orderedNames: [...beforeNames, 'status', 'status', ...afterNames],
+              parameterNames: [...beforeNames, 'status', 'status', ...afterNames],
               safeSortInsertion: { index: compiledSql.length },
               optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', compiledBranch),
             }, {
@@ -1455,7 +1455,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     const compiledInsertionEnd = compiledSql.indexOf('limit $5');
     const query = querySource(sourceSql, queryModelFor(sourceSql, {
       sql: compiledSql,
-      orderedNames: ['status', 'status', 'ticket_ids', 'excluded_status', 'limit', 'offset'],
+      parameterNames: ['status', 'status', 'ticket_ids', 'excluded_status', 'limit', 'offset'],
       safeSortInsertion: { index: compiledInsertion, end: compiledInsertionEnd },
       optionalConditionCompression: {
         branches: [
@@ -1503,7 +1503,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     expect(compiled.sql.match(/t\.priority desc/g)).toHaveLength(1);
     expect(compiled.sql.match(/t\.ticket_id asc/g)).toHaveLength(1);
     expect(compiled.values).toEqual([[1, 2], injection, 25, 0]);
-    expect(compiled.orderedNames).toEqual(['ticket_ids', 'excluded_status', 'limit', 'offset']);
+    expect(compiled.parameterNames).toEqual(['ticket_ids', 'excluded_status', 'limit', 'offset']);
     expect(compiled.sourceHash).toBe(hashSql(sourceSql));
     expect(compiled.transformations).toEqual({
       optionalConditionCompression: true,
@@ -1557,7 +1557,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
         limit,
         offset,
       ]);
-      expect(compiled.orderedNames).toEqual([
+      expect(compiled.parameterNames).toEqual([
         ...(status === null ? [] : ['status']),
         'ticket_ids',
         'excluded_status',
@@ -1586,7 +1586,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'status', 'status', 'email', 'email'],
+          parameterNames: ['tenant_id', 'status', 'status', 'email', 'email'],
           safeSortInsertion: { index: compiledSql.length },
           optionalConditionCompression: {
             branches: [
@@ -1633,7 +1633,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['status', 'status', 'limit'],
+          parameterNames: ['status', 'status', 'limit'],
           safeSortInsertion: { index: compiledSql.indexOf(' limit $3') },
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'where ($1 is null or a.status = $2)'),
         }, {
@@ -1673,7 +1673,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await expect(adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'status', 'status'],
+          parameterNames: ['tenant_id', 'status', 'status'],
           optionalConditionCompression: optionalCompressionBinding(compiledSql, 'status', 'and ($2 is null or status = $3)'),
         }, {
           optionalConditionCompression: optionalCompressionAnalysis(sourceSql, 'status', 'and (:status is null or status = :status)'),
@@ -1702,7 +1702,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await expect(adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['tenant_id', 'status', 'status'],
+          parameterNames: ['tenant_id', 'status', 'status'],
           optionalConditionCompression: {
             branches: [{
               ...staleBinding.branches[0],
@@ -1876,7 +1876,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: compiledSql,
-          orderedNames: ['status', 'status', 'tier', 'tier', 'lang', 'lang', 'channel', 'channel', 'tag', 'tag', 'keyword', 'keyword', 'limit'],
+          parameterNames: ['status', 'status', 'tier', 'tier', 'lang', 'lang', 'channel', 'channel', 'tag', 'tag', 'keyword', 'keyword', 'limit'],
           safeSortInsertion: { index: compiledInsertionIndex },
           optionalConditionCompression: {
             branches: [
@@ -1984,7 +1984,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
           },
           bindings: queryModelFor(sourceSql, {
             sql: compiledSql,
-            orderedNames: ['status', 'limit'],
+            parameterNames: ['status', 'limit'],
             safeSortInsertion: { index: compiledInsertionIndex },
           }).bindings,
         }),
@@ -2026,7 +2026,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
           },
           bindings: queryModelFor(sourceSql, {
             sql: compiledSql,
-            orderedNames: ['user_id'],
+            parameterNames: ['user_id'],
             safeSortInsertion: { index: compiledInsertionIndex },
           }).bindings,
         }),
@@ -2097,7 +2097,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
             postgres: {
               sourceHash: hashSql(sourceSql),
               sql: 'select a.user_id as id from users a where a.user_id = $1',
-              orderedNames: ['user_id'],
+              parameterNames: ['user_id'],
             },
           },
         }),
@@ -2121,7 +2121,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await expect(adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: sourceSql,
-          orderedNames: [],
+          parameterNames: [],
           safeSortInsertion: { index: sourceSql.length },
         }, {
           rootQueryShape: 'simple-select',
@@ -2136,7 +2136,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await expect(adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
           sql: sourceSql,
-          orderedNames: [],
+          parameterNames: [],
           safeSortInsertion: { index: sourceSql.length },
         }, {
           rootQueryShape: 'simple-select',
@@ -2364,7 +2364,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
     const sourceSql = 'select * from missing where id = :id';
     await expect(adapter.execute(querySource(sourceSql, queryModelFor(sourceSql, {
         sql: 'select * from missing where id = $1',
-        orderedNames: ['id'],
+        parameterNames: ['id'],
       })), { id: 1 },{})).rejects.toThrow('relation does not exist');
 
     expect(events.map((event) => event.phase)).toEqual(['start', 'error']);
@@ -2387,7 +2387,7 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     await expect(adapter.execute(querySource('select :id', queryModelFor('select :id', {
         sql: 'select $1',
-        orderedNames: ['id'],
+        parameterNames: ['id'],
       })), { id: 1, unused: true },{})).rejects.toThrow(AshibaParameterError);
     expect(called).toBe(false);
   });
@@ -2422,7 +2422,7 @@ function representativeSearchQuery() {
     sourceSql,
     query: querySource(sourceSql, queryModelFor(sourceSql, {
       sql: compiledSql,
-      orderedNames: ['status', 'status', 'ticket_ids', 'excluded_status', 'limit', 'offset'],
+      parameterNames: ['status', 'status', 'ticket_ids', 'excluded_status', 'limit', 'offset'],
       safeSortInsertion: { index: compiledInsertion, end: compiledInsertionEnd },
       optionalConditionCompression: {
         branches: [
@@ -2451,7 +2451,7 @@ function queryModelFor(
   sourceSql: string,
   binding: {
     sql?: string;
-    orderedNames?: readonly string[];
+    parameterNames?: readonly string[];
     safeSortInsertion?: { index: number };
     optionalConditionCompression?: {
       branches: readonly {
@@ -2494,8 +2494,9 @@ function queryModelFor(
     bindings: {
       postgres: {
         sourceHash: hashSql(sourceSql),
+        style: 'indexed',
         sql: bindingWithGroups.sql ?? sourceSql,
-        orderedNames: bindingWithGroups.orderedNames ?? [],
+        parameterNames: bindingWithGroups.parameterNames ?? [],
         ...(bindingWithGroups.safeSortInsertion ? { safeSortInsertion: bindingWithGroups.safeSortInsertion } : {}),
         ...(bindingWithGroups.optionalConditionCompression ? { optionalConditionCompression: bindingWithGroups.optionalConditionCompression } : {}),
         ...(bindingWithGroups.contract ? { contract: bindingWithGroups.contract } : {}),

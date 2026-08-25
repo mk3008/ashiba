@@ -51,7 +51,7 @@ type SqlInspectionEvent = {
   phase: 'start' | 'end' | 'error';
   executionId?: string;
   compiledSql?: string;
-  orderedNames?: readonly string[];
+  parameterNames?: readonly string[];
   params?: readonly unknown[];
   elapsedMs?: number;
   rowCount?: number;
@@ -115,8 +115,8 @@ function buildSqlInspection(filters: TicketFilters, rowCount: number, events: re
         .map((item) => `${item.key} ${item.direction ?? 'asc'}`)
         .join(', ') || 'なし',
     stableOrder: 'ticket_id asc',
-    orderedNames: executed?.orderedNames ?? [],
-    boundParams: buildBoundParams(executed?.orderedNames ?? [], executed?.params ?? []),
+    orderedNames: executed?.parameterNames ?? [],
+    boundParams: buildBoundParams(executed?.parameterNames ?? [], executed?.params ?? []),
     compiledSql: executed?.compiledSql ?? '',
     rowCount: executed?.rowCount ?? rowCount,
     elapsedMs: executed?.elapsedMs,

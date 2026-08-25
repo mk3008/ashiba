@@ -8,7 +8,7 @@ import {
   maskParams,
   normalizeError,
 } from '@ashiba-ts/driver-adapter-core';
-import { bindNamedParameters, NamedParameterError } from '@ashiba-ts/named-parameters';
+import { bindNamedParameters, bindingParameterNames, NamedParameterError, type ParameterBinding } from '@ashiba-ts/named-parameters';
 
 /**
  * Minimal mysql2-compatible result consumed by the adapter.
@@ -126,7 +126,7 @@ export function createMysql2Adapter(
     ): Promise<{ rows: Row[]; fields: unknown }> {
       const metadata = { ...query.metadata, sqlPath: query.metadata?.sqlPath ?? query.sqlPath, dialect: 'mysql' };
       const startedAt = Date.now();
-      let bound: { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } | undefined;
+      let bound: ReturnType<typeof bindNamedParameters> | undefined;
 
       try {
         bound = prepareMysql2Execution(query, params);
@@ -135,7 +135,7 @@ export function createMysql2Adapter(
           metadata,
           sourceSql: query.sql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bindingParameterNames(bound),
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
         });
@@ -146,7 +146,7 @@ export function createMysql2Adapter(
           metadata,
           sourceSql: query.sql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bindingParameterNames(bound),
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
           elapsedMs: Date.now() - startedAt,
@@ -161,7 +161,7 @@ export function createMysql2Adapter(
           ...(bound
             ? {
               compiledSql: bound.sql,
-              orderedNames: bound.orderedNames,
+              parameterNames: bindingParameterNames(bound),
               maskedParams: maskParams(bound.values, options.maskPolicy),
               ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
             }
@@ -183,7 +183,7 @@ function getMysql2RowCount(rows: Mysql2Rows): number | undefined {
 function prepareMysql2Execution(
   query: AshibaMysql2QuerySource,
   params: Readonly<Record<string, unknown>>,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
+): ReturnType<typeof bindNamedParameters> {
   const binding = query.queryModel.bindings?.mysql2;
   if (!binding) {
     throw new AshibaMysql2QueryModelError(
@@ -203,11 +203,11 @@ function prepareMysql2Execution(
 }
 
 function bindCompiledNamedParameters(
-  compiled: { sql: string; orderedNames: readonly string[] },
+  compiled: ParameterBinding,
   params: Readonly<Record<string, unknown>>,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
+): ReturnType<typeof bindNamedParameters> {
   try {
-    return bindNamedParameters(compiled, params, { strict: true });
+    return bindNamedParameters(compiled, params);
   } catch (error) {
     if (error instanceof NamedParameterError) {
       throw new AshibaMysql2ParameterError(error.code, error.parameterNames);

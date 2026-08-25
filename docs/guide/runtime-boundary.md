@@ -47,13 +47,13 @@ path is:
 ```text
 canonical .sql
   -> build-time named lowering
-  -> generated driver SQL + ordered parameter names
+  -> generated driver SQL + style-aware binding metadata
   -> @ashiba-ts/named-parameters bind
   -> native driver query(sql, values)
 ```
 
 `@ashiba-ts/named-parameters/compiler` performs build-time lowering.
-`@ashiba-ts/named-parameters` only validates names and creates ordered values;
+`@ashiba-ts/named-parameters` only validates generated binding metadata and creates driver values;
 it never parses or rewrites SQL at runtime. The application owns its pool,
 client, transaction, commit/rollback, and business semantics.
 
@@ -83,7 +83,7 @@ lower that syntax to the driver's parameter form and a separate values array:
 ```ts
 import { bindNamedParameters } from '@ashiba-ts/named-parameters';
 
-const prepared = bindNamedParameters(generatedStatement, params, { strict: true });
+const prepared = bindNamedParameters(generatedStatement, params);
 await nativeDriver.query(prepared.sql, prepared.values);
 ```
 

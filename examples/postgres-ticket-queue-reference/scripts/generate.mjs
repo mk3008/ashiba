@@ -6,7 +6,7 @@ const root = process.cwd();
 const files = { list: 'src/tickets/list.sql', get: 'src/tickets/get.sql', assign: 'src/tickets/assign.sql', audit: 'src/tickets/audit.sql' };
 const entries = Object.fromEntries(Object.entries(files).map(([id, file]) => {
   const sql = readFileSync(resolve(root, file), 'utf8').replace(/\r\n?/g, '\n');
-  const binding = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
+  const binding = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
   return [id, binding];
 }));
 mkdirSync(resolve(root, 'src/generated'), { recursive: true });

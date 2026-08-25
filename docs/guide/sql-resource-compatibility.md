@@ -87,7 +87,7 @@ PostgreSQL client:
 1. Read `query.resource.json`.
 2. Resolve `canonical.path` for the authored source or `executable.path` for the
    derived PostgreSQL statement.
-3. Order values using `executable.orderedNames`.
+3. Bind values using the generated style-specific parameter metadata.
 4. Execute or `EXPLAIN` `query.postgres.sql`.
 5. Check returned column names and driver values against `contract`.
 

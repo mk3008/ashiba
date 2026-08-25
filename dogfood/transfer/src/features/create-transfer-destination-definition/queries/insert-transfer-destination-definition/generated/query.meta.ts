@@ -31,6 +31,23 @@ export const queryModel = {
       "transfer_model",
       "updated_at"
     ],
+    "resultColumnOrder": [
+      "destination_definition_id",
+      "destination_definition_name",
+      "description",
+      "destination_table_name",
+      "destination_columns",
+      "destination_key_columns",
+      "sequence_expression_definition",
+      "transfer_model",
+      "sign_inversion_columns",
+      "generated_red_transfer_sql_body",
+      "generated_red_transfer_sql_status",
+      "generated_red_transfer_sql_error",
+      "created_at",
+      "updated_at",
+      "note"
+    ],
     "resultColumnTypes": {
       "created_at": "string",
       "description": "string",
@@ -97,8 +114,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:cd598550f4a22bb4478b689891e87c73f06fcc6077d0f5e838254999ebac347d",
+      "style": "indexed",
       "sql": "insert into rawsql_transfer.destination_definition(\n    destination_definition_name\n    , description\n    , destination_table_name\n    , destination_columns\n    , destination_key_columns\n    , sequence_expression_definition\n    , transfer_model\n    , sign_inversion_columns\n    , note\n)\nselect\n    $1\n    , $2\n    , $3\n    , cast($4 as jsonb)\n    , cast($5 as text[])\n    , cast($6 as jsonb)\n    , $7\n    , cast($8 as text[])\n    , $9\nreturning\n    destination_definition_id\n    , destination_definition_name\n    , description\n    , destination_table_name\n    , destination_columns\n    , destination_key_columns\n    , sequence_expression_definition\n    , transfer_model\n    , sign_inversion_columns\n    , generated_red_transfer_sql_body\n    , generated_red_transfer_sql_status\n    , generated_red_transfer_sql_error\n    , created_at\n    , updated_at\n    , note;\n",
-      "orderedNames": [
+      "parameterNames": [
         "destination_definition_name",
         "description",
         "destination_table_name",

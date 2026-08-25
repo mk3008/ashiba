@@ -34,13 +34,13 @@ export async function writeStandalonePostgresContract(options: StandalonePostgre
   const rootDir = path.resolve(options.rootDir ?? '.');
   const sqlPath = path.resolve(rootDir, options.sqlFile);
   const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
-  const binding = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
+  const binding = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
   const resultColumns = buildQueryResultColumnContracts(sql, rootDir);
   const resultColumnOrder = extractSqlResultColumnAstItems(sql).map((column) => column.name);
   const contract = await derivePostgresQueryContractFromDatabase(resolveDatabaseUrl(options), {
     sql,
     compiledSql: binding.sql,
-    parameterNames: binding.orderedNames,
+    parameterNames: binding.parameterNames,
     resultColumnOrder,
     resultColumnNullability: Object.fromEntries(resultColumns.map((column) => [column.name, column.nullability])),
     driverProfile: parseDriverProfile(options.driverProfile),

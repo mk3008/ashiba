@@ -24,7 +24,7 @@ names. At runtime the application binds those names to values, then gives the
 result directly to `pg`:
 
 ```ts
-const prepared = bindNamedParameters(query, params, { strict: true });
+const prepared = bindNamedParameters(query, params);
 const result = await pool.query(prepared.sql, [...prepared.values]);
 ```
 

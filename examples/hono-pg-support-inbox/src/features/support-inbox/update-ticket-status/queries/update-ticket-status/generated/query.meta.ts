@@ -20,6 +20,12 @@ export const queryModel = {
       "updated_at",
       "version_key"
     ],
+    "resultColumnOrder": [
+      "ticket_id",
+      "status",
+      "updated_at",
+      "version_key"
+    ],
     "resultColumnTypes": {
       "status": "string",
       "ticket_id": "string",
@@ -61,8 +67,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:800f61d106a4536c5a2bb752bd7b23e6dc1ad10b8783560269cb0ce23e8465b3",
+      "style": "indexed",
       "sql": "update public.tickets\nset\n    status = $1\n    , updated_at = $2\n    , version_key = version_key + 1\nwhere\n    ticket_id = $3\n    and version_key = $4\nreturning\n    ticket_id\n    , status\n    , updated_at\n    , version_key;\n",
-      "orderedNames": [
+      "parameterNames": [
         "status",
         "updated_at",
         "ticket_id",

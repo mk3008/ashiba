@@ -103,7 +103,7 @@ export function logSqlExecution(event: SqlExecutionLogEvent): void {
   }
   if (policy.includeParameterNames) {
     const orderedNames = getOrderedNames(event);
-    logEvent.orderedNames = orderedNames;
+    logEvent.parameterNames = orderedNames;
     logEvent.parameterSummary = summarizeParameters(orderedNames);
   }
   if (policy.includeQueryShape) {
@@ -198,7 +198,7 @@ function summarizeParameters(orderedNames: readonly string[]): ParameterSummary[
 }
 
 function getOrderedNames(event: SqlExecutionLogEvent): string[] {
-  return Array.isArray(event.orderedNames) ? event.orderedNames.filter((name): name is string => typeof name === 'string') : [];
+  return Array.isArray(event.parameterNames) ? event.parameterNames.filter((name): name is string => typeof name === 'string') : [];
 }
 
 function bucketDuration(elapsedMs: number | undefined): string | undefined {

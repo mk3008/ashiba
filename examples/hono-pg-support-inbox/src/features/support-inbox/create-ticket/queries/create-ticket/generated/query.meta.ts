@@ -28,6 +28,20 @@ export const queryModel = {
       "updated_at",
       "version_key"
     ],
+    "resultColumnOrder": [
+      "ticket_id",
+      "customer_id",
+      "subject",
+      "status",
+      "priority",
+      "language",
+      "channel",
+      "sla_due_at",
+      "created_at",
+      "updated_at",
+      "version_key",
+      "metadata"
+    ],
     "resultColumnTypes": {
       "channel": "string",
       "created_at": "string",
@@ -95,8 +109,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:f771de57cf96def923df9ff11460deb9c1230bb216d5dbea5e35ea153612daf2",
+      "style": "indexed",
       "sql": "insert into public.tickets(\n    customer_id\n    , subject\n    , status\n    , priority\n    , language\n    , channel\n    , sla_due_at\n    , created_at\n    , updated_at\n)\nvalues\n    ($1, $2, $3, $4, $5, $6, $7, $8, $9)\nreturning\n    ticket_id\n    , customer_id\n    , subject\n    , status\n    , priority\n    , language\n    , channel\n    , sla_due_at\n    , created_at\n    , updated_at\n    , version_key\n    , metadata;\n",
-      "orderedNames": [
+      "parameterNames": [
         "customer_id",
         "subject",
         "status",

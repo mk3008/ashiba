@@ -32,6 +32,10 @@ export const queryModel = {
       "destination_definition_id",
       "destination_definition_name"
     ],
+    "resultColumnOrder": [
+      "destination_definition_id",
+      "destination_definition_name"
+    ],
     "resultColumnTypes": {
       "destination_definition_id": "string",
       "destination_definition_name": "string"
@@ -63,8 +67,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:ea4799190919817ce6ba042f3188f9f46c6711f4592baa0d863b2a80f85849d9",
+      "style": "indexed",
       "sql": "select\n    destination_definition_id\n    , destination_definition_name\nfrom\n    rawsql_transfer.destination_definition\nwhere\n    destination_definition_name = any(cast($1 as text[]))\norder by\n    destination_definition_name;\n",
-      "orderedNames": [
+      "parameterNames": [
         "destination_definition_names"
       ],
       "safeSortInsertion": {

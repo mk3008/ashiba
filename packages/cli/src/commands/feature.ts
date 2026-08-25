@@ -725,7 +725,7 @@ export async function runFeatureQueryPostgresContract(
   const contract = await derivePostgresQueryContractFromDatabase(connectionString, {
     sql,
     compiledSql: binding.sql,
-    parameterNames: binding.orderedNames,
+    parameterNames: binding.parameterNames,
     resultColumnOrder: offlineModel.analysis.resultColumnOrder,
     resultColumnNullability: offlineModel.analysis.resultColumnNullability,
     driverProfile,
@@ -1083,7 +1083,7 @@ export function runFeatureGeneratedMapperCheck(options: FeatureGeneratedMapperCh
       const postgresContractIssues = postgresContractStale
         ? ['generated/postgres.contract.json is stale; rerun feature query postgres-contract.']
         : [];
-      const sqlParameters = [...new Set(compileNamedParameters(sql).orderedNames)].sort();
+      const sqlParameters = [...new Set(compileNamedParameters(sql).parameterNames)].sort();
       const querySource = readFileSync(queryFile, 'utf8');
       const mapperParameters = extractMapperParameters(querySource, queryName).sort();
       const mapperParameterTypes = extractMapperParameterTypes(querySource, queryName);
@@ -3024,9 +3024,9 @@ export function buildFeatureQueryModel(
   };
 } {
   const sourceHash = hashSql(sql);
-  const postgres = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
+  const postgres = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir);
-  const parameters = [...new Set(postgres.orderedNames)];
+  const parameters = [...new Set(postgres.parameterNames)];
   const ddlModel = loadDdlSchemaModel(rootDir);
   const schemaPath = loadProjectPathConfig(rootDir);
   const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
@@ -3187,8 +3187,8 @@ function validateImportedFormattedSql(
   if (missingComments.length > 0) {
     return { safe: false, reason: `formatting skipped because SQL comments would be dropped: ${missingComments.join(', ')}` };
   }
-  const originalParameters = compileNamedParameters(originalSql).orderedNames;
-  const formattedParameters = compileNamedParameters(formattedSql).orderedNames;
+  const originalParameters = compileNamedParameters(originalSql).parameterNames;
+  const formattedParameters = compileNamedParameters(formattedSql).parameterNames;
   if (JSON.stringify(originalParameters) !== JSON.stringify(formattedParameters)) {
     return {
       safe: false,

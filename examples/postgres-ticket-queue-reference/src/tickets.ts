@@ -1,12 +1,12 @@
-import { bindNamedParameters, type PreparedNamedSql } from '@ashiba-ts/named-parameters';
+import { bindNamedParameters, type ParameterBinding } from '@ashiba-ts/named-parameters';
 import type { Pool } from 'pg';
 import { queries } from './generated/queries.js';
 import type { AssignParams, AuditParams, GetParams, ListParams, Ticket } from './types.js';
 
-const listQuery: PreparedNamedSql = queries.list;
-const getQuery: PreparedNamedSql = queries.get;
-const assignQuery: PreparedNamedSql = queries.assign;
-const auditQuery: PreparedNamedSql = queries.audit;
+const listQuery = queries.list satisfies Extract<ParameterBinding, { style: 'indexed' }>;
+const getQuery = queries.get satisfies Extract<ParameterBinding, { style: 'indexed' }>;
+const assignQuery = queries.assign satisfies Extract<ParameterBinding, { style: 'indexed' }>;
+const auditQuery = queries.audit satisfies Extract<ParameterBinding, { style: 'indexed' }>;
 
 const order = {
   priority: "case t.priority when 'urgent' then 1 when 'normal' then 2 when 'low' then 3 else 4 end",
@@ -31,7 +31,7 @@ export function ticketOrderBy(sort: readonly Sort[] = []): string {
   return `order by ${[...terms, 't.id asc'].join(', ')}`;
 }
 
-function withTicketOrder(statement: PreparedNamedSql, sort: readonly Sort[] = []): PreparedNamedSql {
+function withTicketOrder(statement: Extract<ParameterBinding, { style: 'indexed' }>, sort: readonly Sort[] = []): Extract<ParameterBinding, { style: 'indexed' }> {
   const anchor = 'order by t.id asc';
   if (!statement.sql.includes(anchor)) throw new Error('Expected stable ticket ordering is missing.');
   return { ...statement, sql: statement.sql.replace(anchor, ticketOrderBy(sort)) };
@@ -56,12 +56,12 @@ export async function listTickets(
     limit: input.limit ?? 50,
     offset: input.offset ?? 0,
   };
-  const prepared = bindNamedParameters(withTicketOrder(listQuery, input.sort), params, { strict: true });
+  const prepared = bindNamedParameters(withTicketOrder(listQuery, input.sort), params);
   return (await pool.query<Ticket>(prepared.sql, [...prepared.values])).rows;
 }
 
 export async function getTicket(pool: Pool, id: string): Promise<Ticket | undefined> {
-  const prepared = bindNamedParameters(getQuery, { id }, { strict: true });
+  const prepared = bindNamedParameters(getQuery, { id });
   return (await pool.query<Ticket>(prepared.sql, [...prepared.values])).rows[0];
 }
 
@@ -73,7 +73,7 @@ export async function assignTicket(
 
   try {
     await client.query('BEGIN');
-    const assigned = bindNamedParameters(assignQuery, { ticketId: input.ticketId, assigneeId: input.assigneeId }, { strict: true });
+    const assigned = bindNamedParameters(assignQuery, { ticketId: input.ticketId, assigneeId: input.assigneeId });
     const ticket = (await client.query<Ticket>(assigned.sql, [...assigned.values])).rows[0];
     if (!ticket) throw new Error('Ticket not found.');
 
@@ -81,7 +81,7 @@ export async function assignTicket(
       ticketId: input.ticketId,
       actorId: input.actorId,
       note: input.note ?? null,
-    }, { strict: true });
+    });
     await client.query(audit.sql, [...audit.values]);
     await client.query('COMMIT');
     return ticket;

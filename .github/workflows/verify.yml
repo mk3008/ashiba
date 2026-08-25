@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   verify:
+    needs: postgres-ticket-queue-reference
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

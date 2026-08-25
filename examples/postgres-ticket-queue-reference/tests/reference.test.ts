@@ -8,11 +8,8 @@ import { setupTicketQueueDatabase } from '../scripts/setup-database.mjs';
 
 describe('reference named preparation', () => {
   test('keeps repeated values ordered, rejects missing input, and keeps hostile data out of SQL', async () => {
-    expect(queries.list.orderedNames).toEqual([
-      'status', 'status', 'customerId', 'customerId', 'assigneeMode',
-      'assigneeMode', 'assigneeMode', 'assigneeId', 'limit', 'offset',
-    ]);
-    expect(() => bindNamedParameters(queries.get, {}, { strict: true })).toThrow('Missing SQL parameter');
+    expect(queries.list.parameterNames).toEqual(['status', 'customerId', 'assigneeMode', 'assigneeId', 'limit', 'offset']);
+    expect(() => bindNamedParameters(queries.get, {})).toThrow('Missing SQL parameter');
 
     const hostile = "x'); drop table tickets; --";
     const calls: Array<{ sql: string; values: unknown[] }> = [];
