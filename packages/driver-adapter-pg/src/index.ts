@@ -71,6 +71,24 @@ export type AshibaPostgresQuerySource<Params extends object = Record<string, unk
 export type AnyAshibaPostgresQuerySource = AshibaPostgresQuerySource<any, any>;
 
 /**
+ * Creates the smallest source needed for deterministic named binding and
+ * caller-owned native PostgreSQL execution. Rich query analysis remains
+ * optional unless the caller asks the adapter for optional rewrites or sorting.
+ */
+export function createPostgresPreparedQuerySource<Params extends object = Record<string, unknown>, Row = unknown>(
+  sql: string,
+  binding: FeatureQueryPostgresDialectBinding,
+): AshibaPostgresQuerySource<Params, Row> {
+  return {
+    sql,
+    queryModel: {
+      analysis: { sourceHash: binding.sourceHash } as AshibaQueryModelAnalysis,
+      bindings: { postgres: binding },
+    },
+  };
+}
+
+/**
  * Per-execution metadata and safe sort options for PostgreSQL execution.
  */
 export type AshibaPostgresExecuteOptions = {

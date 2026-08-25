@@ -141,6 +141,31 @@ importers:
         specifier: ^4.1.7
         version: 4.1.7(@types/node@22.19.19)(vite@6.4.3(@types/node@22.19.19)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
 
+  examples/postgres-ticket-queue-reference:
+    dependencies:
+      '@ashiba-ts/driver-adapter-pg':
+        specifier: workspace:*
+        version: link:../../packages/driver-adapter-pg
+      pg:
+        specifier: ^8.16.3
+        version: 8.21.0
+    devDependencies:
+      '@ashiba-ts/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.18.7
+      '@types/pg':
+        specifier: ^8.15.5
+        version: 8.20.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.7
+        version: 4.1.7(@types/node@22.18.7)(vite@6.4.3(@types/node@22.18.7)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
   packages/cli:
     dependencies:
       commander:

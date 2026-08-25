@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "sourceHash": "sha256:720b8aa7f8e73c6bf68e0c300f57885cbe76f8a37361890cd72e01d8b4bd812b",
+  "database": {
+    "system": "postgresql",
+    "serverMajor": 16,
+    "parameters": [
+      {
+        "position": 1,
+        "name": "ticketId",
+        "databaseType": {
+          "oid": 20,
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "int8",
+            "formattedName": "bigint",
+            "kind": "base",
+            "category": "N"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "unknown",
+          "provenance": "unknown"
+        }
+      },
+      {
+        "position": 2,
+        "name": "actorId",
+        "databaseType": {
+          "oid": 20,
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "int8",
+            "formattedName": "bigint",
+            "kind": "base",
+            "category": "N"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "unknown",
+          "provenance": "unknown"
+        }
+      },
+      {
+        "position": 3,
+        "name": "note",
+        "databaseType": {
+          "oid": 25,
+          "schema": "pg_catalog",
+          "name": "text",
+          "formattedName": "text",
+          "kind": "base",
+          "category": "S",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "text",
+            "formattedName": "text",
+            "kind": "base",
+            "category": "S"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "unknown",
+          "provenance": "unknown"
+        }
+      }
+    ],
+    "results": []
+  },
+  "driver": {
+    "profile": "node-postgres-default",
+    "parameters": [
+      {
+        "position": 1,
+        "name": "ticketId",
+        "runtimeType": "string",
+        "typeScriptType": "string | bigint | null",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 2,
+        "name": "actorId",
+        "runtimeType": "string",
+        "typeScriptType": "string | bigint | null",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 3,
+        "name": "note",
+        "runtimeType": "string",
+        "typeScriptType": "string | null",
+        "provenance": "driver-mapped"
+      }
+    ],
+    "results": []
+  },
+  "diagnostics": []
+}

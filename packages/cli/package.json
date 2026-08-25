@@ -12,6 +12,10 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./parameter-metadata": "./dist/parameter-metadata.js"
+  },
   "files": [
     "dist",
     "README.md"

@@ -1,0 +1,429 @@
+{
+  "version": 1,
+  "sourceHash": "sha256:a1ad0fc431ec569b1a87cde09543eeb39907956967edd64a1dd3b397c3387ef6",
+  "database": {
+    "system": "postgresql",
+    "serverMajor": 16,
+    "parameters": [
+      {
+        "position": 1,
+        "name": "id",
+        "databaseType": {
+          "oid": 20,
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "int8",
+            "formattedName": "bigint",
+            "kind": "base",
+            "category": "N"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "unknown",
+          "provenance": "unknown"
+        }
+      }
+    ],
+    "results": [
+      {
+        "position": 1,
+        "name": "id",
+        "nameProvenance": "proven",
+        "databaseType": {
+          "oid": 20,
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "int8",
+            "formattedName": "bigint",
+            "kind": "base",
+            "category": "N"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "non-null",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "position": 2,
+        "name": "customer_id",
+        "nameProvenance": "proven",
+        "databaseType": {
+          "oid": 20,
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "int8",
+            "formattedName": "bigint",
+            "kind": "base",
+            "category": "N"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "non-null",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "position": 3,
+        "name": "subject",
+        "nameProvenance": "proven",
+        "databaseType": {
+          "oid": 25,
+          "schema": "pg_catalog",
+          "name": "text",
+          "formattedName": "text",
+          "kind": "base",
+          "category": "S",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "text",
+            "formattedName": "text",
+            "kind": "base",
+            "category": "S"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "non-null",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "position": 4,
+        "name": "status",
+        "nameProvenance": "proven",
+        "databaseType": {
+          "oid": 25,
+          "schema": "pg_catalog",
+          "name": "text",
+          "formattedName": "text",
+          "kind": "base",
+          "category": "S",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "text",
+            "formattedName": "text",
+            "kind": "base",
+            "category": "S"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "non-null",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "position": 5,
+        "name": "priority",
+        "nameProvenance": "proven",
+        "databaseType": {
+          "oid": 25,
+          "schema": "pg_catalog",
+          "name": "text",
+          "formattedName": "text",
+          "kind": "base",
+          "category": "S",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "text",
+            "formattedName": "text",
+            "kind": "base",
+            "category": "S"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "non-null",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "position": 6,
+        "name": "assignee_id",
+        "nameProvenance": "proven",
+        "databaseType": {
+          "oid": 20,
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "int8",
+            "formattedName": "bigint",
+            "kind": "base",
+            "category": "N"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "nullable",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "position": 7,
+        "name": "created_at",
+        "nameProvenance": "proven",
+        "databaseType": {
+          "oid": 1184,
+          "schema": "pg_catalog",
+          "name": "timestamptz",
+          "formattedName": "timestamp with time zone",
+          "kind": "base",
+          "category": "D",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "timestamptz",
+            "formattedName": "timestamp with time zone",
+            "kind": "base",
+            "category": "D"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "non-null",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "position": 8,
+        "name": "updated_at",
+        "nameProvenance": "proven",
+        "databaseType": {
+          "oid": 1184,
+          "schema": "pg_catalog",
+          "name": "timestamptz",
+          "formattedName": "timestamp with time zone",
+          "kind": "base",
+          "category": "D",
+          "portableIdentity": {
+            "schema": "pg_catalog",
+            "name": "timestamptz",
+            "formattedName": "timestamp with time zone",
+            "kind": "base",
+            "category": "D"
+          }
+        },
+        "typeProvenance": "proven",
+        "nullability": {
+          "value": "non-null",
+          "provenance": "inferred"
+        }
+      }
+    ],
+    "dependencies": [
+      {
+        "kind": "column",
+        "schema": "public",
+        "name": "tickets",
+        "relationKind": "r",
+        "column": "assignee_id",
+        "columnNotNull": false,
+        "columnType": {
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N"
+        }
+      },
+      {
+        "kind": "column",
+        "schema": "public",
+        "name": "tickets",
+        "relationKind": "r",
+        "column": "created_at",
+        "columnNotNull": true,
+        "columnType": {
+          "schema": "pg_catalog",
+          "name": "timestamptz",
+          "formattedName": "timestamp with time zone",
+          "kind": "base",
+          "category": "D"
+        }
+      },
+      {
+        "kind": "column",
+        "schema": "public",
+        "name": "tickets",
+        "relationKind": "r",
+        "column": "customer_id",
+        "columnNotNull": true,
+        "columnType": {
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N"
+        }
+      },
+      {
+        "kind": "column",
+        "schema": "public",
+        "name": "tickets",
+        "relationKind": "r",
+        "column": "id",
+        "columnNotNull": true,
+        "columnType": {
+          "schema": "pg_catalog",
+          "name": "int8",
+          "formattedName": "bigint",
+          "kind": "base",
+          "category": "N"
+        }
+      },
+      {
+        "kind": "column",
+        "schema": "public",
+        "name": "tickets",
+        "relationKind": "r",
+        "column": "priority",
+        "columnNotNull": true,
+        "columnType": {
+          "schema": "pg_catalog",
+          "name": "text",
+          "formattedName": "text",
+          "kind": "base",
+          "category": "S"
+        }
+      },
+      {
+        "kind": "column",
+        "schema": "public",
+        "name": "tickets",
+        "relationKind": "r",
+        "column": "status",
+        "columnNotNull": true,
+        "columnType": {
+          "schema": "pg_catalog",
+          "name": "text",
+          "formattedName": "text",
+          "kind": "base",
+          "category": "S"
+        }
+      },
+      {
+        "kind": "column",
+        "schema": "public",
+        "name": "tickets",
+        "relationKind": "r",
+        "column": "subject",
+        "columnNotNull": true,
+        "columnType": {
+          "schema": "pg_catalog",
+          "name": "text",
+          "formattedName": "text",
+          "kind": "base",
+          "category": "S"
+        }
+      },
+      {
+        "kind": "column",
+        "schema": "public",
+        "name": "tickets",
+        "relationKind": "r",
+        "column": "updated_at",
+        "columnNotNull": true,
+        "columnType": {
+          "schema": "pg_catalog",
+          "name": "timestamptz",
+          "formattedName": "timestamp with time zone",
+          "kind": "base",
+          "category": "D"
+        }
+      }
+    ]
+  },
+  "driver": {
+    "profile": "node-postgres-default",
+    "parameters": [
+      {
+        "position": 1,
+        "name": "id",
+        "runtimeType": "string",
+        "typeScriptType": "string | bigint | null",
+        "provenance": "driver-mapped"
+      }
+    ],
+    "results": [
+      {
+        "position": 1,
+        "name": "id",
+        "runtimeType": "string",
+        "typeScriptType": "string",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 2,
+        "name": "customer_id",
+        "runtimeType": "string",
+        "typeScriptType": "string",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 3,
+        "name": "subject",
+        "runtimeType": "string",
+        "typeScriptType": "string",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 4,
+        "name": "status",
+        "runtimeType": "string",
+        "typeScriptType": "string",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 5,
+        "name": "priority",
+        "runtimeType": "string",
+        "typeScriptType": "string",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 6,
+        "name": "assignee_id",
+        "runtimeType": "string",
+        "typeScriptType": "string | null",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 7,
+        "name": "created_at",
+        "runtimeType": "Date",
+        "typeScriptType": "Date",
+        "provenance": "driver-mapped"
+      },
+      {
+        "position": 8,
+        "name": "updated_at",
+        "runtimeType": "Date",
+        "typeScriptType": "Date",
+        "provenance": "driver-mapped"
+      }
+    ]
+  },
+  "diagnostics": []
+}
