@@ -31,10 +31,10 @@ export function ticketOrderBy(sort: readonly Sort[] = []): string {
   return `order by ${[...terms, 't.id asc'].join(', ')}`;
 }
 
-function orderedListSql(sort: readonly Sort[] = []): string {
+function withTicketOrder(statement: PreparedNamedSql, sort: readonly Sort[] = []): PreparedNamedSql {
   const anchor = 'order by t.id asc';
-  if (!listQuery.sql.includes(anchor)) throw new Error('Expected stable ticket ordering is missing.');
-  return listQuery.sql.replace(anchor, ticketOrderBy(sort));
+  if (!statement.sql.includes(anchor)) throw new Error('Expected stable ticket ordering is missing.');
+  return { ...statement, sql: statement.sql.replace(anchor, ticketOrderBy(sort)) };
 }
 
 export async function listTickets(
@@ -56,8 +56,8 @@ export async function listTickets(
     limit: input.limit ?? 50,
     offset: input.offset ?? 0,
   };
-  const prepared = bindNamedParameters(listQuery, params, { strict: true });
-  return (await pool.query<Ticket>(orderedListSql(input.sort), [...prepared.values])).rows;
+  const prepared = bindNamedParameters(withTicketOrder(listQuery, input.sort), params, { strict: true });
+  return (await pool.query<Ticket>(prepared.sql, [...prepared.values])).rows;
 }
 
 export async function getTicket(pool: Pool, id: string): Promise<Ticket | undefined> {
@@ -68,7 +68,7 @@ export async function getTicket(pool: Pool, id: string): Promise<Ticket | undefi
 export async function assignTicket(
   pool: Pool,
   input: { ticketId: string; assigneeId: string; actorId: string; note?: string },
-): Promise<Ticket | undefined> {
+): Promise<Ticket> {
   const client = await pool.connect();
 
   try {

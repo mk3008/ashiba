@@ -37,12 +37,30 @@ The CLI generator is development-time tooling. It scaffolds, analyzes, refreshes
 
 At runtime, applications normally own a native database client, pool,
 transaction, and `query(sql, values)` call. Ashiba may deterministically prepare
-reviewed SQL text into driver SQL and ordered values. Optional adapters may
-delegate execution to an application-supplied native driver. For PostgreSQL,
-`@ashiba-ts/driver-adapter-pg` remains an optional compatibility/convenience
-surface around a `pg`-compatible client or pool, with narrow concerns:
+reviewed SQL text into driver SQL and ordered values.
 
-- named-parameter binding
+### Minimal named-SQL path
+
+For canonical SQL that uses named application values, the smallest ordinary
+path is:
+
+```text
+canonical .sql
+  -> build-time named lowering
+  -> generated driver SQL + ordered parameter names
+  -> @ashiba-ts/named-parameters bind
+  -> native driver query(sql, values)
+```
+
+`@ashiba-ts/named-parameters/compiler` performs build-time lowering.
+`@ashiba-ts/named-parameters` only validates names and creates ordered values;
+it never parses or rewrites SQL at runtime. The application owns its pool,
+client, transaction, commit/rollback, and business semantics.
+
+Optional adapters may delegate execution to an application-supplied native
+driver. For PostgreSQL, `@ashiba-ts/driver-adapter-pg` is an optional
+compatibility/convenience surface for metadata-backed or advanced behavior:
+
 - parameter contract checks
 - source-hash checks
 - metadata-backed optional-condition compression
@@ -63,15 +81,19 @@ it does not, `:name` is the canonical fallback. Deterministic preparation may
 lower that syntax to the driver's parameter form and a separate values array:
 
 ```ts
-const prepared = prepare(canonicalSql, params);
+import { bindNamedParameters } from '@ashiba-ts/named-parameters';
+
+const prepared = bindNamedParameters(generatedStatement, params, { strict: true });
 await nativeDriver.query(prepared.sql, prepared.values);
 ```
 
 Lowering never turns application values into SQL literals. It must not use
 interpolation, quoting, escaping, or hard-coded substitution in the SQL text;
 values remain separate until the native driver boundary. This does not make an
-Ashiba adapter mandatory—the same prepared SQL and values can be passed to a
-native driver directly.
+Ashiba adapter mandatory—the prepared SQL and values go directly to the native
+driver. Adapter preparation is a separate optional route when an application
+chooses metadata-backed compression, safe sorting, observation, or retry
+classification.
 
 ## SQL Text At Runtime
 

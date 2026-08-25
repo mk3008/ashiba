@@ -18,4 +18,17 @@ describe('@ashiba-ts/named-parameters', () => {
     expect(() => bindNamedParameters(statement, { id: 7, name: 'a', extra: true }, { strict: true }))
       .toThrow(NamedParameterError);
   });
+
+  test('permits only explicitly removed names after a verified rewrite', () => {
+    const rewritten = { sql: 'select $1', orderedNames: ['id'] } as const;
+
+    expect(bindNamedParameters(rewritten, { id: 7, omittedStatus: null }, {
+      strict: true,
+      allowedUnusedNames: new Set(['omittedStatus']),
+    }).values).toEqual([7]);
+    expect(() => bindNamedParameters(rewritten, { id: 7, unrelated: true }, {
+      strict: true,
+      allowedUnusedNames: new Set(['omittedStatus']),
+    })).toThrow(NamedParameterError);
+  });
 });

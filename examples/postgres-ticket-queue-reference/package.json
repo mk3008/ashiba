@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "pnpm --filter @ashiba-ts/named-parameters build && pnpm --filter @ashiba-ts/cli build && node scripts/generate.mjs",
+    "generate": "pnpm --filter @ashiba-ts/named-parameters build && node scripts/generate.mjs",
     "check:generated": "pnpm generate && git diff --exit-code -- src/generated",
     "typecheck": "pnpm --filter @ashiba-ts/named-parameters build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",

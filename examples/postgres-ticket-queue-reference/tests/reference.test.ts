@@ -1,11 +1,10 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { bindNamedParameters } from '@ashiba-ts/named-parameters';
 import { queries } from '../src/generated/queries.js';
 import { assignTicket, getTicket, listTickets, ticketOrderBy } from '../src/tickets.js';
 import type { Ticket } from '../src/types.js';
+import { setupTicketQueueDatabase } from '../scripts/setup-database.mjs';
 
 describe('reference named preparation', () => {
   test('keeps repeated values ordered, rejects missing input, and keeps hostile data out of SQL', async () => {
@@ -31,9 +30,6 @@ describe('reference named preparation', () => {
 });
 
 const url = process.env.DATABASE_URL;
-const schema = readFileSync(fileURLToPath(new URL('../db/ddl/schema.sql', import.meta.url)), 'utf8');
-const seed = readFileSync(fileURLToPath(new URL('../db/seed.sql', import.meta.url)), 'utf8');
-
 if (!url) {
   describe.skip('live postgres', () => test('requires DATABASE_URL', () => {}));
 } else {
@@ -41,9 +37,7 @@ if (!url) {
     const pool = new Pool({ connectionString: url });
 
     beforeAll(async () => {
-      await pool.query('drop table if exists ticket_events, tickets cascade');
-      await pool.query(schema);
-      await pool.query(seed);
+      await setupTicketQueueDatabase(pool, { seedData: true });
     });
 
     afterAll(async () => pool.end());

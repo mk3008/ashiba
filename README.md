@@ -284,11 +284,13 @@ npx ashiba config
 
 Ashiba is not an ORM runtime or SQL DSL. The CLI generator, SQL analysis, scaffolding, tests, and drift checks are development-time tools.
 
-At runtime, native database drivers own baseline execution. Applications may
-optionally use `@ashiba-ts/driver-adapter-pg` or deterministic preparation for
-narrow concerns such as named-parameter lowering, metadata-backed optional
-condition compression or safe sort, stale metadata rejection, observer events,
-and transient-error classification. Those optional surfaces do not own
+At runtime, native database drivers own baseline execution. For canonical named
+SQL, the minimal path is build-time lowering to generated driver SQL plus
+ordered names, `@ashiba-ts/named-parameters` binding, then native
+`query(sql, values)`. Applications may optionally use
+`@ashiba-ts/driver-adapter-pg` for metadata-backed optional condition
+compression or safe sort, stale metadata rejection, observer events, and
+transient-error classification. Those optional surfaces do not own
 connections, pools, transactions, entities, relations, lazy loading, unit of
 work, query planning, hidden automatic retry, or SAGA compensation.
 

@@ -6,6 +6,11 @@ export type PreparedNamedSql = {
 
 export type BindNamedParametersOptions = {
   strict?: boolean;
+  /**
+   * Names deliberately removed from the effective statement by a verified
+   * higher-level rewrite. This does not relax missing-value checks.
+   */
+  allowedUnusedNames?: ReadonlySet<string>;
 };
 
 export class NamedParameterError extends Error {
@@ -35,7 +40,7 @@ export function bindNamedParameters(
   if (missing.length > 0) throw new NamedParameterError('ASHIBA_MISSING_PARAMETER', missing);
 
   if (options.strict) {
-    const unused = Object.keys(params).filter((name) => !names.has(name));
+    const unused = Object.keys(params).filter((name) => !names.has(name) && !options.allowedUnusedNames?.has(name));
     if (unused.length > 0) throw new NamedParameterError('ASHIBA_UNUSED_PARAMETER', unused);
   }
 

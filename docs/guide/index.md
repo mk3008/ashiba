@@ -17,6 +17,6 @@ They do not define the normative product boundary.
 
 ## Other Guides
 
-- [Runtime Boundary](./runtime-boundary.md): Native-driver baseline execution, optional Ashiba preparation/adapters, and generated SQL-text snapshots.
+- [Runtime Boundary](./runtime-boundary.md): Native-driver baseline execution, the minimal named-SQL bind path, and optional adapter capabilities.
 - [SQL Format](./sql-format.md): scaffolded SQL style and explicit safe formatting for existing SQL files.
 - [SQL Resources and Schema Compatibility](./sql-resource-compatibility.md): expose canonical SQL outside TypeScript and compare a PostgreSQL schema change against the full SQL fleet.

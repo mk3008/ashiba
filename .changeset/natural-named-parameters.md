@@ -1,5 +1,8 @@
 ---
 "@ashiba-ts/cli": patch
+"@ashiba-ts/driver-adapter-pg": patch
+"@ashiba-ts/driver-adapter-mssql": patch
+"@ashiba-ts/driver-adapter-mysql2": patch
 "@ashiba-ts/named-parameters": minor
 ---
 

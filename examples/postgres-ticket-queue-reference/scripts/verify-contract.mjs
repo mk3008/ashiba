@@ -2,12 +2,21 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { Pool } from 'pg';
+import { setupTicketQueueDatabase } from './setup-database.mjs';
 
 const root = process.cwd();
 const cli = resolve(root, '../../packages/cli/dist/index.js');
 const url = process.env.DATABASE_URL;
 
 if (!url) throw new Error('DATABASE_URL is required.');
+
+const pool = new Pool({ connectionString: url });
+try {
+  await setupTicketQueueDatabase(pool);
+} finally {
+  await pool.end();
+}
 
 const items = [
   ['list.sql', 'Ticket', 'ListParams'],
@@ -49,7 +58,7 @@ try {
   const staleSql = join(temporary, 'stale.sql');
 
   writeFileSync(badResultTypes, types.replace('id: string;', 'id: number;'));
-  writeFileSync(badParamsTypes, types.replace('export type GetParams = { id: string | bigint | null };', 'export type GetParams = { id: number | null };'));
+  writeFileSync(badParamsTypes, types.replace('export type GetParams = { id: string };', 'export type GetParams = { id: number };'));
   writeFileSync(staleSql, `${readFileSync('src/tickets/get.sql', 'utf8')}\n-- stale`);
 
   expectFailure([

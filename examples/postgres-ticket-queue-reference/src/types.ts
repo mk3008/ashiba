@@ -12,20 +12,20 @@ export type Ticket = {
 
 export type ListParams = {
   status: string | null;
-  customerId: string | bigint | null;
-  assigneeMode: string | null;
-  assigneeId: string | bigint | null;
-  limit: number | null;
-  offset: number | null;
+  customerId: string | null;
+  assigneeMode: 'any' | 'unassigned' | 'assigned';
+  assigneeId: string | null;
+  limit: number;
+  offset: number;
 };
 
-export type GetParams = { id: string | bigint | null };
+export type GetParams = { id: string };
 export type AssignParams = {
-  ticketId: string | bigint | null;
-  assigneeId: string | bigint | null;
+  ticketId: string;
+  assigneeId: string;
 };
 export type AuditParams = {
-  ticketId: string | bigint | null;
-  actorId: string | bigint | null;
+  ticketId: string;
+  actorId: string;
   note: string | null;
 };

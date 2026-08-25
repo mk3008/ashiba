@@ -16,6 +16,7 @@ import {
   normalizeError,
   renderSafeOrderBy,
 } from '@ashiba-ts/driver-adapter-core';
+import { bindNamedParameters, NamedParameterError } from '@ashiba-ts/named-parameters';
 
 /**
  * Minimal pg-compatible query result consumed by the adapter.
@@ -128,21 +129,17 @@ export type AshibaPostgresRetryClassification = {
 };
 
 /**
- * Error raised when provided named parameters do not match query model metadata.
+ * Adapter-facing error decoration for observer events. Parameter validation and
+ * ordering remain owned by `@ashiba-ts/named-parameters`.
  */
-export class AshibaParameterError extends Error {
-  readonly code: 'ASHIBA_MISSING_PARAMETER' | 'ASHIBA_UNUSED_PARAMETER';
-  readonly parameterNames: string[];
+export class AshibaParameterError extends NamedParameterError {
   readonly causeText: string;
   readonly nextAction: string;
-  readonly details: { parameterNames: string[] };
+  readonly details: { parameterNames: readonly string[] };
 
-  constructor(code: AshibaParameterError['code'], parameterNames: string[]) {
-    const label = code === 'ASHIBA_MISSING_PARAMETER' ? 'Missing' : 'Unused';
-    super(`${label} SQL parameter${parameterNames.length === 1 ? '' : 's'}: ${parameterNames.join(', ')}`);
+  constructor(code: NamedParameterError['code'], parameterNames: readonly string[]) {
+    super(code, parameterNames);
     this.name = 'AshibaParameterError';
-    this.code = code;
-    this.parameterNames = parameterNames;
     this.causeText = code === 'ASHIBA_MISSING_PARAMETER'
       ? 'The provided parameter object does not include every named SQL parameter required by the query model.'
       : 'The provided parameter object includes keys that are not referenced by the query model.';
@@ -497,24 +494,17 @@ function bindCompiledNamedParameters(
   allowedUnusedNames: ReadonlySet<string> = new Set(),
   strictParameterNames = false,
 ): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
-  const uniqueNames = new Set(compiled.orderedNames);
-  const missingNames = [...uniqueNames].filter((name) => !Object.prototype.hasOwnProperty.call(params, name));
-
-  if (missingNames.length > 0) {
-    throw new AshibaParameterError('ASHIBA_MISSING_PARAMETER', missingNames);
+  try {
+    return bindNamedParameters(compiled, params, {
+      strict: strictParameterNames,
+      allowedUnusedNames,
+    });
+  } catch (error) {
+    if (error instanceof NamedParameterError) {
+      throw new AshibaParameterError(error.code, error.parameterNames);
+    }
+    throw error;
   }
-
-  const unusedNames = strictParameterNames
-    ? Object.keys(params).filter((name) => !uniqueNames.has(name) && !allowedUnusedNames.has(name))
-    : [];
-  if (unusedNames.length > 0) {
-    throw new AshibaParameterError('ASHIBA_UNUSED_PARAMETER', unusedNames);
-  }
-
-  return {
-    ...compiled,
-    values: compiled.orderedNames.map((name) => params[name]),
-  };
 }
 
 function applyOptionalConditionCompression(
