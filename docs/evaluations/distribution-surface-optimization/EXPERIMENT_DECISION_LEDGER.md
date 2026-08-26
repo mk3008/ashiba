@@ -71,6 +71,23 @@ The entries state current evidence and current decisions. They do not claim that
 - **Remaining uncertainty:** One additional PostgreSQL consumer does not cover other drivers, custom parsers, scale, concurrency, or many users.
 - **Future evidence for reconsideration:** Multiple clean-room consumers or another driver consistently require an omitted mechanism for safety or discoverability.
 
+## Frozen candidate manifest
+
+The holdout used the candidate frozen at commit `e5b107b22b3f60836d6151c9e04b0d013d1a98b3`, before this ledger was added. It contained the two retained README changes and no later product changes.
+
+| Tarball | SHA-256 |
+| --- | --- |
+| `ashiba-ts-cli-0.3.0.tgz` | `fafa5d6ff07b72c265e5238d24f26bb064ab3f7c93e47f995c478fbd2c0093f5` |
+| `ashiba-ts-ddl-pull-pg-dump-0.1.0.tgz` | `47fe6c0bc1e85164c1c4476f658894f8499ec1b80e005630feec2ffaf6cd558c` |
+| `ashiba-ts-driver-adapter-core-0.1.0.tgz` | `890c8b00bf10d57ee036ea293e81eba0a97ab28e5a86a86b67777d914d119695` |
+| `ashiba-ts-driver-adapter-mssql-0.0.1.tgz` | `a2050abd9be6a5d168afb2cc95cfe5ef00c064e5cd619e1a7388ff9e4f59f40e` |
+| `ashiba-ts-driver-adapter-mysql2-0.0.1.tgz` | `0e1c7115e1de639bcdadfb4a01edccac4cd810b9ad1289a383c8b52c2735e05e` |
+| `ashiba-ts-driver-adapter-pg-0.1.1.tgz` | `db446c3e0e8f3168bf2a4aa53a91e925080080133d60109ae996231d753f0804` |
+| `ashiba-ts-named-parameters-0.1.0.tgz` | `9e4b69c8b63a1db20118815539483010dbbfc4362d9e016d0fb53212a1a26111` |
+| `ashiba-ts-testkit-adapter-pg-0.1.0.tgz` | `e18cbf90fdab8c77b3f10451130bb165c747d0f07564ddb28a445e867f59bda3` |
+
+No product experiment was reverted. The topology experiment was intentionally not started: it was deferred because the observed installation condition has not yet been isolated from release/publication state.
+
 ## Feature absence index
 
 | Feature / capability | Current status | Why not part of the core | Evidence | Reconsideration trigger |
