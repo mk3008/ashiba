@@ -170,7 +170,7 @@ function resource(id: string, databaseType: PostgresPortableDatabaseTypeIdentity
     canonical: { path: `${id}.sql`, mediaType: 'application/sql', sourceHash: 'sha256:same', bytes: 40 },
     executable: {
       dialect: 'postgresql', path: `${id}.postgres.sql`, sourceHash: 'sha256:compiled',
-      parameterStyle: 'dollar-numbered', orderedNames: [],
+      parameterStyle: 'indexed', parameterNames: [],
     },
     capabilities: { parser: { status: 'ok' }, optionalSubtraction: [], safeSort: [] },
     contract: {

@@ -23,7 +23,7 @@ Recommended default fields:
 - `executionId`: one SQL execution correlation ID, shared by its `start`, `end`, or `error` events
 - `sqlId` / `queryId`: stable identifiers from query metadata
 - `sqlPath`: the source SQL file path for local/review lookup
-- `orderedNames`: named parameter order, without values
+- `parameterNames`: named parameter order, without values
 - `parameterSummary`: parameter names and placeholder positions, without values
 - `elapsedMs`
 - `durationBucket`
@@ -66,7 +66,7 @@ The historical rawsql-ts / ztd-cli reference for this shape is preserved in `doc
 
 ## Parameter Values
 
-Ashiba SQL files use named parameters, and the PostgreSQL adapter emits `orderedNames`. This is enough to understand which named parameters were bound to `$1`, `$2`, and so on.
+Ashiba SQL files use named parameters, and the PostgreSQL adapter emits `parameterNames`. This is enough to understand which named parameters were bound to `$1`, `$2`, and so on.
 
 Parameter values are useful during local debugging, but they are also the highest leakage risk. Use this policy:
 

@@ -36,8 +36,9 @@ describe('fromPg', () => {
         bindings: {
           postgres: {
             sourceHash,
+            style: 'indexed',
             sql: 'select * from transfer_destination_definition where destination_definition_name = any($1) and is_enabled = $2',
-            orderedNames: ['names', 'enabled'],
+            parameterNames: ['names', 'enabled'],
           },
         },
       },

@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { Command } from 'commander';
-import { compileNamedParameters } from '../parameter-metadata.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 import { BinarySelectQuery, ColumnReference, DeleteQuery, FunctionCall, InsertQuery, SimpleSelectQuery, SqlParser, SubQuerySource, TableSource, UpdateQuery, ValuesQuery, type SelectItem, type SourceExpression } from 'rawsql-ts';
 import { loadDdlSchemaModel, type DdlSchemaColumn, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
 import { extractSqlResultColumnAstItems, extractSqlResultColumnContracts, type SqlResultColumnContract } from './sql-result-columns.js';
@@ -76,8 +76,9 @@ export interface QueryModelAnalysis {
 export interface QueryModelBindings {
   postgres: {
     sourceHash: string;
+    style: 'indexed';
     sql: string;
-    orderedNames: string[];
+    parameterNames: readonly string[];
     contract?: {
       version: 1;
       sourceHash: string;
@@ -123,13 +124,15 @@ export interface QueryModelBindings {
   };
   mysql2?: {
     sourceHash?: string;
+    style: 'anonymous';
     sql: string;
-    orderedNames: readonly string[];
+    valueNames: readonly string[];
   };
   mssql?: {
     sourceHash?: string;
+    style: 'named';
     sql: string;
-    orderedNames: readonly string[];
+    parameterNames: readonly string[];
   };
 }
 
@@ -174,10 +177,10 @@ export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
   const sqlPath = path.resolve(rootDir, requireValue(options.sqlFile, '<sqlFile>'));
   const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
-  const postgresBinding = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
-  const mysql2Binding = compileNamedParameters(sql, { placeholderStyle: 'question' });
-  const mssqlBinding = compileNamedParameters(sql, { placeholderStyle: 'named-at' });
-  const parameters = [...new Set(postgresBinding.orderedNames)];
+  const postgresBinding = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
+  const mysql2Binding = compileNamedParameters(sql, { rendering: { style: 'anonymous', token: '?' } });
+  const mssqlBinding = compileNamedParameters(sql, { rendering: { style: 'named', prefix: '@' } });
+  const parameters = [...postgresBinding.parameterNames];
   const ddlModel = loadDdlSchemaModel(rootDir, options.ddlDir);
   const schemaPath = loadProjectPathConfig(rootDir);
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, options.ddlDir);
@@ -189,20 +192,20 @@ export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const bindings = {
     postgres: {
       sourceHash: analysis.sourceHash,
-      sql: postgresBinding.sql,
-      orderedNames: postgresBinding.orderedNames,
+      ...postgresBinding,
+      parameterNames: [...postgresBinding.parameterNames],
       ...buildPostgresSafeSortBindingMetadata(sql, analysis.safeSort),
       ...buildPostgresOptionalConditionCompressionBindingMetadata(sql, analysis.optionalConditionCompression),
     },
     mysql2: {
       sourceHash: analysis.sourceHash,
-      sql: mysql2Binding.sql,
-      orderedNames: mysql2Binding.orderedNames,
+      ...mysql2Binding,
+      valueNames: [...mysql2Binding.valueNames],
     },
     mssql: {
       sourceHash: analysis.sourceHash,
-      sql: mssqlBinding.sql,
-      orderedNames: mssqlBinding.orderedNames,
+      ...mssqlBinding,
+      parameterNames: [...mssqlBinding.parameterNames],
     },
   };
   const id = options.id ?? deriveQueryId(rootDir, sqlPath);
@@ -323,7 +326,7 @@ export function buildPostgresSafeSortBindingMetadata(
     return {};
   }
   const compiledPrefix = compileNamedParameters(sourceSql.slice(0, safeSort.insertion.index), {
-    placeholderStyle: 'postgres',
+    rendering: { style: 'indexed', prefix: '$' },
   });
   return {
     safeSortInsertion: {
@@ -331,7 +334,7 @@ export function buildPostgresSafeSortBindingMetadata(
       ...(safeSort.insertion.end !== undefined
         ? {
           end: compileNamedParameters(sourceSql.slice(0, safeSort.insertion.end), {
-            placeholderStyle: 'postgres',
+            rendering: { style: 'indexed', prefix: '$' },
           }).sql.length,
         }
         : {}),
@@ -356,10 +359,10 @@ export function buildPostgresOptionalConditionCompressionBindingMetadata(
         parameterName: branch.parameterName,
         removalRange: {
           start: compileNamedParameters(sourceSql.slice(0, branch.removalRange.start), {
-            placeholderStyle: 'postgres',
+            rendering: { style: 'indexed', prefix: '$' },
           }).sql.length,
           end: compileNamedParameters(sourceSql.slice(0, branch.removalRange.end), {
-            placeholderStyle: 'postgres',
+            rendering: { style: 'indexed', prefix: '$' },
           }).sql.length,
         },
         presentReplacement: buildPostgresPresentReplacement(sourceSql, branch.presentReplacement),
@@ -389,19 +392,19 @@ function buildPostgresRemovalRange(
   removalRange: { start: number; end: number; text?: string },
 ): { start: number; end: number; text?: string } {
   const start = compileNamedParameters(sourceSql.slice(0, removalRange.start), {
-    placeholderStyle: 'postgres',
+    rendering: { style: 'indexed', prefix: '$' },
   }).sql.length;
   const end = compileNamedParameters(sourceSql.slice(0, removalRange.end), {
-    placeholderStyle: 'postgres',
+    rendering: { style: 'indexed', prefix: '$' },
   }).sql.length;
   const compiledText = removalRange.text === undefined
     ? undefined
     : (() => {
       const compiledPrefix = compileNamedParameters(sourceSql.slice(0, removalRange.start), {
-        placeholderStyle: 'postgres',
+        rendering: { style: 'indexed', prefix: '$' },
       }).sql;
       const compiledThroughRange = compileNamedParameters(`${sourceSql.slice(0, removalRange.start)}${removalRange.text}`, {
-        placeholderStyle: 'postgres',
+        rendering: { style: 'indexed', prefix: '$' },
       }).sql;
       return compiledThroughRange.slice(compiledPrefix.length);
     })();
@@ -421,15 +424,15 @@ function buildPostgresPresentReplacement(
   replacement: { start: number; end: number; text: string },
 ): { start: number; end: number; text: string } {
   const compiledPrefix = compileNamedParameters(sourceSql.slice(0, replacement.start), {
-    placeholderStyle: 'postgres',
+    rendering: { style: 'indexed', prefix: '$' },
   }).sql;
   const compiledThroughReplacement = compileNamedParameters(`${sourceSql.slice(0, replacement.start)}${replacement.text}`, {
-    placeholderStyle: 'postgres',
+    rendering: { style: 'indexed', prefix: '$' },
   }).sql;
   return {
     start: compiledPrefix.length,
     end: compileNamedParameters(sourceSql.slice(0, replacement.end), {
-      placeholderStyle: 'postgres',
+      rendering: { style: 'indexed', prefix: '$' },
     }).sql.length,
     text: compiledThroughReplacement.slice(compiledPrefix.length),
   };

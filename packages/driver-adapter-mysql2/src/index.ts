@@ -8,6 +8,7 @@ import {
   maskParams,
   normalizeError,
 } from '@ashiba-ts/driver-adapter-core';
+import { bindNamedParameters, bindingParameterNames, NamedParameterError, type ParameterBinding } from '@ashiba-ts/named-parameters';
 
 /**
  * Minimal mysql2-compatible result consumed by the adapter.
@@ -74,18 +75,13 @@ export type AshibaMysql2Adapter = {
 /**
  * Error raised when provided named parameters do not match query model metadata.
  */
-export class AshibaMysql2ParameterError extends Error {
-  readonly code: 'ASHIBA_MISSING_PARAMETER' | 'ASHIBA_UNUSED_PARAMETER';
-  readonly parameterNames: string[];
+export class AshibaMysql2ParameterError extends NamedParameterError {
   readonly causeText: string;
   readonly nextAction: string;
 
-  constructor(code: AshibaMysql2ParameterError['code'], parameterNames: string[]) {
-    const label = code === 'ASHIBA_MISSING_PARAMETER' ? 'Missing' : 'Unused';
-    super(`${label} SQL parameter${parameterNames.length === 1 ? '' : 's'}: ${parameterNames.join(', ')}`);
+  constructor(code: NamedParameterError['code'], parameterNames: readonly string[]) {
+    super(code, parameterNames);
     this.name = 'AshibaMysql2ParameterError';
-    this.code = code;
-    this.parameterNames = parameterNames;
     this.causeText = code === 'ASHIBA_MISSING_PARAMETER'
       ? 'The provided parameter object does not include every named SQL parameter required by the query model.'
       : 'The provided parameter object includes keys that are not referenced by the query model.';
@@ -130,7 +126,7 @@ export function createMysql2Adapter(
     ): Promise<{ rows: Row[]; fields: unknown }> {
       const metadata = { ...query.metadata, sqlPath: query.metadata?.sqlPath ?? query.sqlPath, dialect: 'mysql' };
       const startedAt = Date.now();
-      let bound: { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } | undefined;
+      let bound: ReturnType<typeof bindNamedParameters> | undefined;
 
       try {
         bound = prepareMysql2Execution(query, params);
@@ -139,7 +135,7 @@ export function createMysql2Adapter(
           metadata,
           sourceSql: query.sql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bindingParameterNames(bound),
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
         });
@@ -150,7 +146,7 @@ export function createMysql2Adapter(
           metadata,
           sourceSql: query.sql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bindingParameterNames(bound),
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
           elapsedMs: Date.now() - startedAt,
@@ -165,7 +161,7 @@ export function createMysql2Adapter(
           ...(bound
             ? {
               compiledSql: bound.sql,
-              orderedNames: bound.orderedNames,
+              parameterNames: bindingParameterNames(bound),
               maskedParams: maskParams(bound.values, options.maskPolicy),
               ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
             }
@@ -187,7 +183,7 @@ function getMysql2RowCount(rows: Mysql2Rows): number | undefined {
 function prepareMysql2Execution(
   query: AshibaMysql2QuerySource,
   params: Readonly<Record<string, unknown>>,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
+): ReturnType<typeof bindNamedParameters> {
   const binding = query.queryModel.bindings?.mysql2;
   if (!binding) {
     throw new AshibaMysql2QueryModelError(
@@ -207,24 +203,17 @@ function prepareMysql2Execution(
 }
 
 function bindCompiledNamedParameters(
-  compiled: { sql: string; orderedNames: readonly string[] },
+  compiled: ParameterBinding,
   params: Readonly<Record<string, unknown>>,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
-  const uniqueNames = new Set(compiled.orderedNames);
-  const missingNames = [...uniqueNames].filter((name) => !Object.prototype.hasOwnProperty.call(params, name));
-  if (missingNames.length > 0) {
-    throw new AshibaMysql2ParameterError('ASHIBA_MISSING_PARAMETER', missingNames);
+): ReturnType<typeof bindNamedParameters> {
+  try {
+    return bindNamedParameters(compiled, params);
+  } catch (error) {
+    if (error instanceof NamedParameterError) {
+      throw new AshibaMysql2ParameterError(error.code, error.parameterNames);
+    }
+    throw error;
   }
-
-  const unusedNames = Object.keys(params).filter((name) => !uniqueNames.has(name));
-  if (unusedNames.length > 0) {
-    throw new AshibaMysql2ParameterError('ASHIBA_UNUSED_PARAMETER', unusedNames);
-  }
-
-  return {
-    ...compiled,
-    values: compiled.orderedNames.map((name) => params[name]),
-  };
 }
 
 function hashSql(sql: string): string {

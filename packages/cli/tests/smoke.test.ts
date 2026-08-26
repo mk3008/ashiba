@@ -2797,7 +2797,7 @@ describe('@ashiba-ts/cli smoke', () => {
         'queryModel.analysis.safeSort is stale.',
         'queryModel.bindings.postgres.sourceHash is stale.',
         'queryModel.bindings.postgres.sql is stale.',
-        'queryModel.bindings.postgres.orderedNames is stale.',
+        'queryModel.bindings.postgres.parameterNames is stale.',
       ]));
       expect(fail.attainment.nextActions).toContain('Regenerate query model metadata from the current visible SQL.');
       expect(fail.catalogCheck.checked[0]?.missingInSpec).toEqual(['status']);
@@ -3482,15 +3482,15 @@ describe('@ashiba-ts/cli smoke', () => {
       });
       expect(result.bindings.postgres).toMatchObject({
         sourceHash: result.analysis.sourceHash,
-        orderedNames: ['email', 'status'],
+        style: 'indexed', parameterNames: ['email', 'status'],
       });
       expect(result.bindings.mysql2).toMatchObject({
         sourceHash: result.analysis.sourceHash,
-        orderedNames: ['email', 'status'],
+        style: 'anonymous', valueNames: ['email', 'status'],
       });
       expect(result.bindings.mssql).toMatchObject({
         sourceHash: result.analysis.sourceHash,
-        orderedNames: ['email', 'status'],
+        style: 'named', parameterNames: ['email', 'status'],
       });
       expect(result.bindings.postgres.sql).toContain('email = $1 and status = $2');
       expect(result.bindings.mysql2?.sql).toContain('email = ? and status = ?');
@@ -3701,13 +3701,13 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.bindings.postgres.optionalConditionCompression?.branches[1]).toMatchObject({
         parameterName: 'language',
         presentReplacement: {
-          text: 'language = $4',
+          text: 'language = $3',
         },
       });
       expect(result.bindings.postgres.optionalConditionCompression?.branches[2]).toMatchObject({
         parameterName: 'tag',
         presentReplacement: {
-          text: '$6 = any(coalesce(tags, array[]::text[]))',
+          text: '$4 = any(coalesce(tags, array[]::text[]))',
         },
       });
     } finally {
@@ -3845,10 +3845,10 @@ describe('@ashiba-ts/cli smoke', () => {
         branchIndexes: [0, 1],
         removalRange: {
           start: result.bindings.postgres.sql.indexOf('($1 is null'),
-          end: result.bindings.postgres.sql.indexOf('tenant_id = $5'),
+          end: result.bindings.postgres.sql.indexOf('tenant_id = $3'),
           text: [
-            '($1 is null or email = $2)',
-            '  and ($3 is null or status = $4)',
+            '($1 is null or email = $1)',
+            '  and ($2 is null or status = $2)',
             '  and ',
           ].join('\n'),
         },
@@ -3856,9 +3856,9 @@ describe('@ashiba-ts/cli smoke', () => {
           branchIndexes: [0],
           removalRange: {
             start: result.bindings.postgres.sql.indexOf('($1 is null'),
-            end: result.bindings.postgres.sql.indexOf('($3 is null'),
+            end: result.bindings.postgres.sql.indexOf('($2 is null'),
             text: [
-              '($1 is null or email = $2)',
+              '($1 is null or email = $1)',
               '  and ',
             ].join('\n'),
           },
@@ -3907,9 +3907,9 @@ describe('@ashiba-ts/cli smoke', () => {
         branchIndexes: [0],
         removalRange: {
           start: result.bindings.postgres.sql.indexOf('($1 is null'),
-          end: result.bindings.postgres.sql.indexOf('($3 is null'),
+          end: result.bindings.postgres.sql.indexOf('($2 is null'),
           text: [
-            '($1 is null or email = $2)',
+            '($1 is null or email = $1)',
             '  /* keep connector trivia */',
             '  and ',
           ].join('\n'),
@@ -3949,21 +3949,21 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(result.bindings.postgres.optionalConditionCompression?.groups).toEqual([{
         branchIndexes: [1, 2],
         removalRange: {
-          start: result.bindings.postgres.sql.indexOf('($3 is null'),
-          end: result.bindings.postgres.sql.indexOf('tenant_id = $7'),
+          start: result.bindings.postgres.sql.indexOf('($2 is null'),
+          end: result.bindings.postgres.sql.indexOf('tenant_id = $4'),
           text: [
-            '($3 is null or email = $4)',
-            '  and ($5 is null or status = $6)',
+            '($2 is null or email = $2)',
+            '  and ($3 is null or status = $3)',
             '  and ',
           ].join('\n'),
         },
         leadingPrefixes: [{
           branchIndexes: [1],
           removalRange: {
-            start: result.bindings.postgres.sql.indexOf('($3 is null'),
-            end: result.bindings.postgres.sql.indexOf('($5 is null'),
+            start: result.bindings.postgres.sql.indexOf('($2 is null'),
+            end: result.bindings.postgres.sql.indexOf('($3 is null'),
             text: [
-              '($3 is null or email = $4)',
+              '($2 is null or email = $2)',
               '  and ',
             ].join('\n'),
           },
@@ -3971,8 +3971,8 @@ describe('@ashiba-ts/cli smoke', () => {
       }]);
       expect(result.bindings.postgres.optionalConditionCompression?.groups[0]?.removalRange.text)
         .toBe(result.bindings.postgres.sql.slice(
-          result.bindings.postgres.sql.indexOf('($3 is null'),
-          result.bindings.postgres.sql.indexOf('tenant_id = $7'),
+          result.bindings.postgres.sql.indexOf('($2 is null'),
+          result.bindings.postgres.sql.indexOf('tenant_id = $4'),
         ));
       expect(readFileSync(sqlPath, 'utf8')).toContain(':scope');
     } finally {

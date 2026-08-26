@@ -36,6 +36,17 @@ describe('@ashiba-ts/driver-adapter-mssql', () => {
     expect(queries).toEqual(['select * from users where id = @id and status = @status']);
   });
 
+  test('registers a repeated named logical parameter once', async () => {
+    const inputs: string[] = []; const queries: string[] = [];
+    const factory: MssqlRequestFactory = { request<Row>() { return {
+      input(name) { inputs.push(name); return this; },
+      async query(sql) { queries.push(sql); return { recordset: [] as Row[] }; },
+    }; } };
+    await createMssqlAdapter(factory).execute(querySource('select * from users where user_id = :id or owner_id = :id'), { id: 7 });
+    expect(queries).toEqual(['select * from users where user_id = @id or owner_id = @id']);
+    expect(inputs).toEqual(['id']);
+  });
+
   test('rejects missing and unused parameters before calling mssql', async () => {
     let called = false;
     const factory: MssqlRequestFactory = {
@@ -86,7 +97,8 @@ describe('@ashiba-ts/driver-adapter-mssql', () => {
         mssql: {
           sourceHash: hashSql('select * from accounts where id = :id'),
           sql: 'select * from accounts where id = @id',
-          orderedNames: ['id'],
+          style: 'named',
+          parameterNames: ['id'],
         },
       },
     }), { id: 1 })).rejects.toMatchObject({ code: 'ASHIBA_QUERY_MODEL_STALE' });
@@ -113,7 +125,8 @@ function queryModelFor(sourceSql: string): AshibaMssqlQueryModel {
       mssql: {
         sourceHash: hashSql(sourceSql),
         sql: sourceSql.replace(/:(\w+)/g, '@$1'),
-        orderedNames: [...sourceSql.matchAll(/:(\w+)/g)].map((match) => match[1] ?? ''),
+        style: 'named',
+        parameterNames: [...new Set([...sourceSql.matchAll(/:(\w+)/g)].map((match) => match[1] ?? ''))],
       },
     },
   };

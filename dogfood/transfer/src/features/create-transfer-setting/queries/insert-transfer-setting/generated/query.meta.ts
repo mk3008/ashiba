@@ -30,6 +30,22 @@ export const queryModel = {
       "source_sql_hash",
       "updated_at"
     ],
+    "resultColumnOrder": [
+      "setting_id",
+      "setting_name",
+      "description",
+      "source_sql_body",
+      "source_sql_hash",
+      "source_key_definition",
+      "source_sql_analysis_result",
+      "search_condition_analysis_result",
+      "source_sql_analysis_status",
+      "source_sql_analysis_error",
+      "is_enabled",
+      "created_at",
+      "updated_at",
+      "note"
+    ],
     "resultColumnTypes": {
       "created_at": "string",
       "description": "string",
@@ -102,8 +118,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:3367ee79ab9147136e87a2e7ea4a2a3f6263a6aff5a2c093c8cb71f8c4151a9e",
+      "style": "indexed",
       "sql": "insert into rawsql_transfer.setting(\n    setting_name\n    , description\n    , source_sql_body\n    , source_sql_hash\n    , source_key_definition\n    , source_sql_analysis_result\n    , search_condition_analysis_result\n    , source_sql_analysis_status\n    , source_sql_analysis_error\n    , is_enabled\n    , note\n)\nvalues\n    ($1, $2, $3, $4, cast($5 as jsonb), cast($6 as jsonb), cast($7 as jsonb), $8, $9, $10, $11)\nreturning\n    setting_id\n    , setting_name\n    , description\n    , source_sql_body\n    , source_sql_hash\n    , source_key_definition\n    , source_sql_analysis_result\n    , search_condition_analysis_result\n    , source_sql_analysis_status\n    , source_sql_analysis_error\n    , is_enabled\n    , created_at\n    , updated_at\n    , note;\n",
-      "orderedNames": [
+      "parameterNames": [
         "setting_name",
         "description",
         "source_sql_body",

@@ -5,10 +5,11 @@ ASHIBA_EVALUATION_DATABASE_URL environment variable to a disposable database.
 The evaluators create and remove a nonce schema; they do not alter an existing
 application schema.
 
-1. Build the CLI first because the N1 calibration imports its current compiled
-   lexical implementation.
-2. Run node evaluator/named-parameter-evaluator.mjs. Its expected nonzero exit
-   is the preserved N1 nested-comment calibration failure.
+1. Build the named-parameter package first because the N1 evaluator imports its
+   current compiled lexical implementation.
+2. Run node evaluator/named-parameter-evaluator.mjs. It verifies the current
+   indexed binding contract; the former nested-comment failure remains recorded
+   as historical calibration evidence in the decision log.
 3. Run node evaluator/n2-artifact-evaluator.mjs.
 4. Run node evaluator/named-live-evaluator.mjs.
 5. Run node evaluator/postgres-evaluator.mjs.

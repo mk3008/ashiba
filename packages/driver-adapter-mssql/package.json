@@ -15,12 +15,13 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && tsc --noEmit -p tsconfig.json",
+    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/named-parameters build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@ashiba-ts/driver-adapter-core": "workspace:*"
+    "@ashiba-ts/driver-adapter-core": "workspace:*",
+    "@ashiba-ts/named-parameters": "workspace:*"
   },
   "peerDependencies": {
     "mssql": ">=11"

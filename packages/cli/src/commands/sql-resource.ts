@@ -44,8 +44,8 @@ export interface SqlResource {
     dialect: 'postgresql';
     path: string;
     sourceHash: string;
-    parameterStyle: 'dollar-numbered';
-    orderedNames: string[];
+    parameterStyle: 'indexed';
+    parameterNames: string[];
   };
   capabilities: {
     parser: unknown;
@@ -200,7 +200,7 @@ export async function createSqlResourceFleetSnapshot(options: SnapshotOptions): 
       const contract = await derivePostgresQueryContractFromDatabase(connectionString, {
         sql: canonicalSql,
         compiledSql: model.bindings.postgres.sql,
-        parameterNames: model.bindings.postgres.orderedNames,
+        parameterNames: model.bindings.postgres.parameterNames,
         resultColumnOrder: model.analysis.resultColumnOrder,
         resultColumnNullability: model.analysis.resultColumnNullability,
         driverProfile,
@@ -223,8 +223,8 @@ export async function createSqlResourceFleetSnapshot(options: SnapshotOptions): 
           dialect: 'postgresql',
           path: toProjectPath(rootDir, executablePath),
           sourceHash: hashSource(executableSql),
-          parameterStyle: 'dollar-numbered',
-          orderedNames: [...model.bindings.postgres.orderedNames],
+          parameterStyle: 'indexed',
+          parameterNames: [...model.bindings.postgres.parameterNames],
         },
         capabilities: {
           parser: model.analysis.parserCapabilities,

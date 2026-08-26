@@ -54,6 +54,25 @@ export const queryModel = {
       "updated_at",
       "version_key"
     ],
+    "resultColumnOrder": [
+      "ticket_id",
+      "subject",
+      "status",
+      "priority",
+      "language",
+      "channel",
+      "sla_due_at",
+      "created_at",
+      "updated_at",
+      "version_key",
+      "customer_name",
+      "customer_tier",
+      "message_id",
+      "sender_name",
+      "sender_role",
+      "message_body",
+      "message_created_at"
+    ],
     "resultColumnTypes": {
       "channel": "string",
       "created_at": "string",
@@ -115,8 +134,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:23056189a193b068d3dcaff13c0c3b27f11cb82022af6ce28b774e2224509a67",
+      "style": "indexed",
       "sql": "select\n    t.ticket_id\n    , t.subject\n    , t.status\n    , t.priority\n    , t.language\n    , t.channel\n    , t.sla_due_at\n    , t.created_at\n    , t.updated_at\n    , t.version_key\n    , c.name as customer_name\n    , c.tier as customer_tier\n    , tm.message_id\n    , tm.sender_name\n    , tm.sender_role\n    , tm.body as message_body\n    , tm.created_at as message_created_at\nfrom\n    public.tickets as t\n    join public.customers as c on c.customer_id = t.customer_id\n    left join public.ticket_messages as tm on tm.ticket_id = t.ticket_id\nwhere\n    t.ticket_id = $1\norder by\n    tm.created_at\n    , tm.message_id;\n",
-      "orderedNames": [
+      "parameterNames": [
         "ticketId"
       ],
       "safeSortInsertion": {

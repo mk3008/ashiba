@@ -472,30 +472,22 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:1a1a0a14c7801bdb4ad41f686b9983a7c4df8e6962dbdcfe6ac30450b50ada8b",
-      "sql": "with\n    /* タグ条件だけを先に解決し、後続の一覧本体では ticket_id だけで絞り込めるようにする。 */\n    /* :tag が未指定なら全チケットを通し、指定された場合だけ該当タグを持つチケットに限定する。 */\n    tag_matched_tickets as (\n        select distinct\n            t.ticket_id\n        from\n            public.tickets as t\n            left join public.ticket_tag_links as ttl on ttl.ticket_id = t.ticket_id\n            left join public.ticket_tags as tt on tt.tag_id = ttl.tag_id\n        where\n            (cast($1 as text) is null or tt.slug = $2)\n    ),\n    /* 一覧の主対象となるチケット集合をここで確定する。 */\n    /* チケット、顧客、タグ、SLA、言語、チャネルなど、後続の集計前に適用できる条件はここで寄せる。 */\n    /* safe sort 用の action_required、priority_rank、vip_rank もこの段階で算出する。 */\n    filtered_tickets as (\n        select\n            t.ticket_id\n            , t.subject\n            , c.name as customer_name\n            , c.tier as customer_tier\n            , t.status\n            , t.priority\n            , t.language\n            , t.channel\n            , t.sla_due_at\n            , t.created_at\n            , t.updated_at\n            , case\n                when t.sla_due_at is null then\n                    'none'\n                when t.sla_due_at < now() then\n                    'breached'\n                when t.sla_due_at < now() + interval '4 hours' then\n                    'warning'\n                else\n                    'ok'\n            end as sla_state\n            , case\n                when t.sla_due_at is not null and t.sla_due_at < now() then\n                    1\n                when t.priority = 'high' and t.status in ('open', 'waiting_agent') then\n                    2\n                when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then\n                    3\n                when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then\n                    4\n                else\n                    9\n            end as action_required\n            , case t.priority\n                when 'high' then\n                    1\n                when 'medium' then\n                    2\n                else\n                    3\n            end as priority_rank\n            , case c.tier\n                when 'vip' then\n                    1\n                else\n                    2\n            end as vip_rank\n        from\n            public.tickets as t\n            join public.customers as c on c.customer_id = t.customer_id\n            join tag_matched_tickets as tmt on tmt.ticket_id = t.ticket_id\n        where\n            (cast($3 as text) is null or t.status = $4)\n            and (cast($5 as text) is null or c.tier = $6)\n            and (\n                cast($7 as text) is null\n                or case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $8\n            )\n            and (cast($9 as text) is null or t.language = $10)\n            and (cast($11 as text) is null or t.channel = $12)\n    ),\n    /* 各チケットの最新メッセージだけを取り出す。 */\n    /* filtered_tickets に結合してから rank することで、一覧対象外のメッセージを読まない。 */\n    latest_message as (\n        select\n            ranked.ticket_id\n            , ranked.sender_name as latest_sender_name\n            , ranked.sender_role as latest_sender_role\n            , ranked.body as latest_message_body\n            , ranked.created_at as latest_message_at\n        from\n            (\n                select\n                    tm.ticket_id\n                    , tm.sender_name\n                    , tm.sender_role\n                    , tm.body\n                    , tm.created_at\n                    , row_number() over(\n                        partition by\n                            tm.ticket_id\n                        order by\n                            tm.created_at desc\n                            , tm.message_id desc\n                    ) as message_rank\n                from\n                    public.ticket_messages as tm\n                    join filtered_tickets as ft on ft.ticket_id = tm.ticket_id\n            ) as ranked\n        where\n            ranked.message_rank = 1\n    ),\n    /* キーワード検索を最新メッセージ取得後に適用する。 */\n    /* 件名、顧客名、最新メッセージ本文を横断して検索するため、この段階で検索可能な一覧行を作る。 */\n    searchable_tickets as (\n        select\n            ft.ticket_id\n            , ft.subject\n            , ft.customer_name\n            , ft.customer_tier\n            , ft.status\n            , ft.priority\n            , ft.language\n            , ft.channel\n            , ft.sla_due_at\n            , ft.sla_state\n            , ft.created_at\n            , ft.updated_at\n            , ft.action_required\n            , ft.priority_rank\n            , ft.vip_rank\n            , lm.latest_sender_name\n            , lm.latest_sender_role\n            , lm.latest_message_body\n            , lm.latest_message_at\n        from\n            filtered_tickets as ft\n            left join latest_message as lm on lm.ticket_id = ft.ticket_id\n        where\n            (\n                $13 is null\n                or ft.subject ilike '%' || $14 || '%'\n                or ft.customer_name ilike '%' || $15 || '%'\n                or lm.latest_message_body ilike '%' || $16 || '%'\n            )\n    ),\n    /* 顧客からの最新返信日時を集計する。 */\n    /* safe sort の「顧客からの返信: 新しい順」で使う補助値。 */\n    last_customer_reply as (\n        select\n            tm.ticket_id\n            , max(tm.created_at) as last_customer_reply_at\n        from\n            public.ticket_messages as tm\n            join searchable_tickets as st on st.ticket_id = tm.ticket_id\n        where\n            tm.sender_role = 'customer'\n        group by\n            tm.ticket_id\n    ),\n    /* 表示用のタグ slug をチケット単位でまとめる。 */\n    /* タグ検索自体は tag_matched_tickets で済ませ、ここは表示値の集約に限定する。 */\n    aggregated_tags as (\n        select\n            ttl.ticket_id\n            , array_agg(tt.slug order by\n                tt.slug\n            ) as tag_slugs\n        from\n            public.ticket_tag_links as ttl\n            join searchable_tickets as st on st.ticket_id = ttl.ticket_id\n            join public.ticket_tags as tt on tt.tag_id = ttl.tag_id\n        group by\n            ttl.ticket_id\n    )\n/* 最終 select は UI と generated mapper の境界。 */\n/* DB固有の型推論に寄りすぎないよう、表示・DTOで使う値は必要に応じて明示 cast する。 */\nselect\n    count(*) over() as total_count\n    , cast(st.ticket_id as bigint) as ticket_id\n    , cast(st.subject as text) as subject\n    , cast(st.customer_name as text) as customer_name\n    , cast(st.customer_tier as text) as customer_tier\n    , cast(st.status as text) as status\n    , cast(st.priority as text) as priority\n    , cast(st.language as text) as language\n    , cast(st.channel as text) as channel\n    , st.sla_due_at\n    , cast(st.sla_state as text) as sla_state\n    , st.latest_sender_name\n    , st.latest_sender_role\n    , st.latest_message_body\n    , st.latest_message_at\n    , lcr.last_customer_reply_at\n    , st.created_at\n    , st.updated_at\n    , coalesce(tags.tag_slugs, cast(array[] as text[])) as tag_slugs\n    , cast(st.action_required as integer) as action_required\n    , cast(st.priority_rank as integer) as priority_rank\n    , cast(st.vip_rank as integer) as vip_rank\nfrom\n    searchable_tickets as st\n    left join last_customer_reply as lcr on lcr.ticket_id = st.ticket_id\n    left join aggregated_tags as tags on tags.ticket_id = st.ticket_id\norder by\n    st.ticket_id\n    , cast(st.subject as text)\n    , cast(st.customer_name as text)\n    , cast(st.customer_tier as text)\n    , cast(st.status as text)\n    , st.priority_rank\n    , st.sla_due_at\n    , cast(st.sla_state as text)\n    , st.latest_message_at\n    , cast(st.language as text)\n    , cast(st.channel as text)\n    , st.updated_at desc\n    , st.action_required\n    , lcr.last_customer_reply_at desc\n    , st.vip_rank\nlimit\n    $17\noffset\n    $18;\n",
-      "orderedNames": [
-        "tag",
+      "style": "indexed",
+      "sql": "with\n    /* タグ条件だけを先に解決し、後続の一覧本体では ticket_id だけで絞り込めるようにする。 */\n    /* :tag が未指定なら全チケットを通し、指定された場合だけ該当タグを持つチケットに限定する。 */\n    tag_matched_tickets as (\n        select distinct\n            t.ticket_id\n        from\n            public.tickets as t\n            left join public.ticket_tag_links as ttl on ttl.ticket_id = t.ticket_id\n            left join public.ticket_tags as tt on tt.tag_id = ttl.tag_id\n        where\n            (cast($1 as text) is null or tt.slug = $1)\n    ),\n    /* 一覧の主対象となるチケット集合をここで確定する。 */\n    /* チケット、顧客、タグ、SLA、言語、チャネルなど、後続の集計前に適用できる条件はここで寄せる。 */\n    /* safe sort 用の action_required、priority_rank、vip_rank もこの段階で算出する。 */\n    filtered_tickets as (\n        select\n            t.ticket_id\n            , t.subject\n            , c.name as customer_name\n            , c.tier as customer_tier\n            , t.status\n            , t.priority\n            , t.language\n            , t.channel\n            , t.sla_due_at\n            , t.created_at\n            , t.updated_at\n            , case\n                when t.sla_due_at is null then\n                    'none'\n                when t.sla_due_at < now() then\n                    'breached'\n                when t.sla_due_at < now() + interval '4 hours' then\n                    'warning'\n                else\n                    'ok'\n            end as sla_state\n            , case\n                when t.sla_due_at is not null and t.sla_due_at < now() then\n                    1\n                when t.priority = 'high' and t.status in ('open', 'waiting_agent') then\n                    2\n                when c.tier = 'vip' and t.status in ('open', 'waiting_agent') then\n                    3\n                when t.sla_due_at is not null and t.sla_due_at < now() + interval '4 hours' then\n                    4\n                else\n                    9\n            end as action_required\n            , case t.priority\n                when 'high' then\n                    1\n                when 'medium' then\n                    2\n                else\n                    3\n            end as priority_rank\n            , case c.tier\n                when 'vip' then\n                    1\n                else\n                    2\n            end as vip_rank\n        from\n            public.tickets as t\n            join public.customers as c on c.customer_id = t.customer_id\n            join tag_matched_tickets as tmt on tmt.ticket_id = t.ticket_id\n        where\n            (cast($2 as text) is null or t.status = $2)\n            and (cast($3 as text) is null or c.tier = $3)\n            and (\n                cast($4 as text) is null\n                or case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $4\n            )\n            and (cast($5 as text) is null or t.language = $5)\n            and (cast($6 as text) is null or t.channel = $6)\n    ),\n    /* 各チケットの最新メッセージだけを取り出す。 */\n    /* filtered_tickets に結合してから rank することで、一覧対象外のメッセージを読まない。 */\n    latest_message as (\n        select\n            ranked.ticket_id\n            , ranked.sender_name as latest_sender_name\n            , ranked.sender_role as latest_sender_role\n            , ranked.body as latest_message_body\n            , ranked.created_at as latest_message_at\n        from\n            (\n                select\n                    tm.ticket_id\n                    , tm.sender_name\n                    , tm.sender_role\n                    , tm.body\n                    , tm.created_at\n                    , row_number() over(\n                        partition by\n                            tm.ticket_id\n                        order by\n                            tm.created_at desc\n                            , tm.message_id desc\n                    ) as message_rank\n                from\n                    public.ticket_messages as tm\n                    join filtered_tickets as ft on ft.ticket_id = tm.ticket_id\n            ) as ranked\n        where\n            ranked.message_rank = 1\n    ),\n    /* キーワード検索を最新メッセージ取得後に適用する。 */\n    /* 件名、顧客名、最新メッセージ本文を横断して検索するため、この段階で検索可能な一覧行を作る。 */\n    searchable_tickets as (\n        select\n            ft.ticket_id\n            , ft.subject\n            , ft.customer_name\n            , ft.customer_tier\n            , ft.status\n            , ft.priority\n            , ft.language\n            , ft.channel\n            , ft.sla_due_at\n            , ft.sla_state\n            , ft.created_at\n            , ft.updated_at\n            , ft.action_required\n            , ft.priority_rank\n            , ft.vip_rank\n            , lm.latest_sender_name\n            , lm.latest_sender_role\n            , lm.latest_message_body\n            , lm.latest_message_at\n        from\n            filtered_tickets as ft\n            left join latest_message as lm on lm.ticket_id = ft.ticket_id\n        where\n            (\n                $7 is null\n                or ft.subject ilike '%' || $7 || '%'\n                or ft.customer_name ilike '%' || $7 || '%'\n                or lm.latest_message_body ilike '%' || $7 || '%'\n            )\n    ),\n    /* 顧客からの最新返信日時を集計する。 */\n    /* safe sort の「顧客からの返信: 新しい順」で使う補助値。 */\n    last_customer_reply as (\n        select\n            tm.ticket_id\n            , max(tm.created_at) as last_customer_reply_at\n        from\n            public.ticket_messages as tm\n            join searchable_tickets as st on st.ticket_id = tm.ticket_id\n        where\n            tm.sender_role = 'customer'\n        group by\n            tm.ticket_id\n    ),\n    /* 表示用のタグ slug をチケット単位でまとめる。 */\n    /* タグ検索自体は tag_matched_tickets で済ませ、ここは表示値の集約に限定する。 */\n    aggregated_tags as (\n        select\n            ttl.ticket_id\n            , array_agg(tt.slug order by\n                tt.slug\n            ) as tag_slugs\n        from\n            public.ticket_tag_links as ttl\n            join searchable_tickets as st on st.ticket_id = ttl.ticket_id\n            join public.ticket_tags as tt on tt.tag_id = ttl.tag_id\n        group by\n            ttl.ticket_id\n    )\n/* 最終 select は UI と generated mapper の境界。 */\n/* DB固有の型推論に寄りすぎないよう、表示・DTOで使う値は必要に応じて明示 cast する。 */\nselect\n    count(*) over() as total_count\n    , cast(st.ticket_id as bigint) as ticket_id\n    , cast(st.subject as text) as subject\n    , cast(st.customer_name as text) as customer_name\n    , cast(st.customer_tier as text) as customer_tier\n    , cast(st.status as text) as status\n    , cast(st.priority as text) as priority\n    , cast(st.language as text) as language\n    , cast(st.channel as text) as channel\n    , st.sla_due_at\n    , cast(st.sla_state as text) as sla_state\n    , st.latest_sender_name\n    , st.latest_sender_role\n    , st.latest_message_body\n    , st.latest_message_at\n    , lcr.last_customer_reply_at\n    , st.created_at\n    , st.updated_at\n    , coalesce(tags.tag_slugs, cast(array[] as text[])) as tag_slugs\n    , cast(st.action_required as integer) as action_required\n    , cast(st.priority_rank as integer) as priority_rank\n    , cast(st.vip_rank as integer) as vip_rank\nfrom\n    searchable_tickets as st\n    left join last_customer_reply as lcr on lcr.ticket_id = st.ticket_id\n    left join aggregated_tags as tags on tags.ticket_id = st.ticket_id\norder by\n    st.ticket_id\n    , cast(st.subject as text)\n    , cast(st.customer_name as text)\n    , cast(st.customer_tier as text)\n    , cast(st.status as text)\n    , st.priority_rank\n    , st.sla_due_at\n    , cast(st.sla_state as text)\n    , st.latest_message_at\n    , cast(st.language as text)\n    , cast(st.channel as text)\n    , st.updated_at desc\n    , st.action_required\n    , lcr.last_customer_reply_at desc\n    , st.vip_rank\nlimit\n    $8\noffset\n    $9;\n",
+      "parameterNames": [
         "tag",
         "status",
-        "status",
-        "customerTier",
         "customerTier",
         "slaState",
-        "slaState",
-        "language",
         "language",
         "channel",
-        "channel",
-        "keyword",
-        "keyword",
-        "keyword",
         "keyword",
         "limit",
         "offset"
       ],
       "safeSortInsertion": {
-        "index": 7430,
-        "end": 7850
+        "index": 7423,
+        "end": 7843
       },
       "optionalConditionCompression": {
         "branches": [
@@ -520,7 +512,7 @@ export const queryModel = {
             "presentReplacement": {
               "start": 2445,
               "end": 2488,
-              "text": "t.status = $3"
+              "text": "t.status = $2"
             }
           },
           {
@@ -532,7 +524,7 @@ export const queryModel = {
             "presentReplacement": {
               "start": 2505,
               "end": 2546,
-              "text": "c.tier = $5"
+              "text": "c.tier = $3"
             }
           },
           {
@@ -544,43 +536,43 @@ export const queryModel = {
             "presentReplacement": {
               "start": 2563,
               "end": 2996,
-              "text": "case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $7"
+              "text": "case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $4"
             }
           },
           {
             "parameterName": "language",
             "removalRange": {
               "start": 3009,
-              "end": 3059
+              "end": 3058
             },
             "presentReplacement": {
               "start": 3013,
-              "end": 3059,
-              "text": "t.language = $9"
+              "end": 3058,
+              "text": "t.language = $5"
             }
           },
           {
             "parameterName": "channel",
             "removalRange": {
-              "start": 3072,
-              "end": 3122
+              "start": 3071,
+              "end": 3119
             },
             "presentReplacement": {
-              "start": 3076,
-              "end": 3122,
-              "text": "t.channel = $11"
+              "start": 3075,
+              "end": 3119,
+              "text": "t.channel = $6"
             }
           },
           {
             "parameterName": "keyword",
             "removalRange": {
-              "start": 5067,
-              "end": 5308
+              "start": 5064,
+              "end": 5301
             },
             "presentReplacement": {
-              "start": 5085,
-              "end": 5308,
-              "text": "(ft.subject ilike '%' || $13 || '%' or ft.customer_name ilike '%' || $14 || '%' or lm.latest_message_body ilike '%' || $15 || '%')"
+              "start": 5082,
+              "end": 5301,
+              "text": "(ft.subject ilike '%' || $7 || '%' or ft.customer_name ilike '%' || $7 || '%' or lm.latest_message_body ilike '%' || $7 || '%')"
             }
           }
         ],
@@ -595,8 +587,8 @@ export const queryModel = {
             ],
             "removalRange": {
               "start": 2427,
-              "end": 3122,
-              "text": "where\n            (cast($3 as text) is null or t.status = $4)\n            and (cast($5 as text) is null or c.tier = $6)\n            and (\n                cast($7 as text) is null\n                or case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $8\n            )\n            and (cast($9 as text) is null or t.language = $10)\n            and (cast($11 as text) is null or t.channel = $12)"
+              "end": 3119,
+              "text": "where\n            (cast($2 as text) is null or t.status = $2)\n            and (cast($3 as text) is null or c.tier = $3)\n            and (\n                cast($4 as text) is null\n                or case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $4\n            )\n            and (cast($5 as text) is null or t.language = $5)\n            and (cast($6 as text) is null or t.channel = $6)"
             },
             "leadingPrefixes": [
               {
@@ -606,7 +598,7 @@ export const queryModel = {
                 "removalRange": {
                   "start": 2445,
                   "end": 2505,
-                  "text": "(cast($3 as text) is null or t.status = $4)\n            and "
+                  "text": "(cast($2 as text) is null or t.status = $2)\n            and "
                 }
               },
               {
@@ -617,7 +609,7 @@ export const queryModel = {
                 "removalRange": {
                   "start": 2445,
                   "end": 2563,
-                  "text": "(cast($3 as text) is null or t.status = $4)\n            and (cast($5 as text) is null or c.tier = $6)\n            and "
+                  "text": "(cast($2 as text) is null or t.status = $2)\n            and (cast($3 as text) is null or c.tier = $3)\n            and "
                 }
               },
               {
@@ -629,7 +621,7 @@ export const queryModel = {
                 "removalRange": {
                   "start": 2445,
                   "end": 3013,
-                  "text": "(cast($3 as text) is null or t.status = $4)\n            and (cast($5 as text) is null or c.tier = $6)\n            and (\n                cast($7 as text) is null\n                or case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $8\n            )\n            and "
+                  "text": "(cast($2 as text) is null or t.status = $2)\n            and (cast($3 as text) is null or c.tier = $3)\n            and (\n                cast($4 as text) is null\n                or case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $4\n            )\n            and "
                 }
               },
               {
@@ -641,8 +633,8 @@ export const queryModel = {
                 ],
                 "removalRange": {
                   "start": 2445,
-                  "end": 3076,
-                  "text": "(cast($3 as text) is null or t.status = $4)\n            and (cast($5 as text) is null or c.tier = $6)\n            and (\n                cast($7 as text) is null\n                or case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $8\n            )\n            and (cast($9 as text) is null or t.language = $10)\n            and "
+                  "end": 3075,
+                  "text": "(cast($2 as text) is null or t.status = $2)\n            and (cast($3 as text) is null or c.tier = $3)\n            and (\n                cast($4 as text) is null\n                or case\n                    when t.sla_due_at is null then\n                        'none'\n                    when t.sla_due_at < now() then\n                        'breached'\n                    when t.sla_due_at < now() + interval '4 hours' then\n                        'warning'\n                    else\n                        'ok'\n                end = $4\n            )\n            and (cast($5 as text) is null or t.language = $5)\n            and "
                 }
               }
             ]

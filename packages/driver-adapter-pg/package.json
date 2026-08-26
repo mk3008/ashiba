@@ -15,13 +15,14 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.contract-tests.json",
+    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/named-parameters build && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.contract-tests.json",
     "test": "vitest run",
     "test:live": "vitest run tests/postgres-live.smoke.test.ts",
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@ashiba-ts/driver-adapter-core": "workspace:*"
+    "@ashiba-ts/driver-adapter-core": "workspace:*",
+    "@ashiba-ts/named-parameters": "workspace:*"
   },
   "peerDependencies": {
     "pg": ">=8"

@@ -8,6 +8,7 @@ import {
   maskParams,
   normalizeError,
 } from '@ashiba-ts/driver-adapter-core';
+import { bindNamedParameters, bindingParameterNames, NamedParameterError, type ParameterBinding } from '@ashiba-ts/named-parameters';
 
 /**
  * Minimal mssql-compatible query result consumed by the adapter.
@@ -75,18 +76,13 @@ export type AshibaMssqlAdapter = {
 /**
  * Error raised when provided named parameters do not match query model metadata.
  */
-export class AshibaMssqlParameterError extends Error {
-  readonly code: 'ASHIBA_MISSING_PARAMETER' | 'ASHIBA_UNUSED_PARAMETER';
-  readonly parameterNames: string[];
+export class AshibaMssqlParameterError extends NamedParameterError {
   readonly causeText: string;
   readonly nextAction: string;
 
-  constructor(code: AshibaMssqlParameterError['code'], parameterNames: string[]) {
-    const label = code === 'ASHIBA_MISSING_PARAMETER' ? 'Missing' : 'Unused';
-    super(`${label} SQL parameter${parameterNames.length === 1 ? '' : 's'}: ${parameterNames.join(', ')}`);
+  constructor(code: NamedParameterError['code'], parameterNames: readonly string[]) {
+    super(code, parameterNames);
     this.name = 'AshibaMssqlParameterError';
-    this.code = code;
-    this.parameterNames = parameterNames;
     this.causeText = code === 'ASHIBA_MISSING_PARAMETER'
       ? 'The provided parameter object does not include every named SQL parameter required by the query model.'
       : 'The provided parameter object includes keys that are not referenced by the query model.';
@@ -131,7 +127,7 @@ export function createMssqlAdapter(
     ): Promise<MssqlQueryResult<Row>> {
       const metadata = { ...query.metadata, sqlPath: query.metadata?.sqlPath ?? query.sqlPath, dialect: 'sqlserver' };
       const startedAt = Date.now();
-      let bound: { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } | undefined;
+      let bound: ReturnType<typeof bindNamedParameters> | undefined;
 
       try {
         bound = prepareMssqlExecution(query, params);
@@ -140,13 +136,14 @@ export function createMssqlAdapter(
           metadata,
           sourceSql: query.sql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bindingParameterNames(bound),
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
         });
 
         const request = factory.request<Row>();
-        for (const name of bound.orderedNames) {
+        if (bound.style !== 'named') throw new AshibaMssqlQueryModelError('ASHIBA_BINDING_METADATA_REQUIRED', 'mssql execution requires named binding metadata.');
+        for (const name of bound.parameterNames) {
           request.input(name, params[name]);
         }
         const result = await request.query(bound.sql);
@@ -155,7 +152,7 @@ export function createMssqlAdapter(
           metadata,
           sourceSql: query.sql,
           compiledSql: bound.sql,
-          orderedNames: bound.orderedNames,
+          parameterNames: bindingParameterNames(bound),
           maskedParams: maskParams(bound.values, options.maskPolicy),
           ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
           elapsedMs: Date.now() - startedAt,
@@ -170,7 +167,7 @@ export function createMssqlAdapter(
           ...(bound
             ? {
               compiledSql: bound.sql,
-              orderedNames: bound.orderedNames,
+              parameterNames: bindingParameterNames(bound),
               maskedParams: maskParams(bound.values, options.maskPolicy),
               ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
             }
@@ -187,7 +184,7 @@ export function createMssqlAdapter(
 function prepareMssqlExecution(
   query: AshibaMssqlQuerySource,
   params: Readonly<Record<string, unknown>>,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
+): ReturnType<typeof bindNamedParameters> {
   const binding = query.queryModel.bindings?.mssql;
   if (!binding) {
     throw new AshibaMssqlQueryModelError(
@@ -207,24 +204,17 @@ function prepareMssqlExecution(
 }
 
 function bindCompiledNamedParameters(
-  compiled: { sql: string; orderedNames: readonly string[] },
+  compiled: ParameterBinding,
   params: Readonly<Record<string, unknown>>,
-): { sql: string; orderedNames: readonly string[]; values: readonly unknown[] } {
-  const uniqueNames = new Set(compiled.orderedNames);
-  const missingNames = [...uniqueNames].filter((name) => !Object.prototype.hasOwnProperty.call(params, name));
-  if (missingNames.length > 0) {
-    throw new AshibaMssqlParameterError('ASHIBA_MISSING_PARAMETER', missingNames);
+): ReturnType<typeof bindNamedParameters> {
+  try {
+    return bindNamedParameters(compiled, params);
+  } catch (error) {
+    if (error instanceof NamedParameterError) {
+      throw new AshibaMssqlParameterError(error.code, error.parameterNames);
+    }
+    throw error;
   }
-
-  const unusedNames = Object.keys(params).filter((name) => !uniqueNames.has(name));
-  if (unusedNames.length > 0) {
-    throw new AshibaMssqlParameterError('ASHIBA_UNUSED_PARAMETER', unusedNames);
-  }
-
-  return {
-    ...compiled,
-    values: compiled.orderedNames.map((name) => params[name]),
-  };
 }
 
 function hashSql(sql: string): string {

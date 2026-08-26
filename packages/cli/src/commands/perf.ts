@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
-import { compileNamedParameters } from '../parameter-metadata.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 import { invalidCliInputError, requiredCliValueError } from '../errors.js';
 
 export interface PerfInitOptions {
@@ -246,7 +246,7 @@ export function runPerfRun(options: PerfRunOptions): PerfRunResult {
   const query = requireValue(options.query, '--query');
   const queryPath = path.resolve(rootDir, query);
   const sql = readFileSync(queryPath, 'utf8');
-  const parameterNames = [...new Set(compileNamedParameters(sql).orderedNames)].sort();
+  const parameterNames = [...new Set(compileNamedParameters(sql).parameterNames)].sort();
   const providedParams = options.params ? Object.keys(JSON.parse(readFileSync(path.resolve(rootDir, options.params), 'utf8')) as Record<string, unknown>).sort() : [];
   const missingParams = parameterNames.filter((name) => !providedParams.includes(name));
   const unusedParams = providedParams.filter((name) => !parameterNames.includes(name));

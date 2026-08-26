@@ -25,6 +25,13 @@ describe('@ashiba-ts/driver-adapter-mysql2', () => {
     expect(calls).toEqual([{ sql: 'select * from users where id = ? and status = ?', values: [1, 'active'] }]);
   });
 
+  test('preserves each repeated value at anonymous placeholder occurrences', async () => {
+    const calls: Array<{ sql: string; values: readonly unknown[] }> = [];
+    const client: Mysql2Queryable = { async execute(sql, values) { calls.push({ sql, values }); return [[], []]; } };
+    await createMysql2Adapter(client).execute(querySource('select * from users where user_id = :id or owner_id = :id'), { id: 7 });
+    expect(calls).toEqual([{ sql: 'select * from users where user_id = ? or owner_id = ?', values: [7, 7] }]);
+  });
+
   test('rejects missing and unused parameters before calling mysql2', async () => {
     let called = false;
     const client: Mysql2Queryable = {
@@ -61,7 +68,8 @@ describe('@ashiba-ts/driver-adapter-mysql2', () => {
         mysql2: {
           sourceHash: hashSql('select * from accounts where id = :id'),
           sql: 'select * from accounts where id = ?',
-          orderedNames: ['id'],
+          style: 'anonymous',
+          valueNames: ['id'],
         },
       },
     }), { id: 1 })).rejects.toMatchObject({ code: 'ASHIBA_QUERY_MODEL_STALE' });
@@ -88,7 +96,8 @@ function queryModelFor(sourceSql: string): AshibaMysql2QueryModel {
       mysql2: {
         sourceHash: hashSql(sourceSql),
         sql: sourceSql.replace(/:\w+/g, '?'),
-        orderedNames: [...sourceSql.matchAll(/:(\w+)/g)].map((match) => match[1] ?? ''),
+        style: 'anonymous',
+        valueNames: [...sourceSql.matchAll(/:(\w+)/g)].map((match) => match[1] ?? ''),
       },
     },
   };

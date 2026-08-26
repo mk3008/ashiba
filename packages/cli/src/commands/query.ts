@@ -21,7 +21,7 @@ import type {
   SssqlScaffoldSpec as OptionalConditionScaffoldSpec,
 } from 'rawsql-ts';
 import { LexemeCursor, SqlFormatter, SqlParser, type Lexeme } from 'rawsql-ts';
-import { compileNamedParameters } from '../parameter-metadata.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 import { loadSqlFormatOptions } from '../sql-format.js';
 import { loadProjectPathConfig } from './config.js';
 import {
@@ -653,9 +653,9 @@ function looksLikeFeatureQuerySql(sqlPath: string): boolean {
 
 function renderQueryMetadataForSql(sql: string, rootDir: string, ddlDir?: string): string {
   sql = normalizeSqlSource(sql);
-  const postgres = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
+  const postgres = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
   const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, ddlDir);
-  const parameters = [...new Set(postgres.orderedNames)];
+  const parameters = [...new Set(postgres.parameterNames)];
   const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, { optionalConditionCompression: true });
   const queryModel = {
     analysis,

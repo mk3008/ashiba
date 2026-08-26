@@ -32,6 +32,24 @@ export const queryModel = {
       "setting_id",
       "updated_at"
     ],
+    "resultColumnOrder": [
+      "destination_link_id",
+      "setting_id",
+      "destination_definition_id",
+      "execution_order",
+      "destination_key_mapping",
+      "mapping_definition",
+      "diff_compare_excluded_columns",
+      "generated_insert_transfer_sql_body",
+      "generated_update_transfer_sql_body",
+      "generated_delete_transfer_sql_body",
+      "generated_sql_status",
+      "generated_sql_error",
+      "is_enabled",
+      "created_at",
+      "updated_at",
+      "note"
+    ],
     "resultColumnTypes": {
       "created_at": "string",
       "destination_definition_id": "string",
@@ -104,8 +122,9 @@ export const queryModel = {
   "bindings": {
     "postgres": {
       "sourceHash": "sha256:271f00672f63606c502ed04c844703f53bf1a1ce72cdef6b9495ffa2d8c7ae62",
+      "style": "indexed",
       "sql": "insert into rawsql_transfer.destination_link(\n    setting_id\n    , destination_definition_id\n    , destination_link_name\n    , execution_order\n    , destination_key_mapping\n    , mapping_definition\n    , diff_compare_excluded_columns\n    , generated_insert_transfer_sql_body\n    , generated_update_transfer_sql_body\n    , generated_delete_transfer_sql_body\n    , generated_sql_status\n    , generated_sql_error\n    , is_enabled\n    , note\n)\nvalues\n    ($1, $2, $3, $4, cast($5 as jsonb), cast($6 as jsonb), cast($7 as jsonb), '', '', '', 'not_generated', null, $8, $9)\nreturning\n    destination_link_id\n    , setting_id\n    , destination_definition_id\n    , execution_order\n    , destination_key_mapping\n    , mapping_definition\n    , diff_compare_excluded_columns\n    , generated_insert_transfer_sql_body\n    , generated_update_transfer_sql_body\n    , generated_delete_transfer_sql_body\n    , generated_sql_status\n    , generated_sql_error\n    , is_enabled\n    , created_at\n    , updated_at\n    , note;\n",
-      "orderedNames": [
+      "parameterNames": [
         "setting_id",
         "destination_definition_id",
         "destination_link_name",

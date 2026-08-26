@@ -1,18 +1,16 @@
 {
-  "status": "calibration-failure",
-  "expectedNames": [
+  "status": "pass",
+  "sourceHash": "sha256:563b3cdbed902b0a1cd716542c53858d0af10d5258ecb89f7d316d67ffca2109",
+  "sql": "select\n  $1::bigint as id,\n  $2::bigint as id2,\n  $1::bigint as repeated_id,\n  value::text as cast_value,\n  ':not_a_parameter'::text as literal,\n  value as \"identifier:still_not_parameter\",\n  E'escaped \\\\ :not_a_parameter'::text as escaped_literal,\n  $$ :not_a_parameter $$::text as dollar_literal,\n  $body$\n    :not_a_parameter\n  $body$::text as tagged_dollar_literal\nfrom (select $3::text as value) source\n-- :not_a_parameter\n/* :not_a_parameter */\n/* outer /* nested :not_parameter */ outer again */\nwhere $1::bigint = $1::bigint;\n",
+  "parameterNames": [
     "id",
     "id2",
-    "id",
-    "value",
-    "id",
-    "id"
+    "value"
   ],
-  "actualNames": [
-    "id",
-    "id2",
-    "id",
-    "not_a_parameter"
+  "values": [
+    1,
+    2,
+    "value"
   ],
-  "cause": "nested block comment pseudo-parameter was emitted by current compiler"
+  "staleArtifactRejected": true
 }

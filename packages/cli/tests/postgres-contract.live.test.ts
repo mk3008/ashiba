@@ -231,12 +231,12 @@ describe.skipIf(!databaseUrl)('PostgreSQL-derived query contract live', () => {
       const generated = runModelGen({ rootDir, sqlFile: 'queries/canonical.sql' });
       const binding = generated.bindings.postgres;
       const params = { id: 1, id2: 2, value: 'x' };
-      const values = binding.orderedNames.map((name) => params[name as keyof typeof params]);
+      const values = binding.parameterNames.map((name) => params[name as keyof typeof params]);
       const direct = await setup.query(binding.sql, values);
 
       expect(binding.sourceHash).toBe(generated.analysis.sourceHash);
-      expect(binding.orderedNames).toEqual(['id', 'id2', 'id', 'value', 'id', 'id']);
-      expect(values).toEqual([1, 2, 1, 'x', 1, 1]);
+      expect(binding.parameterNames).toEqual(['id', 'id2', 'value']);
+      expect(values).toEqual([1, 2, 'x']);
       expect(direct.rows).toHaveLength(1);
       expect(direct.rows[0]).toMatchObject({ id: 1, id2: 2, repeated_id: 1, cast_value: 'x' });
       expect(() => {

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
-import { compileNamedParameters } from '../parameter-metadata.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 import { runFeatureGeneratedMapperCheck, type FeatureGeneratedMapperCheckResult } from './feature.js';
 import {
   analyzeQueryModel,
@@ -408,8 +408,8 @@ function runCatalogContractCheck(options: {
         issues.push(`SQL file does not exist: ${sqlFileValue}.`);
       } else {
         const sql = normalizeSqlSource(readFileSync(resolvedSql, 'utf8'));
-        const compiled = compileNamedParameters(sql, { placeholderStyle: 'postgres' });
-        const orderedUniqueSqlParameters = [...new Set(compiled.orderedNames)];
+        const compiled = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
+        const orderedUniqueSqlParameters = [...new Set(compiled.parameterNames)];
         sqlParameters = [...orderedUniqueSqlParameters].sort();
         const resultColumnContracts = buildQueryResultColumnContracts(sql, options.rootDir);
         sqlResultColumns = resultColumnContracts.map((column) => column.name).sort();
@@ -512,10 +512,10 @@ function runCatalogContractCheck(options: {
             issues.push('queryModel.bindings.postgres.sql is stale.');
           }
           if (
-            metadata.bindingOrderedNames.length > 0 &&
-            JSON.stringify(metadata.bindingOrderedNames) !== JSON.stringify(compiled.orderedNames)
+            metadata.bindingParameterNames.length > 0 &&
+            JSON.stringify(metadata.bindingParameterNames) !== JSON.stringify(compiled.parameterNames)
           ) {
-            issues.push('queryModel.bindings.postgres.orderedNames is stale.');
+            issues.push('queryModel.bindings.postgres.parameterNames is stale.');
           }
           if (checksOptionalConditionCompression) {
             const currentBindingOptionalConditionCompression = buildPostgresOptionalConditionCompressionBindingMetadata(
@@ -604,7 +604,7 @@ function extractQueryModelMetadata(specFilePath: string): {
   analysisSafeSortJson?: string;
   analysisOptionalConditionCompressionJson?: string;
   bindingSql?: string;
-  bindingOrderedNames: string[];
+  bindingParameterNames: string[];
   bindingOptionalConditionCompressionJson?: string;
   hasInlineQueryModel?: boolean;
   requiresMetadataFile?: boolean;
@@ -630,7 +630,7 @@ function extractQueryModelMetadata(specFilePath: string): {
       analysisNamedParameters: [],
       analysisResultColumns: [],
       analysisResultColumnOrder: [],
-      bindingOrderedNames: [],
+      bindingParameterNames: [],
     };
   }
 
@@ -677,8 +677,8 @@ function extractQueryModelMetadata(specFilePath: string): {
     ?? postgresBlock.match(/"sourceHash"\s*:\s*"([^"]+)"/)?.[1];
   const rawBindingSql = postgresBlock.match(/"sql"\s*:\s*"((?:\\.|[^"\\])*)"/)?.[1];
   const bindingSql = rawBindingSql ? JSON.parse(`"${rawBindingSql}"`) as string : undefined;
-  const bindingOrderedNames = readStringArrayProperty(postgresObject, 'orderedNames')
-    ?? extractStringArray(postgresBlock, 'orderedNames');
+  const bindingParameterNames = readStringArrayProperty(postgresObject, 'parameterNames')
+    ?? extractStringArray(postgresBlock, 'parameterNames');
   const bindingOptionalConditionCompressionJson = postgresObject && Object.prototype.hasOwnProperty.call(postgresObject, 'optionalConditionCompression')
     ? JSON.stringify(postgresObject.optionalConditionCompression)
     : undefined;
@@ -700,7 +700,7 @@ function extractQueryModelMetadata(specFilePath: string): {
     analysisSafeSortJson,
     analysisOptionalConditionCompressionJson,
     bindingSql,
-    bindingOrderedNames,
+    bindingParameterNames,
     bindingOptionalConditionCompressionJson,
     hasInlineQueryModel,
     requiresMetadataFile,
