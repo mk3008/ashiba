@@ -2,10 +2,21 @@
 
 SQL-first scaffold and verification CLI for TypeScript applications.
 
-This is the development-time CLI for Ashiba. It is normally used together with
-an Ashiba driver adapter and testkit package, not as a standalone library.
+This is Ashiba's development-time CLI. It generates and checks facts about
+canonical SQL; it is not in an application's runtime execution path.
 
-Start with the repository README for the full SQL-first workflow:
+For a small application, the baseline runtime path is:
+
+```text
+canonical SQL → build-time lowering/metadata → separate values → native driver
+```
+
+Keep application-owned pool, transaction, and business semantics at the native
+driver boundary. Ashiba driver adapters and testkit packages are optional
+compatibility/testing surfaces, not prerequisites for that path.
+
+The repository README and command API are extended references, not required
+starting points:
 
 - [Ashiba README](https://github.com/mk3008/ashiba#readme)
 - [Command API](https://mk3008.github.io/ashiba/generated/api/commands)
