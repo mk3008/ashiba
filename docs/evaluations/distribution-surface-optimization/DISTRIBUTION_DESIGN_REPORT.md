@@ -34,7 +34,9 @@ No user-facing feature was deleted. The loop deliberately rejected adding a mand
 
 Fresh consumers used one named-parameters runtime package, zero adapters, and zero testkit packages. Their applications visibly owned native pool checkout, transactions, rollback, and release. Precomputed binding metadata preserved parameterized execution without a runtime parser. This is why those features remain optional or absent from the core, rather than because of a purely architectural preference.
 
-Package-topology changes were also not made. Two tuning candidates observed a 404 when a packed CLI attempted to resolve its named-parameters dependency from the public registry. A frozen-catalog holdout later completed CLI help and contracts, so the condition is not yet cleanly reproduced. The evidence does not justify masking a publication/release-closure question by bundling or redesigning runtime packages.
+Package-topology changes were not made. The packed CLI manifest was inspected and its `workspace:*` dependency had become the ordinary exact registry dependency `@ashiba-ts/named-parameters: "0.1.0"`. In an isolated npm-compatible registry, publishing the companion first and then the CLI let a fresh consumer install only the CLI and resolve the companion transitively. The same completed registry state also passed a fresh PostgreSQL dogfood.
+
+Publishing the CLI before its companion created the historical `E404` exactly: CLI publish succeeded, while consumer install failed because the exact declared companion version was not yet present. This identifies the earlier failure as incomplete publication state (or its harness equivalent), not a need to bundle or merge packages.
 
 ## What evidence supports each major decision?
 
@@ -44,7 +46,7 @@ Package-topology changes were also not made. Two tuning candidates observed a 40
 | Keep compiler/binder recipe | A fresh candidate used it without declaration hunting and completed native execution. | It does not teach the complete CLI contract workflow. |
 | Keep adapters/testkit optional | Three clean-room exercises completed direct native paths without them. | PostgreSQL only; no comparison where their compatibility value is required. |
 | Do not add runtime parser or scaffolding | Precomputed bind metadata and explicit native transactions were sufficient in all exercises. | No dynamic-query or large-team study. |
-| Defer topology change | Two 404 observations, followed by a holdout that could continue under its catalog condition. | Registry/release state remains unresolved. |
+| Reject bundled compiler / topology rewrite | Packed manifest declares the exact companion; registry scenarios A/C and fresh dogfood close it automatically. | Production release automation ordering was not exercised. |
 
 ## What remains intentionally outside Ashiba?
 
@@ -52,11 +54,11 @@ The application remains responsible for driver selection, pools, connection life
 
 ## What remains uncertain?
 
-The experiments do not establish a public-registry installation guarantee for the CLI companion dependency, nor do they validate other drivers, PostgreSQL versions, custom node-postgres parsers, production migrations, high concurrency, large query catalogs, or broad user populations. PostgreSQL contract result nullability remained conservative (`unknown`) in the consumer checks, requiring manual types to permit `null`; this is honest fail-closed behavior but a discoverability and precision friction.
+The experiments establish completed-registry closure for the current packed versions under an isolated npm-compatible registry, but do not prove that the production release automation always publishes in dependency order. They also do not validate other drivers, PostgreSQL versions, custom node-postgres parsers, production migrations, high concurrency, large query catalogs, or broad user populations. PostgreSQL contract result nullability remained conservative (`unknown`) in the consumer checks, requiring manual types to permit `null`; this is honest fail-closed behavior but a discoverability and precision friction.
 
 ## What evidence would cause reconsideration?
 
-Reconsider the retained README guidance if repeated independent consumers do not use it, find it prescriptive, or still require implementation/declaration hunting for the shown path. Reconsider mandatory mechanisms only if multiple direct-driver consumers demonstrate a safety or discoverability failure that a smaller change cannot solve. Reconsider package topology after a reproducible normal registry install following publication, or after a supported offline single-tarball requirement is established.
+Reconsider the retained README guidance if repeated independent consumers do not use it, find it prescriptive, or still require implementation/declaration hunting for the shown path. Reconsider mandatory mechanisms only if multiple direct-driver consumers demonstrate a safety or discoverability failure that a smaller change cannot solve. Reconsider package topology if a completed normal registry release fails, release tooling cannot guarantee dependency-first publication, or a supported offline single-tarball requirement is established.
 
 ## Feature absence index
 
@@ -65,4 +67,4 @@ Reconsider the retained README guidance if repeated independent consumers do not
 | Driver adapter/testkit | Optional | Native applications completed all required execution and rollback work without them. | Three clean-room runs installed neither. | Direct driver cannot meet a required compatibility/testing need. |
 | Runtime SQL parser | Absent | Build-time lowering and precomputed binding preserve values separately. | All runs used the smaller path. | Dynamic query needs cannot stay parameterized otherwise. |
 | Repository/mapper/UoW scaffold | Absent | Native transaction ownership was clear and sufficient. | Consumers used explicit pool/transaction code. | Repeated safety-critical boilerplate across consumers. |
-| Bundled compiler or topology rewrite | Deferred | Present evidence is about release closure, not missing behavior. | Two 404s and one non-reproducing holdout condition. | Reproducible post-publication failure or an offline requirement. |
+| Bundled compiler or topology rewrite | Rejected / unnecessary | Registry installation after companion publication resolves the declared dependency normally; bundling would duplicate ownership. | Scenario A/C CLI-only install, import/CLI smoke, and fresh PostgreSQL dogfood passed. | Completed release failure, unguaranteed publish order, or an offline requirement. |

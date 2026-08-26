@@ -88,6 +88,23 @@ The holdout used the candidate frozen at commit `e5b107b22b3f60836d6151c9e04b0d0
 
 No product experiment was reverted. The topology experiment was intentionally not started: it was deferred because the observed installation condition has not yet been isolated from release/publication state.
 
+## Registry distribution closure: completed-release test
+
+- **Hypothesis:** The earlier 404 was caused by incomplete release publication or the catalog harness, rather than a packed dependency or workspace packaging defect.
+- **Problem being addressed:** A consumer must be able to request only `@ashiba-ts/cli` from a normal completed registry release; it must not know a companion tarball exists.
+- **Change tried:** No product or package-metadata change. Packed the current CLI and named-parameters packages and published them to an isolated npm-compatible Verdaccio registry; public third-party dependencies used its normal npm upstream.
+- **Why this was the smallest plausible change:** It tests the actual tarball dependency graph before proposing bundling, a dependency rewrite, or a package-boundary change.
+- **Packed metadata:** The CLI packed `workspace:*` as the exact normal dependency `@ashiba-ts/named-parameters: "0.1.0"`. CLI SHA-256: `fafa5d6ff07b72c265e5238d24f26bb064ab3f7c93e47f995c478fbd2c0093f5`; companion SHA-256: `9e4b69c8b63a1db20118815539483010dbbfc4362d9e016d0fb53212a1a26111`.
+- **Scenario A — companion first:** Published named-parameters, then CLI. A new consumer requested only `@ashiba-ts/cli@0.3.0`; install, CLI help, contract help, runtime import, and compiler-subpath import passed.
+- **Scenario B — CLI first:** CLI publish passed, but a fresh CLI-only install failed with `E404 @ashiba-ts/named-parameters@0.1.0`. This is an incomplete release state: packed metadata named the exact missing dependency.
+- **Scenario C — normal final state:** A second completely new consumer requested only the CLI; it installed 19 packages and `npm ls` showed the companion transitively below CLI. No `file:`, workspace link, symlink, or companion install request was used.
+- **Clean-room observation:** A Fresh Agent used only the final registry, installed README/package.json/exports/.d.ts/CLI help, and an external disposable PostgreSQL 16 fixture. It discovered the companion itself and passed canonical named SQL lowering, runtime binding, native `pg`, PostgreSQL contract write/check, bigint-as-string, timestamp-as-Date, and explicit rollback (row count zero).
+- **Metric / qualitative evidence:** Scenarios A/C and the clean-room dogfood passed; Scenario B failed only before companion publication. The dogfood added 19 packages in about two seconds and had no human blocker. Its only friction was expected consumer-owned DDL setup before a real database could prepare SQL.
+- **Decision:** **Reject bundled companion compiler / topology rewrite as unnecessary for current evidence.** Do not change product metadata.
+- **Reason:** The actual packed CLI manifest has a normal exact dependency, and a completed registry release resolves it automatically. Bundling would duplicate package ownership without solving an observed final-state problem.
+- **Remaining uncertainty:** This used Verdaccio 6.10.0 with an npm upstream, npm client, PostgreSQL 16, and current versions. It does not prove production release automation publishes in dependency-first order.
+- **Future evidence for reconsideration:** A completed normal registry release fails to close this exact dependency, release tooling cannot enforce the dependency order, or an explicit offline single-tarball requirement emerges.
+
 ## Feature absence index
 
 | Feature / capability | Current status | Why not part of the core | Evidence | Reconsideration trigger |
@@ -95,5 +112,5 @@ No product experiment was reverted. The topology experiment was intentionally no
 | Mandatory driver adapter or testkit | Optional, not core | Fresh consumers completed native execution and verification without either; their stated compatibility/testing roles remain available. | Iterations 1–2 and holdout installed zero adapters/testkits. | Direct-driver consumers repeatedly cannot meet a demonstrated requirement. |
 | Runtime SQL parser | Absent | Build-time compiler plus precomputed binder supplied ordered values while keeping the native driver visible. | Both tuned candidates and holdout used compile/bind, never a runtime parser. | A validated dynamic-query need cannot be met while retaining parameterized execution. |
 | Mandatory repository/mapper/UoW scaffold | Absent | Application-owned pool, transaction, rollback, and release were small and observable. | All consumers implemented native ownership without a framework. | Multiple fresh consumers show repeated safety-critical boilerplate that a smaller mechanism cannot address. |
-| Bundled companion compiler / topology rewrite | Deferred | The observed failure points to release closure, not missing runtime behavior. | Two registry 404 observations; contradictory frozen-catalog holdout result. | Reproducible post-publication failure or an explicit offline single-tarball requirement. |
+| Bundled companion compiler / topology rewrite | Rejected / unnecessary | The packed CLI declares the companion normally and completed registry installs close automatically. | Scenarios A/C plus registry-only PostgreSQL dogfood passed; B failed only while companion was unpublished. | A completed release fails, release ordering cannot be guaranteed, or offline single-tarball delivery becomes required. |
 | CLI command removal | Not adopted | There is no evidence that the command surface itself caused failure; focused help was sufficient when available. | Consumers used help to find contract operations. | Evidence that discoverability improves by a tested reduction without losing verification. |
