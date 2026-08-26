@@ -13,7 +13,7 @@ if (resource.status !== 'described') {
 }
 const sql = await readFile(path.resolve(rootDir, resource.executable.path), 'utf8');
 const params = JSON.parse(rawParams);
-const values = resource.executable.orderedNames.map((name) => params[name]);
+const values = resource.executable.parameterNames.map((name) => params[name]);
 const client = new pg.Client({ connectionString: databaseUrl });
 await client.connect();
 try {

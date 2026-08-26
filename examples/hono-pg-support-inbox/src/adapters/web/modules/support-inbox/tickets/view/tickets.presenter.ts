@@ -34,7 +34,7 @@ export type SqlInspection = {
   selectedSort: string;
   safeSortKeys: string;
   stableOrder: string;
-  orderedNames: readonly string[];
+  parameterNames: readonly string[];
   boundParams: readonly BoundParam[];
   compiledSql: string;
   rowCount: number;
@@ -115,7 +115,7 @@ function buildSqlInspection(filters: TicketFilters, rowCount: number, events: re
         .map((item) => `${item.key} ${item.direction ?? 'asc'}`)
         .join(', ') || 'なし',
     stableOrder: 'ticket_id asc',
-    orderedNames: executed?.parameterNames ?? [],
+    parameterNames: executed?.parameterNames ?? [],
     boundParams: buildBoundParams(executed?.parameterNames ?? [], executed?.params ?? []),
     compiledSql: executed?.compiledSql ?? '',
     rowCount: executed?.rowCount ?? rowCount,
@@ -141,8 +141,8 @@ function activeFilterKeys(filters: TicketFilters): string[] {
     .filter((key) => filters[key] !== '');
 }
 
-function buildBoundParams(orderedNames: readonly string[], params: readonly unknown[]): BoundParam[] {
-  return orderedNames.map((name, index) => ({
+function buildBoundParams(parameterNames: readonly string[], params: readonly unknown[]): BoundParam[] {
+  return parameterNames.map((name, index) => ({
     placeholder: `$${index + 1}`,
     name,
     value: params[index],

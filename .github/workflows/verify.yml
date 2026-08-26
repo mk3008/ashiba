@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   verify:
-    needs: postgres-ticket-queue-reference
+    needs: [postgres-ticket-queue-reference, postgres-live]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -119,6 +119,48 @@ jobs:
         env:
           DATABASE_URL: postgres://ticket_queue:ticket_queue@localhost:5432/ticket_queue
         run: pnpm --filter postgres-ticket-queue-reference verify
+
+  postgres-live:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ashiba_live
+          POSTGRES_USER: ashiba_live
+          POSTGRES_PASSWORD: ashiba_live
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ashiba_live -d ashiba_live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        with:
+          version: 10.19.0
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify PostgreSQL live contracts
+        env:
+          ASHIBA_TEST_DATABASE_URL: postgres://ashiba_live:ashiba_live@localhost:5432/ashiba_live
+          ASHIBA_POSTGRES_DATABASE_URL: postgres://ashiba_live:ashiba_live@localhost:5432/ashiba_live
+        run: pnpm verify:postgres-live
 
   support-inbox-example-autocrlf:
     runs-on: windows-latest

@@ -102,9 +102,9 @@ export function logSqlExecution(event: SqlExecutionLogEvent): void {
     logEvent.apiPath = metadata?.apiPath;
   }
   if (policy.includeParameterNames) {
-    const orderedNames = getOrderedNames(event);
-    logEvent.parameterNames = orderedNames;
-    logEvent.parameterSummary = summarizeParameters(orderedNames);
+    const parameterNames = getParameterNames(event);
+    logEvent.parameterNames = parameterNames;
+    logEvent.parameterSummary = summarizeParameters(parameterNames);
   }
   if (policy.includeQueryShape) {
     Object.assign(logEvent, extractQueryShape(metadata));
@@ -183,9 +183,9 @@ function resolveLogPolicy(): LogPolicy {
   return configuredLogPolicy ?? createLogPolicyFromEnv();
 }
 
-function summarizeParameters(orderedNames: readonly string[]): ParameterSummary[] {
+function summarizeParameters(parameterNames: readonly string[]): ParameterSummary[] {
   const byName = new Map<string, string[]>();
-  orderedNames.forEach((name, index) => {
+  parameterNames.forEach((name, index) => {
     const placeholders = byName.get(name) ?? [];
     placeholders.push(`$${index + 1}`);
     byName.set(name, placeholders);
@@ -197,7 +197,7 @@ function summarizeParameters(orderedNames: readonly string[]): ParameterSummary[
   }));
 }
 
-function getOrderedNames(event: SqlExecutionLogEvent): string[] {
+function getParameterNames(event: SqlExecutionLogEvent): string[] {
   return Array.isArray(event.parameterNames) ? event.parameterNames.filter((name): name is string => typeof name === 'string') : [];
 }
 

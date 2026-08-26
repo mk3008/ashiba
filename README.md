@@ -286,7 +286,7 @@ Ashiba is not an ORM runtime or SQL DSL. The CLI generator, SQL analysis, scaffo
 
 At runtime, native database drivers own baseline execution. For canonical named
 SQL, the minimal path is build-time lowering to generated driver SQL plus
-ordered names, `@ashiba-ts/named-parameters` binding, then native
+driver-style parameter metadata, `@ashiba-ts/named-parameters` binding, then native
 `query(sql, values)`. Applications may optionally use
 `@ashiba-ts/driver-adapter-pg` for metadata-backed optional condition
 compression or safe sort, stale metadata rejection, observer events, and

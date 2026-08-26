@@ -32,6 +32,23 @@
 - Effect on comparability: the corpus is frozen; every named-binding candidate
   must handle this same nested-comment case or be reported partial.
 
+## 2026-08-26 — evaluator follows the shared binding owner
+
+- Observed problem: the runnable N1 evaluator still imported the removed
+  CLI-local compiler and therefore could not run in a clean checkout.
+- Original assumption: the evaluator was frozen historical evidence rather than
+  a current consumer of the binding contract.
+- Evidence: the evaluator failed module resolution until it imported
+  `@ashiba-ts/named-parameters`' compiled compiler; after migration it produced
+  indexed SQL, unique `parameterNames`, values, and stale-artifact evidence.
+- Protocol change: retain the prior nested-comment result as historical
+  calibration evidence, but run the evaluator against the current shared owner.
+- Previous runs validity: the 2026-08-23 calibration remains historical only;
+  it is not a claim about the current compiler.
+- Calibration / invalid classification: no new calibration failure.
+- Effect on comparability: current N1 evidence now uses the production compiler
+  contract instead of a deleted CLI-local implementation.
+
 ## 2026-08-23 — dataset freeze after calibration
 
 - Observed problem: a dataset must show index/bitmap work without making the initial run impractical.

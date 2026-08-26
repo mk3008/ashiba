@@ -31,6 +31,10 @@ Use this subagent to validate whether the work satisfies the planned acceptance 
 - If evidence is indirect, partial, environment-dependent, or blocked, state that explicitly.
 - Confirm whether the planned verification methods were actually satisfied; do not silently replace them.
 - Unless the request explicitly says not to, behavior changes should add or update tests in the same change.
+- For a semantic migration, verify closure across every consumer class that exists in the repository: production code, tests, fixtures, helpers, generated artifacts, examples, documentation, adapters, and verification scripts. A green subset does not establish migration closure.
+- Transfer regression evidence by behavior category when its owner changes. Preserve relevant positive, rejection, lexical, hostile-input, driver-boundary, and stale-input cases rather than treating unchanged test counts as proof.
+- When generated evidence is involved, verify the production path from generator through generated artifact to a real consumer. Hand-authored fixtures may demonstrate a narrow edge, but do not substitute for that end-to-end proof.
+- For a required live or integration check, verify that its result is in the final required verification chain. A separately green job is supplementary unless the final gate depends on it.
 - Test organization and file placement remain application-owned. Select evidence
   for the changed Ashiba mechanism; an end-to-end happy path alone is not proof
   of a mechanism's lexical, rejection, or fail-closed boundary.
