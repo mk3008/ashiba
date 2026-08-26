@@ -38,6 +38,10 @@ Package-topology changes were not made. The packed CLI manifest was inspected an
 
 Publishing the CLI before its companion created the historical `E404` exactly: CLI publish succeeded, while consumer install failed because the exact declared companion version was not yet present. This identifies the earlier failure as incomplete publication state (or its harness equivalent), not a need to bundle or merge packages.
 
+The release-path follow-up measured the command used by the publish workflow rather than inferring behavior from package metadata. Changesets 2.31.0 launched its unpublished package publishes concurrently. In a controlled registry, its mssql and mysql2 adapters reached the registry before their required adapter-core and named-parameters packages. The final state was healthy, but the process was transiently open.
+
+The retained change is deliberately narrow: the existing `pnpm changesets:publish` command now delegates only its publication phase to a dependency-first wrapper. Changesets still calculates versions, pnpm still creates the package tarballs and converts workspace dependencies, and the workflow remains the release owner. The wrapper reads the active workspace graph, fails on cycles, skips already-published versions, publishes one package at a time, and tags successful releases. Its fresh-registry run published all seven internal edges prerequisite-first; the CLI was fourth, after named-parameters. A new external consumer then installed only the CLI, resolved named-parameters transitively, ran CLI and contract help, and imported its runtime and compiler subpath.
+
 ## What evidence supports each major decision?
 
 | Decision | Supporting observation | Limit |
@@ -47,6 +51,7 @@ Publishing the CLI before its companion created the historical `E404` exactly: C
 | Keep adapters/testkit optional | Three clean-room exercises completed direct native paths without them. | PostgreSQL only; no comparison where their compatibility value is required. |
 | Do not add runtime parser or scaffolding | Precomputed bind metadata and explicit native transactions were sufficient in all exercises. | No dynamic-query or large-team study. |
 | Reject bundled compiler / topology rewrite | Packed manifest declares the exact companion; registry scenarios A/C and fresh dogfood close it automatically. | Production release automation ordering was not exercised. |
+| Add dependency-first release wrapper | Actual Changesets publication was concurrent and exposed dependents first; the retained root command passed the isolated-registry order and consumer loop. | It serializes publication but does not make an external registry transaction atomic. |
 
 ## What remains intentionally outside Ashiba?
 
@@ -54,11 +59,11 @@ The application remains responsible for driver selection, pools, connection life
 
 ## What remains uncertain?
 
-The experiments establish completed-registry closure for the current packed versions under an isolated npm-compatible registry, but do not prove that the production release automation always publishes in dependency order. They also do not validate other drivers, PostgreSQL versions, custom node-postgres parsers, production migrations, high concurrency, large query catalogs, or broad user populations. PostgreSQL contract result nullability remained conservative (`unknown`) in the consumer checks, requiring manual types to permit `null`; this is honest fail-closed behavior but a discoverability and precision friction.
+The experiments establish completed-registry closure and dependency-first publication for the current graph under an isolated npm-compatible registry. The lightweight `verify:publish-order` proof checks all current internal edges on every normal verification run; it does not start a registry, so it is not an atomicity or external-registry proof. The experiments do not validate other registry implementations, other drivers, PostgreSQL versions, custom node-postgres parsers, production migrations, high concurrency, large query catalogs, or broad user populations. PostgreSQL contract result nullability remained conservative (`unknown`) in the consumer checks, requiring manual types to permit `null`; this is honest fail-closed behavior but a discoverability and precision friction.
 
 ## What evidence would cause reconsideration?
 
-Reconsider the retained README guidance if repeated independent consumers do not use it, find it prescriptive, or still require implementation/declaration hunting for the shown path. Reconsider mandatory mechanisms only if multiple direct-driver consumers demonstrate a safety or discoverability failure that a smaller change cannot solve. Reconsider package topology if a completed normal registry release fails, release tooling cannot guarantee dependency-first publication, or a supported offline single-tarball requirement is established.
+Reconsider the retained README guidance if repeated independent consumers do not use it, find it prescriptive, or still require implementation/declaration hunting for the shown path. Reconsider mandatory mechanisms only if multiple direct-driver consumers demonstrate a safety or discoverability failure that a smaller change cannot solve. Reconsider package topology if a completed normal registry release fails or a supported offline single-tarball requirement is established. Rerun the isolated release-order loop after a Changesets major upgrade, publish-workflow replacement, package dependency graph change, registry/release mechanism change, graph-proof failure, or observed production ordering violation.
 
 ## Feature absence index
 
@@ -68,3 +73,4 @@ Reconsider the retained README guidance if repeated independent consumers do not
 | Runtime SQL parser | Absent | Build-time lowering and precomputed binding preserve values separately. | All runs used the smaller path. | Dynamic query needs cannot stay parameterized otherwise. |
 | Repository/mapper/UoW scaffold | Absent | Native transaction ownership was clear and sufficient. | Consumers used explicit pool/transaction code. | Repeated safety-critical boilerplate across consumers. |
 | Bundled compiler or topology rewrite | Rejected / unnecessary | Registry installation after companion publication resolves the declared dependency normally; bundling would duplicate ownership. | Scenario A/C CLI-only install, import/CLI smoke, and fresh PostgreSQL dogfood passed. | Completed release failure, unguaranteed publish order, or an offline requirement. |
+| Large custom release mechanism | Absent | A small dependency-first wrapper addresses the measured non-atomic ordering gap while preserving Changesets versioning and pnpm packing. | The original command was transiently open; the wrapper passed all current dependency edges and a fresh registry consumer. | A new release condition requires atomic transactions, retries, or registry-specific behavior beyond ordered publishes. |
