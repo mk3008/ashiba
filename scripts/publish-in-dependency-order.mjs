@@ -37,32 +37,34 @@ if (process.argv.includes('--plan')) {
 
 const published = [];
 
-for (const packageName of publishOrder) {
-  const workspacePackage = packagesByName.get(packageName);
-  if (isPublished(workspacePackage)) {
-    console.log(`Skipping already-published ${packageName}@${workspacePackage.version}`);
-    continue;
-  }
-
-  console.log(`Publishing ${packageName}@${workspacePackage.version}`);
-  // Keep the publish tool that Changesets selects for this pnpm workspace. In
-  // particular, pnpm converts workspace protocol dependencies in the packed
-  // manifest; npm publish from the source directory does not.
-  execFileSync(pnpm, ['publish', '--no-git-checks', '--access', 'public', '--tag', publishTag], {
-    cwd: workspacePackage.path,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
-  published.push(workspacePackage);
-}
-
-if (shouldTagGit) {
-  for (const workspacePackage of published) {
-    const tag = `${workspacePackage.name}@${workspacePackage.version}`;
-    if (tagExists(tag)) {
+try {
+  for (const packageName of publishOrder) {
+    const workspacePackage = packagesByName.get(packageName);
+    if (isPublished(workspacePackage)) {
+      console.log(`Skipping already-published ${packageName}@${workspacePackage.version}`);
       continue;
     }
-    execFileSync('git', ['tag', tag], { cwd: repoRoot, stdio: 'inherit' });
+
+    console.log(`Publishing ${packageName}@${workspacePackage.version}`);
+    // Keep the publish tool that Changesets selects for this pnpm workspace. In
+    // particular, pnpm converts workspace protocol dependencies in the packed
+    // manifest; npm publish from the source directory does not.
+    execFileSync(pnpm, ['publish', '--no-git-checks', '--access', 'public', '--tag', publishTag, ...registryArgs(workspacePackage.packageJson)], {
+      cwd: workspacePackage.path,
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    });
+    published.push(workspacePackage);
+  }
+} finally {
+  if (shouldTagGit) {
+    for (const workspacePackage of published) {
+      const tag = `${workspacePackage.name}@${workspacePackage.version}`;
+      if (tagExists(tag)) {
+        continue;
+      }
+      execFileSync('git', ['tag', tag], { cwd: repoRoot, stdio: 'inherit' });
+    }
   }
 }
 
@@ -119,7 +121,7 @@ function internalPublicDependencies(packageJson, packages) {
 }
 
 function isPublished(workspacePackage) {
-  const result = spawnSync(npm, ['view', `${workspacePackage.name}@${workspacePackage.version}`, 'version', '--json'], {
+  const result = spawnSync(npm, ['view', `${workspacePackage.name}@${workspacePackage.version}`, 'version', '--json', ...registryArgs(workspacePackage.packageJson)], {
     cwd: repoRoot,
     encoding: 'utf8',
     shell: process.platform === 'win32',
@@ -131,6 +133,12 @@ function isPublished(workspacePackage) {
     return false;
   }
   throw new Error(`Could not determine whether ${workspacePackage.name}@${workspacePackage.version} is published:\n${result.stderr || result.stdout}`);
+}
+
+function registryArgs(packageJson) {
+  const scope = packageJson.name.startsWith('@') ? packageJson.name.split('/')[0] : undefined;
+  const registry = packageJson.publishConfig?.[`${scope}:registry`] ?? packageJson.publishConfig?.registry;
+  return registry ? ['--registry', registry] : [];
 }
 
 function tagExists(tag) {
