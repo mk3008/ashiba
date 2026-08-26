@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "samples": 7,
+  "counts": {
+    "1": {
+      "seeded": [
+        {
+          "setupMs": 21.28179999999999,
+          "executionMs": 0.9036000000000115
+        },
+        {
+          "setupMs": 14.063400000000001,
+          "executionMs": 0.8389999999999986
+        },
+        {
+          "setupMs": 13.950400000000002,
+          "executionMs": 0.7977999999999952
+        },
+        {
+          "setupMs": 14.115100000000012,
+          "executionMs": 0.6975999999999942
+        },
+        {
+          "setupMs": 14.250699999999995,
+          "executionMs": 0.7850999999999999
+        },
+        {
+          "setupMs": 14.405699999999996,
+          "executionMs": 0.8148000000000195
+        },
+        {
+          "setupMs": 15.21889999999999,
+          "executionMs": 0.842000000000013
+        }
+      ],
+      "shadowed": [
+        {
+          "transformMs": 0.0741999999999905,
+          "executionMs": 2.5294999999999845,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.03839999999999577,
+          "executionMs": 2.260700000000014,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.039400000000000546,
+          "executionMs": 2.163199999999989,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.04610000000002401,
+          "executionMs": 2.1177000000000135,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.0584999999999809,
+          "executionMs": 2.3057000000000016,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.06049999999999045,
+          "executionMs": 2.820900000000023,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.06130000000001701,
+          "executionMs": 2.119499999999988,
+          "sqlBytes": 542
+        }
+      ]
+    },
+    "10": {
+      "seeded": [
+        {
+          "setupMs": 14.249000000000024,
+          "executionMs": 7.797199999999975
+        },
+        {
+          "setupMs": 22.711000000000013,
+          "executionMs": 7.505800000000022
+        },
+        {
+          "setupMs": 14.204499999999996,
+          "executionMs": 7.572400000000016
+        },
+        {
+          "setupMs": 15.373400000000004,
+          "executionMs": 7.481699999999989
+        },
+        {
+          "setupMs": 14.1284,
+          "executionMs": 7.211800000000039
+        },
+        {
+          "setupMs": 13.60310000000004,
+          "executionMs": 7.615800000000036
+        },
+        {
+          "setupMs": 23.858499999999992,
+          "executionMs": 17.22230000000002
+        }
+      ],
+      "shadowed": [
+        {
+          "transformMs": 0.038300000000049295,
+          "executionMs": 10.253100000000018,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.05520000000001346,
+          "executionMs": 10.160900000000026,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.04009999999999536,
+          "executionMs": 9.682000000000016,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.06229999999999336,
+          "executionMs": 9.794899999999984,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.0333999999999719,
+          "executionMs": 9.7808,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.03509999999999991,
+          "executionMs": 9.5548,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.08210000000002537,
+          "executionMs": 10.893700000000024,
+          "sqlBytes": 542
+        }
+      ]
+    },
+    "50": {
+      "seeded": [
+        {
+          "setupMs": 17.24909999999994,
+          "executionMs": 37.047000000000025
+        },
+        {
+          "setupMs": 12.934000000000083,
+          "executionMs": 32.754800000000046
+        },
+        {
+          "setupMs": 12.75509999999997,
+          "executionMs": 31.647699999999986
+        },
+        {
+          "setupMs": 12.172899999999913,
+          "executionMs": 32.31700000000001
+        },
+        {
+          "setupMs": 13.153599999999983,
+          "executionMs": 32.76279999999997
+        },
+        {
+          "setupMs": 12.762699999999995,
+          "executionMs": 31.174800000000005
+        },
+        {
+          "setupMs": 11.835600000000113,
+          "executionMs": 30.93209999999999
+        }
+      ],
+      "shadowed": [
+        {
+          "transformMs": 0.0482000000000653,
+          "executionMs": 75.52449999999999,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.056400000000053296,
+          "executionMs": 35.75660000000005,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.0362999999999829,
+          "executionMs": 36.01060000000007,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.03719999999998436,
+          "executionMs": 35.5607,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.04809999999997672,
+          "executionMs": 34.70609999999999,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.03859999999997399,
+          "executionMs": 34.04259999999999,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.04039999999986321,
+          "executionMs": 32.83010000000013,
+          "sqlBytes": 542
+        }
+      ]
+    },
+    "100": {
+      "seeded": [
+        {
+          "setupMs": 11.966700000000174,
+          "executionMs": 58.17769999999996
+        },
+        {
+          "setupMs": 18.76819999999998,
+          "executionMs": 59.05989999999997
+        },
+        {
+          "setupMs": 17.803100000000086,
+          "executionMs": 61.0788
+        },
+        {
+          "setupMs": 18.395700000000033,
+          "executionMs": 58.484500000000025
+        },
+        {
+          "setupMs": 17.93209999999999,
+          "executionMs": 65.93619999999987
+        },
+        {
+          "setupMs": 12.912600000000111,
+          "executionMs": 60.59590000000003
+        },
+        {
+          "setupMs": 17.791400000000067,
+          "executionMs": 60.81420000000003
+        }
+      ],
+      "shadowed": [
+        {
+          "transformMs": 0.10310000000004038,
+          "executionMs": 63.962999999999965,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.03170000000000073,
+          "executionMs": 65.32639999999992,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.03029999999989741,
+          "executionMs": 63.4373999999998,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.024200000000064392,
+          "executionMs": 64.60010000000011,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.0442000000000462,
+          "executionMs": 66.67250000000013,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.02719999999999345,
+          "executionMs": 68.05000000000018,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.03139999999984866,
+          "executionMs": 67.0335,
+          "sqlBytes": 542
+        }
+      ]
+    },
+    "300": {
+      "seeded": [
+        {
+          "setupMs": 18.998599999999897,
+          "executionMs": 182.06950000000006
+        },
+        {
+          "setupMs": 13.634000000000015,
+          "executionMs": 231.95280000000002
+        },
+        {
+          "setupMs": 19.352699999999913,
+          "executionMs": 180.89180000000033
+        },
+        {
+          "setupMs": 19.768099999999777,
+          "executionMs": 172.89309999999978
+        },
+        {
+          "setupMs": 18.182900000000245,
+          "executionMs": 177.07310000000007
+        },
+        {
+          "setupMs": 20.476599999999962,
+          "executionMs": 174.3175999999994
+        },
+        {
+          "setupMs": 12.308999999999287,
+          "executionMs": 167.33410000000003
+        }
+      ],
+      "shadowed": [
+        {
+          "transformMs": 0.07340000000021973,
+          "executionMs": 200.6205,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.0945000000001528,
+          "executionMs": 196.13810000000012,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.04750000000012733,
+          "executionMs": 190.19989999999962,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.04289999999991778,
+          "executionMs": 190.7266999999997,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.04620000000022628,
+          "executionMs": 191.4728,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.03709999999955471,
+          "executionMs": 188.0694999999996,
+          "sqlBytes": 542
+        },
+        {
+          "transformMs": 0.04460000000017317,
+          "executionMs": 191.86509999999998,
+          "sqlBytes": 542
+        }
+      ]
+    }
+  },
+  "environment": {
+    "node": "v22.14.0",
+    "platform": "win32"
+  }
+}
