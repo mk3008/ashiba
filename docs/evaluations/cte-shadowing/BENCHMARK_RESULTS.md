@@ -59,3 +59,43 @@ coverage mistake. A valid adoption claim would need a corpus-level measurement
 including 4 and 10+ relations, transformed SQL bytes, diagnostics, and an
 authoritative drift guard. This experiment deliberately stops short of creating
 a general framework solely to manufacture that benchmark.
+
+## Stage 2: corrected same-SQL benchmark
+
+The initial benchmark limitation was material: the seeded arm used a simplified
+query while the hand-built CTE arm used canonical `get.sql`. Stage 2 retains the
+raw first-stage values as historical evidence but does not use them for a
+relative execution claim.
+
+For every Stage 2 sample, all arms use exactly
+`examples/postgres-ticket-queue-reference/src/tickets/get.sql`, input `{ id:
+'1' }`, selected columns, Ashiba compile/bind path, and native `pg`. The seeded
+row is read into the fixture input after setup so its `now()` timestamp is also
+identical. The evaluator asserts equal field names, selected row, bigint string,
+`Date` timestamp, and nullable representation before it times anything.
+
+Environment remains Windows / Node v22.14.0 / PostgreSQL 16 / `pg` 8.21.0, with
+seven samples and nearest-rank p95. Container startup is excluded. Raw samples
+are in `rawsql-followup-results.json`; they are not comparable across machines.
+
+| Checks | Seeded median / p95 | Hand-built CTE median / p95 | rawsql-ts CTE median / p95 | rawsql-ts + freshness median |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 15.49 / 17.48 | 1.01 / 1.19 | 3.12 / 3.64 | 3.24 |
+| 10 | 23.01 / 25.39 | 9.06 / 13.87 | 19.54 / 23.44 | 19.58 |
+| 50 | 54.39 / 79.94 | 41.58 / 45.40 | 70.85 / 91.26 | 70.89 |
+| 100 | 81.15 / 86.30 | 65.32 / 69.39 | 120.05 / 127.69 | 120.10 |
+| 300 | 201.52 / 206.99 | 195.22 / 202.72 | 353.68 / 373.93 | 353.73 |
+
+`Seeded` includes current suite-level physical setup and canonical
+compile/binding. `Hand-built` measures CTE construction/rewrite plus execution.
+`rawsql-ts` uses `@rawsql-ts/testkit-postgres@0.16.9`'s
+`createPostgresTestkitClient` with the same canonical bound SQL and a real `pg`
+executor; its setup field is client/rewrite initialization. The final column
+adds a warm DDL-derived manifest regeneration/diff cost; it is not a claim to
+measure an upstream manifest generation workflow.
+
+The correction strengthens a narrow point—seed avoidance is measurably useful
+for isolated 1–100 check mapping loops—but does not change the decision. The
+hand-built arm has unresolved transformation and safety costs, and the mature
+library arm is materially slower at 50+ checks while adding an external parser/
+testkit concept and still failing some missing-fixture controls.

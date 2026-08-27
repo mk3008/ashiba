@@ -192,3 +192,108 @@ separate responsibilities.
 All retained code is under this evaluation directory. No product package,
 public API, CLI, named-parameter behavior, generated contract format, or
 Reference application code changes are part of the decision.
+
+## Stage 2 follow-up: same-SQL correction and library-backed challenger
+
+The first-stage benchmark limitation was material: its seeded execution used a
+simplified query while its hand-built CTE execution used canonical SQL. That
+comparison is retained in the ledger but is not a valid relative execution
+result. Stage 2 reran all arms from the same canonical `get.sql`, parameter
+input, selected columns, Ashiba compile/bind path, and real `pg` result. It
+also asserted field names, selected row, bigint/string, timestamptz/`Date`, and
+nullable representation before timing.
+
+The correction **weakened but did not reverse** the first performance finding.
+Hand-built CTE shadowing avoids physical suite setup and is quicker for isolated
+1–100 mapping checks; at 300 checks it is effectively tied with the seeded arm
+(195.22 ms versus 201.52 ms median). That small execution finding does not
+erase the transformation, drift, and safety ownership cost.
+
+### Mature rewriter tested
+
+The challenger used current rawsql-ts commit
+`546ad8d01e29ba9af30c0f0633bd0a8c86133ae8` and released
+`@rawsql-ts/testkit-postgres@0.16.9` (with
+`@rawsql-ts/adapter-node-pg@0.15.18` inspected as the node-postgres wrapper).
+The evaluation API is public
+`createPostgresTestkitClient({ queryExecutor, generated, tableRows, ... })`,
+where `queryExecutor` delegates to a real `pg.Pool`. Packages were pinned in an
+external temporary evaluation workspace; no source was copied and no Ashiba
+package dependency was retained.
+
+This library-backed arm reads canonical SQL directly. It correctly processed
+simple get, optional-filter list/repeated parameter, aliases/two-table join, an
+existing CTE, and `public.tickets`. Thus a mature AST-backed rewriter removes
+the hand-built text insertion and placeholder-shifting limitations; the initial
+negative claim about schema-qualified references does **not** apply to this arm.
+
+### Safety and drift after the library
+
+Complete fixtures safely shadowed both unqualified and schema-qualified physical
+sentinel rows. However, with a table definition but no row fixture, the released
+library emitted original physical SQL even with `missingFixtureStrategy: 'error'`.
+An empty generated manifest behaved the same way. A partial join happened to
+produce an empty CTE for its missing relation, so coverage is not uniformly
+fail-closed. This was proven against real physical tables, not a rewrite
+snapshot.
+
+The testkit documents generated metadata as its preferred normal path, with a
+DDL fallback. The inspected released package exposes the consumed `generated`
+manifest type but not the upstream config generator. The evaluator used its
+public DDL loader to make a generated-format snapshot, then measured
+regeneration/diff freshness. Column rename/removal/type/addition changed the
+snapshot; both nullability-direction changes did not. A stale snapshot remains
+accepted until a freshness command is run. Therefore generated metadata removes
+some hand-maintained fixture typing but does not by itself establish freshness
+or result nullability.
+
+### Fresh-Agent library arm
+
+A history-free agent took about ten minutes to produce a working real-`pg`
+test. It read canonical SQL directly, used `createPgTestkitClient` from the
+node-postgres adapter, and wrote zero custom transformation lines. The testkit
+generated casts, an existing-CTE merge, and named `$1` binding. Its rework was
+PowerShell quoting and double-closing a pool, not SQL copying or placeholder
+manipulation. Fixture/config work was one definition, one row fixture, a
+connection factory, and an execution hook. This is a genuine usability
+improvement over the hand-built Fresh-Agent arm, but it only demonstrates the
+complete-fixture success path and does not cure the observed fallback behavior.
+
+### Ownership comparison
+
+| Concern | Hand-built CTE | rawsql-ts-backed CTE |
+| --- | --- | --- |
+| Canonical SQL copied | Fresh Agent did copy it; evaluator reads source | Fresh Agent and evaluator read source |
+| Ashiba custom rewrite | Text prefix/placeholder shift; narrow | 0 lines; external AST rewriter |
+| Fixture definition | Typed local rows and DDL extractor | DDL-derived manifest plus rows; external manifest/version concept |
+| Schema-qualified support | No | Yes, verified |
+| Missing fixture safety | `pg_temp` control fails closed for unqualified references | Complete fixtures safe; missing rows/manifest can read physical data |
+| Drift/freshness | Narrow custom comparison; nullability false-green | External metadata path; freshness diff required; nullability false-green |
+| Dependency cost | None | Pinned parser/testkit packages and API/version knowledge |
+| Same-SQL 300-check median | 195.22 ms | 353.68 ms (353.73 ms with warm freshness) |
+| Fresh-Agent rework | Manual copy, casts, placeholders | 10 min; 0 rewrite LOC; config/dependency use |
+
+Internal rawsql-ts implementation LOC is not counted as Ashiba-owned code.
+Its dependency, API learning, version compatibility, manifest/freshness process,
+and integration glue are counted as adoption cost.
+
+## Updated decision
+
+**Final classification: reject.** The evaluation included both a minimal
+hand-built CTE implementation and an existing AST-backed library implementation.
+Therefore the rejection is not based merely on an intentionally naive
+transformation.
+
+The mature library genuinely solves source-SQL duplication in the evaluator and
+schema-qualified rewriting, but it does not make the normal mapping proof lower
+total cost: it is materially slower at normal suite sizes and its missing-row/
+missing-manifest controls can reach physical data. Recommending or depending on
+a substantial parser/testkit only to save seeded mapping setup is not justified
+by these results. The seeded mapping proof remains the default; seeded business
+and transaction tests remain necessary in all cases.
+
+Future reopening requires new evidence, not another CTE implementation: a
+released/library version that proves uniform fail-closed coverage against real
+physical sentinels, authoritative freshness and relevant nullability metadata,
+and a real high-frequency or high-scale corpus showing a total-cost win after
+those controls. A hand-built speed result alone does not meet this threshold.

@@ -121,3 +121,96 @@ to replace those tests.
   reliable source-SQL transformation with no duplication, fail-closed relation
   coverage, and no materially larger public surface would be stronger positive
   evidence. It must also beat the seeded total cost at a real scale.
+
+## Stage 2 follow-up — benchmark fairness and mature-library challenger
+
+The original benchmark had a limitation: its seeded arm executed a simplified
+hand-written query while its CTE arm executed canonical `get.sql`. It must not
+support a relative execution claim. Stage 2 preserves that result and reruns all
+arms from the same canonical source, compile/bind path, parameters, selected
+columns, and result representation.
+
+### E6 — Same-SQL benchmark correction
+
+- **Hypothesis:** The original performance direction remains after both seeded
+  and shadowed arms execute the same canonical `get.sql` through Ashiba's named
+  parameter compiler/binder and native `pg`.
+- **Change:** Before every sample, suite-level physical schema/seed setup runs;
+  its rows—including the seed's `now()` timestamp—are copied into the fixture
+  input. The harness asserts identical field names, selected row, bigint string,
+  timestamp `Date`, and nullable value before measuring.
+- **Result:** The correction reverses the first stage's small raw total result
+  for the hand-built arm: it is faster than seeded setup at 1/10/50 checks but
+  essentially tied by 300 (201.52 ms seeded vs 195.22 ms hand-built median).
+  This is a benchmark correction, not evidence for adoption: source
+  transformation and safety/drift costs remain.
+- **Decision:** The original performance conclusion is **weakened but not
+  reversed**. Avoiding a 13–19 ms suite setup can matter in small isolated
+  mapping checks; no material total-cost break-even was established.
+
+### E7 — rawsql-ts AST-backed challenger
+
+- **Setup:** Current rawsql-ts source commit `546ad8d01e29ba9af30c0f0633bd0a8c86133ae8`; released packages
+  `@rawsql-ts/testkit-postgres@0.16.9` and `@rawsql-ts/adapter-node-pg@0.15.18`
+  were installed in an external temporary workspace. The retained evaluator uses
+  the public `createPostgresTestkitClient(...)` API with a real `pg` executor;
+  no rawsql-ts source was copied and Ashiba receives no dependency.
+- **Result:** It uses canonical SQL directly and correctly handles get,
+  optional list/repeated parameter, alias/join, existing `WITH`, and
+  `public.tickets`. It removes Ashiba-owned placeholder shifting and textual
+  `WITH` insertion. The 300-check median is 353.68 ms (353.73 ms with the
+  cached generated-manifest freshness check), roughly 1.75 times seeded
+  201.52 ms.
+- **Safety result:** With complete fixtures, unqualified and schema-qualified
+  physical sentinels were not returned. But an empty row fixture or empty
+  generated manifest allowed a physical `tickets` read despite
+  `missingFixtureStrategy: 'error'`; a partial join happened to receive a typed
+  empty CTE for the missing relation. The behavior is not uniformly fail closed.
+- **Decision:** This genuinely improves transformation fidelity and removes
+  canonical-SQL duplication from the evaluator, but does not satisfy the
+  physical-fallback safety rule and is slower in this same-SQL measurement.
+
+### E8 — rawsql-ts DDL/manifest drift and freshness
+
+- **Change:** Use rawsql-ts's public `DdlFixtureLoader` to create the same
+  `generated.tableDefinitions` shape consumed by the testkit, then compare a
+  regenerated snapshot against it. The package documentation describes
+  `generated` as the preferred normal path (normally emitted by its config
+  tooling); no generator surface was found in the inspected released package,
+  so the evaluator does not claim to reproduce that upstream generation step.
+- **Result:** Rename, removal, bigint-to-uuid, and additional-column changes
+  change the metadata snapshot; a stale snapshot remains accepted until an
+  explicit regeneration/diff check runs. NOT NULL-to-nullable and nullable-to-
+  NOT NULL did not change this DDL-loader-derived manifest, so nullability drift
+  remains false-green in this path. Warm snapshot regeneration was about
+  0.04–0.10 ms, but this excludes any upstream generation/CI process.
+- **Decision:** Freshness verification is required for any trustworthy generated
+  metadata claim, and it still does not provide exhaustive result-nullability
+  proof. No new synchronization system is added.
+
+### E9 — Fresh-Agent rawsql-ts usability
+
+- **Hypothesis:** A history-free user can reach a real-PostgreSQL CTE-shadowed
+  mapping test with the existing mature public API, canonical SQL ownership,
+  and no Ashiba-specific recipe.
+- **Setup:** A fresh agent received only the external rawsql-ts workspace,
+  PostgreSQL connection information, and a request to use existing canonical
+  SQL without copying it. It chose the public `createPgTestkitClient` API from
+  `@rawsql-ts/adapter-node-pg`, a real `pg.Pool`, one `tickets` definition, and
+  one fixture row. It made no repository edits and wrote no custom SQL rewriter.
+- **Observation:** In about ten minutes it read the existing-CTE SQL asset
+  directly and observed its fixture row through real PostgreSQL. The generated
+  execution had fixture CTEs/casts, retained the existing CTE, and bound the
+  named input as `$1`. It needed PowerShell quoting repair and to stop closing
+  the same pool twice. The packages were already installed; that result does
+  not measure first-install or version-selection friction. Its chosen query
+  uses an integer fixture and demonstrates its own `Date` representation; it
+  does not independently re-prove the Ticket reference's bigint-string contract.
+- **Decision:** Keep as positive evidence for direct canonical-SQL use and
+  zero Ashiba rewrite LOC. It is not sufficient adoption evidence because the
+  agent exercised only the complete-fixture path, while E7 established physical
+  fallback for missing rows/metadata.
+- **Reconsideration:** A blind holdout that covers complete and incomplete
+  fixture cases, verifies the full target parameter/result contract, and
+  demonstrates a fail-closed release could materially change the usability and
+  safety conclusion.
