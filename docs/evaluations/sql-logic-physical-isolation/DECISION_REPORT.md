@@ -31,9 +31,12 @@ external state need separate handling.
 
 ## Evidence and limits
 
-The PostgreSQL 18 primary run used 50 identical historical customer-summary
-scenarios, five repetitions, and concurrency 1/4/8. `transaction-batch` won
-all requested settings. See `BENCHMARK_RESULTS.md` and the raw JSON.
+The PostgreSQL 18 primary run used 50 case-specific historical customer-summary
+fixtures, five repetitions, and concurrency 1/4/8. Every case used a
+deterministic non-colliding ID offset and asserted only its expected customer
+IDs, counts, amounts, and row count. `transaction-batch` won all requested
+settings; no fixture row remained after any matrix cell. See
+`BENCHMARK_RESULTS.md` and the raw JSON.
 
 The multi-schema control executed fixed `sales.orders` / `master.customers`
 SQL unmodified in one transaction and rolled it back. In contrast, a

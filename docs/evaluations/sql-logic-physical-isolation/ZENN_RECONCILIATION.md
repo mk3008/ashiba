@@ -42,8 +42,9 @@ decision.
 ## Schema-per-test vs transaction-per-test
 
 Suite-created shared schema plus `BEGIN` / fixture / canonical query /
-`ROLLBACK` avoids per-case namespace and DDL lifecycle. It was substantially
-faster here while preserving complete-fixture visibility only in the owning
+`ROLLBACK` avoids per-case namespace and DDL lifecycle. In the primary matrix,
+each concurrent case used non-colliding IDs and asserted its own result; it was
+substantially faster while preserving fixture visibility only in the owning
 session. Schema-qualified cross-schema SQL works naturally in the transaction
 arm using the fixed real schema names. A test-specific schema cannot redirect
 fixed schema-qualified SQL through `search_path`; it would need different SQL
@@ -53,8 +54,8 @@ names or a mapping/rewriter, which this evaluation deliberately does not add.
 
 The historical helper executes one insert for every fixture row. The evaluation
 measured 12 statements per case in row mode and four relation-batched statements
-per case in batch mode. On PostgreSQL 18 serial transaction cases, fixture time
-fell from 8.45 ms to 2.75 ms.
+per case in batch mode. On PostgreSQL 18 serial transaction cases with
+non-colliding IDs, fixture time fell from 8.27 ms to 3.13 ms.
 
 ## Connection reuse
 
@@ -66,7 +67,7 @@ claim that namespace isolation itself requires connection churn.
 
 ## Parallel wall-clock vs summed latency
 
-At c8, transaction-batch measured 222.17 ms suite wall-clock and 1,658.55 ms
+At c8, transaction-batch measured 48.11 ms suite wall-clock and 349.39 ms
 summed case latency. Future suite-speed comparisons should use wall-clock as
 the primary metric and label summed latency separately.
 
