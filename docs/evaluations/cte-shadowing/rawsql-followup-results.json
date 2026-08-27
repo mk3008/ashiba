@@ -1,0 +1,754 @@
+{
+  "schemaVersion": 2,
+  "rawsql": {
+    "package": "@rawsql-ts/testkit-postgres",
+    "version": "0.16.9",
+    "api": "createPostgresTestkitClient"
+  },
+  "equivalence": {
+    "sqlAsset": "examples/postgres-ticket-queue-reference/src/tickets/get.sql",
+    "fields": [
+      "id",
+      "customer_id",
+      "subject",
+      "status",
+      "priority",
+      "assignee_id",
+      "created_at",
+      "updated_at"
+    ],
+    "row": {
+      "id": "1",
+      "customer_id": "10",
+      "subject": "Cannot sign in",
+      "status": "open",
+      "priority": "normal",
+      "assignee_id": null,
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "updated_at": "2026-08-27T00:17:00.203Z"
+    }
+  },
+  "shapes": {
+    "get": "pass",
+    "optionalListAndRepeatedParameter": "pass",
+    "joinAndAlias": "pass",
+    "existingWith": "pass",
+    "schemaQualified": "pass"
+  },
+  "safety": {
+    "unqualified": "fixture-only",
+    "schemaQualified": "fixture-only",
+    "missingRows": "physical fallback despite error strategy",
+    "partialJoinRows": "typed-empty CTE (no physical fallback)",
+    "missingTableDefinition": "physical fallback despite error strategy"
+  },
+  "drift": {
+    "cases": {
+      "columnRename": {
+        "manifestChanged": true
+      },
+      "columnRemoval": {
+        "manifestChanged": true
+      },
+      "bigintToUuid": {
+        "manifestChanged": true
+      },
+      "addedRequired": {
+        "manifestChanged": true
+      },
+      "notNullToNullable": {
+        "manifestChanged": false
+      },
+      "nullableToNotNull": {
+        "manifestChanged": false
+      }
+    },
+    "staleManifestNeedsFreshnessCheck": true,
+    "freshnessMs": 0.07339999999999236
+  },
+  "benchmark": {
+    "samples": 7,
+    "counts": {
+      "1": {
+        "seeded": [
+          {
+            "setupMs": 16.618000000000052,
+            "preparationMs": 0.03160000000002583,
+            "executionMs": 0.8269000000000233
+          },
+          {
+            "setupMs": 14.44279999999992,
+            "preparationMs": 0.04499999999995907,
+            "executionMs": 1.0001000000000886
+          },
+          {
+            "setupMs": 14.122400000000084,
+            "preparationMs": 0.04240000000004329,
+            "executionMs": 0.8291000000000395
+          },
+          {
+            "setupMs": 14.630899999999997,
+            "preparationMs": 0.022299999999972897,
+            "executionMs": 0.7409999999999854
+          },
+          {
+            "setupMs": 14.65790000000004,
+            "preparationMs": 0.025700000000028922,
+            "executionMs": 0.8672000000000253
+          },
+          {
+            "setupMs": 14.152900000000045,
+            "preparationMs": 0.023300000000062937,
+            "executionMs": 0.7433999999999514
+          },
+          {
+            "setupMs": 14.691800000000057,
+            "preparationMs": 0.022600000000011278,
+            "executionMs": 0.8330999999999449
+          }
+        ],
+        "handBuilt": [
+          {
+            "rewriteMs": 0.18880000000001473,
+            "executionMs": 1.0009000000000015
+          },
+          {
+            "rewriteMs": 0.02549999999996544,
+            "executionMs": 1.1548999999999978
+          },
+          {
+            "rewriteMs": 0.021299999999996544,
+            "executionMs": 0.8129000000000133
+          },
+          {
+            "rewriteMs": 0.037900000000036016,
+            "executionMs": 0.9243999999999915
+          },
+          {
+            "rewriteMs": 0.043099999999981264,
+            "executionMs": 0.9674999999999727
+          },
+          {
+            "rewriteMs": 0.017299999999977445,
+            "executionMs": 0.8339999999999463
+          },
+          {
+            "rewriteMs": 0.023300000000062937,
+            "executionMs": 1.0628000000000384
+          }
+        ],
+        "rawsql": [
+          {
+            "rewriteSetupMs": 0.191599999999994,
+            "executionMs": 3.1135999999999058
+          },
+          {
+            "rewriteSetupMs": 0.2782999999999447,
+            "executionMs": 2.482399999999984
+          },
+          {
+            "rewriteSetupMs": 0.22519999999997253,
+            "executionMs": 2.2759999999999536
+          },
+          {
+            "rewriteSetupMs": 0.19289999999989504,
+            "executionMs": 3.4493999999999687
+          },
+          {
+            "rewriteSetupMs": 0.19729999999992742,
+            "executionMs": 2.925899999999956
+          },
+          {
+            "rewriteSetupMs": 0.15779999999995198,
+            "executionMs": 3.1802999999999884
+          },
+          {
+            "rewriteSetupMs": 0.23690000000010514,
+            "executionMs": 2.1304999999999836
+          }
+        ],
+        "rawsqlWithFreshness": [
+          {
+            "freshnessMs": 0.31719999999995707,
+            "rewriteSetupMs": 0.191599999999994,
+            "executionMs": 3.1135999999999058
+          },
+          {
+            "freshnessMs": 0.09969999999998436,
+            "rewriteSetupMs": 0.2782999999999447,
+            "executionMs": 2.482399999999984
+          },
+          {
+            "freshnessMs": 0.08140000000003056,
+            "rewriteSetupMs": 0.22519999999997253,
+            "executionMs": 2.2759999999999536
+          },
+          {
+            "freshnessMs": 0.20019999999999527,
+            "rewriteSetupMs": 0.19289999999989504,
+            "executionMs": 3.4493999999999687
+          },
+          {
+            "freshnessMs": 0.11549999999999727,
+            "rewriteSetupMs": 0.19729999999992742,
+            "executionMs": 2.925899999999956
+          },
+          {
+            "freshnessMs": 0.05600000000004002,
+            "rewriteSetupMs": 0.15779999999995198,
+            "executionMs": 3.1802999999999884
+          },
+          {
+            "freshnessMs": 0.07569999999998345,
+            "rewriteSetupMs": 0.23690000000010514,
+            "executionMs": 2.1304999999999836
+          }
+        ]
+      },
+      "10": {
+        "seeded": [
+          {
+            "setupMs": 13.34579999999994,
+            "preparationMs": 0.021999999999934516,
+            "executionMs": 8.347699999999918
+          },
+          {
+            "setupMs": 15.142100000000028,
+            "preparationMs": 0.025899999999978718,
+            "executionMs": 8.430299999999988
+          },
+          {
+            "setupMs": 14.091099999999983,
+            "preparationMs": 0.024999999999977263,
+            "executionMs": 8.633599999999888
+          },
+          {
+            "setupMs": 17.731899999999996,
+            "preparationMs": 0.02470000000005257,
+            "executionMs": 7.63130000000001
+          },
+          {
+            "setupMs": 15.0154,
+            "preparationMs": 0.024199999999950705,
+            "executionMs": 8.067199999999957
+          },
+          {
+            "setupMs": 14.967699999999923,
+            "preparationMs": 0.024599999999963984,
+            "executionMs": 8.013699999999972
+          },
+          {
+            "setupMs": 14.851599999999962,
+            "preparationMs": 0.0262000000000171,
+            "executionMs": 7.958500000000072
+          }
+        ],
+        "handBuilt": [
+          {
+            "rewriteMs": 0.021700000000009823,
+            "executionMs": 9.422400000000039
+          },
+          {
+            "rewriteMs": 0.03269999999997708,
+            "executionMs": 8.418900000000008
+          },
+          {
+            "rewriteMs": 0.019499999999993634,
+            "executionMs": 13.853899999999953
+          },
+          {
+            "rewriteMs": 0.017500000000040927,
+            "executionMs": 8.928800000000024
+          },
+          {
+            "rewriteMs": 0.01960000000008222,
+            "executionMs": 9.039499999999975
+          },
+          {
+            "rewriteMs": 0.02039999999999509,
+            "executionMs": 10.064799999999991
+          },
+          {
+            "rewriteMs": 0.01340000000004693,
+            "executionMs": 8.391300000000001
+          }
+        ],
+        "rawsql": [
+          {
+            "rewriteSetupMs": 0.17319999999995161,
+            "executionMs": 21.574299999999994
+          },
+          {
+            "rewriteSetupMs": 0.203899999999976,
+            "executionMs": 23.239900000000034
+          },
+          {
+            "rewriteSetupMs": 0.2536999999999807,
+            "executionMs": 18.246999999999957
+          },
+          {
+            "rewriteSetupMs": 0.10209999999995034,
+            "executionMs": 19.611400000000003
+          },
+          {
+            "rewriteSetupMs": 0.10199999999997544,
+            "executionMs": 18.82120000000009
+          },
+          {
+            "rewriteSetupMs": 0.17290000000002692,
+            "executionMs": 19.37119999999993
+          },
+          {
+            "rewriteSetupMs": 0.08360000000004675,
+            "executionMs": 17.03060000000005
+          }
+        ],
+        "rawsqlWithFreshness": [
+          {
+            "freshnessMs": 0.053699999999935244,
+            "rewriteSetupMs": 0.17319999999995161,
+            "executionMs": 21.574299999999994
+          },
+          {
+            "freshnessMs": 0.1210999999999558,
+            "rewriteSetupMs": 0.203899999999976,
+            "executionMs": 23.239900000000034
+          },
+          {
+            "freshnessMs": 0.07119999999997617,
+            "rewriteSetupMs": 0.2536999999999807,
+            "executionMs": 18.246999999999957
+          },
+          {
+            "freshnessMs": 0.05489999999997508,
+            "rewriteSetupMs": 0.10209999999995034,
+            "executionMs": 19.611400000000003
+          },
+          {
+            "freshnessMs": 0.06550000000004275,
+            "rewriteSetupMs": 0.10199999999997544,
+            "executionMs": 18.82120000000009
+          },
+          {
+            "freshnessMs": 0.04070000000001528,
+            "rewriteSetupMs": 0.17290000000002692,
+            "executionMs": 19.37119999999993
+          },
+          {
+            "freshnessMs": 0.03830000000016298,
+            "rewriteSetupMs": 0.08360000000004675,
+            "executionMs": 17.03060000000005
+          }
+        ]
+      },
+      "50": {
+        "seeded": [
+          {
+            "setupMs": 14.705799999999954,
+            "preparationMs": 0.02430000000003929,
+            "executionMs": 39.657199999999875
+          },
+          {
+            "setupMs": 21.468000000000075,
+            "preparationMs": 0.04579999999987194,
+            "executionMs": 38.56330000000003
+          },
+          {
+            "setupMs": 21.652000000000044,
+            "preparationMs": 0.040299999999888314,
+            "executionMs": 39.36650000000009
+          },
+          {
+            "setupMs": 34.30790000000002,
+            "preparationMs": 0.08670000000006439,
+            "executionMs": 45.547199999999975
+          },
+          {
+            "setupMs": 19.28469999999993,
+            "preparationMs": 0.05030000000010659,
+            "executionMs": 34.26980000000003
+          },
+          {
+            "setupMs": 20.426600000000008,
+            "preparationMs": 0.0158000000001266,
+            "executionMs": 32.7795000000001
+          },
+          {
+            "setupMs": 18.2503999999999,
+            "preparationMs": 0.012799999999970169,
+            "executionMs": 32.31730000000016
+          }
+        ],
+        "handBuilt": [
+          {
+            "rewriteMs": 0.017399999999952342,
+            "executionMs": 42.69670000000019
+          },
+          {
+            "rewriteMs": 0.019699999999829743,
+            "executionMs": 42.44140000000016
+          },
+          {
+            "rewriteMs": 0.01869999999985339,
+            "executionMs": 41.564600000000155
+          },
+          {
+            "rewriteMs": 0.03230000000007749,
+            "executionMs": 45.36460000000011
+          },
+          {
+            "rewriteMs": 0.015899999999874126,
+            "executionMs": 35.783800000000156
+          },
+          {
+            "rewriteMs": 0.019599999999854845,
+            "executionMs": 34.36070000000018
+          },
+          {
+            "rewriteMs": 0.014299999999821011,
+            "executionMs": 34.32690000000002
+          }
+        ],
+        "rawsql": [
+          {
+            "rewriteSetupMs": 0.13969999999994798,
+            "executionMs": 91.11990000000014
+          },
+          {
+            "rewriteSetupMs": 0.12120000000004438,
+            "executionMs": 83.32590000000005
+          },
+          {
+            "rewriteSetupMs": 0.1311000000000604,
+            "executionMs": 81.50199999999995
+          },
+          {
+            "rewriteSetupMs": 0.20870000000013533,
+            "executionMs": 70.64290000000005
+          },
+          {
+            "rewriteSetupMs": 0.10980000000017753,
+            "executionMs": 65.19629999999984
+          },
+          {
+            "rewriteSetupMs": 0.10140000000001237,
+            "executionMs": 60.989700000000084
+          },
+          {
+            "rewriteSetupMs": 0.08449999999993452,
+            "executionMs": 61.93910000000005
+          }
+        ],
+        "rawsqlWithFreshness": [
+          {
+            "freshnessMs": 0.04189999999994143,
+            "rewriteSetupMs": 0.13969999999994798,
+            "executionMs": 91.11990000000014
+          },
+          {
+            "freshnessMs": 0.0602000000001226,
+            "rewriteSetupMs": 0.12120000000004438,
+            "executionMs": 83.32590000000005
+          },
+          {
+            "freshnessMs": 0.058600000000069485,
+            "rewriteSetupMs": 0.1311000000000604,
+            "executionMs": 81.50199999999995
+          },
+          {
+            "freshnessMs": 0.04060000000004038,
+            "rewriteSetupMs": 0.20870000000013533,
+            "executionMs": 70.64290000000005
+          },
+          {
+            "freshnessMs": 0.039900000000216096,
+            "rewriteSetupMs": 0.10980000000017753,
+            "executionMs": 65.19629999999984
+          },
+          {
+            "freshnessMs": 0.0443000000000211,
+            "rewriteSetupMs": 0.10140000000001237,
+            "executionMs": 60.989700000000084
+          },
+          {
+            "freshnessMs": 0.03739999999970678,
+            "rewriteSetupMs": 0.08449999999993452,
+            "executionMs": 61.93910000000005
+          }
+        ]
+      },
+      "100": {
+        "seeded": [
+          {
+            "setupMs": 17.93209999999999,
+            "preparationMs": 0.010999999999967258,
+            "executionMs": 64.5931999999998
+          },
+          {
+            "setupMs": 18.84940000000006,
+            "preparationMs": 0.012400000000070577,
+            "executionMs": 63.42820000000029
+          },
+          {
+            "setupMs": 20.158899999999903,
+            "preparationMs": 0.012999999999919964,
+            "executionMs": 60.55510000000004
+          },
+          {
+            "setupMs": 19.161999999999807,
+            "preparationMs": 0.011700000000018917,
+            "executionMs": 60.310399999999845
+          },
+          {
+            "setupMs": 19.358799999999974,
+            "preparationMs": 0.010999999999967258,
+            "executionMs": 61.00430000000006
+          },
+          {
+            "setupMs": 19.396999999999935,
+            "preparationMs": 0.012600000000020373,
+            "executionMs": 66.89519999999993
+          },
+          {
+            "setupMs": 19.690500000000156,
+            "preparationMs": 0.013699999999971624,
+            "executionMs": 61.44190000000026
+          }
+        ],
+        "handBuilt": [
+          {
+            "rewriteMs": 0.01389999999992142,
+            "executionMs": 69.38049999999976
+          },
+          {
+            "rewriteMs": 0.016299999999773718,
+            "executionMs": 66.60540000000037
+          },
+          {
+            "rewriteMs": 0.022800000000188447,
+            "executionMs": 65.29420000000027
+          },
+          {
+            "rewriteMs": 0.017199999999775173,
+            "executionMs": 64.10060000000021
+          },
+          {
+            "rewriteMs": 0.018099999999776628,
+            "executionMs": 64.94759999999997
+          },
+          {
+            "rewriteMs": 0.023299999999835563,
+            "executionMs": 69.04089999999997
+          },
+          {
+            "rewriteMs": 0.016599999999925785,
+            "executionMs": 64.93939999999975
+          }
+        ],
+        "rawsql": [
+          {
+            "rewriteSetupMs": 0.16169999999965512,
+            "executionMs": 119.89290000000028
+          },
+          {
+            "rewriteSetupMs": 0.10640000000012151,
+            "executionMs": 117.88000000000011
+          },
+          {
+            "rewriteSetupMs": 0.08030000000007931,
+            "executionMs": 119.13380000000006
+          },
+          {
+            "rewriteSetupMs": 0.08850000000029468,
+            "executionMs": 127.60040000000026
+          },
+          {
+            "rewriteSetupMs": 0.0862000000001899,
+            "executionMs": 117.1840000000002
+          },
+          {
+            "rewriteSetupMs": 0.1058999999995649,
+            "executionMs": 124.60649999999987
+          },
+          {
+            "rewriteSetupMs": 0.08980000000019572,
+            "executionMs": 123.03410000000031
+          }
+        ],
+        "rawsqlWithFreshness": [
+          {
+            "freshnessMs": 0.04280000000017026,
+            "rewriteSetupMs": 0.16169999999965512,
+            "executionMs": 119.89290000000028
+          },
+          {
+            "freshnessMs": 0.03920000000016444,
+            "rewriteSetupMs": 0.10640000000012151,
+            "executionMs": 117.88000000000011
+          },
+          {
+            "freshnessMs": 0.09000000000014552,
+            "rewriteSetupMs": 0.08030000000007931,
+            "executionMs": 119.13380000000006
+          },
+          {
+            "freshnessMs": 0.06749999999965439,
+            "rewriteSetupMs": 0.08850000000029468,
+            "executionMs": 127.60040000000026
+          },
+          {
+            "freshnessMs": 0.03739999999970678,
+            "rewriteSetupMs": 0.0862000000001899,
+            "executionMs": 117.1840000000002
+          },
+          {
+            "freshnessMs": 0.04989999999997963,
+            "rewriteSetupMs": 0.1058999999995649,
+            "executionMs": 124.60649999999987
+          },
+          {
+            "freshnessMs": 0.04309999999986758,
+            "rewriteSetupMs": 0.08980000000019572,
+            "executionMs": 123.03410000000031
+          }
+        ]
+      },
+      "300": {
+        "seeded": [
+          {
+            "setupMs": 13.214100000000144,
+            "preparationMs": 0.01389999999992142,
+            "executionMs": 187.60929999999917
+          },
+          {
+            "setupMs": 23.535000000000764,
+            "preparationMs": 0.01510000000052969,
+            "executionMs": 183.4356000000007
+          },
+          {
+            "setupMs": 19.644400000000132,
+            "preparationMs": 0.013700000000426371,
+            "executionMs": 181.98549999999977
+          },
+          {
+            "setupMs": 19.260199999999713,
+            "preparationMs": 0.013100000000122236,
+            "executionMs": 182.2428
+          },
+          {
+            "setupMs": 14.128999999999905,
+            "preparationMs": 0.014400000000023283,
+            "executionMs": 185.10929999999917
+          },
+          {
+            "setupMs": 21.510400000000118,
+            "preparationMs": 0.014599999999518332,
+            "executionMs": 177.71320000000014
+          },
+          {
+            "setupMs": 19.07220000000052,
+            "preparationMs": 0.016200000000026193,
+            "executionMs": 185.02329999999893
+          }
+        ],
+        "handBuilt": [
+          {
+            "rewriteMs": 0.025499999999738066,
+            "executionMs": 200.5576000000001
+          },
+          {
+            "rewriteMs": 0.02959999999984575,
+            "executionMs": 197.61319999999978
+          },
+          {
+            "rewriteMs": 0.027299999999740976,
+            "executionMs": 194.04919999999947
+          },
+          {
+            "rewriteMs": 0.023000000000138243,
+            "executionMs": 194.35879999999997
+          },
+          {
+            "rewriteMs": 0.025899999999637657,
+            "executionMs": 192.0609999999997
+          },
+          {
+            "rewriteMs": 0.028400000000146974,
+            "executionMs": 202.6873000000005
+          },
+          {
+            "rewriteMs": 0.034599999999045394,
+            "executionMs": 195.1863000000012
+          }
+        ],
+        "rawsql": [
+          {
+            "rewriteSetupMs": 0.1396999999997206,
+            "executionMs": 373.79359999999997
+          },
+          {
+            "rewriteSetupMs": 0.13259999999991123,
+            "executionMs": 360.2002999999995
+          },
+          {
+            "rewriteSetupMs": 0.12710000000060973,
+            "executionMs": 353.5509000000002
+          },
+          {
+            "rewriteSetupMs": 0.12449999999989814,
+            "executionMs": 352.33789999999954
+          },
+          {
+            "rewriteSetupMs": 0.19549999999981083,
+            "executionMs": 343.3181000000004
+          },
+          {
+            "rewriteSetupMs": 0.13869999999951688,
+            "executionMs": 346.42659999999887
+          },
+          {
+            "rewriteSetupMs": 0.1492999999991298,
+            "executionMs": 358.1944999999996
+          }
+        ],
+        "rawsqlWithFreshness": [
+          {
+            "freshnessMs": 0.0533000000004904,
+            "rewriteSetupMs": 0.1396999999997206,
+            "executionMs": 373.79359999999997
+          },
+          {
+            "freshnessMs": 0.05069999999977881,
+            "rewriteSetupMs": 0.13259999999991123,
+            "executionMs": 360.2002999999995
+          },
+          {
+            "freshnessMs": 0.05200000000058935,
+            "rewriteSetupMs": 0.12710000000060973,
+            "executionMs": 353.5509000000002
+          },
+          {
+            "freshnessMs": 0.05289999999968131,
+            "rewriteSetupMs": 0.12449999999989814,
+            "executionMs": 352.33789999999954
+          },
+          {
+            "freshnessMs": 0.049799999999777356,
+            "rewriteSetupMs": 0.19549999999981083,
+            "executionMs": 343.3181000000004
+          },
+          {
+            "freshnessMs": 0.043900000000576256,
+            "rewriteSetupMs": 0.13869999999951688,
+            "executionMs": 346.42659999999887
+          },
+          {
+            "freshnessMs": 0.047599999999874854,
+            "rewriteSetupMs": 0.1492999999991298,
+            "executionMs": 358.1944999999996
+          }
+        ]
+      }
+    }
+  }
+}
