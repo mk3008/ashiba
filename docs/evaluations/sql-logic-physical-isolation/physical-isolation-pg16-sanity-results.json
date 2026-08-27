@@ -1,0 +1,5759 @@
+{
+  "environment": {
+    "node": "v22.14.0",
+    "postgres": "16",
+    "counts": [
+      50
+    ],
+    "concurrencies": [
+      1,
+      4,
+      8
+    ],
+    "repetitions": 2,
+    "arms": [
+      "schema-legacy",
+      "transaction-batch"
+    ]
+  },
+  "matrix": [
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 1,
+      "repetition": 1,
+      "suiteWallMs": 3549.0094,
+      "sumCaseLatencyMs": 3546.037799999999,
+      "meanPhaseMs": {
+        "connection": 8.612517999999975,
+        "createSchema": 1.8081419999999653,
+        "ddl": 27.28823999999999,
+        "insert": 20.175075999999976,
+        "insertStatements": 12,
+        "query": 2.6110779999999734,
+        "dropSchema": 8.922826000000008,
+        "begin": 0,
+        "rollback": 0,
+        "total": 70.92075599999998
+      },
+      "insertStatements": 600,
+      "uniqueFixtureOffsets": [
+        0,
+        10000,
+        20000,
+        30000,
+        40000,
+        50000,
+        60000,
+        70000,
+        80000,
+        90000,
+        100000,
+        110000,
+        120000,
+        130000,
+        140000,
+        150000,
+        160000,
+        170000,
+        180000,
+        190000,
+        200000,
+        210000,
+        220000,
+        230000,
+        240000,
+        250000,
+        260000,
+        270000,
+        280000,
+        290000,
+        300000,
+        310000,
+        320000,
+        330000,
+        340000,
+        350000,
+        360000,
+        370000,
+        380000,
+        390000,
+        400000,
+        410000,
+        420000,
+        430000,
+        440000,
+        450000,
+        460000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 1,
+      "repetition": 2,
+      "suiteWallMs": 3067.3756999999996,
+      "sumCaseLatencyMs": 3066.122700000004,
+      "meanPhaseMs": {
+        "connection": 6.734789999999948,
+        "createSchema": 1.5897259999999824,
+        "ddl": 24.500045999999948,
+        "insert": 17.947537999999906,
+        "insertStatements": 12,
+        "query": 2.132237999999952,
+        "dropSchema": 7.233311999999978,
+        "begin": 0,
+        "rollback": 0,
+        "total": 61.32245400000008
+      },
+      "insertStatements": 600,
+      "uniqueFixtureOffsets": [
+        0,
+        10000,
+        20000,
+        30000,
+        40000,
+        50000,
+        60000,
+        70000,
+        80000,
+        90000,
+        100000,
+        110000,
+        120000,
+        130000,
+        140000,
+        150000,
+        160000,
+        170000,
+        180000,
+        190000,
+        200000,
+        210000,
+        220000,
+        230000,
+        240000,
+        250000,
+        260000,
+        270000,
+        280000,
+        290000,
+        300000,
+        310000,
+        320000,
+        330000,
+        340000,
+        350000,
+        360000,
+        370000,
+        380000,
+        390000,
+        400000,
+        410000,
+        420000,
+        430000,
+        440000,
+        450000,
+        460000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 4,
+      "repetition": 1,
+      "suiteWallMs": 996.5373,
+      "sumCaseLatencyMs": 3864.892299999994,
+      "meanPhaseMs": {
+        "connection": 7.861761999999999,
+        "createSchema": 1.891426000000083,
+        "ddl": 33.43378200000001,
+        "insert": 21.876788000000197,
+        "insertStatements": 12,
+        "query": 2.4122380000000523,
+        "dropSchema": 8.638420000000078,
+        "begin": 0,
+        "rollback": 0,
+        "total": 77.29784599999988
+      },
+      "insertStatements": 600,
+      "uniqueFixtureOffsets": [
+        0,
+        10000,
+        30000,
+        20000,
+        40000,
+        50000,
+        70000,
+        60000,
+        80000,
+        90000,
+        100000,
+        110000,
+        120000,
+        130000,
+        140000,
+        150000,
+        160000,
+        170000,
+        180000,
+        190000,
+        200000,
+        210000,
+        220000,
+        230000,
+        240000,
+        250000,
+        260000,
+        270000,
+        280000,
+        290000,
+        300000,
+        310000,
+        320000,
+        330000,
+        340000,
+        350000,
+        360000,
+        370000,
+        380000,
+        390000,
+        400000,
+        410000,
+        420000,
+        440000,
+        430000,
+        450000,
+        460000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 4,
+      "repetition": 2,
+      "suiteWallMs": 1021.9544999999998,
+      "sumCaseLatencyMs": 3954.0911000000115,
+      "meanPhaseMs": {
+        "connection": 8.85726600000009,
+        "createSchema": 1.9581360000000496,
+        "ddl": 32.58403199999995,
+        "insert": 22.68265400000004,
+        "insertStatements": 12,
+        "query": 2.4360399999999025,
+        "dropSchema": 9.276016000000036,
+        "begin": 0,
+        "rollback": 0,
+        "total": 79.08182200000023
+      },
+      "insertStatements": 600,
+      "uniqueFixtureOffsets": [
+        0,
+        20000,
+        30000,
+        10000,
+        40000,
+        60000,
+        70000,
+        50000,
+        80000,
+        90000,
+        100000,
+        110000,
+        130000,
+        120000,
+        150000,
+        140000,
+        160000,
+        170000,
+        180000,
+        190000,
+        200000,
+        210000,
+        230000,
+        220000,
+        260000,
+        240000,
+        250000,
+        270000,
+        280000,
+        290000,
+        310000,
+        300000,
+        320000,
+        330000,
+        350000,
+        340000,
+        370000,
+        360000,
+        380000,
+        390000,
+        400000,
+        410000,
+        420000,
+        430000,
+        440000,
+        450000,
+        470000,
+        460000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 8,
+      "repetition": 1,
+      "suiteWallMs": 626.3490000000002,
+      "sumCaseLatencyMs": 4662.486099999993,
+      "meanPhaseMs": {
+        "connection": 11.120802000000186,
+        "createSchema": 2.5960939999999026,
+        "ddl": 38.215072000000106,
+        "insert": 25.855571999999885,
+        "insertStatements": 12,
+        "query": 2.8050079999999435,
+        "dropSchema": 11.238220000000002,
+        "begin": 0,
+        "rollback": 0,
+        "total": 93.24972199999985
+      },
+      "insertStatements": 600,
+      "uniqueFixtureOffsets": [
+        0,
+        10000,
+        60000,
+        20000,
+        70000,
+        30000,
+        50000,
+        40000,
+        80000,
+        90000,
+        110000,
+        100000,
+        150000,
+        120000,
+        140000,
+        130000,
+        170000,
+        160000,
+        180000,
+        190000,
+        200000,
+        210000,
+        230000,
+        220000,
+        250000,
+        240000,
+        260000,
+        270000,
+        300000,
+        290000,
+        310000,
+        280000,
+        320000,
+        340000,
+        350000,
+        390000,
+        330000,
+        370000,
+        360000,
+        380000,
+        400000,
+        410000,
+        420000,
+        450000,
+        430000,
+        460000,
+        440000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 8,
+      "repetition": 2,
+      "suiteWallMs": 588.4587999999985,
+      "sumCaseLatencyMs": 4384.712299999996,
+      "meanPhaseMs": {
+        "connection": 9.50550999999985,
+        "createSchema": 2.0404480000001057,
+        "ddl": 37.225636000000016,
+        "insert": 25.30275199999953,
+        "insertStatements": 12,
+        "query": 2.562375999999931,
+        "dropSchema": 9.704321999999884,
+        "begin": 0,
+        "rollback": 0,
+        "total": 87.69424599999991
+      },
+      "insertStatements": 600,
+      "uniqueFixtureOffsets": [
+        20000,
+        30000,
+        50000,
+        70000,
+        10000,
+        40000,
+        60000,
+        0,
+        80000,
+        110000,
+        100000,
+        90000,
+        130000,
+        120000,
+        140000,
+        150000,
+        160000,
+        210000,
+        180000,
+        230000,
+        190000,
+        220000,
+        170000,
+        200000,
+        240000,
+        310000,
+        280000,
+        250000,
+        260000,
+        270000,
+        300000,
+        290000,
+        320000,
+        330000,
+        340000,
+        350000,
+        380000,
+        370000,
+        390000,
+        360000,
+        400000,
+        410000,
+        420000,
+        430000,
+        440000,
+        450000,
+        460000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 1,
+      "repetition": 1,
+      "suiteWallMs": 289.7560000000012,
+      "sumCaseLatencyMs": 288.815600000009,
+      "meanPhaseMs": {
+        "connection": 0.012386000000042259,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 2.9129599999999845,
+        "insertStatements": 4,
+        "query": 0.9434540000000561,
+        "dropSchema": 0,
+        "begin": 0.6113679999998203,
+        "rollback": 0.6506280000000334,
+        "total": 5.77631200000018
+      },
+      "insertStatements": 200,
+      "uniqueFixtureOffsets": [
+        0,
+        10000,
+        20000,
+        30000,
+        40000,
+        50000,
+        60000,
+        70000,
+        80000,
+        90000,
+        100000,
+        110000,
+        120000,
+        130000,
+        140000,
+        150000,
+        160000,
+        170000,
+        180000,
+        190000,
+        200000,
+        210000,
+        220000,
+        230000,
+        240000,
+        250000,
+        260000,
+        270000,
+        280000,
+        290000,
+        300000,
+        310000,
+        320000,
+        330000,
+        340000,
+        350000,
+        360000,
+        370000,
+        380000,
+        390000,
+        400000,
+        410000,
+        420000,
+        430000,
+        440000,
+        450000,
+        460000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 1,
+      "repetition": 2,
+      "suiteWallMs": 292.03609999999935,
+      "sumCaseLatencyMs": 291.1277000000082,
+      "meanPhaseMs": {
+        "connection": 0.009571999999934633,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 2.939533999999985,
+        "insertStatements": 4,
+        "query": 0.9321480000000884,
+        "dropSchema": 0,
+        "begin": 0.6201899999999295,
+        "rollback": 0.6483139999999549,
+        "total": 5.822554000000164
+      },
+      "insertStatements": 200,
+      "uniqueFixtureOffsets": [
+        0,
+        10000,
+        20000,
+        30000,
+        40000,
+        50000,
+        60000,
+        70000,
+        80000,
+        90000,
+        100000,
+        110000,
+        120000,
+        130000,
+        140000,
+        150000,
+        160000,
+        170000,
+        180000,
+        190000,
+        200000,
+        210000,
+        220000,
+        230000,
+        240000,
+        250000,
+        260000,
+        270000,
+        280000,
+        290000,
+        300000,
+        310000,
+        320000,
+        330000,
+        340000,
+        350000,
+        360000,
+        370000,
+        380000,
+        390000,
+        400000,
+        410000,
+        420000,
+        430000,
+        440000,
+        450000,
+        460000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 4,
+      "repetition": 1,
+      "suiteWallMs": 93.29420000000027,
+      "sumCaseLatencyMs": 363.23399999999674,
+      "meanPhaseMs": {
+        "connection": 0.556832000000104,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 3.367273999999852,
+        "insertStatements": 4,
+        "query": 1.1866200000000753,
+        "dropSchema": 0,
+        "begin": 0.6831199999999807,
+        "rollback": 0.70862999999983,
+        "total": 7.2646799999999345
+      },
+      "insertStatements": 200,
+      "uniqueFixtureOffsets": [
+        0,
+        40000,
+        20000,
+        10000,
+        50000,
+        30000,
+        60000,
+        70000,
+        80000,
+        90000,
+        100000,
+        110000,
+        120000,
+        130000,
+        150000,
+        140000,
+        160000,
+        170000,
+        190000,
+        180000,
+        200000,
+        210000,
+        230000,
+        220000,
+        240000,
+        250000,
+        270000,
+        280000,
+        260000,
+        290000,
+        310000,
+        300000,
+        320000,
+        330000,
+        360000,
+        350000,
+        340000,
+        370000,
+        400000,
+        390000,
+        380000,
+        410000,
+        440000,
+        430000,
+        420000,
+        450000,
+        460000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 4,
+      "repetition": 2,
+      "suiteWallMs": 86.24229999999989,
+      "sumCaseLatencyMs": 329.891999999998,
+      "meanPhaseMs": {
+        "connection": 0.012011999999958788,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 3.293052000000389,
+        "insertStatements": 4,
+        "query": 1.1012759999999617,
+        "dropSchema": 0,
+        "begin": 0.705756000000074,
+        "rollback": 0.7262459999998828,
+        "total": 6.59783999999996
+      },
+      "insertStatements": 200,
+      "uniqueFixtureOffsets": [
+        30000,
+        0,
+        20000,
+        10000,
+        70000,
+        60000,
+        50000,
+        40000,
+        80000,
+        100000,
+        90000,
+        110000,
+        120000,
+        130000,
+        150000,
+        140000,
+        160000,
+        170000,
+        180000,
+        190000,
+        200000,
+        210000,
+        220000,
+        230000,
+        240000,
+        250000,
+        260000,
+        270000,
+        280000,
+        290000,
+        300000,
+        310000,
+        320000,
+        330000,
+        340000,
+        350000,
+        360000,
+        370000,
+        380000,
+        390000,
+        400000,
+        410000,
+        420000,
+        430000,
+        440000,
+        450000,
+        460000,
+        470000,
+        480000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 8,
+      "repetition": 1,
+      "suiteWallMs": 71.01120000000083,
+      "sumCaseLatencyMs": 530.0894000000008,
+      "meanPhaseMs": {
+        "connection": 1.4018240000001243,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 4.754583999999959,
+        "insertStatements": 4,
+        "query": 1.5998979999998846,
+        "dropSchema": 0,
+        "begin": 0.9536779999998544,
+        "rollback": 0.9066740000000573,
+        "total": 10.601788000000015
+      },
+      "insertStatements": 200,
+      "uniqueFixtureOffsets": [
+        10000,
+        30000,
+        20000,
+        0,
+        80000,
+        90000,
+        100000,
+        110000,
+        120000,
+        140000,
+        150000,
+        130000,
+        40000,
+        50000,
+        60000,
+        70000,
+        160000,
+        180000,
+        170000,
+        190000,
+        200000,
+        210000,
+        220000,
+        230000,
+        250000,
+        240000,
+        260000,
+        270000,
+        280000,
+        290000,
+        320000,
+        300000,
+        310000,
+        330000,
+        340000,
+        350000,
+        360000,
+        370000,
+        380000,
+        390000,
+        400000,
+        430000,
+        410000,
+        420000,
+        440000,
+        450000,
+        460000,
+        480000,
+        470000,
+        490000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 8,
+      "repetition": 2,
+      "suiteWallMs": 62.917099999998754,
+      "sumCaseLatencyMs": 472.04769999999553,
+      "meanPhaseMs": {
+        "connection": 0.014552000000221596,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 4.697805999999946,
+        "insertStatements": 4,
+        "query": 1.6076139999999577,
+        "dropSchema": 0,
+        "begin": 1.0379919999999039,
+        "rollback": 1.0681659999999464,
+        "total": 9.44095399999991
+      },
+      "insertStatements": 200,
+      "uniqueFixtureOffsets": [
+        60000,
+        70000,
+        20000,
+        50000,
+        30000,
+        40000,
+        0,
+        10000,
+        80000,
+        100000,
+        110000,
+        90000,
+        120000,
+        130000,
+        150000,
+        140000,
+        160000,
+        170000,
+        200000,
+        220000,
+        230000,
+        210000,
+        180000,
+        190000,
+        240000,
+        270000,
+        250000,
+        280000,
+        260000,
+        300000,
+        290000,
+        310000,
+        330000,
+        320000,
+        360000,
+        340000,
+        350000,
+        370000,
+        390000,
+        380000,
+        410000,
+        400000,
+        430000,
+        440000,
+        420000,
+        460000,
+        450000,
+        470000,
+        490000,
+        480000
+      ],
+      "isolationAssertions": [
+        {
+          "expectedCustomerIds": [
+            60001,
+            60002,
+            60003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            70001,
+            70002,
+            70003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            20001,
+            20002,
+            20003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            50001,
+            50002,
+            50003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            30001,
+            30002,
+            30003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            40001,
+            40002,
+            40003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            1,
+            2,
+            3
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            10001,
+            10002,
+            10003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            80001,
+            80002,
+            80003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            100001,
+            100002,
+            100003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            110001,
+            110002,
+            110003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            90001,
+            90002,
+            90003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            120001,
+            120002,
+            120003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            130001,
+            130002,
+            130003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            150001,
+            150002,
+            150003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            140001,
+            140002,
+            140003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            160001,
+            160002,
+            160003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            170001,
+            170002,
+            170003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            200001,
+            200002,
+            200003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            220001,
+            220002,
+            220003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            230001,
+            230002,
+            230003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            210001,
+            210002,
+            210003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            180001,
+            180002,
+            180003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            190001,
+            190002,
+            190003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            240001,
+            240002,
+            240003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            270001,
+            270002,
+            270003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            250001,
+            250002,
+            250003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            280001,
+            280002,
+            280003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            260001,
+            260002,
+            260003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            300001,
+            300002,
+            300003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            290001,
+            290002,
+            290003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            310001,
+            310002,
+            310003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            330001,
+            330002,
+            330003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            320001,
+            320002,
+            320003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            360001,
+            360002,
+            360003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            340001,
+            340002,
+            340003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            350001,
+            350002,
+            350003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            370001,
+            370002,
+            370003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            390001,
+            390002,
+            390003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            380001,
+            380002,
+            380003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            410001,
+            410002,
+            410003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            400001,
+            400002,
+            400003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            430001,
+            430002,
+            430003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            440001,
+            440002,
+            440003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            420001,
+            420002,
+            420003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            460001,
+            460002,
+            460003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            450001,
+            450002,
+            450003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            470001,
+            470002,
+            470003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            490001,
+            490002,
+            490003
+          ],
+          "resultRowCount": 3
+        },
+        {
+          "expectedCustomerIds": [
+            480001,
+            480002,
+            480003
+          ],
+          "resultRowCount": 3
+        }
+      ],
+      "rollbackFixtureRowsRemaining": 0
+    }
+  ],
+  "normalIsolation": {
+    "crossScenarioContaminationObserved": 0,
+    "caseSpecificAssertions": 600,
+    "rollbackFixtureRowsRemaining": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "controls": {
+    "sameClientInvisibleFromOtherSession": true,
+    "sameKeyLockTimeout": true
+  },
+  "multiSchema": {
+    "transactionSchemaQualifiedSql": true,
+    "schemaPerTestRequiresRewriteOrDifferentQualifiedNames": true
+  }
+}
