@@ -13,5 +13,6 @@ than collapsed:
 
 Migration replaces generated `query.sql.ts`/metadata and adapter wiring with a
 small canonical-SQL binding artifact, `bindNamedParameters`, and native `pg`.
-The existing Golden Path reference proves that replacement path; a fresh
-scaffold-consumer live run is pending Docker availability.
+The existing Golden Path reference and a fresh minimal migration fixture prove
+the replacement path live on PostgreSQL 16; a line-by-line rewrite of the
+generated consumer remains deliberately unmeasured.

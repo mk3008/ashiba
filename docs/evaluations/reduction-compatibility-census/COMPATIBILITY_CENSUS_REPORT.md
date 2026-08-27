@@ -1,6 +1,6 @@
 # Reduction Compatibility Census
 
-## Status: partial — release decisions are ready; live migration execution is environment-blocked
+## Status: partial — release decisions are ready; line-by-line scaffold rewrite metrics are not measured
 
 This evaluation applies the settled Scope and Golden Path to legacy product
 surfaces. Compatibility is migration information, not a retention argument.
