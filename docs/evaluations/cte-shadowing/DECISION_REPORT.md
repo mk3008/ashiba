@@ -203,11 +203,12 @@ input, selected columns, Ashiba compile/bind path, and real `pg` result. It
 also asserted field names, selected row, bigint/string, timestamptz/`Date`, and
 nullable representation before timing.
 
-The correction **weakened but did not reverse** the first performance finding.
-Hand-built CTE shadowing avoids physical suite setup and is quicker for isolated
-1–100 mapping checks; at 300 checks it is effectively tied with the seeded arm
-(195.22 ms versus 201.52 ms median). That small execution finding does not
-erase the transformation, drift, and safety ownership cost.
+Stage 1's execution-only relative comparison is invalid because its seeded and
+CTE arms did not use the same SQL. Stage 2 corrected that measurement: avoiding
+the seed is useful for isolated 1–100-check loops, and the arms converge toward
+a near tie at 300 checks (195.22 ms versus 201.52 ms median). The performance
+finding was therefore corrected and weakened, not reversed: no total-cost
+advantage sufficient to support adoption was established.
 
 ### Mature rewriter tested
 
@@ -277,12 +278,13 @@ Internal rawsql-ts implementation LOC is not counted as Ashiba-owned code.
 Its dependency, API learning, version compatibility, manifest/freshness process,
 and integration glue are counted as adoption cost.
 
-## Updated decision
+## Stage 2 decision
 
-**Final classification: reject.** The evaluation included both a minimal
-hand-built CTE implementation and an existing AST-backed library implementation.
-Therefore the rejection is not based merely on an intentionally naive
-transformation.
+**Stage 2 classification: reject as the default under the measured
+suite-level, mostly serial mapping-test workload.** The evaluation included
+both a minimal hand-built CTE implementation and an existing AST-backed library
+implementation. Therefore the rejection is not based merely on an intentionally
+naive transformation.
 
 The mature library genuinely solves source-SQL duplication in the evaluator and
 schema-qualified rewriting, but it does not make the normal mapping proof lower
@@ -297,3 +299,18 @@ released/library version that proves uniform fail-closed coverage against real
 physical sentinels, authoritative freshness and relevant nullability metadata,
 and a real high-frequency or high-scale corpus showing a total-cost win after
 those controls. A hand-built speed result alone does not meet this threshold.
+
+### Explicitly untested after Stage 2
+
+Stage 2 did not measure connection reuse, pool sizing, concurrent execution, or
+many independent mapping cases. Statement-local fixtures may avoid shared
+physical fixture-state collisions when every case has distinct fixture rows;
+they may therefore scale differently from a shared physical seeded dataset.
+They do not remove CPU, database, pool, network, scheduler, or unrelated-lock
+contention. This is an untested hypothesis, not a projected performance win.
+
+Stage 3 must measure two separate questions: wall-time behavior under explicit
+connection/concurrency matrices, and whether independent fixtures retain
+isolation without an extra fixture-isolation mechanism. Its result may qualify
+the default decision only within its measured conditions; it must not rewrite
+the frozen Stage 2 serial measurements.

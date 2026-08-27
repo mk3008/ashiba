@@ -139,14 +139,15 @@ columns, and result representation.
   its rows—including the seed's `now()` timestamp—are copied into the fixture
   input. The harness asserts identical field names, selected row, bigint string,
   timestamp `Date`, and nullable value before measuring.
-- **Result:** The correction reverses the first stage's small raw total result
-  for the hand-built arm: it is faster than seeded setup at 1/10/50 checks but
-  essentially tied by 300 (201.52 ms seeded vs 195.22 ms hand-built median).
-  This is a benchmark correction, not evidence for adoption: source
-  transformation and safety/drift costs remain.
-- **Decision:** The original performance conclusion is **weakened but not
-  reversed**. Avoiding a 13–19 ms suite setup can matter in small isolated
-  mapping checks; no material total-cost break-even was established.
+- **Result:** The Stage 1 execution-only relative comparison is invalid because
+  the seeded and CTE arms did not use the same SQL. Stage 2's same-SQL result
+  confirms a seed-avoidance benefit at small counts and convergence toward a
+  near tie by 300 checks (201.52 ms seeded vs 195.22 ms hand-built median).
+  This corrects and weakens the performance finding; it is not adoption
+  evidence because transformation and safety/drift costs remain.
+- **Decision:** No material total-cost break-even was established in the
+  measured suite-level, mostly serial mapping workload. The Stage 1 raw values
+  remain historical evidence, not a relative execution result.
 
 ### E7 — rawsql-ts AST-backed challenger
 
@@ -214,3 +215,16 @@ columns, and result representation.
   fixture cases, verifies the full target parameter/result contract, and
   demonstrates a fail-closed release could materially change the usability and
   safety conclusion.
+
+### Stage 2 scope boundary — untested parallelism hypothesis
+
+Stage 2 does **not** measure whether statement-local CTE fixtures change the
+scaling of many independent mapping cases. A fixture embedded in each statement
+does not share physical fixture state with another case, so connection reuse,
+pool size, concurrent execution, and independently varying fixture rows could
+have different characteristics from a shared physical seeded fixture.
+
+That observation is a hypothesis, not a Stage 2 estimate. CPU, PostgreSQL,
+pool, network, scheduler, and unrelated-lock contention still apply. Stage 3
+must measure performance and fixture isolation separately rather than infer a
+parallel speedup from statement locality.
