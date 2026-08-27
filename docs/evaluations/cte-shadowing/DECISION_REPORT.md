@@ -380,3 +380,65 @@ closed against physical sentinels; parser/testkit ownership cost materially
 falls; and a real production-scale independent mapping corpus exceeds the
 measured range with a substantial total-cost win. Neither statement locality nor
 a small benchmark delta is enough.
+
+## Stage 4: scenario-oriented SQL logic testing
+
+`STAGE_4_STARTING_SHA` is
+`85aee431c1bdfda79a0643f7bfaeeeac3f6ad728`. This is an additive investigation
+of a different test shape, not a retry of the mapping recommendation.
+
+### Method and result
+
+An order-eligibility family made fixture values the scenario input: paid/open
+orders can win, while insufficient inventory, blocked customers, unpaid orders,
+or shipments make them ineligible. S/M/L/XL used 1/2/4/8 referenced relations
+and 3/10/30/99 rows. Every case used canonical SQL and Ashiba binding, carried a
+unique token, and asserted its own winner or no result.
+
+The primary physical baseline used a warm pool, transaction, batched inserts
+per relation, canonical query, assertion, and rollback. The CTE candidate used
+rawsql-ts `0.16.9`'s documented public base-client
+`withFixtures(scenarioRows)` path, not a hand-built CTE or private rewrite
+cache. Real PostgreSQL / real `pg`, 10/50/100 scenarios, concurrency 1/4/8,
+and pool max 8 were measured.
+
+At the best concurrency for 100 scenarios, physical versus CTE wall time was
+48.57 versus 71.10 ms (S), 48.80 versus 117.25 (M), 92.33 versus 270.74 (L),
+and 233.41 versus 1,184.09 (XL). CTE generated SQL grew from about 798 to
+17,053 bytes per scenario. It was faster only in narrow serial S/M cells, not
+at the best shared-pool settings and not as fixture complexity increased.
+
+### Isolation and safety
+
+All scenario assertions passed with zero cross-scenario contamination. Complete
+CTE fixtures eliminate the physical transaction/cleanup mechanism, which is a
+real scenario-isolation benefit. The known released safety limitation remains:
+a complete CTE fixture returned priority 20 over a physical priority-77
+sentinel with the same token, while intentionally empty fixtures returned that
+physical priority-77 state despite `missingFixtureStrategy: 'error'`.
+
+### Stage 4 classification
+
+**`logic-test-isolation-only`.** CTE shadowing is more naturally aligned with
+scenario-oriented SQL logic than with shared DTO mapping seeds, but the measured
+public rawsql-ts path remains slower overall and has the same safety/ownership
+costs. It is not a strong-fit or scale-advantage result.
+
+## Consolidated use-shape conclusion
+
+| Test shape | Current evidence | Recommendation |
+| --- | --- | --- |
+| DTO mapping with shared fixtures | Stage 2 default reject under mostly serial suite-level workload | Keep seeded physical integration proof |
+| Independent one-row mapping | Stage 3 isolation advantage, no performance break-even | Keep seeded default; statement locality is only an external structural option |
+| Scenario-oriented SQL logic | Stage 4 simpler complete-fixture isolation, no robust performance win | Conventional transaction + batched physical fixtures remain the primary path |
+
+CTE shadowing is therefore neither categorically good nor categorically bad;
+its observed value is complete-fixture isolation, not a demonstrated Ashiba
+default or general performance solution.
+
+### Final reconsideration rule
+
+Stage 4 closes this evaluation unless a released rawsql-ts safety or ownership
+cost materially improves, a database/environment changes substantially, or a
+real production corpus shows a clear contradiction at a larger scale. Do not
+repeat these small benchmark shapes merely to seek a different result.

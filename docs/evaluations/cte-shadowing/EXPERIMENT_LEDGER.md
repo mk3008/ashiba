@@ -283,3 +283,57 @@ Stage 1 or Stage 2 measurements.
 - **Decision:** Do not add an Ashiba wrapper or change rawsql-ts behavior.
   Parallel isolation evidence applies only to complete fixtures and does not
   resolve this safety limitation.
+
+## Stage 4 — scenario-oriented SQL logic fixtures
+
+`STAGE_4_STARTING_SHA`: `85aee431c1bdfda79a0643f7bfaeeeac3f6ad728`
+
+Stage 4 is additive evidence from the Stage 3 final commit. It does not revise
+the Stage 1–3 mapping classifications or measurements.
+
+### E12 — fixture-scale SQL logic comparison
+
+- **Hypothesis:** When scenario-specific multi-relation fixture data defines SQL
+  logic, avoiding physical writes/rollback may make rawsql-ts CTE shadowing
+  materially cheaper than conventional transaction-isolated batched fixtures.
+- **Method:** An evaluation-only order-eligibility query family varies actual
+  business state and asserts either its own winning order/token or no row. S/M/
+  L/XL use 1/2/4/8 relations, 3/10/30/99 rows, and 392/997/3,115/9,480 fixture
+  input bytes. Real PostgreSQL 16 / real `pg`, `pool.max = 8`, 10/50/100
+  scenarios, 1/4/8 concurrency, three warm samples. Physical uses acquire,
+  `BEGIN`, batched per-relation inserts, query, `ROLLBACK`, release. CTE uses
+  public base-client `withFixtures(...)`, Ashiba bind, and real `pg`.
+- **Natural API check:** The current public testkit documents `withFixtures` as
+  the scenario layering path. A small XL probe measured 20.68 ms median for it
+  and 21.40 ms for a new client; the small difference does not outweigh using
+  the explicit public scenario API. No internal rewrite cache was used.
+- **Result:** Best-concurrency physical was faster at every scale/count. At 100
+  scenarios: S 48.57 vs CTE 71.10 ms; M 48.80 vs 117.25; L 92.33 vs 270.74;
+  XL 233.41 vs 1,184.09. CTE was faster only in serial S/M cells, not a robust
+  advantage. CTE generated SQL grew from about 798 bytes/scenario (S) to
+  17,053 (XL); fixture/rewrite/query work grew faster than physical batched
+  writes under shared-pool concurrency.
+- **Correctness / isolation:** All logic assertions passed with zero cross-
+  scenario contamination. Complete CTE scenarios need no physical fixture
+  transaction, cleanup, lock, schema, or table isolation.
+- **Decision:** `logic-test-isolation-only`. Scenario fixtures are a more
+  natural structural use than shared DTO mapping seeds, but the released
+  public implementation does not obtain a total-cost or performance win here.
+- **Reconsideration:** Stop repeating small benchmarks. Reopen only for a
+  material released safety/implementation-cost change, materially different DB
+  conditions, or a real production corpus that contradicts this scale matrix.
+
+### E13 — SQL logic physical-fallback negative control
+
+- **Hypothesis:** Complete scenario isolation must not obscure the known empty-
+  fixture physical fallback.
+- **Change:** Insert an eligible physical XL sentinel at priority 77; query the
+  same token once with a complete CTE fixture at priority 20 and once with
+  `tableRows: []` plus
+  `missingFixtureStrategy: 'error'`.
+- **Result:** The complete fixture returned priority 20 over the physical
+  priority-77 sentinel. Empty fixtures applied no CTE and returned physical
+  priority 77. This proves both fixture precedence and the released fallback
+  behavior.
+- **Decision:** Preserve as a safety limitation. Stage 4 adds no Ashiba wrapper
+  and performance claims apply only to complete fixtures.
