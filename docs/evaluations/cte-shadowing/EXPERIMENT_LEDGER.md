@@ -309,8 +309,11 @@ the Stage 1–3 mapping classifications or measurements.
   the explicit public scenario API. No internal rewrite cache was used.
 - **Result:** Best-concurrency physical was faster at every scale/count. At 100
   scenarios: S 48.57 vs CTE 71.10 ms; M 48.80 vs 117.25; L 92.33 vs 270.74;
-  XL 233.41 vs 1,184.09. CTE was faster only in serial S/M cells, not a robust
-  advantage. CTE generated SQL grew from about 798 bytes/scenario (S) to
+  XL 233.41 vs 1,184.09. CTE showed serial wall-time advantages at S/M/L in
+  parts of the measured matrix, but those advantages disappeared under useful
+  pool concurrency and reversed at XL. Across the best-concurrency comparison,
+  physical transaction + batched fixtures were faster at every measured scale.
+  CTE generated SQL grew from about 798 bytes/scenario (S) to
   17,053 (XL); fixture/rewrite/query work grew faster than physical batched
   writes under shared-pool concurrency.
 - **Correctness / isolation:** All logic assertions passed with zero cross-

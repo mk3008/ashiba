@@ -106,10 +106,12 @@ Best wall time across concurrency for each count/scale, in milliseconds:
 | L | 11.67 / 30.25 | 47.84 / 140.22 | 92.33 / 270.74 |
 | XL | 30.91 / 123.94 | 110.51 / 596.65 | 233.41 / 1,184.09 |
 
-The CTE arm is faster for S/M only in the serial 100-scenario cells, where it
-avoids physical writes. That advantage disappears at concurrency 4/8 and does
-not survive the best-concurrency comparison. It is not a sufficient total-cost
-or adoption result.
+CTE showed serial wall-time advantages at S/M/L in parts of the measured
+matrix, where it avoids physical writes and rollback. Those advantages
+disappeared under useful pool concurrency and reversed at XL. Across the
+best-concurrency comparison, physical transaction + batched fixtures were
+faster at every measured scale. This is not a sufficient total-cost or adoption
+result.
 
 ## Scaling behavior
 
@@ -128,8 +130,8 @@ throughput model.
 
 **Not found.** No fixture scale, scenario count through 100, or concurrency
 level 1/4/8 produced a robust CTE wall-time advantage over the conventional
-physical baseline. The narrow serial S/M win is not robust across concurrency
-and becomes worse as fixture complexity grows.
+physical baseline. Serial S/M/L advantages in parts of the matrix are not
+robust across useful concurrency, and performance reverses at XL.
 
 ## Safety limitations
 

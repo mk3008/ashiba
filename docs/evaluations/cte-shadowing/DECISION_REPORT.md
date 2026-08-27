@@ -1,4 +1,29 @@
-# CTE Shadowing vs Seeded Fixtures for SQL Mapping Tests
+# CTE Shadowing vs Seeded Fixtures: Mapping and SQL Logic Tests
+
+## Executive summary (current)
+
+For DTO mapping with shared fixtures, ordinary suite-level physical seeding
+remains the simplest default. For independent one-row mapping, statement-local
+CTE fixtures provide real isolation, but no performance break-even was
+observed.
+
+For scenario-oriented SQL logic, CTE fixtures are structurally more natural
+because fixture values define each scenario. Serial S/M/L cells can favor CTE,
+but useful pool concurrency changes the economics. At the best measured
+concurrency for 100 scenarios, transaction + batched physical fixtures won at
+every scale: S 48.57 ms / 71.10 ms CTE, M 48.80 ms / 117.25 ms CTE, L 92.33 ms
+/ 270.74 ms CTE, and XL 233.41 ms / 1,184.09 ms CTE.
+
+Complete CTE fixtures had zero observed cross-scenario contamination and
+required no physical fixture transaction or cleanup. With the pinned released
+`@rawsql-ts/testkit-postgres@0.16.9`, intentionally incomplete or empty
+fixture rows could still read physical data despite `missingFixtureStrategy:
+'error'`. This is observed behavior of that released version, not a claim
+about all rawsql-ts versions or parser approaches.
+
+The observed CTE advantage is therefore complete-fixture isolation, not a
+demonstrated general performance win. No Ashiba dependency, API, helper, CLI,
+Skill, or Scope change is justified.
 
 ## Stage 1: minimal hand-built feasibility (historical)
 
@@ -405,8 +430,10 @@ and pool max 8 were measured.
 At the best concurrency for 100 scenarios, physical versus CTE wall time was
 48.57 versus 71.10 ms (S), 48.80 versus 117.25 (M), 92.33 versus 270.74 (L),
 and 233.41 versus 1,184.09 (XL). CTE generated SQL grew from about 798 to
-17,053 bytes per scenario. It was faster only in narrow serial S/M cells, not
-at the best shared-pool settings and not as fixture complexity increased.
+17,053 bytes per scenario. CTE showed serial wall-time advantages at S/M/L in
+parts of the measured matrix, but those advantages disappeared under useful
+pool concurrency and reversed at XL. Across the best-concurrency comparison,
+physical transaction + batched fixtures were faster at every measured scale.
 
 ### Isolation and safety
 
@@ -438,7 +465,13 @@ default or general performance solution.
 
 ### Final reconsideration rule
 
-Stage 4 closes this evaluation unless a released rawsql-ts safety or ownership
-cost materially improves, a database/environment changes substantially, or a
-real production corpus shows a clear contradiction at a larger scale. Do not
-repeat these small benchmark shapes merely to seek a different result.
+This investigation is closed after Stage 4. Reopen only if released
+implementation safety materially improves, parser/testkit ownership cost
+materially changes, database or environment assumptions materially change, or a
+real production corpus clearly contradicts the measured results. Do not repeat
+another small synthetic benchmark merely to seek a different result.
+
+Future work should restart from the question, “What is the
+minimum-responsibility way to test Raw SQL logic?”, rather than presuming that
+CTE shadowing should be implemented. SQL logic testing itself remains a
+possible future Ashiba extension; this evaluation adds no such feature.
