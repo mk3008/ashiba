@@ -1,0 +1,138 @@
+{
+  "generatedAt": "2026-08-27T05:35:10.821Z",
+  "canonicalSql": {
+    "get": "select t.id, t.customer_id, t.status, t.assignee_id, t.amount, t.observed_at, c.active from ashiba_dbms_eval_tickets t join ashiba_dbms_eval_customers c on c.id = t.customer_id where t.id = :ticketId order by t.id",
+    "list": "select t.id, t.customer_id, t.status, t.assignee_id, t.amount, t.observed_at, c.active from ashiba_dbms_eval_tickets t join ashiba_dbms_eval_customers c on c.id = t.customer_id where t.customer_id = :customerId and (:status is null or t.status = :status) order by t.id",
+    "listPostgres": "select t.id, t.customer_id, t.status, t.assignee_id, t.amount, t.observed_at, c.active from ashiba_dbms_eval_tickets t join ashiba_dbms_eval_customers c on c.id = t.customer_id where t.customer_id = :customerId and (:status::text is null or t.status = :status::text) order by t.id",
+    "insert": "insert into ashiba_dbms_eval_tickets (id, customer_id, status, assignee_id, amount, observed_at) values (:ticketId, :customerId, :status, :assigneeId, :amount, :observedAt)",
+    "update": "update ashiba_dbms_eval_tickets set status = :status where id = :ticketId",
+    "hostile": "select id from ashiba_dbms_eval_customers where display_name = :displayName"
+  },
+  "postgresql": {
+    "live": true,
+    "binding": {
+      "compiled": {
+        "style": "indexed",
+        "sql": "select t.id, t.customer_id, t.status, t.assignee_id, t.amount, t.observed_at, c.active from ashiba_dbms_eval_tickets t join ashiba_dbms_eval_customers c on c.id = t.customer_id where t.customer_id = $1 and ($2::text is null or t.status = $2::text) order by t.id",
+        "parameterNames": [
+          "customerId",
+          "status"
+        ]
+      },
+      "boundValues": [
+        "9007199254740992",
+        "open"
+      ],
+      "missing": "ASHIBA_MISSING_PARAMETER",
+      "unused": "ASHIBA_UNUSED_PARAMETER"
+    },
+    "staleMetadata": {
+      "errorCode": "ASHIBA_QUERY_MODEL_STALE",
+      "nativeCalled": false
+    },
+    "representations": {
+      "id": "string",
+      "customer_id": "string",
+      "status": "string",
+      "assignee_id": "null",
+      "amount": "string",
+      "observed_at": "Date",
+      "active": "boolean"
+    },
+    "nullableValue": null,
+    "dml": {
+      "updateRowCount": 1,
+      "generatedId": {
+        "value": "1",
+        "type": "string"
+      }
+    },
+    "rollbackResidue": "0"
+  },
+  "mysql2": {
+    "live": true,
+    "binding": {
+      "compiled": {
+        "style": "anonymous",
+        "sql": "select t.id, t.customer_id, t.status, t.assignee_id, t.amount, t.observed_at, c.active from ashiba_dbms_eval_tickets t join ashiba_dbms_eval_customers c on c.id = t.customer_id where t.customer_id = ? and (? is null or t.status = ?) order by t.id",
+        "valueNames": [
+          "customerId",
+          "status",
+          "status"
+        ]
+      },
+      "boundValues": [
+        "9007199254740992",
+        "open",
+        "open"
+      ],
+      "missing": "ASHIBA_MISSING_PARAMETER",
+      "unused": "ASHIBA_UNUSED_PARAMETER"
+    },
+    "staleMetadata": {
+      "errorCode": "ASHIBA_QUERY_MODEL_STALE",
+      "nativeCalled": false
+    },
+    "representations": {
+      "id": "number",
+      "customer_id": "number",
+      "status": "string",
+      "assignee_id": "null",
+      "amount": "string",
+      "observed_at": "Date",
+      "active": "number"
+    },
+    "nullableValue": null,
+    "dml": {
+      "updateAffectedRows": 1,
+      "generatedId": {
+        "value": "1",
+        "type": "number"
+      }
+    },
+    "rollbackResidue": 0
+  },
+  "mssql": {
+    "live": true,
+    "binding": {
+      "compiled": {
+        "style": "named",
+        "sql": "select t.id, t.customer_id, t.status, t.assignee_id, t.amount, t.observed_at, c.active from ashiba_dbms_eval_tickets t join ashiba_dbms_eval_customers c on c.id = t.customer_id where t.customer_id = @customerId and (@status is null or t.status = @status) order by t.id",
+        "parameterNames": [
+          "customerId",
+          "status"
+        ]
+      },
+      "boundValues": [
+        "9007199254740992",
+        "open"
+      ],
+      "missing": "ASHIBA_MISSING_PARAMETER",
+      "unused": "ASHIBA_UNUSED_PARAMETER"
+    },
+    "staleMetadata": {
+      "errorCode": "ASHIBA_QUERY_MODEL_STALE",
+      "nativeCalled": false
+    },
+    "representations": {
+      "id": "string",
+      "customer_id": "string",
+      "status": "string",
+      "assignee_id": "null",
+      "amount": "number",
+      "observed_at": "Date",
+      "active": "boolean"
+    },
+    "nullableValue": null,
+    "dml": {
+      "updateRowsAffected": [
+        1
+      ],
+      "generatedId": {
+        "value": "1",
+        "type": "string"
+      }
+    },
+    "rollbackResidue": 0
+  }
+}
