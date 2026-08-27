@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "base": "c5aa188b4dc271c8b64ebd5453a79cbfe743b5e6",
+  "primary": { "dbms": "PostgreSQL", "driver": "pg" },
+  "classification": "golden-path-ready-with-doc-drift",
+  "candidates": {
+    "A": { "classification": "recommended", "livePostgres": "blocked-by-docker-address-pool", "staticVerification": "passed" },
+    "B": { "classification": "supported-alternative", "freshInit": "passed-after-dependency-install", "fullVerification": "blocked-by-vite-eperm" },
+    "C": { "classification": "evaluation-only", "tarballInstall": "passed", "starterTypecheck": "failed", "starterTestScript": "default" }
+  },
+  "mainRun": { "docker": "27.3.1", "referenceTypecheckGeneratedTest": "passed", "referenceContract": "blocked-no-database-url" }
+}
