@@ -1,0 +1,283 @@
+{
+  "generatedAt": "2026-08-27T06:18:10.359Z",
+  "postgresql": {
+    "strategy": "native-static-describe",
+    "positive": true,
+    "wrongParams": [
+      "ticketId: TypeScript number / node-postgres input string | bigint | null.",
+      "extra: extra field in WrongParams; absent from PostgreSQL parameters."
+    ],
+    "wrongRow": [
+      "id: TypeScript number / node-postgres string | null.",
+      "customer_id: TypeScript string / node-postgres string | null.",
+      "status: TypeScript string / node-postgres string | null.",
+      "amount: TypeScript string / node-postgres string | null.",
+      "active: missing from WrongRow.",
+      "extra: extra field in WrongRow; absent from PostgreSQL results."
+    ],
+    "stale": [
+      "PostgreSQL contract is stale; rerun postgres-contract write."
+    ],
+    "dmlRowsAfterDescribe": 0,
+    "parameters": [
+      [
+        "ticketId",
+        "bigint"
+      ]
+    ],
+    "results": [
+      [
+        "id",
+        "bigint",
+        "unknown"
+      ],
+      [
+        "customer_id",
+        "bigint",
+        "unknown"
+      ],
+      [
+        "status",
+        "text",
+        "unknown"
+      ],
+      [
+        "assignee_id",
+        "bigint",
+        "unknown"
+      ],
+      [
+        "amount",
+        "numeric",
+        "unknown"
+      ],
+      [
+        "active",
+        "boolean",
+        "unknown"
+      ]
+    ],
+    "driver": [
+      [
+        "id",
+        "string | null"
+      ],
+      [
+        "customer_id",
+        "string | null"
+      ],
+      [
+        "status",
+        "string | null"
+      ],
+      [
+        "assignee_id",
+        "string | null"
+      ],
+      [
+        "amount",
+        "string | null"
+      ],
+      [
+        "active",
+        "boolean | null"
+      ]
+    ]
+  },
+  "mssql": {
+    "strategy": "native-static-describe",
+    "resultColumns": [
+      {
+        "name": "id",
+        "type": "bigint",
+        "nullable": false
+      },
+      {
+        "name": "customer_id",
+        "type": "bigint",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "nvarchar(32)",
+        "nullable": false
+      },
+      {
+        "name": "assignee_id",
+        "type": "bigint",
+        "nullable": true
+      },
+      {
+        "name": "amount",
+        "type": "decimal(20,2)",
+        "nullable": false
+      },
+      {
+        "name": "active",
+        "type": "bit",
+        "nullable": false
+      }
+    ],
+    "manualShapePositive": [],
+    "manualShapeWrong": [
+      "id: int / bigint",
+      "extra: missing",
+      "customer_id: extra",
+      "assignee_id: extra",
+      "amount: extra",
+      "active: extra"
+    ],
+    "parameterInference": [
+      {
+        "name": "@customerId",
+        "type": "bigint"
+      }
+    ],
+    "repeatedParameterInference": {
+      "error": {
+        "number": 11508,
+        "message": "The undeclared parameter '@status' is used more than once in the batch being analyzed."
+      }
+    },
+    "dmlDescribeColumnCount": 0,
+    "dmlRowsAfterDescribe": 0,
+    "wrongTypeInference": [
+      {
+        "name": "@status",
+        "type": "nvarchar(32)"
+      }
+    ],
+    "limitations": "sp_describe_undeclared_parameters is only a suggestion source; supplied @params are authoritative for describe."
+  },
+  "mysql": {
+    "strategy": "application-supplied-contract",
+    "select": {
+      "keys": [
+        "statement",
+        "Promise"
+      ],
+      "parameters": [],
+      "columns": []
+    },
+    "dml": {
+      "keys": [
+        "statement",
+        "Promise"
+      ],
+      "parameters": [],
+      "columns": []
+    },
+    "internalPrepareOnlyObservation": {
+      "select": {
+        "keys": [
+          "query",
+          "id",
+          "columns",
+          "parameters",
+          "rowParser",
+          "_connection"
+        ],
+        "parameters": [
+          {
+            "name": "?",
+            "columnType": 8,
+            "type": 8
+          },
+          {
+            "name": "?",
+            "columnType": 253,
+            "type": 253
+          },
+          {
+            "name": "?",
+            "columnType": 253,
+            "type": 253
+          }
+        ],
+        "columns": [
+          {
+            "name": "id",
+            "columnType": 8,
+            "type": 8,
+            "flags": 20483,
+            "decimals": 0
+          },
+          {
+            "name": "customer_id",
+            "columnType": 8,
+            "type": 8,
+            "flags": 20489,
+            "decimals": 0
+          },
+          {
+            "name": "status",
+            "columnType": 253,
+            "type": 253,
+            "flags": 4097,
+            "decimals": 0
+          },
+          {
+            "name": "assignee_id",
+            "columnType": 8,
+            "type": 8,
+            "flags": 0,
+            "decimals": 0
+          },
+          {
+            "name": "amount",
+            "columnType": 246,
+            "type": 246,
+            "flags": 4097,
+            "decimals": 2
+          },
+          {
+            "name": "active",
+            "columnType": 1,
+            "type": 1,
+            "flags": 4097,
+            "decimals": 0
+          }
+        ]
+      },
+      "dml": {
+        "keys": [
+          "query",
+          "id",
+          "columns",
+          "parameters",
+          "rowParser",
+          "_connection"
+        ],
+        "parameters": [
+          {
+            "name": "?",
+            "columnType": 8,
+            "type": 8
+          },
+          {
+            "name": "?",
+            "columnType": 8,
+            "type": 8
+          },
+          {
+            "name": "?",
+            "columnType": 253,
+            "type": 253
+          },
+          {
+            "name": "?",
+            "columnType": 246,
+            "type": 246
+          }
+        ],
+        "columns": []
+      }
+    },
+    "dmlRowsAfterPrepare": 0,
+    "negativeControls": {
+      "missingAndExtraNames": "available from existing generated binding metadata, not from native prepare metadata",
+      "wrongParameterType": "not returned by mysql2 public prepare shape",
+      "wrongResultType": "internal prepare exposes result fields but using connection.connection is driver-internal ownership, so not a small public Ashiba lane"
+    }
+  }
+}
