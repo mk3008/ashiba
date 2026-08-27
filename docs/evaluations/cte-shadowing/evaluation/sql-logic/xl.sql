@@ -1,4 +1,4 @@
-select o.id, o.scenario_token
+select o.id, o.scenario_token, o.priority
 from orders o
 join customers c on c.id = o.customer_id
 join warehouses w on w.id = o.warehouse_id

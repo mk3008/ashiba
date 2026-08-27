@@ -82,15 +82,16 @@ function describeScale(scale) {
   };
 }
 
-function makeScenario(scale, index, { forceEligible = false, tokenPrefix = 'logic' } = {}) {
+function makeScenario(scale, index, { forceEligible = false, tokenPrefix = 'logic', priorityOverride } = {}) {
   const base = 1_000_000 + index * 1_000;
   const token = `${tokenPrefix}-${scale}-${index}`;
   const mode = forceEligible ? 'eligible' : ['eligible', 'insufficient', 'blocked', 'shipped'][index % 4];
   const winnerId = mode === 'eligible' ? base + 1 : null;
+  const winnerPriority = winnerId === null ? null : (priorityOverride ?? 20);
   const customers = [{ id: base + 10, scenario_token: token, blocked: mode === 'blocked' }, { id: base + 11, scenario_token: token, blocked: false }, { id: base + 12, scenario_token: token, blocked: false }];
   const warehouses = [{ id: base + 20, scenario_token: token, active: true }, { id: base + 21, scenario_token: token, active: true }, { id: base + 22, scenario_token: token, active: false }];
   const orders = [
-    { id: base + 1, scenario_token: token, customer_id: base + 10, warehouse_id: base + 20, status: mode === 'insufficient' && scale === 'S' ? 'closed' : 'open', priority: mode === 'eligible' ? 20 : 5 },
+    { id: base + 1, scenario_token: token, customer_id: base + 10, warehouse_id: base + 20, status: mode === 'insufficient' && scale === 'S' ? 'closed' : 'open', priority: winnerPriority ?? 5 },
     { id: base + 2, scenario_token: token, customer_id: base + 11, warehouse_id: base + 21, status: 'closed', priority: 1 },
     { id: base + 3, scenario_token: token, customer_id: base + 12, warehouse_id: base + 22, status: 'closed', priority: 1 },
   ];
@@ -106,7 +107,7 @@ function makeScenario(scale, index, { forceEligible = false, tokenPrefix = 'logi
     L: [{ tableName: 'customers', rows: customers }, { tableName: 'orders', rows: orders }, { tableName: 'order_items', rows: orderItems }, { tableName: 'inventory', rows: inventory }],
     XL: [{ tableName: 'customers', rows: customers }, { tableName: 'warehouses', rows: warehouses }, { tableName: 'orders', rows: orders }, { tableName: 'order_items', rows: orderItems }, { tableName: 'inventory', rows: inventory }, { tableName: 'product_rules', rows: productRules }, { tableName: 'payments', rows: payments }, { tableName: 'shipments', rows: shipments }],
   };
-  return { scale, token, winnerId, fixtures: fixturesByScale[scale] };
+  return { scale, token, winnerId, winnerPriority, fixtures: fixturesByScale[scale] };
 }
 
 function bindScenario(scenario) {
@@ -222,6 +223,7 @@ function assertLogicResult(result, scenario) {
   assert.equal(result.rows.length, 1, `scenario ${scenario.token} should select exactly one order`);
   assert.equal(String(result.rows[0].id), String(scenario.winnerId));
   assert.equal(result.rows[0].scenario_token, scenario.token);
+  assert.equal(result.rows[0].priority, scenario.winnerPriority);
 }
 
 async function comparePublicFixturePaths(manifest) {
@@ -244,8 +246,8 @@ async function comparePublicFixturePaths(manifest) {
 
 async function verifyPhysicalFallback(manifest) {
   await resetSchema();
-  const physical = makeScenario('XL', 777, { tokenPrefix: 'physical-sentinel' });
-  const completeScenario = makeScenario('XL', 777, { forceEligible: true, tokenPrefix: 'physical-sentinel' });
+  const physical = makeScenario('XL', 777, { forceEligible: true, priorityOverride: 77, tokenPrefix: 'physical-sentinel' });
+  const completeScenario = makeScenario('XL', 777, { forceEligible: true, priorityOverride: 20, tokenPrefix: 'physical-sentinel' });
   await insertFixtures(pool, physical.fixtures);
   const bound = bindScenario(completeScenario);
   const complete = testkit.createPostgresTestkitClient({ queryExecutor: (sql, params) => pool.query(sql, [...params]), generated: manifest, tableRows: completeScenario.fixtures, defaultSchema: 'public', searchPath: ['public'], missingFixtureStrategy: 'error' });
@@ -254,7 +256,7 @@ async function verifyPhysicalFallback(manifest) {
   const incomplete = testkit.createPostgresTestkitClient({ queryExecutor: (sql, params) => pool.query(sql, [...params]), generated: manifest, tableRows: [], defaultSchema: 'public', searchPath: ['public'], missingFixtureStrategy: 'error', onExecute: (_sql, _params, fixtures) => applied.push(fixtures) });
   assertLogicResult(await incomplete.query(bound.sql, [...bound.values]), physical);
   assert.deepEqual(applied[0], []);
-  return { completeFixture: 'fixture-only result verified against an ineligible physical sentinel with the same token', incompleteFixture: 'physical fallback observed despite error strategy', sentinelToken: physical.token };
+  return { completeFixture: 'fixture-only priority-20 result verified against a priority-77 physical sentinel with the same token', incompleteFixture: 'physical fallback observed despite error strategy', sentinelToken: physical.token };
 }
 
 async function runConcurrent(items, concurrency, run) {

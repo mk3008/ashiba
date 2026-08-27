@@ -1,4 +1,4 @@
-select o.id, o.scenario_token
+select o.id, o.scenario_token, o.priority
 from orders o
 where o.scenario_token = :token
   and o.status = 'open'

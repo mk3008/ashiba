@@ -1,4 +1,4 @@
-select id, scenario_token
+select id, scenario_token, priority
 from orders
 where scenario_token = :token
   and status = 'open'
