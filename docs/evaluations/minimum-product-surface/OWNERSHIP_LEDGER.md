@@ -1,0 +1,17 @@
+# Ownership Ledger
+
+| Surface | Purpose / Golden Path relation | Evidence and alternative | Maintenance / compatibility cost | Classification / reconsideration |
+| --- | --- | --- | --- | --- |
+| named compiler/binder | runtime core | deterministic quote/comment-aware lowering and missing/unused rejection; native drivers alone do not provide canonical `:name` compilation | public API, parser forms, driver representation and error compatibility | keep-core; reconsider only with equivalent native universal binding evidence |
+| standalone PG contract | optional proof | real PG-derived parameter/result/driver facts reject bigint `number` and stale SQL; plain TS cannot establish these facts | PostgreSQL versions, driver representations, contract JSON/options/live CI | keep-optional; reduce verbose options/artifact format after focused audit |
+| feature scaffold + DTO/mapper | no Golden Path relation | Golden Path and native reference need plain SQL/types; application/AI can reconstruct a local layout | CLI/config/layout/docs/generated assets/migration/deprecation | deprecate-remove; external generated-feature census is the sole blocker |
+| mapper checks/tests | coupled to feature scaffold | ordinary TS/application tests and optional PG contract provide smaller alternatives | generated type conventions, tests and diagnostics | deprecate-remove; remove with feature batch |
+| ZTD/testkit | selective logic tests, not required | real-schema/application tests retain DB behavior/transaction proof; prior CTE/isolation evidence limits ownership | PostgreSQL behavior, fixture grammar, wrappers, CI/live matrix | deprecate-remove; census selected users first |
+| PG adapter safe sort/compression | optional deterministic bounded rewrite | native pg alone cannot prove/rewrite metadata-backed dynamic selection | pg versions, metadata/source hash, runtime options | keep-optional; retain only bounded fail-closed surfaces |
+| MySQL/MSSQL adapters | compatibility | native execution generalizes; no complete primary starter/testkit evidence | drivers/DB versions, published semver, wrapper behavior | compatibility-only/frozen; census before removal |
+| formatter | optional productivity | dedicated formatter exists; Ashiba adds loss-safe round-trip/metadata refresh | SQL parser/style/rewrite edge cases | keep-optional; one more independent adoption/evidence review |
+| lint / query analysis / uses | optional productivity | AI/native tooling can reconstruct some inspection, but deterministic impact search is distinct | parser false positives, command/docs/tests | keep-optional; assess individual command usage before retention roadmap |
+| migration / SQL resources / DDL pull | optional deterministic review | native migration/pg_dump tools exist; Ashiba adds compare/risk/fleet traceability, not apply | DB dialect/version, artifacts, docs | keep-optional |
+| perf / RFBA | optional evaluation tooling | application can benchmark/review; unique value must be measured per workflow | configs/reports/semantics/docs | needs-one-more-evidence |
+| gate scaffold | optional integration | native git/CI scripts can be reconstructed; one-time deterministic install reduces omission | generated hooks/workflow migration | keep-optional; reconsider after install adoption evidence |
+| ddl-docs-cli | internal dogfood docs | does not support Golden Path/product consumer | private package, generated documentation pipeline | needs-one-more-evidence; separate dogfood ownership decision |

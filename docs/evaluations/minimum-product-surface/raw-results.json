@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "base": "1d122433f619b2aebcd461b1bb8b8e420ad89d53",
+  "classification": "minimum-surface-ready-for-reduction",
+  "packagesAudited": 9,
+  "cliFamiliesAudited": 7,
+  "generatedArtifactClassesAudited": 10,
+  "ablation": {
+    "executed": [],
+    "considered": ["A scaffold ownership", "B ZTD/testkit", "C runtime convenience", "D SQL productivity"],
+    "reasonNotExecuted": "public compatibility census is required before destructive product ablation; Golden Path independence is already established by its measured reference"
+  },
+  "classificationCounts": {"keep-core": 3, "keep-optional": 12, "compatibility-only": 3, "deprecate-remove": 6, "remove-now": 0, "needs-one-more-evidence": 3}
+}
