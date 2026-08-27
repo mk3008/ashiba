@@ -228,3 +228,58 @@ That observation is a hypothesis, not a Stage 2 estimate. CPU, PostgreSQL,
 pool, network, scheduler, and unrelated-lock contention still apply. Stage 3
 must measure performance and fixture isolation separately rather than infer a
 parallel speedup from statement locality.
+
+## Stage 3 — parallelism, connection reuse, and statement-local isolation
+
+`STAGE_2_FROZEN_SHA`: `a74858f346329ab90e67cfbc7369d256743276a3`
+
+Stage 3 begins from that freeze. It adds evidence only; it does not rewrite the
+Stage 1 or Stage 2 measurements.
+
+### E10 — independent-case parallelism matrix
+
+- **Hypothesis:** Statement-local fixtures may reduce wall time for many
+  independent mapping cases because each case avoids physical fixture-state
+  coordination under a shared pool or concurrent execution.
+- **Method:** Real PostgreSQL 16 / real `pg`, `pool.max = 8`, 3 warm samples,
+  10/50/100/300 cases, requested concurrency 1/2/4/8, and acquired-per-case,
+  shared-pool, and shared-single-client reference models. Every case compiles
+  and binds canonical `get.sql`, carries a unique ID/subject, and asserts it
+  cannot read another case's row. The candidate is only the released public
+  rawsql-ts testkit API; no Ashiba wrapper or rewrite cache was added.
+- **Compared physical baselines:** Current shared physical fixtures seed all
+  rows once and read them concurrently. The independent physical baseline uses
+  the smallest conventional alternative: per-case transaction, one insert,
+  canonical read, rollback, and release. It deliberately does not recreate a
+  container, migrate per case, or make a schema per test.
+- **Result:** The shared seeded baseline was fastest in every tested cell. Best
+  300-case wall times were seeded 34.41 ms, independent physical 107.95 ms,
+  and rawsql CTE 123.43 ms. No rawsql CTE break-even appeared through 300
+  cases. rawsql CTE shared-pool scaling was not monotonic (concurrency 2 best
+  at 10/50; 8 best at 100/300), while physical arms improved through 8 here.
+- **Isolation result:** All matrix assertions passed with zero cross-case
+  contamination. CTE complete fixtures required no physical fixture lock,
+  transaction, cleanup, schema, or table isolation. The independent physical
+  arm required transaction setup/rollback; at 300 cases / shared pool / 8 it
+  accumulated 473.54 ms setup and 219.01 ms cleanup across concurrent cases.
+- **Decision:** Keep an `isolation-advantage-only` finding, not a performance
+  adoption result. Statement-local isolation is real and separate from speed;
+  it does not beat the current shared physical default or the conventional
+  isolated physical arm under this measured workload.
+- **Remaining uncertainty / reconsideration:** Test a real production-scale
+  independent mapping corpus above 300 cases only if it also preserves released
+  fail-closed behavior and materially lowers total cost. A small timing win or
+  another hand-built CTE implementation is insufficient.
+
+### E11 — released rawsql-ts safety retained under the parallel harness
+
+- **Hypothesis:** Stage 2's missing-fixture physical fallback must remain
+  visible rather than being masked by a parallel benchmark.
+- **Change:** Place a physical sentinel and execute both a complete fixture and
+  `tableRows: []` through the same released public testkit API with
+  `missingFixtureStrategy: 'error'`.
+- **Result:** Complete fixture use returned the fixture row. Missing rows read
+  the physical sentinel despite the error strategy, matching Stage 2.
+- **Decision:** Do not add an Ashiba wrapper or change rawsql-ts behavior.
+  Parallel isolation evidence applies only to complete fixtures and does not
+  resolve this safety limitation.

@@ -1,6 +1,8 @@
 # CTE Shadowing vs Seeded Fixtures for SQL Mapping Tests
 
-## Executive conclusion
+## Stage 1: minimal hand-built feasibility (historical)
+
+### Executive conclusion
 
 **Decision: reject as an Ashiba recommendation or product feature.** CTE
 shadowing is technically viable for a narrow, read-only, seedless mapping proof.
@@ -9,8 +11,10 @@ performance advantage over the existing suite-level seeded approach, and it adds
 fixture-shape, and drift/safety responsibility that the seeded suite does not
 need. A tie or small advantage belongs to the conventional seeded approach.
 
-This is not a statement that CTE fixtures are invalid. It is a bounded decision
-about the default proof for application SQL mapping in this repository.
+This is not a statement that CTE fixtures are invalid. It is the historical
+minimal-hand-built decision; Stage 2 narrows the current default decision to its
+measured suite-level, mostly serial workload, and Stage 3 separately evaluates
+parallel independent fixtures.
 
 ## Problem
 
@@ -314,3 +318,65 @@ connection/concurrency matrices, and whether independent fixtures retain
 isolation without an extra fixture-isolation mechanism. Its result may qualify
 the default decision only within its measured conditions; it must not rewrite
 the frozen Stage 2 serial measurements.
+
+## Stage 3: parallelism, connection reuse, and independent fixtures
+
+`STAGE_2_FROZEN_SHA` is
+`a74858f346329ab90e67cfbc7369d256743276a3` (`docs: freeze stage 2 CTE
+shadowing decision`). Stage 3 is an additive investigation from that commit.
+
+### Question and method
+
+The question was not whether CTE shadowing is generally good. It was whether a
+statement-local fixture changes the cost or isolation of concurrent independent
+mapping cases. The experiment used the same canonical `get.sql`, Ashiba
+compile/bind, real PostgreSQL, real `pg`, the released rawsql-ts public testkit,
+pool max 8, 1/2/4/8 requested concurrency, and 10/50/100/300 unique cases.
+Every case asserted its own ID and subject.
+
+Three arms kept the comparison honest: the current shared seeded dataset, a
+conventional per-case transaction/insert/read/rollback physical fixture, and
+rawsql-ts statement-local CTE fixtures. The physical isolated arm did not pay
+for unrealistic container recreation or migrations per case. A shared single
+node-postgres client was measured as a serialized reference, not as DB
+parallelism. Full matrices and timing boundaries are in
+`PARALLELISM_RESULTS.md` and `parallelism-results.json`.
+
+### Results
+
+The shared seeded baseline was fastest in every tested cell. At the best
+300-case configurations, seeded shared fixture took 34.41 ms, independent
+physical fixture 107.95 ms, and rawsql-ts CTE 123.43 ms wall time. rawsql CTE
+did not beat the conventional independent physical mechanism through 300 cases.
+Its shared-pool scaling was not monotonic, so concurrency is not an assumed CTE
+benefit.
+
+The separate isolation question was positive: all unique-case assertions passed
+with zero cross-test contamination, and complete CTE fixtures needed no fixture
+transaction, cleanup, lock, schema, or table isolation. The physical independent
+arm necessarily used transaction setup and rollback. This structural benefit is
+real, but it did not overcome current wall-time or dependency/safety costs.
+
+The Stage 2 physical-fallback result also persisted: an empty rawsql-ts fixture
+array read a deliberately placed physical sentinel despite
+`missingFixtureStrategy: 'error'`. Stage 3 does not hide that released behavior
+behind an Ashiba wrapper.
+
+### Stage 3 classification
+
+**isolation-advantage-only.** Statement-local fixtures have independent value
+for complete, independently varying mapping fixtures, but there is no measured
+parallel performance or total-ownership case for making them Ashiba's default.
+The Stage 2 default rejection therefore remains unchanged for its measured
+mostly serial workload, and Stage 3 adds no scale-specific adoption threshold.
+
+### Strong reconsideration rule after Stage 3
+
+CTE shadowing has now been tested with minimal hand-built serial behavior,
+mature AST-backed same-SQL serial behavior, shared/pool/single-client models,
+and concurrent independent fixtures. Reopen only with evidence that all three
+conditions hold: released implementation safety materially changes to fail
+closed against physical sentinels; parser/testkit ownership cost materially
+falls; and a real production-scale independent mapping corpus exceeds the
+measured range with a substantial total-cost win. Neither statement locality nor
+a small benchmark delta is enough.
