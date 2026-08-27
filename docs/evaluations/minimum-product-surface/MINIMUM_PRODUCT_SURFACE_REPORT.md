@@ -17,13 +17,24 @@ changes in this branch.
 
 | Classification | Surface families |
 | --- | --- |
-| keep-core | named-parameters compiler/binder; standalone PostgreSQL contract commands; CLI command descriptor and generated-binding/freshness responsibility |
-| keep-optional | PostgreSQL adapter convenience; lint; SQL resource compatibility; DDL migration generation; DDL pull; formatter; safe sort; optional compression; query analysis/uses; perf; RFBA; gate scaffold |
+| keep-core | named-parameters compiler/binder; CLI's Golden-Path generation/freshness responsibility; command descriptor/discoverability |
+| keep-optional | standalone PostgreSQL contract; PostgreSQL adapter convenience; lint; SQL resource compatibility; DDL migration generation; DDL pull; formatter; safe sort; optional compression; query analysis/uses; gate scaffold |
 | compatibility-only | MySQL/MSSQL adapters; feature contract/check paths for existing generated applications |
 | deprecate-remove | init-heavy starter; feature scaffold/import/query; generated DTO/mapper and mapper checks; ZTD/testkit ownership; Atlas starter integration |
 | remove-now | no public surface meets this threshold without a compatibility census |
-| needs-one-more-evidence | exact external adoption/compatibility census for feature/ZTD consumers; independent repeated-use evidence for each productivity tool family |
+| needs-one-more-evidence | perf; RFBA; private `ddl-docs-cli` |
 
 The retained optional surfaces need not be promoted in Getting Started. Their
 continued ownership is conditional on their own deterministic benefit, not on
 the Golden Path.
+
+## Reduction gates / unresolved evidence
+
+The following are evidence gates, not product surfaces or classifications:
+
+- generated-feature consumer compatibility census;
+- ZTD/testkit consumer census;
+- published package adoption census;
+- generated consumer-repository compatibility assessment.
+
+They are required before Batch 2 or Batch 3 deprecation/removal decisions.

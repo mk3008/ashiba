@@ -13,7 +13,7 @@ was the inventory source.
 | dynamic convenience | `query optional add/refresh/remove`, safe-sort metadata generation | **keep-optional**; retain only if limited proof/fail-closed benefit remains demonstrable. |
 | performance/review | `perf init/run/scenario init/scenario measure/report diff`, `rfba inspect` | **needs-one-more-evidence**; valuable evidence tooling but broad command/config/report surface. |
 
-`feature contract check` exists in the command catalog on current main. The
-Golden Path fresh packaged run observed an older published CLI lacking it; that
-is a release/documentation compatibility finding, not proof that current source
-is dead.
+The current source command catalog contains `feature contract check`. The fresh
+published CLI `0.3.0` returned `unknown command 'contract'`. This is a current
+source versus published-package/documentation version-alignment finding, not a
+dead command or evidence that the current CLI lacks the command.
