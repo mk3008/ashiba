@@ -33,3 +33,8 @@ small hand-built CTE, and public rawsql-ts testkit paths using real `pg`.
 installation and requires `DATABASE_URL` and `RAWSQL_TS_EVAL_ROOT`. It measures
 unique independent mapping cases across connection and concurrency matrices,
 and writes `parallelism-results.json`.
+
+`sql-logic.mjs` is the Stage 4 scenario-oriented logic evaluator. It loads the
+same external package installation, uses base-client `withFixtures(...)`, and
+writes `sql-logic-results.json`. The accompanying SQL family and schema are
+evaluation-only assets under `evaluation/sql-logic/` and `sql-logic-schema.sql`.
