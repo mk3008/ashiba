@@ -15,12 +15,12 @@ and application ownership of pools, transactions, ordering policy, and tests.
 It requires no ORM, repository, unit of work, runtime SQL parser, SQL file
 loader, Ashiba-only SQL syntax, or mandatory adapter.
 
-The classification has two qualifications. Live PostgreSQL contract execution
-could not be repeated in this run because Docker could not allocate a new
-network and available containers were not safely reusable. Also, the root README
-foregrounds the scaffold-heavy path and contains a command/API mismatch found in
-the packaged CLI. These are documentation/product-surface observations, not a
-reason to broaden the Golden Path.
+The qualification is documentation drift: the root README foregrounds the
+scaffold-heavy path and contains a command/API mismatch found in the packaged
+CLI. This is a documentation/product-surface observation, not a reason to
+broaden the Golden Path. Candidate A's real PostgreSQL 18 + `pg` verification
+passed in this evaluation, including live tests, generated freshness, four
+contracts, and three negative controls.
 
 ## Required shape
 

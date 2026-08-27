@@ -4,9 +4,9 @@
   "primary": { "dbms": "PostgreSQL", "driver": "pg" },
   "classification": "golden-path-ready-with-doc-drift",
   "candidates": {
-    "A": { "classification": "recommended", "livePostgres": "blocked-by-docker-address-pool", "staticVerification": "passed" },
+    "A": { "classification": "recommended", "livePostgres": "passed-postgresql-18-pg", "staticVerification": "passed", "contractChecks": 4, "negativeControls": 3, "liveTests": 4 },
     "B": { "classification": "supported-alternative", "freshInit": "passed-after-dependency-install", "fullVerification": "blocked-by-vite-eperm" },
     "C": { "classification": "evaluation-only", "tarballInstall": "passed", "starterTypecheck": "failed", "starterTestScript": "default" }
   },
-  "mainRun": { "docker": "27.3.1", "referenceTypecheckGeneratedTest": "passed", "referenceContract": "blocked-no-database-url" }
+  "mainRun": { "docker": "27.3.1", "referenceTypecheckGeneratedTest": "passed", "referenceContract": "passed", "workaround": "explicit-temporary-subnet" }
 }

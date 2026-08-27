@@ -16,5 +16,7 @@ pnpm --filter postgres-ticket-queue-reference verify
 ```
 
 In this run Docker daemon 27.3.1 could not allocate the compose network because
-all predefined address pools had been fully subnetted. No existing Docker
+all predefined address pools had been fully subnetted. The evaluation created a
+separate explicit temporary subnet instead; Candidate A verification passed, and
+the temporary network/container were removed afterwards. No existing Docker
 network/container was removed or reused.
