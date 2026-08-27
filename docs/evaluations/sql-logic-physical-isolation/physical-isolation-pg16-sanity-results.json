@@ -1,0 +1,282 @@
+{
+  "environment": {
+    "node": "v22.14.0",
+    "postgres": "16",
+    "counts": [
+      50
+    ],
+    "concurrencies": [
+      1,
+      4,
+      8
+    ],
+    "repetitions": 2,
+    "arms": [
+      "schema-legacy",
+      "transaction-batch"
+    ]
+  },
+  "matrix": [
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 1,
+      "repetition": 1,
+      "suiteWallMs": 3059.7176,
+      "sumCaseLatencyMs": 3059.1229999999987,
+      "meanPhaseMs": {
+        "connection": 7.590488000000006,
+        "createSchema": 1.6595960000000036,
+        "ddl": 21.10765,
+        "insert": 18.883901999999992,
+        "insertStatements": 12,
+        "query": 2.4782439999999792,
+        "dropSchema": 8.078152000000022,
+        "begin": 0,
+        "rollback": 0,
+        "total": 61.18245999999997
+      },
+      "insertStatements": 600
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 1,
+      "repetition": 2,
+      "suiteWallMs": 3080.0048,
+      "sumCaseLatencyMs": 3079.7061999999964,
+      "meanPhaseMs": {
+        "connection": 7.423492000000051,
+        "createSchema": 1.6479700000000048,
+        "ddl": 21.995504000000064,
+        "insert": 18.777203999999873,
+        "insertStatements": 12,
+        "query": 2.3527059999999254,
+        "dropSchema": 8.032987999999987,
+        "begin": 0,
+        "rollback": 0,
+        "total": 61.59412399999993
+      },
+      "insertStatements": 600
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 4,
+      "repetition": 1,
+      "suiteWallMs": 895.1416000000008,
+      "sumCaseLatencyMs": 3437.4778000000006,
+      "meanPhaseMs": {
+        "connection": 7.886765999999953,
+        "createSchema": 1.8174660000000222,
+        "ddl": 24.691118000000078,
+        "insert": 21.998421999999955,
+        "insertStatements": 12,
+        "query": 2.3811819999998987,
+        "dropSchema": 8.735953999999984,
+        "begin": 0,
+        "rollback": 0,
+        "total": 68.74955600000001
+      },
+      "insertStatements": 600
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 4,
+      "repetition": 2,
+      "suiteWallMs": 887.2934999999998,
+      "sumCaseLatencyMs": 3432.2945999999984,
+      "meanPhaseMs": {
+        "connection": 8.34376599999996,
+        "createSchema": 1.7598120000000017,
+        "ddl": 23.74915799999997,
+        "insert": 22.51236999999999,
+        "insertStatements": 12,
+        "query": 2.3674280000000545,
+        "dropSchema": 8.534439999999995,
+        "begin": 0,
+        "rollback": 0,
+        "total": 68.64589199999996
+      },
+      "insertStatements": 600
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 8,
+      "repetition": 1,
+      "suiteWallMs": 585.7790000000005,
+      "sumCaseLatencyMs": 4357.732400000002,
+      "meanPhaseMs": {
+        "connection": 12.379378000000106,
+        "createSchema": 2.654403999999904,
+        "ddl": 29.13413400000003,
+        "insert": 26.615366000000158,
+        "insertStatements": 12,
+        "query": 2.868797999999988,
+        "dropSchema": 12.079428000000007,
+        "begin": 0,
+        "rollback": 0,
+        "total": 87.15464800000004
+      },
+      "insertStatements": 600
+    },
+    {
+      "arm": "schema-legacy",
+      "count": 50,
+      "concurrency": 8,
+      "repetition": 2,
+      "suiteWallMs": 540.8791000000001,
+      "sumCaseLatencyMs": 3998.3493999999955,
+      "meanPhaseMs": {
+        "connection": 10.045793999999805,
+        "createSchema": 2.1383219999999348,
+        "ddl": 30.470903999999862,
+        "insert": 23.91195600000039,
+        "insertStatements": 12,
+        "query": 2.4818100000000047,
+        "dropSchema": 9.58174200000005,
+        "begin": 0,
+        "rollback": 0,
+        "total": 79.96698799999992
+      },
+      "insertStatements": 600
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 1,
+      "repetition": 1,
+      "suiteWallMs": 288.6712000000007,
+      "sumCaseLatencyMs": 288.56469999999354,
+      "meanPhaseMs": {
+        "connection": 0.017040000000124563,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 2.8866400000003343,
+        "insertStatements": 4,
+        "query": 0.9841859999998996,
+        "dropSchema": 0,
+        "begin": 0.6125940000000992,
+        "rollback": 0.6391680000001361,
+        "total": 5.7712939999998705
+      },
+      "insertStatements": 200
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 1,
+      "repetition": 2,
+      "suiteWallMs": 284.3787999999986,
+      "sumCaseLatencyMs": 284.26180000000204,
+      "meanPhaseMs": {
+        "connection": 0.009160000000010769,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 2.87755000000001,
+        "insertStatements": 4,
+        "query": 0.9139120000000548,
+        "dropSchema": 0,
+        "begin": 0.6146159999999145,
+        "rollback": 0.6337400000001435,
+        "total": 5.685236000000041
+      },
+      "insertStatements": 200
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 4,
+      "repetition": 1,
+      "suiteWallMs": 201.46579999999994,
+      "sumCaseLatencyMs": 782.9688000000078,
+      "meanPhaseMs": {
+        "connection": 0.6215540000000328,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 12.02773199999996,
+        "insertStatements": 4,
+        "query": 0.9852399999999761,
+        "dropSchema": 0,
+        "begin": 0.644881999999925,
+        "rollback": 0.7221700000000782,
+        "total": 15.659376000000156
+      },
+      "insertStatements": 200
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 4,
+      "repetition": 2,
+      "suiteWallMs": 190.34389999999985,
+      "sumCaseLatencyMs": 739.1001000000033,
+      "meanPhaseMs": {
+        "connection": 0.010269999999909487,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 11.807242000000041,
+        "insertStatements": 4,
+        "query": 0.8940600000000996,
+        "dropSchema": 0,
+        "begin": 0.6694339999998192,
+        "rollback": 0.7179040000000896,
+        "total": 14.782002000000066
+      },
+      "insertStatements": 200
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 8,
+      "repetition": 1,
+      "suiteWallMs": 234.45010000000002,
+      "sumCaseLatencyMs": 1760.4647999999997,
+      "meanPhaseMs": {
+        "connection": 0.9587619999998424,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 30.61740199999982,
+        "insertStatements": 4,
+        "query": 1.1545759999998335,
+        "dropSchema": 0,
+        "begin": 0.7351840000000084,
+        "rollback": 0.8766560000000027,
+        "total": 35.209295999999995
+      },
+      "insertStatements": 200
+    },
+    {
+      "arm": "transaction-batch",
+      "count": 50,
+      "concurrency": 8,
+      "repetition": 2,
+      "suiteWallMs": 212.82840000000033,
+      "sumCaseLatencyMs": 1587.537699999999,
+      "meanPhaseMs": {
+        "connection": 0.011692000000111875,
+        "createSchema": 0,
+        "ddl": 0,
+        "insert": 28.38184199999989,
+        "insertStatements": 4,
+        "query": 1.0067239999999946,
+        "dropSchema": 0,
+        "begin": 0.7264959999999338,
+        "rollback": 0.8358180000000357,
+        "total": 31.75075399999998
+      },
+      "insertStatements": 200
+    }
+  ],
+  "controls": {
+    "crossScenarioContamination": 0,
+    "sameClientInvisibleFromOtherSession": true,
+    "sameKeyLockTimeout": true
+  },
+  "multiSchema": {
+    "transactionSchemaQualifiedSql": true,
+    "schemaPerTestRequiresRewriteOrDifferentQualifiedNames": true
+  }
+}
