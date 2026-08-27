@@ -18,6 +18,39 @@ it), **current decision** (adopted now but changeable with new evidence), and
 **experimental / productization pending** (promising evaluation evidence, not a
 product contract). Do not promote the last category by implication.
 
+## Durable ownership and maintenance surface
+
+A capability is not justified merely because Ashiba can implement it. A proposal
+must justify why Ashiba should permanently own the capability, including its
+maintenance and compatibility surface. **Maintenance Surface** means the durable
+things Ashiba or its users must continue to understand, update, test, support,
+or migrate: public APIs, packages, CLIs and concepts; DBMS, driver and version
+coupling; external or private dependencies; CI and live-environment matrices;
+generated artifacts and freshness contracts; documentation, examples, Skills
+and configuration; compatibility promises; removal/migration cost; and failure
+modes Ashiba must continue to own. It is not a LOC measure or a numeric score.
+
+When ordinary SQL, DDL, native-driver APIs, or small application glue can be
+reconstructed reliably by an application developer or AI agent, Ashiba does not
+automatically turn that work into a permanent framework, CLI, adapter, Skill,
+DSL, or API. Repeated generation cost alone is insufficient evidence for product
+ownership. Conversely, Ashiba preferentially owns narrow responsibilities where
+the fact is mechanically decidable, failure matters, deterministic verification
+is practical, and centralizing the invariant reduces total ownership cost. A
+small verifier can therefore be worth owning where a broad convenience
+abstraction is not.
+
+Moving responsibility between code, Skills, configuration, generated metadata,
+CLI, CI, documentation, or compatibility adapters does not remove its
+maintenance cost. Ashiba's AI-native direction is not to maximize AI-facing
+features: application or AI may reconstruct implementation or knowledge when
+needed, while Ashiba may retain narrow deterministic guards where repeated
+reasoning is a poor substitute for proof. This remains evidence-driven; a
+permanent abstraction is valid when its durable value exceeds its durable
+ownership cost. Zero dependencies, fewer lines, or AI-generated code are not
+inherently better or automatically safe, and deterministic verification does not
+replace application tests. Not every valid feature must be mechanically provable.
+
 ## Settled boundary
 
 - Canonical SQL is a complete, independently reviewable source asset. A `.sql`
@@ -96,11 +129,21 @@ Ashiba core does not own repository/unit-of-work/ORM relation abstractions,
 application architecture policy, automatic transaction retries, logging or
 telemetry backends, generic runtime SQL composition, business sort policy, or
 application domain/DTO models. A proposal may extend scope, but must state the
-new responsibility, evidence, value, and alternatives rather than treating an
-implementation convenience as an existing mandate.
+permanent responsibility, evidence that repeated reconstruction is insufficient,
+the deterministic value Ashiba uniquely adds, introduced maintenance surfaces,
+external/version-specific behavior to track, simpler application-owned or
+AI-reconstructed alternatives, and the consequence of later removal. This is a
+concise burden of proof, not a new governance process; implementation convenience
+is not an existing mandate.
 
 ## Evidence and follow-up
 
 This boundary consolidates PRs #62--#68. Their partial and
 productization-pending conclusions remain evidence, not automatic contracts.
-A current-product mismatch is a follow-up decision, not a silent rewrite mandate.
+Recent distribution-surface, CTE-shadowing, physical SQL-logic-isolation,
+native-driver DBMS-compatibility, and DBMS-contract-verification evaluations
+provide supporting cases where a technically possible abstraction was not
+adopted, application/native-driver ownership was cheaper, deterministic core
+generalized, or DBMS-specific verification ownership was rejected. They are not
+universal laws. A current-product mismatch is a follow-up decision, not a silent
+rewrite mandate.
