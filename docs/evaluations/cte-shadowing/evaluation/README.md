@@ -28,3 +28,8 @@ DATABASE_URL=postgres://... RAWSQL_TS_EVAL_ROOT=/path/to/rawsql-evaluation \
 It writes `rawsql-followup-results.json`. The script is experimental evidence,
 not an endorsed integration: it compares the same canonical SQL against seeded,
 small hand-built CTE, and public rawsql-ts testkit paths using real `pg`.
+
+`parallelism.mjs` is the Stage 3 extension. It uses the same external rawsql-ts
+installation and requires `DATABASE_URL` and `RAWSQL_TS_EVAL_ROOT`. It measures
+unique independent mapping cases across connection and concurrency matrices,
+and writes `parallelism-results.json`.
