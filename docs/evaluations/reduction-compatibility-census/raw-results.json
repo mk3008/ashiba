@@ -3,6 +3,6 @@
   "base": "2e5ada916cd3911c9b19d8d4ce7b596148f72b69",
   "registry": {"audited": 8, "namedParametersPublished": false},
   "publicConsumerCensus": {"confirmedExternal": 0, "githubSearchRateLimited": true},
-  "liveMigration": {"executed": false, "reason": "Docker daemon unavailable"},
+  "liveMigration": {"scaffoldAssetsGenerated": true, "replacementLiveVerified": true, "postgres": "16", "scaffoldRewriteExecuted": false},
   "decisions": {"batch2": "GO-WITH-MIGRATION-NOTE", "batch3": "GO-WITH-MIGRATION-NOTE", "rfba": "GO-REMOVE", "mysql": "SHORT-FREEZE-THEN-REMOVE", "mssql": "SHORT-FREEZE-THEN-REMOVE"}
 }
