@@ -1,0 +1,27 @@
+{
+  "queryId": "perf-tickets-by-customer",
+  "sql": "select id, customer_id, status, created_at\nfrom perf_tickets\nwhere customer_id = $1\norder by id\nlimit $2",
+  "values": [
+    42,
+    100
+  ],
+  "dataset": {
+    "table": "perf_tickets",
+    "rows": 100000,
+    "matchingRows": 100
+  },
+  "baseline": {
+    "medianDurationMs": 5.359700000000004,
+    "executionTimeMs": 4.475,
+    "planNode": "Seq Scan"
+  },
+  "candidate": {
+    "medianDurationMs": 1.2356999999999942,
+    "executionTimeMs": 0.093,
+    "planNode": "Bitmap Heap Scan",
+    "candidateIndex": "perf_tickets_customer_id_id_idx"
+  },
+  "deltaMs": -4.124000000000009,
+  "ratio": 0.23055394891505,
+  "runner": "native-pg + EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)"
+}

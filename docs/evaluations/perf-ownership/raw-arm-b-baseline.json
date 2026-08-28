@@ -1,0 +1,136 @@
+{
+  "queryId": "perf-tickets-by-customer",
+  "sql": "select id, customer_id, status, created_at\nfrom perf_tickets\nwhere customer_id = $1\norder by id\nlimit $2",
+  "values": [
+    42,
+    100
+  ],
+  "dataset": {
+    "table": "perf_tickets",
+    "rows": 100000,
+    "matchingRows": 100
+  },
+  "repetitions": 10,
+  "durationsMs": [
+    5.647500000000008,
+    5.673599999999993,
+    5.2547,
+    5.129499999999993,
+    5.140999999999991,
+    5.148699999999991,
+    5.442999999999998,
+    5.405499999999989,
+    5.359700000000004,
+    5.033000000000001
+  ],
+  "medianDurationMs": 5.359700000000004,
+  "explainAnalyze": [
+    {
+      "Plan": {
+        "Node Type": "Limit",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Startup Cost": 1989.32,
+        "Total Cost": 1989.57,
+        "Plan Rows": 100,
+        "Plan Width": 29,
+        "Actual Startup Time": 4.458,
+        "Actual Total Time": 4.465,
+        "Actual Rows": 100,
+        "Actual Loops": 1,
+        "Disabled": false,
+        "Shared Hit Blocks": 736,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0,
+        "Plans": [
+          {
+            "Node Type": "Sort",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 1989.32,
+            "Total Cost": 1989.57,
+            "Plan Rows": 100,
+            "Plan Width": 29,
+            "Actual Startup Time": 4.458,
+            "Actual Total Time": 4.46,
+            "Actual Rows": 100,
+            "Actual Loops": 1,
+            "Disabled": false,
+            "Sort Key": [
+              "id"
+            ],
+            "Sort Method": "quicksort",
+            "Sort Space Used": 32,
+            "Sort Space Type": "Memory",
+            "Shared Hit Blocks": 736,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Seq Scan",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Relation Name": "perf_tickets",
+                "Alias": "perf_tickets",
+                "Startup Cost": 0,
+                "Total Cost": 1986,
+                "Plan Rows": 100,
+                "Plan Width": 29,
+                "Actual Startup Time": 0.004,
+                "Actual Total Time": 4.447,
+                "Actual Rows": 100,
+                "Actual Loops": 1,
+                "Disabled": false,
+                "Filter": "(customer_id = '42'::bigint)",
+                "Rows Removed by Filter": 99900,
+                "Shared Hit Blocks": 736,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0
+              }
+            ]
+          }
+        ]
+      },
+      "Planning": {
+        "Shared Hit Blocks": 0,
+        "Shared Read Blocks": 0,
+        "Shared Dirtied Blocks": 0,
+        "Shared Written Blocks": 0,
+        "Local Hit Blocks": 0,
+        "Local Read Blocks": 0,
+        "Local Dirtied Blocks": 0,
+        "Local Written Blocks": 0,
+        "Temp Read Blocks": 0,
+        "Temp Written Blocks": 0
+      },
+      "Planning Time": 0.026,
+      "Triggers": [],
+      "Execution Time": 4.475
+    }
+  ],
+  "measuredAt": "2026-08-28T07:47:23.357Z",
+  "runner": "native-pg"
+}

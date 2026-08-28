@@ -1,0 +1,14 @@
+{
+  "scenario": "stale",
+  "query": "evaluation/stale-query.sql",
+  "requirements": {
+    "targetRows": {},
+    "maxDurationMs": null,
+    "timeoutMs": 30000
+  },
+  "indexPolicy": {
+    "candidateIndexScope": "sandbox-only",
+    "adoptedIndexTarget": "db/ddl",
+    "rule": "Candidate indexes may be tested in the sandbox database, but accepted indexes must be promoted into db/ddl. Do not treat sandbox-created indexes as adopted schema."
+  }
+}
