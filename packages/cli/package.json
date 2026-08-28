@@ -1,7 +1,7 @@
 {
   "name": "@ashiba-ts/cli",
   "version": "0.3.0",
-  "description": "SQL-first scaffold and verification CLI for TypeScript applications.",
+  "description": "SQL-first SQL tooling and verification CLI for TypeScript applications.",
   "repository": {
     "type": "git",
     "url": "https://github.com/mk3008/ashiba"
@@ -21,7 +21,7 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "pnpm --filter @ashiba-ts/named-parameters build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "test:live": "vitest run tests/postgres-contract.live.test.ts tests/sql-resource.live.test.ts",
+    "test:live": "vitest run tests/sql-resource.live.test.ts",
     "prepack": "pnpm build"
   },
   "dependencies": {
