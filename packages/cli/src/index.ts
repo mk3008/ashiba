@@ -6,15 +6,11 @@ import { readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerCheckCommand } from './commands/check.js';
-import { registerCheckContractCommand } from './commands/check-contract.js';
-import { registerAtlasCommand } from './commands/atlas.js';
 import { applyCommandCatalogToProgram, formatCommonUseCases } from './commands/command-catalog.js';
 import { registerConfigCommand } from './commands/config.js';
 import { registerDescribeCommand } from './commands/describe.js';
 import { registerDdlCommand } from './commands/ddl.js';
-import { registerFeatureCommand } from './commands/feature.js';
 import { registerGateCommand } from './commands/gate.js';
-import { registerInitCommand } from './commands/init.js';
 import { registerLintCommand } from './commands/lint.js';
 import { registerModelGenCommand } from './commands/model-gen.js';
 import { registerPerfCommand } from './commands/perf.js';
@@ -37,21 +33,14 @@ export const VERSION = readCliPackageVersion();
 export function buildProgram(): Command {
   const commonUseCases = formatCommonUseCases([
     'check',
-    'atlas init',
-    'gate scaffold',
-    'init',
-    'feature scaffold',
-    'query uses table',
-    'query slice',
-    'query format',
-    'sql-resource snapshot',
-    'ddl migration generate',
+    'model-gen',
+    'postgres-contract',
     'describe command',
   ]);
   const program = new Command();
   program
     .name('ashiba')
-    .description('SQL-first scaffold and verification CLI for TypeScript applications.')
+    .description('SQL-first SQL tooling and verification CLI for TypeScript applications.')
     .version(VERSION)
     .option('--error-format <mode>', 'Error output mode: human or ai', 'human')
     .addHelpText('after', `
@@ -60,8 +49,8 @@ Core message:
   Ashiba handles the boring parts.
 
 Status:
-  This CLI includes scaffolding, DDL review, query analysis, contract checks,
-  model generation, and performance evidence.
+  This CLI includes deterministic binding metadata generation, SQL review,
+  optional PostgreSQL contracts, and SQL analysis tools.
 
 Common use cases:
 ${commonUseCases}
@@ -70,15 +59,11 @@ Detailed command catalog:
   ashiba describe command [name...] --format text|json
 `);
 
-  registerAtlasCommand(program);
   registerCheckCommand(program);
-  registerCheckContractCommand(program);
   registerConfigCommand(program);
   registerDescribeCommand(program);
   registerDdlCommand(program);
-  registerFeatureCommand(program);
   registerGateCommand(program);
-  registerInitCommand(program);
   registerLintCommand(program);
   registerModelGenCommand(program);
   registerPerfCommand(program);

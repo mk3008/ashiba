@@ -122,8 +122,8 @@ If every predicate in a `WHERE` scope is removed, Ashiba removes that `WHERE` cl
 
 ## Current Implementation Behavior
 
-Current scaffolded feature query sources may enable optional-condition
-compression by default:
+An application may explicitly opt into optional-condition compression when it
+uses the optional adapter path:
 
 ```ts
 export const listQuery = {
@@ -139,7 +139,7 @@ optionalConditionCompression:
   query.optionalConditionCompression ?? executeOptions?.optionalConditionCompression
 ```
 
-So, in current normal scaffolded feature code, compression is on by default.
+This is an application choice; the Golden Path does not require it.
 
 At the low-level driver adapter boundary, compression only runs when `optionalConditionCompression: true` is provided. This keeps hand-built adapter calls explicit.
 
@@ -153,9 +153,10 @@ follow-up task; this page does not redefine what existing scaffolds do.
 
 ## Controlling Current Implementation Compression
 
-Compression is optional. The default scaffold turns it on for generated feature query sources, but you can change that at the query source or SQL client wiring.
+Compression is optional and can be changed at the application query source or
+SQL client wiring.
 
-Disable compression for one generated query by editing that query source:
+Disable compression for one application query by editing that query source:
 
 ```ts
 export const listQuery = {

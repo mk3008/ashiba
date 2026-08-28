@@ -134,7 +134,7 @@ export function buildQueryUsageReport(params: BuildQueryUsageReportParams): Quer
           ? `No QuerySpec entries found under ${activeScope}.
 Hint: pass a narrower --scope-dir only when you need to limit the active scan.`
           : `No QuerySpec entries were discovered under ${activeScope}.
-Hint: run "ashiba init" or place feature-local specs under your project tree. Use --scope-dir only when you need to narrow the scan.`,
+Hint: place canonical SQL under your configured SQL roots. Use --scope-dir only when you need to narrow the scan.`,
       });
     }
 

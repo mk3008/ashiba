@@ -1,931 +1,143 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
-import { BinarySelectQuery, ColumnReference, DeleteQuery, FunctionCall, InsertQuery, SimpleSelectQuery, SqlParser, SubQuerySource, TableSource, UpdateQuery, ValuesQuery, type SelectItem, type SourceExpression } from 'rawsql-ts';
-import { loadDdlSchemaModel, type DdlSchemaColumn, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
-import { extractSqlResultColumnAstItems, extractSqlResultColumnContracts, type SqlResultColumnContract } from './sql-result-columns.js';
-import { buildSqlSafeSortMetadata, type SqlSafeSortMetadata } from './sql-safe-sort-metadata.js';
-import {
-  buildSqlOptionalConditionCompressionMetadata,
-  type SqlOptionalConditionCompressionMetadata,
-} from './sql-optional-condition-compression-metadata.js';
-import { inferSqlExpressionContractType, inferSqlExpressionNullability } from './sql-expression-type.js';
-import { inferSqlParameterTypes } from './sql-parameter-types.js';
-import { loadProjectPathConfig } from './config.js';
-import { normalizeIdentifier, resolveSchemaPathTable, type SchemaPathConfig } from './schema-path.js';
-import { astParseUserError, requiredCliValueError } from '../errors.js';
 import { normalizeSqlSource } from '../sql-source.js';
+import { extractSqlResultColumnContracts } from './sql-result-columns.js';
+import { buildSqlSafeSortMetadata } from './sql-safe-sort-metadata.js';
+import { buildSqlOptionalConditionCompressionMetadata } from './sql-optional-condition-compression-metadata.js';
 
 export interface ModelGenOptions {
   sqlFile?: string;
   out?: string;
-  id?: string;
   rootDir?: string;
-  ddlDir?: string;
   dryRun?: boolean;
+  check?: boolean;
   format?: 'text' | 'json';
 }
 
 export interface ModelGenResult {
-  id: string;
   sqlFile: string;
-  parameters: string[];
-  resultColumns: string[];
-  analysis: QueryModelAnalysis;
-  bindings: QueryModelBindings;
-  contents: string;
-  metadataContents: string;
-  out?: string;
-  metadataOut?: string;
-  dryRun: boolean;
-}
-
-export type QueryModelStatementKind = 'select' | 'insert' | 'update' | 'delete' | 'unknown';
-export type QueryModelRootQueryShape = 'simple-select' | 'compound-select' | 'values' | 'non-select' | 'unknown';
-type DdlRelation = { alias?: string; table: DdlSchemaTable; nullExtended?: boolean };
-
-export interface QueryModelAnalysis {
-  astParse: 'ok' | 'failed';
-  statementKind: QueryModelStatementKind;
-  rootQueryShape: QueryModelRootQueryShape;
-  hasTopLevelOrderBy: boolean | 'unknown';
   sourceHash: string;
-  safeSort: SqlSafeSortMetadata;
-  optionalConditionCompression?: SqlOptionalConditionCompressionMetadata;
-  resultColumns: string[];
-  resultColumnOrder: string[];
-  resultColumnTypes: Record<string, SqlResultColumnContract['type']>;
-  resultColumnNullability: Record<string, SqlResultColumnContract['nullability']>;
-  namedParameters: string[];
-  parameterTypes?: Record<string, string>;
-  parserCapabilities: {
-    parser: { status: 'supported' | 'degraded'; reason?: string };
-    sqlStorage: 'unaffected';
-    execution: 'unaffected';
-    parameterBinding: 'unaffected';
-    logging: 'unaffected';
-    resultContract: 'supported' | 'degraded';
-    optionalConditionCompression: 'supported' | 'blocked';
-    safeSort: 'supported' | 'blocked';
-    impactAnalysis: 'supported' | 'degraded';
+  bindings: {
+    postgres: { style: 'indexed'; sql: string; parameterNames: readonly string[] };
+    mysql2: { style: 'anonymous'; sql: string; valueNames: readonly string[] };
+    mssql: { style: 'named'; sql: string; parameterNames: readonly string[] };
+  };
+  out?: string;
+  contents: string;
+  dryRun: boolean;
+  fresh?: boolean;
+}
+
+export function buildQueryResultColumnContracts(sql: string, _rootDir?: string, _ddlDir?: string): ReturnType<typeof extractSqlResultColumnContracts> {
+  try {
+    return extractSqlResultColumnContracts(sql);
+  } catch {
+    return [];
+  }
+}
+
+export function analyzeQueryModel(
+  sql: string,
+  namedParameters: readonly string[],
+  resultColumns: ReturnType<typeof extractSqlResultColumnContracts>,
+  _options: { optionalConditionCompression?: boolean; parameterTypes?: Record<string, string> } = {},
+) {
+  return {
+    sourceHash: `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`,
+    resultColumnOrder: resultColumns.map((column) => column.name),
+    resultColumnNullability: Object.fromEntries(resultColumns.map((column) => [column.name, column.nullability])),
+    namedParameters: [...namedParameters],
+    parserCapabilities: { parser: { status: 'unaffected' }, parameterBinding: 'unaffected' },
+    safeSort: buildSqlSafeSortMetadata(sql),
+    optionalConditionCompression: _options.optionalConditionCompression ? buildSqlOptionalConditionCompressionMetadata(sql) : undefined,
   };
 }
 
-export interface QueryModelBindings {
-  postgres: {
-    sourceHash: string;
-    style: 'indexed';
-    sql: string;
-    parameterNames: readonly string[];
-    contract?: {
-      version: 1;
-      sourceHash: string;
-      driver: {
-        profile: import('./postgres-contract.js').PostgresDriverProfile;
-      };
-    };
-    safeSortInsertion?: {
-      index: number;
-      end?: number;
-    };
-    optionalConditionCompression?: {
-      branches: Array<{
-        parameterName: string;
-        removalRange: {
-          start: number;
-          end: number;
-          text?: string;
-        };
-        presentReplacement: {
-          start: number;
-          end: number;
-          text: string;
-        };
-      }>;
-      groups?: Array<{
-        branchIndexes: number[];
-        removalRange: {
-          start: number;
-          end: number;
-          text?: string;
-        };
-        leadingPrefixes?: Array<{
-          branchIndexes: number[];
-          removalRange: {
-            start: number;
-            end: number;
-            text?: string;
-          };
-        }>;
-      }>;
-    };
-  };
-  mysql2?: {
-    sourceHash?: string;
-    style: 'anonymous';
-    sql: string;
-    valueNames: readonly string[];
-  };
-  mssql?: {
-    sourceHash?: string;
-    style: 'named';
-    sql: string;
-    parameterNames: readonly string[];
-  };
+export function buildPostgresSafeSortBindingMetadata(sql = '', safeSort: ReturnType<typeof buildSqlSafeSortMetadata>): { safeSortInsertion?: { index: number; end?: number } } {
+  if (safeSort.insertion.status !== 'ready') return {};
+  const at = (index: number) => compileNamedParameters(sql.slice(0, index), { rendering: { style: 'indexed', prefix: '$' } }).sql.length;
+  return { safeSortInsertion: { index: at(safeSort.insertion.index), ...(safeSort.insertion.end === undefined ? {} : { end: at(safeSort.insertion.end) }) } };
 }
 
-/**
- * Registers the query model generation command on the Ashiba CLI program.
- */
+export function buildPostgresOptionalConditionCompressionBindingMetadata(sql = '', metadata: ReturnType<typeof buildSqlOptionalConditionCompressionMetadata> | undefined) {
+  if (!metadata) return {};
+  const at = (index: number) => compileNamedParameters(sql.slice(0, index), { rendering: { style: 'indexed', prefix: '$' } }).sql.length;
+  const text = (start: number, value: string) => {
+    const prefix = compileNamedParameters(sql.slice(0, start), { rendering: { style: 'indexed', prefix: '$' } }).sql;
+    return compileNamedParameters(`${sql.slice(0, start)}${value}`, { rendering: { style: 'indexed', prefix: '$' } }).sql.slice(prefix.length);
+  };
+  return { optionalConditionCompression: {
+    branches: metadata.branches.map((branch) => ({ parameterName: branch.parameterName, removalRange: { start: at(branch.removalRange.start), end: at(branch.removalRange.end) }, presentReplacement: { start: at(branch.presentReplacement.start), end: at(branch.presentReplacement.end), text: text(branch.presentReplacement.start, branch.presentReplacement.text) } })),
+  } };
+}
+
+/** Generate deterministic, driver-specific binding metadata from canonical SQL. */
 export function registerModelGenCommand(program: Command): void {
   program
     .command('model-gen')
-    .description('Generate editable TypeScript query contracts from visible SQL')
-    .argument('<sqlFile>', 'SQL file to inspect')
-    .option('--out <file>', 'Write the generated TypeScript scaffold to this file')
-    .option('--id <id>', 'Override the query id')
+    .description('Generate deterministic named-parameter binding metadata from visible SQL')
+    .argument('<sqlFile>', 'Canonical SQL file to lower')
+    .option('--out <file>', 'Write binding metadata to this TypeScript file')
     .option('--root-dir <path>', 'Project root directory', '.')
-    .option('--ddl-dir <path>', 'Optional DDL directory for static row type hints')
-    .option('--dry-run', 'Print the generated scaffold without writing it', false)
+    .option('--dry-run', 'Print metadata without writing it', false)
+    .option('--check', 'Fail when --out is missing or differs from regenerated binding metadata', false)
     .option('--format <format>', 'Output format: text or json', 'text')
     .action((sqlFile: string, options: Omit<ModelGenOptions, 'sqlFile'>) => {
       const result = runModelGen({ ...options, sqlFile });
-      if (options.format === 'json') {
-        process.stdout.write(`${JSON.stringify({
-          kind: 'model-gen',
-          id: result.id,
-          sqlFile: result.sqlFile,
-          parameters: result.parameters,
-          resultColumns: result.resultColumns,
-          analysis: result.analysis,
-          out: result.out,
-          metadataOut: result.metadataOut,
-          dryRun: result.dryRun,
-        }, null, 2)}\n`);
-        return;
-      }
-      process.stdout.write(formatModelGenTextResult(result));
+      if (options.check === true && result.fresh !== true) process.exitCode = 1;
+      process.stdout.write(options.format === 'json'
+        ? `${JSON.stringify(result, null, 2)}\n`
+        : result.out && !result.dryRun
+          ? `Generated binding metadata: ${result.out}\n`
+          : result.contents);
     });
 }
 
-/**
- * Generates an editable query contract and generated query metadata from a visible SQL file.
- */
 export function runModelGen(options: ModelGenOptions): ModelGenResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
-  const sqlPath = path.resolve(rootDir, requireValue(options.sqlFile, '<sqlFile>'));
+  if (!options.sqlFile) throw new Error('A canonical SQL file is required.');
+  const sqlPath = path.resolve(rootDir, options.sqlFile);
   const sql = normalizeSqlSource(readFileSync(sqlPath, 'utf8'));
-  const postgresBinding = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
-  const mysql2Binding = compileNamedParameters(sql, { rendering: { style: 'anonymous', token: '?' } });
-  const mssqlBinding = compileNamedParameters(sql, { rendering: { style: 'named', prefix: '@' } });
-  const parameters = [...postgresBinding.parameterNames];
-  const ddlModel = loadDdlSchemaModel(rootDir, options.ddlDir);
-  const schemaPath = loadProjectPathConfig(rootDir);
-  const resultColumnContracts = buildQueryResultColumnContracts(sql, rootDir, options.ddlDir);
-  const resultColumns = resultColumnContracts.map((column) => column.name);
-  const analysis = analyzeQueryModel(sql, parameters, resultColumnContracts, {
-    optionalConditionCompression: true,
-    parameterTypes: inferSqlParameterTypes(sql, ddlModel, schemaPath).parameterTypes,
-  });
+  const sourceHash = `sha256:${createHash('sha256').update(sql).digest('hex')}`;
+  const postgres = compileNamedParameters(sql, { rendering: { style: 'indexed', prefix: '$' } });
+  const mysql2 = compileNamedParameters(sql, { rendering: { style: 'anonymous', token: '?' } });
+  const mssql = compileNamedParameters(sql, { rendering: { style: 'named', prefix: '@' } });
   const bindings = {
-    postgres: {
-      sourceHash: analysis.sourceHash,
-      ...postgresBinding,
-      parameterNames: [...postgresBinding.parameterNames],
-      ...buildPostgresSafeSortBindingMetadata(sql, analysis.safeSort),
-      ...buildPostgresOptionalConditionCompressionBindingMetadata(sql, analysis.optionalConditionCompression),
-    },
-    mysql2: {
-      sourceHash: analysis.sourceHash,
-      ...mysql2Binding,
-      valueNames: [...mysql2Binding.valueNames],
-    },
-    mssql: {
-      sourceHash: analysis.sourceHash,
-      ...mssqlBinding,
-      parameterNames: [...mssqlBinding.parameterNames],
-    },
+    postgres: { ...postgres, parameterNames: [...postgres.parameterNames] },
+    mysql2: { ...mysql2, valueNames: [...mysql2.valueNames] },
+    mssql: { ...mssql, parameterNames: [...mssql.parameterNames] },
   };
-  const id = options.id ?? deriveQueryId(rootDir, sqlPath);
+  const contents = [
+    '// Generated by Ashiba model-gen. Do not edit by hand.',
+    '// Regenerate from the canonical SQL whenever it changes.',
+    '',
+    `export const bindingMetadata = ${JSON.stringify({ sourceHash, bindings }, null, 2)} as const;`,
+    '',
+  ].join('\n');
   const out = options.out ? path.resolve(rootDir, options.out) : undefined;
-  const metadataOut = out ? path.join(path.dirname(out), 'generated', `${deriveMetadataBaseName(out)}.meta.ts`) : undefined;
-  const relativeSqlFile = normalizePath(path.relative(out ? path.dirname(out) : rootDir, sqlPath));
-  const relativeMetadataFile = metadataOut && out
-    ? toRelativeImportPath(normalizePath(path.relative(path.dirname(out), metadataOut)).replace(/\.ts$/, '.js'))
-    : './generated/query.meta.js';
-  const contents = renderQueryContract({
-    id,
-    sqlFile: relativeSqlFile,
-    parameters,
-    parameterTypes: analysis.parameterTypes,
-    resultColumnContracts,
-    metadataImport: relativeMetadataFile,
-  });
-  const metadataContents = renderQueryMetadata({ id, sqlFile: relativeSqlFile, analysis, bindings });
-
+  if (options.check === true && !out) throw new Error('--check requires --out so freshness has a deterministic target.');
+  const fresh = out ? existsSync(out) && readFileSync(out, 'utf8') === contents : undefined;
+  if (options.check === true) {
+    const checkOut = out!;
+    return {
+      sqlFile: path.relative(rootDir, sqlPath).replace(/\\/g, '/'), sourceHash, bindings, contents,
+      out: path.relative(rootDir, checkOut).replace(/\\/g, '/'), dryRun: true, fresh,
+    };
+  }
   if (out && options.dryRun !== true) {
     mkdirSync(path.dirname(out), { recursive: true });
     writeFileSync(out, contents, 'utf8');
-    if (metadataOut) {
-      mkdirSync(path.dirname(metadataOut), { recursive: true });
-      writeFileSync(metadataOut, metadataContents, 'utf8');
-    }
   }
-
   return {
-    id,
-    sqlFile: normalizePath(path.relative(rootDir, sqlPath)),
-    parameters,
-    resultColumns,
-    analysis,
+    sqlFile: path.relative(rootDir, sqlPath).replace(/\\/g, '/'),
+    sourceHash,
     bindings,
     contents,
-    metadataContents,
-    out: out ? normalizePath(path.relative(rootDir, out)) : undefined,
-    metadataOut: metadataOut ? normalizePath(path.relative(rootDir, metadataOut)) : undefined,
+    out: out ? path.relative(rootDir, out).replace(/\\/g, '/') : undefined,
     dryRun: options.dryRun === true,
+    fresh,
   };
-}
-
-function formatModelGenTextResult(result: ModelGenResult): string {
-  if (result.out && !result.dryRun) {
-    return `Generated query contract: ${result.out}\nGenerated query metadata: ${result.metadataOut}\n`;
-  }
-  const contractLabel = result.out ? result.out : 'stdout/query.contract.ts';
-  const metadataLabel = result.metadataOut ? result.metadataOut : 'stdout/generated/query.meta.ts';
-  return [
-    `--- query contract: ${contractLabel} ---`,
-    result.contents,
-    `--- generated query metadata: ${metadataLabel} ---`,
-    result.metadataContents,
-  ].join('\n');
-}
-
-function renderQueryContract(params: {
-  id: string;
-  sqlFile: string;
-  parameters: string[];
-  parameterTypes?: Record<string, string>;
-  resultColumnContracts: SqlResultColumnContract[];
-  metadataImport: string;
-}): string {
-  const pascal = toPascal(params.id);
-  return [
-    '// Generated by Ashiba model-gen. Edit this file when the application contract needs to change.',
-    '// Keep the SQL file visible and directly runnable in a SQL client.',
-    '',
-    `import { queryModel } from ${JSON.stringify(params.metadataImport)};`,
-    '',
-    `export const queryId = ${JSON.stringify(params.id)};`,
-    `export const sqlFile = ${JSON.stringify(params.sqlFile)};`,
-    '',
-    `export interface ${pascal}QueryParams ${renderParamsInterface(params.parameters, params.parameterTypes)}`,
-    '',
-    `export interface ${pascal}QueryRow ${renderRowInterface(params.resultColumnContracts)}`,
-    '',
-    'export const querySpec = {',
-    '  id: queryId,',
-    '  sqlFile,',
-    `  parameters: ${JSON.stringify(params.parameters, null, 2).replace(/\n/g, '\n  ')},`,
-    '  analysis: queryModel.analysis,',
-    '} as const;',
-    '',
-  ].join('\n');
-}
-
-function renderQueryMetadata(params: {
-  id: string;
-  sqlFile: string;
-  analysis: QueryModelAnalysis;
-  bindings: QueryModelBindings;
-}): string {
-  return [
-    '// Generated by Ashiba model-gen. Do not edit by hand.',
-    '// Regenerate this file from the visible SQL when metadata drift is detected.',
-    '',
-    `export const queryModel = ${JSON.stringify({
-      queryId: params.id,
-      sqlFile: params.sqlFile,
-      analysis: params.analysis,
-      bindings: params.bindings,
-    }, null, 2)} as const;`,
-    '',
-  ].join('\n');
-}
-
-/**
- * Converts source-SQL safe sort insertion metadata into Postgres-compiled offsets.
- */
-export function buildPostgresSafeSortBindingMetadata(
-  sourceSql: string,
-  safeSort: SqlSafeSortMetadata,
-): { safeSortInsertion?: { index: number; end?: number } } {
-  if (safeSort.insertion.status !== 'ready') {
-    return {};
-  }
-  const compiledPrefix = compileNamedParameters(sourceSql.slice(0, safeSort.insertion.index), {
-    rendering: { style: 'indexed', prefix: '$' },
-  });
-  return {
-    safeSortInsertion: {
-      index: compiledPrefix.sql.length,
-      ...(safeSort.insertion.end !== undefined
-        ? {
-          end: compileNamedParameters(sourceSql.slice(0, safeSort.insertion.end), {
-            rendering: { style: 'indexed', prefix: '$' },
-          }).sql.length,
-        }
-        : {}),
-    },
-  };
-}
-
-/**
- * Builds Postgres compiled removal ranges for CLI-generated optional condition compression metadata.
- */
-export function buildPostgresOptionalConditionCompressionBindingMetadata(
-  sourceSql: string,
-  metadata: SqlOptionalConditionCompressionMetadata | undefined,
-): { optionalConditionCompression?: NonNullable<QueryModelBindings['postgres']['optionalConditionCompression']> } {
-  if (!metadata) {
-    return {};
-  }
-
-  return {
-    optionalConditionCompression: {
-      branches: metadata.branches.map((branch) => ({
-        parameterName: branch.parameterName,
-        removalRange: {
-          start: compileNamedParameters(sourceSql.slice(0, branch.removalRange.start), {
-            rendering: { style: 'indexed', prefix: '$' },
-          }).sql.length,
-          end: compileNamedParameters(sourceSql.slice(0, branch.removalRange.end), {
-            rendering: { style: 'indexed', prefix: '$' },
-          }).sql.length,
-        },
-        presentReplacement: buildPostgresPresentReplacement(sourceSql, branch.presentReplacement),
-      })),
-      ...(metadata.groups && metadata.groups.length > 0
-        ? {
-          groups: metadata.groups.map((group) => ({
-            branchIndexes: [...group.branchIndexes],
-            removalRange: buildPostgresRemovalRange(sourceSql, group.removalRange),
-            ...(group.leadingPrefixes && group.leadingPrefixes.length > 0
-              ? {
-                leadingPrefixes: group.leadingPrefixes.map((prefix) => ({
-                  branchIndexes: [...prefix.branchIndexes],
-                  removalRange: buildPostgresRemovalRange(sourceSql, prefix.removalRange),
-                })),
-              }
-              : {}),
-          })),
-        }
-        : {}),
-    },
-  };
-}
-
-function buildPostgresRemovalRange(
-  sourceSql: string,
-  removalRange: { start: number; end: number; text?: string },
-): { start: number; end: number; text?: string } {
-  const start = compileNamedParameters(sourceSql.slice(0, removalRange.start), {
-    rendering: { style: 'indexed', prefix: '$' },
-  }).sql.length;
-  const end = compileNamedParameters(sourceSql.slice(0, removalRange.end), {
-    rendering: { style: 'indexed', prefix: '$' },
-  }).sql.length;
-  const compiledText = removalRange.text === undefined
-    ? undefined
-    : (() => {
-      const compiledPrefix = compileNamedParameters(sourceSql.slice(0, removalRange.start), {
-        rendering: { style: 'indexed', prefix: '$' },
-      }).sql;
-      const compiledThroughRange = compileNamedParameters(`${sourceSql.slice(0, removalRange.start)}${removalRange.text}`, {
-        rendering: { style: 'indexed', prefix: '$' },
-      }).sql;
-      return compiledThroughRange.slice(compiledPrefix.length);
-    })();
-  return {
-    start,
-    end,
-    ...(compiledText !== undefined
-      ? {
-        text: compiledText,
-      }
-      : {}),
-  };
-}
-
-function buildPostgresPresentReplacement(
-  sourceSql: string,
-  replacement: { start: number; end: number; text: string },
-): { start: number; end: number; text: string } {
-  const compiledPrefix = compileNamedParameters(sourceSql.slice(0, replacement.start), {
-    rendering: { style: 'indexed', prefix: '$' },
-  }).sql;
-  const compiledThroughReplacement = compileNamedParameters(`${sourceSql.slice(0, replacement.start)}${replacement.text}`, {
-    rendering: { style: 'indexed', prefix: '$' },
-  }).sql;
-  return {
-    start: compiledPrefix.length,
-    end: compileNamedParameters(sourceSql.slice(0, replacement.end), {
-      rendering: { style: 'indexed', prefix: '$' },
-    }).sql.length,
-    text: compiledThroughReplacement.slice(compiledPrefix.length),
-  };
-}
-
-/**
- * Extracts query result column contracts and enriches them with DDL type hints when available.
- */
-export function buildQueryResultColumnContracts(sql: string, rootDir?: string, ddlDir?: string): SqlResultColumnContract[] {
-  const ddlModel = rootDir ? loadDdlSchemaModel(path.resolve(rootDir), ddlDir) : undefined;
-  const schemaPath = rootDir ? loadProjectPathConfig(path.resolve(rootDir)) : undefined;
-  let columns: SqlResultColumnContract[];
-  try {
-    columns = extractSqlResultColumnContracts(sql);
-  } catch {
-    return [];
-  }
-  return applyDdlTypeHints(sql, columns, ddlModel, schemaPath);
-}
-
-/**
- * Builds AST-backed query metadata used by generated boundaries and driver wrappers.
- */
-export function analyzeQueryModel(
-  sql: string,
-  namedParameters: string[],
-  resultColumnContracts: SqlResultColumnContract[],
-  options: { optionalConditionCompression?: boolean; parameterTypes?: Record<string, string> } = {},
-): QueryModelAnalysis {
-  const sourceHash = hashSql(sql);
-  const resultColumns = resultColumnContracts.map((column) => column.name);
-  const resultColumnOrder = inferResultColumnOrder(sql);
-  const resultColumnTypes = Object.fromEntries(resultColumnContracts.map((column) => [column.name, column.type]));
-  const resultColumnNullability = Object.fromEntries(resultColumnContracts.map((column) => [column.name, column.nullability]));
-  try {
-    const parsed = SqlParser.parse(sql);
-    const statementKind = detectStatementKind(parsed);
-    const safeSort = statementKind === 'select'
-      ? buildSqlSafeSortMetadata(sql)
-      : {
-        insertion: {
-          status: 'unresolved' as const,
-          reason: 'Safe sort metadata requires a SELECT query.',
-        },
-        sortable: {},
-      };
-    return {
-      astParse: 'ok',
-      statementKind,
-      rootQueryShape: detectRootQueryShape(parsed),
-      hasTopLevelOrderBy: hasTopLevelOrderBy(parsed),
-      sourceHash,
-      safeSort,
-      ...(options.optionalConditionCompression && statementKind === 'select'
-        ? { optionalConditionCompression: buildSqlOptionalConditionCompressionMetadata(sql) }
-        : {}),
-      resultColumns,
-      resultColumnOrder,
-      resultColumnTypes,
-      resultColumnNullability,
-      namedParameters,
-      parserCapabilities: supportedParserCapabilities(statementKind),
-      ...(options.parameterTypes && Object.keys(options.parameterTypes).length > 0
-        ? { parameterTypes: options.parameterTypes }
-        : {}),
-    };
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    return {
-      astParse: 'failed',
-      statementKind: 'unknown',
-      rootQueryShape: 'unknown',
-      hasTopLevelOrderBy: 'unknown',
-      sourceHash,
-      safeSort: {
-        insertion: {
-          status: 'unresolved',
-          reason: `Safe sort is blocked because SQL AST analysis degraded: ${reason}`,
-        },
-        sortable: {},
-      },
-      resultColumns,
-      resultColumnOrder,
-      resultColumnTypes,
-      resultColumnNullability,
-      namedParameters,
-      parserCapabilities: degradedParserCapabilities(reason),
-      ...(options.parameterTypes && Object.keys(options.parameterTypes).length > 0
-        ? { parameterTypes: options.parameterTypes }
-        : {}),
-    };
-  }
-}
-
-function inferResultColumnOrder(sql: string): string[] {
-  try {
-    return extractSqlResultColumnAstItems(sql).map((item) => item.name);
-  } catch {
-    return [];
-  }
-}
-
-function supportedParserCapabilities(statementKind: QueryModelStatementKind): QueryModelAnalysis['parserCapabilities'] {
-  return {
-    parser: { status: 'supported' },
-    sqlStorage: 'unaffected',
-    execution: 'unaffected',
-    parameterBinding: 'unaffected',
-    logging: 'unaffected',
-    resultContract: 'supported',
-    optionalConditionCompression: statementKind === 'select' ? 'supported' : 'blocked',
-    safeSort: statementKind === 'select' ? 'supported' : 'blocked',
-    impactAnalysis: 'supported',
-  };
-}
-
-function degradedParserCapabilities(reason: string): QueryModelAnalysis['parserCapabilities'] {
-  return {
-    parser: { status: 'degraded', reason },
-    sqlStorage: 'unaffected',
-    execution: 'unaffected',
-    parameterBinding: 'unaffected',
-    logging: 'unaffected',
-    resultContract: 'degraded',
-    optionalConditionCompression: 'blocked',
-    safeSort: 'blocked',
-    impactAnalysis: 'degraded',
-  };
-}
-
-function detectStatementKind(parsed: ReturnType<typeof SqlParser.parse>): QueryModelStatementKind {
-  if (parsed instanceof InsertQuery) {
-    return 'insert';
-  }
-  if (parsed instanceof UpdateQuery) {
-    return 'update';
-  }
-  if (parsed instanceof DeleteQuery) {
-    return 'delete';
-  }
-  if (parsed instanceof SimpleSelectQuery || parsed instanceof BinarySelectQuery || parsed instanceof ValuesQuery) {
-    return 'select';
-  }
-  return 'unknown';
-}
-
-function detectRootQueryShape(parsed: ReturnType<typeof SqlParser.parse>): QueryModelRootQueryShape {
-  if (parsed instanceof SimpleSelectQuery) {
-    return 'simple-select';
-  }
-  if (parsed instanceof BinarySelectQuery) {
-    return 'compound-select';
-  }
-  if (parsed instanceof ValuesQuery) {
-    return 'values';
-  }
-  if (parsed instanceof InsertQuery || parsed instanceof UpdateQuery || parsed instanceof DeleteQuery) {
-    return 'non-select';
-  }
-  return 'unknown';
-}
-
-function applyDdlTypeHints(
-  sql: string,
-  columns: SqlResultColumnContract[],
-  ddlModel: DdlSchemaModel | undefined,
-  schemaPath: Partial<SchemaPathConfig> | undefined,
-): SqlResultColumnContract[] {
-  if (!ddlModel || columns.length === 0) return columns;
-  const relations = extractTopLevelRelations(sql, ddlModel, schemaPath ?? ddlModel);
-  if (relations.length === 0) return columns;
-  const astItemsByName = new Map(extractSqlResultColumnAstItems(sql).map((item) => [item.name, item.value]));
-
-  return columns.map((column) => {
-    if (!column.expression) return column;
-    const astItem = astItemsByName.get(column.name);
-    if (!astItem) return column;
-    const type = inferSqlExpressionContractType(astItem, {
-      resolveColumnType: (reference) => resolveDdlColumnType(reference, relations),
-    });
-    const nullability = inferSqlExpressionNullability(astItem, {
-      resolveColumnNullability: (reference) => resolveDdlColumnNullability(reference, relations),
-    });
-    return {
-      ...column,
-      ...(column.type === 'unknown' && type !== 'unknown' ? { type } : {}),
-      ...(nullability !== 'unknown' ? { nullability } : {}),
-    };
-  });
-}
-
-function extractTopLevelRelations(
-  sql: string,
-  ddlModel: DdlSchemaModel,
-  schemaPath: Partial<SchemaPathConfig>,
-): DdlRelation[] {
-  const parsed = SqlParser.parse(sql);
-  const cteTables = buildCteTables(parsed, ddlModel, schemaPath);
-  return extractRelationsFromParsed(parsed, ddlModel, schemaPath, cteTables);
-}
-
-function extractRelationsFromParsed(
-  parsed: ReturnType<typeof SqlParser.parse> | unknown,
-  ddlModel: DdlSchemaModel,
-  schemaPath: Partial<SchemaPathConfig>,
-  cteTables: Map<string, DdlSchemaTable>,
-): DdlRelation[] {
-  const relations: DdlRelation[] = [];
-  const addRelation = (rawName: string, rawAlias?: string | null, nullExtended = false) => {
-    const alias = normalizeIdentifier(rawAlias ?? '');
-    const table = resolveRelationTable(rawName, ddlModel, schemaPath, cteTables);
-    if (table) {
-      relations.push({ ...(alias ? { alias } : {}), table, ...(nullExtended ? { nullExtended: true } : {}) });
-    }
-  };
-
-  const addSource = (source: SourceExpression | null | undefined, nullExtended = false) => {
-    if (!source) return;
-    if (source.datasource instanceof TableSource) {
-      addRelation(source.datasource.qualifiedName.toString(), source.getAliasName(), nullExtended);
-      return;
-    }
-    if (source.datasource instanceof SubQuerySource) {
-      const alias = normalizeIdentifier(source.getAliasName() ?? '');
-      if (!alias) return;
-      const nestedCteTables = buildCteTables(source.datasource.query, ddlModel, schemaPath, cteTables);
-      const subqueryRelations = extractRelationsFromParsed(source.datasource.query, ddlModel, schemaPath, nestedCteTables);
-      relations.push({
-        alias,
-        table: buildSyntheticCteTable(alias, source.datasource.query, subqueryRelations),
-        ...(nullExtended ? { nullExtended: true } : {}),
-      });
-    }
-  };
-
-  const addSelectRelations = (query: unknown) => {
-    if (query instanceof SimpleSelectQuery) {
-      const fromClause = query.fromClause;
-      if (!fromClause) return;
-      const relationStart = relations.length;
-      addSource(fromClause.source);
-      for (const join of fromClause.joins ?? []) {
-        const joinType = join.joinType.value.toLowerCase();
-        const nullExtendsPrior = joinType.includes('right') || joinType.includes('full');
-        if (nullExtendsPrior) {
-          for (let index = relationStart; index < relations.length; index += 1) {
-            const relation = relations[index];
-            if (relation) relation.nullExtended = true;
-          }
-        }
-        addSource(join.source, joinType.includes('left') || joinType.includes('full'));
-      }
-      return;
-    }
-    if (query instanceof BinarySelectQuery) {
-      addSelectRelations(query.left);
-      addSelectRelations(query.right);
-    }
-  };
-
-  if (parsed instanceof SimpleSelectQuery || parsed instanceof BinarySelectQuery) {
-    addSelectRelations(parsed);
-  } else if (parsed instanceof InsertQuery) {
-    addSource(parsed.insertClause.source);
-  } else if (parsed instanceof UpdateQuery) {
-    addSource(parsed.updateClause.source);
-    for (const source of parsed.fromClause?.getSources() ?? []) {
-      addSource(source);
-    }
-  } else if (parsed instanceof DeleteQuery) {
-    addSource(parsed.deleteClause.source);
-    for (const source of parsed.usingClause?.getSources() ?? []) {
-      addSource(source);
-    }
-  }
-
-  return relations;
-}
-
-function buildCteTables(
-  parsed: ReturnType<typeof SqlParser.parse> | unknown,
-  ddlModel: DdlSchemaModel,
-  schemaPath: Partial<SchemaPathConfig>,
-  inheritedCteTables: Map<string, DdlSchemaTable> = new Map(),
-): Map<string, DdlSchemaTable> {
-  const cteTables = new Map(inheritedCteTables);
-  const addFromSelect = (query: unknown) => {
-    if (query instanceof BinarySelectQuery) {
-      addFromSelect(query.left);
-      addFromSelect(query.right);
-      return;
-    }
-    if (!(query instanceof SimpleSelectQuery)) return;
-    for (const cte of query.withClause?.tables ?? []) {
-      const nestedCteTables = buildCteTables(cte.query, ddlModel, schemaPath, cteTables);
-      for (const [name, table] of nestedCteTables) {
-        cteTables.set(name, table);
-      }
-      const cteName = normalizeIdentifier(cte.aliasExpression.table.name);
-      const relations = extractRelationsFromParsed(cte.query, ddlModel, schemaPath, cteTables);
-      const table = buildSyntheticCteTable(cteName, cte.query, relations);
-      cteTables.set(cteName.toLowerCase(), table);
-    }
-  };
-
-  addFromSelect(parsed);
-  return cteTables;
-}
-
-function buildSyntheticCteTable(
-  name: string,
-  query: unknown,
-  relations: DdlRelation[],
-): DdlSchemaTable {
-  const columns = new Map<string, DdlSchemaColumn>();
-  for (const item of extractSelectItemsFromParsed(query)) {
-    const columnName = inferSyntheticColumnName(item);
-    if (!columnName) continue;
-    const type = inferSqlExpressionContractType(item.value, {
-      resolveColumnType: (reference) => resolveDdlColumnType(reference, relations),
-    });
-    columns.set(columnName.toLowerCase(), {
-      name: columnName,
-      typeName: type,
-      nullable: true,
-      generated: false,
-      primaryKey: false,
-    });
-  }
-
-  return {
-    schema: '__cte__',
-    name,
-    canonicalName: `__cte__.${name}`,
-    columns,
-  };
-}
-
-function extractSelectItemsFromParsed(query: unknown): SelectItem[] {
-  if (query instanceof SimpleSelectQuery) {
-    return query.selectClause.items;
-  }
-  if (query instanceof BinarySelectQuery) {
-    return extractSelectItemsFromParsed(query.left);
-  }
-  if (query instanceof InsertQuery || query instanceof UpdateQuery || query instanceof DeleteQuery) {
-    return query.returningClause?.items ?? [];
-  }
-  return [];
-}
-
-function inferSyntheticColumnName(item: SelectItem): string | undefined {
-  if (item.identifier) {
-    return normalizeIdentifier(item.identifier.name);
-  }
-  if (item.value instanceof ColumnReference) {
-    return normalizeIdentifier(item.value.column.name);
-  }
-  if (item.value instanceof FunctionCall) {
-    return normalizeIdentifier(item.value.qualifiedName.name.toString());
-  }
-  return undefined;
-}
-
-function resolveDdlTable(
-  rawName: string,
-  ddlModel: DdlSchemaModel,
-  schemaPath: Partial<SchemaPathConfig>,
-): DdlSchemaTable | undefined {
-  return resolveSchemaPathTable(ddlModel, rawName, schemaPath);
-}
-
-function resolveRelationTable(
-  rawName: string,
-  ddlModel: DdlSchemaModel,
-  schemaPath: Partial<SchemaPathConfig>,
-  cteTables: Map<string, DdlSchemaTable>,
-): DdlSchemaTable | undefined {
-  const normalized = normalizeIdentifier(rawName).toLowerCase();
-  return cteTables.get(normalized) ?? resolveDdlTable(rawName, ddlModel, schemaPath);
-}
-
-function resolveDdlColumnType(reference: ColumnReference, relations: DdlRelation[]): string | undefined {
-  const namespaces = reference.namespaces?.map((namespace) => normalizeIdentifier(namespace.name)) ?? [];
-  const columnName = normalizeIdentifier(reference.column.name).toLowerCase();
-
-  if (namespaces.length > 0) {
-    const qualifier = namespaces.join('.').toLowerCase();
-    const lastQualifier = namespaces[namespaces.length - 1]?.toLowerCase();
-    const relation = relations.find((candidate) =>
-      candidate.alias?.toLowerCase() === qualifier ||
-      candidate.alias?.toLowerCase() === lastQualifier ||
-      candidate.table.name.toLowerCase() === qualifier ||
-      candidate.table.name.toLowerCase() === lastQualifier ||
-      candidate.table.canonicalName.toLowerCase() === qualifier
-    );
-    return relation?.table.columns.get(columnName)?.typeName;
-  }
-
-  const matches = relations
-    .map((relation) => relation.table.columns.get(columnName))
-    .filter((column): column is NonNullable<typeof column> => Boolean(column));
-  return matches.length === 1 ? matches[0].typeName : undefined;
-}
-
-function resolveDdlColumnNullability(
-  reference: ColumnReference,
-  relations: DdlRelation[],
-): boolean | undefined {
-  const namespaces = reference.namespaces?.map((namespace) => normalizeIdentifier(namespace.name)) ?? [];
-  const columnName = normalizeIdentifier(reference.column.name).toLowerCase();
-  if (namespaces.length > 0) {
-    const qualifier = namespaces.join('.').toLowerCase();
-    const lastQualifier = namespaces[namespaces.length - 1]?.toLowerCase();
-    const relation = relations.find((candidate) =>
-      candidate.alias?.toLowerCase() === qualifier ||
-      candidate.alias?.toLowerCase() === lastQualifier ||
-      candidate.table.name.toLowerCase() === qualifier ||
-      candidate.table.name.toLowerCase() === lastQualifier ||
-      candidate.table.canonicalName.toLowerCase() === qualifier
-    );
-    const ddlNullability = relation?.table.columns.get(columnName)?.nullable;
-    return relation?.nullExtended && ddlNullability !== undefined ? true : ddlNullability;
-  }
-  const matches = relations
-    .map((relation) => ({ relation, column: relation.table.columns.get(columnName) }))
-    .filter((match): match is { relation: DdlRelation; column: DdlSchemaColumn } => Boolean(match.column));
-  return matches.length === 1
-    ? (matches[0]?.relation.nullExtended ? true : matches[0]?.column.nullable)
-    : undefined;
-}
-
-function hasTopLevelOrderBy(parsed: ReturnType<typeof SqlParser.parse>): boolean {
-  return Boolean(
-    (parsed instanceof SimpleSelectQuery || parsed instanceof BinarySelectQuery || parsed instanceof ValuesQuery) &&
-    hasOrderByClause(parsed)
-  );
-}
-
-function hasOrderByClause(value: unknown): value is { orderByClause: unknown } {
-  return typeof value === 'object' && value !== null && 'orderByClause' in value && Boolean(value.orderByClause);
-}
-
-function hashSql(sql: string): string {
-  return `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`;
-}
-
-function renderParamsInterface(parameters: string[], parameterTypes: Record<string, string> | undefined): string {
-  if (parameters.length === 0) {
-    return '{ [key: string]: never; }';
-  }
-  return `{\n${parameters.map((parameter) => `  ${parameter}: ${parameterTypes?.[parameter] ?? 'unknown'};`).join('\n')}\n}`;
-}
-
-function renderRowInterface(columns: SqlResultColumnContract[]): string {
-  if (columns.length === 0) {
-    return '{\n  // Narrow this from PostgreSQL-derived evidence or targeted DB-backed inspection.\n  [column: string]: unknown;\n}';
-  }
-  return `{\n${columns.map((column) => `  ${column.name}: ${column.nullability === 'non-null' ? column.type : `${column.type} | null`};`).join('\n')}\n}`;
-}
-
-function deriveQueryId(rootDir: string, sqlPath: string): string {
-  const relative = normalizePath(path.relative(rootDir, sqlPath)).replace(/\.[^.]+$/, '');
-  return relative
-    .replace(/^src\/features\//, '')
-    .replace(/\/queries\//g, '.')
-    .replace(/\//g, '.');
-}
-
-function deriveMetadataBaseName(outPath: string): string {
-  const baseName = path.basename(outPath, path.extname(outPath));
-  return baseName.replace(/\.query$/, '') || 'query';
-}
-
-function toPascal(value: string): string {
-  return value
-    .split(/[^A-Za-z0-9]+/)
-    .filter(Boolean)
-    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
-    .join('');
-}
-
-function normalizePath(value: string): string {
-  return value.replace(/\\/g, '/');
-}
-
-function toRelativeImportPath(value: string): string {
-  return value.startsWith('.') ? value : `./${value}`;
-}
-
-function requireValue(value: string | undefined, label: string): string {
-  if (!value || value.trim().length === 0) {
-    throw requiredCliValueError(label);
-  }
-  return value;
 }

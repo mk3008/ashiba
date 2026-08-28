@@ -5,7 +5,8 @@ import type { Command } from 'commander';
 import { invalidCliInputError } from '../errors.js';
 import { normalizeSqlSource } from '../sql-source.js';
 import { loadProjectPathConfig } from './config.js';
-import { buildFeatureQueryModel } from './feature.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
+import { analyzeQueryModel, buildQueryResultColumnContracts } from './model-gen.js';
 import {
   derivePostgresQueryContractFromDatabase,
   type PostgresDerivedQueryContract,
@@ -196,7 +197,10 @@ export async function createSqlResourceFleetSnapshot(options: SnapshotOptions): 
     const canonicalBytes = Buffer.byteLength(canonicalSql, 'utf8');
     const id = stableQueryId(canonicalPath);
     try {
-      const model = buildFeatureQueryModel(canonicalSql, rootDir);
+      const postgresBinding = compileNamedParameters(canonicalSql, { rendering: { style: 'indexed', prefix: '$' } });
+      const resultColumns = buildQueryResultColumnContracts(canonicalSql);
+      const analysis = analyzeQueryModel(canonicalSql, postgresBinding.parameterNames, resultColumns);
+      const model = { analysis, bindings: { postgres: postgresBinding } };
       const contract = await derivePostgresQueryContractFromDatabase(connectionString, {
         sql: canonicalSql,
         compiledSql: model.bindings.postgres.sql,
@@ -621,7 +625,7 @@ function toPortableContract(contract: PostgresDerivedQueryContract): SqlResource
 }
 
 function discoverCanonicalFeatureQueries(rootDir: string): string[] {
-  const featureRoot = path.resolve(rootDir, loadProjectPathConfig(rootDir).featureRoot);
+  const featureRoot = path.resolve(rootDir, loadProjectPathConfig(rootDir).sqlRoots[0] ?? 'src');
   if (!existsSync(featureRoot)) return [];
   const results: string[] = [];
   const visit = (directory: string): void => {
