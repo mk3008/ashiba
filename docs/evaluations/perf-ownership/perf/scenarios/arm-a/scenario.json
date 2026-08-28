@@ -1,0 +1,16 @@
+{
+  "scenario": "arm-a",
+  "query": "evaluation/perf-tickets-by-customer.sql",
+  "requirements": {
+    "targetRows": {
+      "perf_tickets": 100000
+    },
+    "maxDurationMs": 10,
+    "timeoutMs": 30000
+  },
+  "indexPolicy": {
+    "candidateIndexScope": "sandbox-only",
+    "adoptedIndexTarget": "db/ddl",
+    "rule": "Candidate indexes may be tested in the sandbox database, but accepted indexes must be promoted into db/ddl. Do not treat sandbox-created indexes as adopted schema."
+  }
+}

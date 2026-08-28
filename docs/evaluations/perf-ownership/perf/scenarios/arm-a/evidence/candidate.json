@@ -1,0 +1,35 @@
+{
+  "rootDir": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\perf-ownership-evaluation\\docs\\evaluations\\perf-ownership",
+  "scenario": "arm-a",
+  "query": "evaluation/perf-tickets-by-customer.sql",
+  "requirements": {
+    "targetRows": {
+      "perf_tickets": 100000
+    },
+    "maxDurationMs": 10,
+    "timeoutMs": 30000
+  },
+  "result": {
+    "durationMs": 1.35599999999999,
+    "timedOut": false,
+    "meetsRequirement": true
+  },
+  "evidence": {
+    "measurementPath": "perf/scenarios/arm-a/evidence/candidate.json",
+    "explainPath": "raw-arm-a-candidate.json",
+    "explainCollected": true,
+    "dryRun": false
+  },
+  "indexPolicy": {
+    "candidateIndexScope": "sandbox-only",
+    "adoptedIndexTarget": "db/ddl",
+    "rule": "Candidate indexes may be tested in the sandbox database, but accepted indexes must be promoted into db/ddl. Do not treat sandbox-created indexes as adopted schema."
+  },
+  "nextActions": [
+    "Use the execution plan and timing evidence to decide the next SQL or index experiment.",
+    "Candidate indexes may be applied to the sandbox database for measurement only.",
+    "Accepted indexes must be written to db/ddl before they become product schema.",
+    "After applying a candidate index, run ANALYZE and record another measurement."
+  ],
+  "recorded": true
+}

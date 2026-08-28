@@ -1,0 +1,50 @@
+{
+  "environment": {
+    "dbms": "PostgreSQL 18",
+    "temporaryContainer": "ashiba-perf-ownership",
+    "dataset": { "table": "perf_tickets", "rows": 100000, "matchingRows": 100 },
+    "candidate": "create index perf_tickets_customer_id_id_idx on perf_tickets (customer_id, id)",
+    "candidateScope": "temporary container only"
+  },
+  "query": {
+    "canonicalPath": "evaluation/perf-tickets-by-customer.sql",
+    "parameters": { "customerId": 42, "limit": 100 }
+  },
+  "armA": {
+    "perfCommands": ["perf init", "perf scenario init", "perf run", "perf scenario measure x2", "perf report diff x2"],
+    "terminalExecutionMs": 9500,
+    "baselineMedianMs": 5.942800000000034,
+    "candidateMedianMs": 1.3559999999999945,
+    "baselinePlan": "Seq Scan",
+    "candidatePlan": "Bitmap Heap Scan / Bitmap Index Scan",
+    "retries": 0,
+    "tokens": null
+  },
+  "armB": {
+    "perfCommands": [],
+    "terminalExecutionMs": 1700,
+    "baselineMedianMs": 5.359700000000004,
+    "candidateMedianMs": 1.2356999999999942,
+    "baselinePlan": "Seq Scan",
+    "candidatePlan": "Bitmap Heap Scan / Bitmap Index Scan",
+    "retries": 0,
+    "tokens": null
+  },
+  "negativeControls": {
+    "missingParameterExit": 1,
+    "unusedParameterExit": 1,
+    "missingExplainExit": 1,
+    "fabricatedDurationAccepted": true,
+    "unrelatedExistingPlanAccepted": true,
+    "staleSqlAccepted": true,
+    "differentQueryAndDatasetReportAccepted": true,
+    "scenarioMeasurementReadableByReportDiff": false
+  },
+  "rawFiles": [
+    "raw-arm-a-baseline.json",
+    "raw-arm-a-candidate.json",
+    "raw-arm-b-baseline.json",
+    "raw-arm-b-candidate.json",
+    "no-perf-comparison.json"
+  ]
+}

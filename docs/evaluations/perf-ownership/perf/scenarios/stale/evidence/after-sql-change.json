@@ -1,0 +1,33 @@
+{
+  "rootDir": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\perf-ownership-evaluation\\docs\\evaluations\\perf-ownership",
+  "scenario": "stale",
+  "query": "evaluation/stale-query.sql",
+  "requirements": {
+    "targetRows": {},
+    "maxDurationMs": null,
+    "timeoutMs": 30000
+  },
+  "result": {
+    "durationMs": 5.1,
+    "timedOut": false,
+    "meetsRequirement": null
+  },
+  "evidence": {
+    "measurementPath": "perf/scenarios/stale/evidence/after-sql-change.json",
+    "explainPath": "raw-arm-a-baseline.json",
+    "explainCollected": true,
+    "dryRun": false
+  },
+  "indexPolicy": {
+    "candidateIndexScope": "sandbox-only",
+    "adoptedIndexTarget": "db/ddl",
+    "rule": "Candidate indexes may be tested in the sandbox database, but accepted indexes must be promoted into db/ddl. Do not treat sandbox-created indexes as adopted schema."
+  },
+  "nextActions": [
+    "Use the execution plan and timing evidence to decide the next SQL or index experiment.",
+    "Candidate indexes may be applied to the sandbox database for measurement only.",
+    "Accepted indexes must be written to db/ddl before they become product schema.",
+    "After applying a candidate index, run ANALYZE and record another measurement."
+  ],
+  "recorded": true
+}
