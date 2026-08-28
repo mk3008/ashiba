@@ -10,14 +10,19 @@
     "testFiles": 9,
     "testLocReference": 3055,
     "testsPassed": 64,
-    "standaloneLint": "failed-missing-eslint-dependency"
+    "standaloneLint": "failed-missing-eslint-dependency",
+    "namespaceStatus": "historical"
   },
   "consumers": {
     "currentNonTest": 1,
-    "classification": "transfer-only"
+    "classification": "transfer-product-consumer",
+    "ashibaProductConsumers": 0,
+    "rootCoupling": "temporary-repository-integration"
   },
   "rehomeExperiment": {
     "result": "equivalent-transfer-output-and-verification",
+    "interpretation": "physical-package-location-optional-future-extraction-feasible",
+    "immediateMigrationObligation": false,
     "buildWallTimeMs": 2173,
     "checkWallTimeMs": 1432,
     "fullGenerationWallTimeMs": 1483,
@@ -27,5 +32,19 @@
     "driftVerification": "passed",
     "temporaryResourcesCleaned": true
   },
-  "decision": "REHOME-TO-TRANSFER"
+  "decision": "REHOME-TO-TRANSFER",
+  "ownership": "transfer",
+  "ashibaProductOwnership": false,
+  "ownershipState": "DETACHED-FROM-ASHIBA",
+  "physicalRelocation": "deferred",
+  "currentLocation": "temporarily-colocated",
+  "transferClassification": "experimental-sibling-product",
+  "ddlDocsClassification": "transfer-owned-experimental-tooling",
+  "dependencyDirection": {
+    "transferToAshiba": "allowed",
+    "ashibaProductToTransfer": "not-intended"
+  },
+  "packageRename": "deferred",
+  "deterministicChecks": "value-retained",
+  "likelyFuture": "extract-with-transfer"
 }

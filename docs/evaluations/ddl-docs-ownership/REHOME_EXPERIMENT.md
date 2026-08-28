@@ -2,8 +2,9 @@
 
 ## Hypothesis
 
-The current Transfer generation and verification flow does not need a monorepo
-package boundary; it can run from Transfer-local tooling.
+The current Transfer generation and verification flow does not behaviorally
+require the existing `packages/ddl-docs-cli` package/filesystem location; it can
+run from Transfer-local tooling.
 
 ## Method
 
@@ -33,14 +34,27 @@ Direct `generate` alone produced 114 common files plus its own `review.md`;
 the existing Transfer script intentionally post-processes that output into the
 Transfer product review page. Redirecting the full Transfer script produced
 equivalent output, so this difference is Transfer orchestration rather than a
-package-boundary requirement.
+package-location requirement.
 
-## Package ceremony eliminated by rehome
+## Interpretation
+
+The experiment establishes two things:
+
+1. The current physical package/filesystem boundary is optional for behavior.
+2. A future extraction with Transfer is feasible.
+
+It does **not** establish an immediate migration obligation. `REHOME-TO-TRANSFER`
+is therefore interpreted as logical ownership rehome. The existing private
+package may remain temporarily colocated until a separate physical-relocation or
+Transfer-extraction task is justified.
+
+## Package ceremony observed as optional
 
 The experiment did not require the package name, version, published-style bin,
 package scripts, package README, package AGENTS guidance, workspace package
 registration, or standalone minimal-E2E surface. It did retain source code and
-a small local runtime/type configuration.
+a small local runtime/type configuration. This is evidence about physical and
+build isolation, not a requirement to delete or move those surfaces now.
 
 ## Cleanup
 
