@@ -3,10 +3,15 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
+import { ColumnReference, SimpleSelectQuery, SqlParser, TableSource, UpdateQuery } from 'rawsql-ts';
 import { normalizeSqlSource } from '../sql-source.js';
-import { extractSqlResultColumnContracts } from './sql-result-columns.js';
+import { extractSqlResultColumnAstItems, extractSqlResultColumnContracts } from './sql-result-columns.js';
 import { buildSqlSafeSortMetadata } from './sql-safe-sort-metadata.js';
 import { buildSqlOptionalConditionCompressionMetadata } from './sql-optional-condition-compression-metadata.js';
+import { loadDdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
+import { loadProjectPathConfig } from './config.js';
+import { inferSqlExpressionNullability } from './sql-expression-type.js';
+import { normalizeIdentifier, resolveSchemaPathTable } from './schema-path.js';
 
 export interface ModelGenOptions {
   sqlFile?: string;
@@ -31,12 +36,52 @@ export interface ModelGenResult {
   fresh?: boolean;
 }
 
-export function buildQueryResultColumnContracts(sql: string, _rootDir?: string, _ddlDir?: string): ReturnType<typeof extractSqlResultColumnContracts> {
+export function buildQueryResultColumnContracts(sql: string, rootDir?: string, ddlDir?: string): ReturnType<typeof extractSqlResultColumnContracts> {
   try {
-    return extractSqlResultColumnContracts(sql);
+    const columns = extractSqlResultColumnContracts(sql);
+    if (!rootDir) return columns;
+    const table = resolveDirectResultTable(sql, path.resolve(rootDir), ddlDir);
+    if (!table) return columns;
+    const valuesByName = new Map(extractSqlResultColumnAstItems(sql).map((item) => [item.name, item.value]));
+    return columns.map((column) => {
+      const value = valuesByName.get(column.name);
+      if (!value) return column;
+      const nullability = inferSqlExpressionNullability(value, {
+        resolveColumnNullability: (reference) => directColumnNullability(reference, table),
+      });
+      return nullability === 'unknown' ? column : { ...column, nullability };
+    });
   } catch {
     return [];
   }
+}
+
+/**
+ * The remaining core only needs a direct-table DDL nullability hint for the
+ * standalone contract. Complex feature-layout/CTE inference belonged to the
+ * removed scaffold surface and deliberately degrades to unknown here.
+ */
+function resolveDirectResultTable(sql: string, rootDir: string, ddlDir?: string): { table: DdlSchemaTable; alias?: string } | undefined {
+  const model = loadDdlSchemaModel(rootDir, ddlDir);
+  if (!model) return undefined;
+  const parsed = SqlParser.parse(sql);
+  const source = parsed instanceof SimpleSelectQuery
+    ? parsed.fromClause?.source
+    : parsed instanceof UpdateQuery
+      ? parsed.updateClause.source
+      : undefined;
+  if (!source || !(source.datasource instanceof TableSource)) return undefined;
+  const config = loadProjectPathConfig(rootDir);
+  const table = resolveSchemaPathTable(model, source.datasource.qualifiedName.toString(), config);
+  if (!table) return undefined;
+  return { table, alias: source.getAliasName() ? normalizeIdentifier(source.getAliasName() ?? '') : undefined };
+}
+
+function directColumnNullability(reference: ColumnReference, relation: { table: DdlSchemaTable; alias?: string }): boolean | undefined {
+  const namespaces = reference.namespaces?.map((namespace) => normalizeIdentifier(namespace.name).toLowerCase()) ?? [];
+  const qualifier = namespaces.at(-1);
+  if (qualifier && qualifier !== relation.alias?.toLowerCase() && qualifier !== relation.table.name.toLowerCase()) return undefined;
+  return relation.table.columns.get(normalizeIdentifier(reference.column.name).toLowerCase())?.nullable;
 }
 
 export function analyzeQueryModel(
