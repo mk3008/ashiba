@@ -26,6 +26,7 @@ export default defineConfig({
           { text: 'Safe Sort (current implementation)', link: '/guide/safe-sort' },
           { text: 'SQL Format', link: '/guide/sql-format' },
           { text: 'Scaffold Migration', link: '/guide/scaffold-migration' },
+          { text: 'ZTD/Testkit Migration', link: '/guide/ztd-testkit-migration' },
         ],
       },
       { text: 'Concepts', link: '/concepts/concept-map' },
@@ -41,6 +42,7 @@ export default defineConfig({
         { text: 'Safe Sort (current implementation)', link: '/guide/safe-sort' },
         { text: 'SQL Format', link: '/guide/sql-format' },
         { text: 'Scaffold Migration', link: '/guide/scaffold-migration' },
+        { text: 'ZTD/Testkit Migration', link: '/guide/ztd-testkit-migration' },
       ],
       '/generated/api/': [
         { text: 'Command API', link: '/generated/api/commands' },

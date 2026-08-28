@@ -32,15 +32,14 @@ boundary/
 - `queries/<query>/query.ts`: the generated query boundary for DB-facing SQL execution
 - `queries/<query>/boundary.ts`: optional compatibility or feature-specific validation around the generated query boundary
 - `tests`: the feature-local verification group, including a thin `tests/<feature>.boundary.test.ts` Vitest entrypoint for the mock-based lane
-- `queries/<query>/tests`: the query-local verification group, including a thin `queries/<query>/tests/<query>.boundary.ztd.test.ts` Vitest entrypoint for the DB-backed mapper lane
+- `queries/<query>/tests`: an application-owned query-local verification group when the application needs it
 - add more child boundaries as child folders when one boundary grows; each child repeats the same `boundary.ts` plus `tests/` rule
 
-`ashiba.config.json` owns the SQL roots, DDL source directory, formatting, and mapper/test lanes. Feature-authored boundary tests stay under `src/features/<feature>/tests/`, while query-local mapper assets stay under `src/features/<feature>/queries/<query>/tests/{generated,cases}`.
+`ashiba.config.json` owns the SQL roots, DDL source directory, and formatting. Application tests stay application-owned.
 Use `src/features/_shared/*` only for feature-facing shared seams such as `FeatureQueryExecutor`.
 Keep driver-neutral helpers in `src/libraries/*`, driver or sink bindings in `src/adapters/<tech>/*`, and keep `db/` reserved for DDL, migrations, and schema assets.
 
-Use `ashiba feature query refresh <feature-name> <query-name>` after SQL-only edits to refresh `generated/query.sql.ts` and `generated/query.meta.ts`. Add persistent cases under `src/features/<feature>/queries/<query>/tests/cases/` with the fixed app-level DB-backed runner.
-When you are on the boundary lane, treat it as query-local: `src/features/<feature>/queries/<query>/tests/<query>.boundary.ztd.test.ts`, `src/features/<feature>/queries/<query>/tests/generated/`, and `src/features/<feature>/queries/<query>/tests/cases/` move together, while the feature-root `src/features/<feature>/tests/<feature>.boundary.test.ts` stays on the mock-based lane.
+After SQL-only edits, regenerate only the binding artifact with `ashiba model-gen` and let application-owned tests prove SQL logic where needed.
 
 ## Import Paths
 
@@ -57,4 +56,4 @@ Prefer stability at recursive boundary seams over one blanket import style.
 
 If you enabled the starter flow, `smoke` is the removable teaching feature.
 Copy its shape for the first real feature, then delete it once the project has a real slice of its own.
-In the starter flow, `smoke` also shows the DB-backed path through `@ashiba-ts/testkit-adapter-pg` and the preferred named-parameter SQL style through its feature-local SQL sample.
+Use native PostgreSQL/application tests for DB-backed proof and keep the named-parameter SQL style visible in the SQL asset.

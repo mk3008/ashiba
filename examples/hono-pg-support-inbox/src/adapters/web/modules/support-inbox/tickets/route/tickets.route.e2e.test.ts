@@ -115,6 +115,52 @@ describeDb('support inbox HTTP filters', () => {
     expect(secondPage.pagination).toMatchObject({ totalCount: 21, totalPages: 3, hasPrevious: true, hasNext: true });
   });
 
+  test('executes the ticket-detail canonical SQL against physical PostgreSQL rows', async () => {
+    const context = {
+      requestId: 'ticket-detail-physical-proof',
+      apiMethod: 'GET',
+      apiPath: '/tickets',
+      apiRoute: '/tickets',
+      operation: 'ticket-detail-physical-proof',
+    };
+    const detail = await loadSupportInbox(
+      pool,
+      parseTicketFilters(new URL('http://localhost/tickets?ticketId=10248')),
+      context,
+    );
+
+    expect(detail.selectedTicket?.messages.map((message) => message.message_body)).toEqual([
+      '請求書のダウンロードができません。PDFをクリックしてもエラーになります。',
+      'ご連絡ありがとうございます。詳細を確認いたします。',
+      '他のブラウザでも試しましたが、同じエラーが出ます。',
+    ]);
+
+    const inserted = await pool.query<{ ticket_id: string }>(
+      `insert into public.tickets (
+        customer_id, subject, status, priority, language, channel, created_at, updated_at
+      ) values (1, 'Physical left join proof', 'open', 'low', 'en', 'web', now(), now())
+      returning ticket_id`,
+    );
+    const ticketId = inserted.rows[0]?.ticket_id;
+    try {
+      const noMessages = await loadSupportInbox(
+        pool,
+        parseTicketFilters(new URL(`http://localhost/tickets?ticketId=${ticketId}`)),
+        context,
+      );
+      expect(noMessages.selectedTicket?.messages).toEqual([
+        expect.objectContaining({
+          ticket_id: ticketId,
+          subject: 'Physical left join proof',
+          message_id: null,
+          message_body: null,
+        }),
+      ]);
+    } finally {
+      await pool.query('delete from public.tickets where ticket_id = $1', [ticketId]);
+    }
+  });
+
   test('renders the new ticket form', async () => {
     const response = await app.request('/tickets/new');
     const html = await response.text();

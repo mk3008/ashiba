@@ -5,7 +5,7 @@ import type { SqlSource } from '../src/types';
 test('aggregates CREATE TABLE and ALTER TABLE constraints across full DDL', () => {
   const sources: SqlSource[] = [
     {
-      path: 'ztd/ddl/public.sql',
+      path: 'fixture/ddl/public.sql',
       sql: `
         CREATE TABLE users (
           id bigint NOT NULL,

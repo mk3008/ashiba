@@ -16,8 +16,8 @@ The current ConceptSpec format is provisional. This page is optimized for human 
 | Category | Package area | Review purpose |
 |---|---|---|
 | Repository Philosophy | Repository-wide concepts and policies | Defines the product promise, runtime policy, SQL-first posture, and boundaries that every package must preserve. |
-| CLI | `@ashiba-ts/cli` | Owns user-facing commands, scaffolding workflows, generated review artifacts, and migration from `ztd-cli`. |
-| Driver Packages | `@ashiba-ts/sql-*`, `@ashiba-ts/driver-adapter-*`, `@ashiba-ts/testkit-adapter-*`, `@ashiba-ts/dialect-*` | Own optional driver compatibility seams, named parameters, sort profiles, dialect details, and testkit/production adapter separation. |
+| CLI | `@ashiba-ts/cli` | Owns user-facing SQL tooling, deterministic binding generation, and verification commands. |
+| Driver Packages | `@ashiba-ts/sql-*`, `@ashiba-ts/driver-adapter-*`, `@ashiba-ts/dialect-*` | Own optional driver compatibility seams, named parameters, sort profiles, and dialect details. |
 | Extension Packages | `@ashiba-ts/sql-transform-*`, future `@ashiba-ts/extension-*` | Own future SQL-first transforms without becoming ORM query planning or a query DSL. |
 
 ## Customer Contact Review Lanes
@@ -60,8 +60,7 @@ These concepts primarily belong to `@ashiba-ts/cli`.
 
 | ID | Display name | Status | Notes |
 |---|---|---|---|
-| `scaffolded-unit-tests` | Scaffolded Unit Tests | mostly done | Scaffolded unit tests are mapping-contract tests for SQL-first development. Generated mapper tests should be lightweight DB-backed mapper probes that use synthetic result SQL when possible, not full SQL logic tests. Customer-owned logic tests may still use ZTD/CTE shadowing for SQL behavior. Scaffolded unit tests do not own database state behavior, row-count semantics, transaction isolation, locking, or business mutation correctness. |
-| `test-lanes` | Test Lanes | mostly done | Supports traditional and Zero Table Dependency lanes through init, feature test scaffolds, generated mapping checks, and performance-lane helpers. |
+| `application-owned-sql-tests` | Application-Owned SQL Tests | mostly done | SQL business logic, database state, transaction isolation, locking, and mutation correctness are application-owned PostgreSQL, integration, or live-test responsibilities. |
 | `performance-tuning-session` | Performance Tuning Session | mostly done | Traditional DB-backed tuning evidence: representative row counts, timeout status, plans, timings, sandbox-only candidate indexes, and explicit DDL promotion. |
 | `drift-detection` | Drift Detection | mostly done | Checks DDL, SQL, DTO types, and mappers during development. |
 | `migration-artifact` | Migration Artifact | mostly done | Review-oriented migration output, not hidden apply behavior. |
@@ -75,7 +74,7 @@ These concepts primarily belong to `@ashiba-ts/cli`.
 
 ## Driver Package Concepts
 
-These concepts belong to driver-neutral SQL libraries, production driver adapters, testkit adapters, and dialect packages.
+These concepts belong to driver-neutral SQL libraries, production driver adapters, and dialect packages. SQL business-logic proof belongs to application-owned physical database, integration, or live tests.
 
 | ID | Display name | Status | Notes |
 |---|---|---|---|
@@ -198,7 +197,7 @@ flowchart TD
 - CLI concepts must cover practical ORM-like development support through scaffolding and checks, without implying an ORM runtime.
 - Scaffolded unit tests are mapping tests. Generated mapper cases verify that representative DB result values can be mapped into the customer-owned TypeScript DTO/query-result shape; they are not a database state management, SQL logic, or mutation behavior test suite.
 - Generated mapper cases should use lightweight synthetic result SQL, preferably a `SELECT` without a `FROM` clause, so the test targets DB-to-TypeScript mapping rather than the original query's business logic.
-- Customer-owned SQL logic cases may still use ZTD/CTE shadowing, fixtures, and the real source SQL. That lane proves query behavior; generated mapper cases prove mapper compatibility.
+- Customer-owned SQL logic cases use application-owned physical database, integration, or live tests with the real source SQL.
 - Scaffolded unit tests do not guarantee row cardinality, row-count semantics, insertion/deletion counts, parameter business meaning, which business rows should be updated or deleted, transaction isolation, locking behavior, or final database state. Those concerns belong to customer-owned application/business design, database constraints, or customer-authored SQL logic tests, not to Ashiba's generated mapper tests.
 - Ashiba does not infer or check single-row cardinality after scaffolding. Generated code may start with a one-row shape, but `query.ts` and its row handling are customer-owned; intentionally returning the first row, returning many rows, or changing nullability is outside Ashiba's mapping-test responsibility.
 - Mapping tests must use the configured DDL source directory as a directory, not a single DDL file. Every effective DDL file under that directory participates according to Ashiba's DDL ordering rules, and missing DDL should fail the test path rather than silently skip mapping verification.

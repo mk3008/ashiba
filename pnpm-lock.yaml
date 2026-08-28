@@ -64,9 +64,6 @@ importers:
       '@ashiba-ts/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@ashiba-ts/testkit-adapter-pg':
-        specifier: workspace:*
-        version: link:../../packages/testkit-adapter-pg
       '@testcontainers/postgresql':
         specifier: ^11.14.0
         version: 11.14.0
@@ -125,9 +122,6 @@ importers:
       '@ashiba-ts/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@ashiba-ts/testkit-adapter-pg':
-        specifier: workspace:*
-        version: link:../../packages/testkit-adapter-pg
       '@types/node':
         specifier: ^22.13.10
         version: 22.19.19
@@ -296,12 +290,6 @@ importers:
       vitest:
         specifier: ^4.1.7
         version: 4.1.7(@types/node@22.18.7)(vite@6.4.3(@types/node@22.18.7)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
-
-  packages/testkit-adapter-pg:
-    dependencies:
-      '@rawsql-ts/testkit-postgres':
-        specifier: ^0.16.0
-        version: 0.16.0
 
 packages:
 
@@ -873,14 +861,6 @@ packages:
 
   '@protobufjs/utf8@1.1.1':
     resolution: {integrity: sha512-oOAWABowe8EAbMyWKM0tYDKi8Yaox52D+HWZhAIJqQXbqe0xI/GV7FhLWqlEKreMkfDjshR5FKgi3mnle0h6Eg==}
-
-  '@rawsql-ts/testkit-core@0.17.0':
-    resolution: {integrity: sha512-M2dCkfFyLTGEyRJPFc2LHZCI1avXYJpRZ4sSsQFoNTGQ7OLZ6YwP8/1clpWDqkEY4FHBcjhNXXr5Vr92MGJzlg==}
-    engines: {node: '>=20'}
-
-  '@rawsql-ts/testkit-postgres@0.16.0':
-    resolution: {integrity: sha512-kdGkpQFKEo0ffNA22M4oyHREXT7xCiU/O+EYPrj+y00SQ4B5h95wPiZOpQfhHWmwW1p8A2g90MzTeYiZIP9ecQ==}
-    engines: {node: '>=20'}
 
   '@rollup/rollup-android-arm-eabi@4.60.4':
     resolution: {integrity: sha512-F5QXMSiFebS9hKZj02XhWLLnRpJ3B3AROP0tWbFBSj+6kCbg5m9j5JoHKd4mmSVy5mS/IMQloYgYxCuJC0fxEQ==}
@@ -2514,9 +2494,6 @@ packages:
     resolution: {integrity: sha512-80WNmd9DA0tmZrw9qQa62GPPWfuXJknrmVmLcxvq4uZBdYqb1wYoKTmnlGUchvVWe0XiLupYkBoXVOxz3C8DYQ==}
     engines: {node: '>=0.12'}
 
-  rawsql-ts@0.21.1:
-    resolution: {integrity: sha512-dCUMNdcCn0AlBmeGNbC3c+t0ApqzV4v4/HeT4sbQQqAd+pRdPfYIJXXcLwPe41tk+0uvBMmOOptfm6UYPHy3Bg==}
-
   rawsql-ts@0.24.2:
     resolution: {integrity: sha512-nuaar6x3mJlEyiUpqfqRQ6wQILf0RuI/AYGrtJwemBk/c5eS5OAh3f2Fjz8jfIZD26+tzE0TsTVkTPzUeLdr6w==}
 
@@ -3761,15 +3738,6 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.1': {}
-
-  '@rawsql-ts/testkit-core@0.17.0':
-    dependencies:
-      rawsql-ts: 0.21.1
-
-  '@rawsql-ts/testkit-postgres@0.16.0':
-    dependencies:
-      '@rawsql-ts/testkit-core': 0.17.0
-      rawsql-ts: 0.21.1
 
   '@rollup/rollup-android-arm-eabi@4.60.4':
     optional: true
@@ -5400,8 +5368,6 @@ snapshots:
     dependencies:
       discontinuous-range: 1.0.0
       ret: 0.1.15
-
-  rawsql-ts@0.21.1: {}
 
   rawsql-ts@0.24.2: {}
 

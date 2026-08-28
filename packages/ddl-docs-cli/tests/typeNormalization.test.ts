@@ -19,7 +19,7 @@ test('renderTableMarkdown marks extended serial aliases as sequence columns', ()
     tableSlug: 'example',
     instance: 'main',
     tableComment: '',
-    sourceFiles: ['ztd/ddl/public.sql'],
+    sourceFiles: ['fixture/ddl/public.sql'],
     columns: [
       {
         name: 'id',

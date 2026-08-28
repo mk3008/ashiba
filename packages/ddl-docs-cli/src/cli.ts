@@ -725,7 +725,7 @@ function printHelp(target: 'all' | 'generate' | 'prune' | 'check' | 'concept-sit
   --ddl-glob <pattern>    Glob pattern for DDL files (repeatable)
   --extensions <list>     Comma-separated extensions (default: .sql)
   --out-dir <directory>   Output root directory (default: docs/generated/tables)
-  --config <path>         Optional ztd.config.json path
+  --config <path>         Optional schema config JSON path
   --dictionary <path>     Optional column dictionary json
   --table-docs <path>     Optional table documentation metadata json
   --relationship <path>   Optional DDL relationship metadata json
@@ -754,7 +754,7 @@ function printHelp(target: 'all' | 'generate' | 'prune' | 'check' | 'concept-sit
   --ddl <file>                   Alias of --ddl-file
   --ddl-glob <pattern>           Glob pattern for DDL files (repeatable)
   --extensions <list>            Comma-separated extensions (default: .sql)
-  --config <path>                Optional ztd.config.json path
+  --config <path>                Optional schema config JSON path
   --table-docs <path>            Optional table documentation metadata json
   --relationship <path>          Optional DDL relationship metadata json
   --order <path>                 Optional DDL execution order metadata json

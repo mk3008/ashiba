@@ -1,20 +1,18 @@
 # Migration Status
 
-This starter was created by `ashiba init`.
+This historical dogfooding application keeps its visible SQL and
+application-owned PostgreSQL seam under `src/adapters/pg`.
 
 ## Current State
 
-- Visible SQL starter exists.
-- Demo DDL is optional. Re-run `ashiba init --db postgres --driver pg --with-demo-ddl --force` if you want the tutorial DDL files.
-- Feature/query boundaries are created by explicit `ashiba feature scaffold` commands.
-- Mapper and traditional test lanes are available for scaffolded features.
-- Query-local generated test plan files are created with scaffolded query boundaries and are library-owned.
-- ZTD mapper cases share one pg Pool per query test file; traditional/performance tests should keep their own physical-state lifecycle.
-- A small application-owned `pg` Pool/transaction seam exists under `src/adapters/pg`.
+- Canonical SQL and deterministic binding metadata remain visible.
+- Application-owned PostgreSQL and route integration tests own SQL logic proof.
+- `ashiba model-gen --check` is the current binding freshness path.
+- Optional `ashiba postgres-contract` covers PostgreSQL-derived parameter and
+  result representation proof.
 
 ## Next Steps
 
-- Wire `src/adapters/pg/pool.ts` from your application entry point and replace it if your connection policy differs.
-- Replace starter sample cases with project-specific mapper and feature cases when the query contract is ready.
-- Run `ashiba feature contract check` for parameter/result drift and `ashiba feature tests check` only for explicitly scaffolded SQL logic tests.
+- Wire `src/adapters/pg/pool.ts` from your application entry point and replace
+  it if your connection policy differs.
 - Keep SQL visible and reviewable.

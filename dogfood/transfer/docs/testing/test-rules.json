@@ -12,7 +12,7 @@
       "statement": "transfer のSQL、DDL、queryspec、generated mapperはDB-backed testsで検証する。",
       "reviewRisk": "test-coverage",
       "probes": [
-        "この変更はDB制約、queryspec、generated mapper、ZTD-backed testsのどこで検証されるか。",
+        "この変更はDB制約、queryspec、application-owned DB testsのどこで検証されるか。",
         "E2EだけでSQLまたはmapper contractを代替していないか。"
       ]
     },
@@ -58,7 +58,7 @@
     {
       "id": "generated-sql-reviewability",
       "kind": "generated-sql-policy",
-      "statement": "generated transfer SQLはレビュー可能な形で保持され、SQL/ZTD testsで検証される。",
+      "statement": "generated transfer SQLはレビュー可能な形で保持され、application-owned SQL testsで検証される。",
       "appliesTo": [
         "table-docs-metadata",
         "process-map"
@@ -66,7 +66,7 @@
       "reviewRisk": "sql-reviewability",
       "probes": [
         "generated SQLをレビュー不能なruntime内部だけに隠していないか。",
-        "SQL/ZTD testsの前に人間レビュー可能なSQLが提示されるか。"
+        "application-owned SQL testsの前に人間レビュー可能なSQLが提示されるか。"
       ]
     }
   ]
