@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "startingSha": "3732cfc6061564d216c1469c1577c9c0395db01c",
+  "package": {
+    "name": "@ashiba-ts/ddl-docs-cli",
+    "private": true,
+    "published": false,
+    "sourceFiles": 30,
+    "sourceLocReference": 11276,
+    "testFiles": 9,
+    "testLocReference": 3055,
+    "testsPassed": 64,
+    "standaloneLint": "failed-missing-eslint-dependency"
+  },
+  "consumers": {
+    "currentNonTest": 1,
+    "classification": "transfer-only"
+  },
+  "rehomeExperiment": {
+    "result": "equivalent-transfer-output-and-verification",
+    "buildWallTimeMs": 2173,
+    "checkWallTimeMs": 1432,
+    "fullGenerationWallTimeMs": 1483,
+    "retries": 1,
+    "retryReason": "local CommonJS declaration required under ESM workspace root",
+    "reviewPlanUnmappedArtifacts": 0,
+    "driftVerification": "passed",
+    "temporaryResourcesCleaned": true
+  },
+  "decision": "REHOME-TO-TRANSFER"
+}
