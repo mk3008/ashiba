@@ -5,10 +5,9 @@
   "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/driver-adapter-pg build && pnpm --filter @ashiba-ts/testkit-adapter-pg build && tsc --noEmit -p tsconfig.json",
+    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/driver-adapter-pg build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "verify": "pnpm typecheck && pnpm check:sql && pnpm test",
-    "test:sql-logic": "vitest run src/features -t ZTD",
     "check:sql": "node node_modules/@ashiba-ts/cli/dist/index.js project check --root-dir .",
     "db:up": "docker compose up -d",
     "db:wait": "tsx scripts/wait-for-db.ts",
@@ -24,7 +23,6 @@
   },
   "devDependencies": {
     "@ashiba-ts/cli": "workspace:*",
-    "@ashiba-ts/testkit-adapter-pg": "workspace:*",
     "@types/node": "^22.13.10",
     "@types/pg": "^8.15.5",
     "dotenv": "^16.6.1",

@@ -39,8 +39,9 @@ regenerator remains.
 - **Tooling/docs:** remove obsolete feature-command scripts from package.json
   and use the command catalog for current commands.
 
-ZTD/testkit fixtures and generated logic-test assets are intentionally deferred
-to Batch 3. Existing tests can stay until that separate migration is scheduled.
+Former ZTD/testkit fixtures and generated logic-test assets should be replaced
+with application-owned PostgreSQL, integration, or live tests. Ashiba does not
+own a SQL logic-test framework or fixture grammar.
 
 ## Measured representative migration
 
@@ -54,7 +55,7 @@ pending local simplification.
 | --- | --- |
 | Wall time | 18 minutes for the package-script and current-document migration unit, excluding full repository verification |
 | Files changed | `package.json` and the current example README |
-| Packages/config removed | no dependency or config removal; adapter/testkit migration is intentionally Batch 3 |
+| Packages/config removed | no dependency or config removal in Batch 2; the completed Batch 3 removed the testkit package and ZTD config separately |
 | Generated artifacts removed | none; existing generated TypeScript survives as application-owned source but cannot be regenerated |
 | Handwritten changes | two package-script replacements and the short current-status README |
 | Retries/blockers | no migration retry; no behavior blocker |

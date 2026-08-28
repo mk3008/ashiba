@@ -50,8 +50,5 @@
       "oneLineMaxLength": 100,
       "joinConditionOrderByDeclaration": false
     }
-  },
-  "tests": {
-    "performanceLane": "traditional"
   }
 }

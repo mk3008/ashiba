@@ -4,8 +4,8 @@ Optional Ashiba convenience adapter for [`pg`](https://www.npmjs.com/package/pg)
 
 This package is an optional PostgreSQL compatibility/convenience surface. Native
 `pg` clients, pools, transactions, and `query(sql, values)` calls remain the
-application-owned baseline. It may be paired with `@ashiba-ts/cli` and
-`@ashiba-ts/testkit-adapter-pg`, but is not required application architecture.
+application-owned baseline. It may be paired with `@ashiba-ts/cli`, but is not
+required application architecture.
 
 Start with the repository README for the full SQL-first workflow:
 

@@ -13,8 +13,7 @@ uses the current Golden Path directly:
 canonical SQL → binding metadata → bindNamedParameters → native pg
 ```
 
-The Support Inbox source remains ordinary application TypeScript. Its existing
-ZTD/testkit fixtures are intentionally outside this Batch 2 change and are a
-Batch 3 migration concern. Use `pnpm check:sql`, `pnpm typecheck`, and
-application tests; there is no Ashiba feature-scaffold or metadata-refresh
-command for this example.
+The Support Inbox source remains ordinary application TypeScript. Its SQL logic
+proof uses application-owned PostgreSQL and route integration tests. Use
+`pnpm check:sql`, `pnpm typecheck`, and application tests; there is no Ashiba
+feature-scaffold, metadata-refresh command, or Ashiba testkit for this example.

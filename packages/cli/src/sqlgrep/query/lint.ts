@@ -974,7 +974,7 @@ function isInspectableInnerJoin(joinType: string): boolean {
 }
 
 function hasJoinDirectionSuppression(sql: string): boolean {
-  return /(?:ashiba|ztd)-lint-disable\s+join-direction/i.test(sql);
+  return /ashiba-lint-disable\s+join-direction/i.test(sql);
 }
 
 function resolveAshibaDdlRoot(projectRoot: string): string {

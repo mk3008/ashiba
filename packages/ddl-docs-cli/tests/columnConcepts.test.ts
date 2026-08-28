@@ -8,7 +8,7 @@ const schemaSettings = { defaultSchema: 'public', searchPath: ['public'] };
 test('reports type variation as info when a concept uses int4 and int8', () => {
   const sources: SqlSource[] = [
     {
-      path: 'ztd/ddl/public.sql',
+      path: 'fixture/ddl/public.sql',
       sql: `
         CREATE TABLE public.t1 (
           age int
@@ -32,7 +32,7 @@ test('reports type variation as info when a concept uses int4 and int8', () => {
 test('does not report type variation for bigint and bigserial aliases', () => {
   const sources: SqlSource[] = [
     {
-      path: 'ztd/ddl/public.sql',
+      path: 'fixture/ddl/public.sql',
       sql: `
         CREATE TABLE public.t1 (
           user_id bigserial PRIMARY KEY
@@ -53,7 +53,7 @@ test('does not report type variation for bigint and bigserial aliases', () => {
 test('suggests missing column comments with schema-first and stable fallback order', () => {
   const sources: SqlSource[] = [
     {
-      path: 'ztd/ddl/public.sql',
+      path: 'fixture/ddl/public.sql',
       sql: `
         CREATE TABLE public.orders (
           note text

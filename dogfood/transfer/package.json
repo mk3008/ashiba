@@ -33,7 +33,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/driver-adapter-pg build && pnpm --filter @ashiba-ts/testkit-adapter-pg build && tsc --noEmit -p tsconfig.json",
+    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/driver-adapter-pg build && tsc --noEmit -p tsconfig.json",
     "format": "prettier . --write",
     "lint": "node ./scripts/check-sql-leading-commas.mjs && eslint src tests --ext .ts",
     "lint:sql": "node ./scripts/check-sql-leading-commas.mjs",
@@ -55,7 +55,6 @@
   },
   "devDependencies": {
     "@ashiba-ts/cli": "workspace:*",
-    "@ashiba-ts/testkit-adapter-pg": "workspace:*",
     "@types/pg": "^8.15.5",
     "eslint": "^9.22.0",
     "lint-staged": "^16.2.7",

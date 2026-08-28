@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ResolvedSchemaSettings } from './types';
 
-interface ZtdConfigLike {
+interface SchemaConfigLike {
   ddl?: {
     defaultSchema?: string;
     searchPath?: string[];
@@ -10,14 +10,14 @@ interface ZtdConfigLike {
 }
 
 /**
- * Resolves default schema and search path from CLI options and optional ztd config.
+ * Resolves default schema and search path from CLI options and an explicit config.
  */
 export function resolveSchemaSettings(
   explicitConfigPath: string | undefined,
   cliDefaultSchema: string | undefined,
   cliSearchPath: string[] | undefined
 ): ResolvedSchemaSettings {
-  const config = loadZtdConfig(explicitConfigPath);
+  const config = loadSchemaConfig(explicitConfigPath);
   const fileDefaultSchema = normalizeIdentifier(config?.ddl?.defaultSchema);
   const fileSearchPath = normalizeSearchPath(config?.ddl?.searchPath);
   const defaultSchema = normalizeIdentifier(cliDefaultSchema) || fileDefaultSchema || 'public';
@@ -25,22 +25,13 @@ export function resolveSchemaSettings(
   return { defaultSchema, searchPath };
 }
 
-function loadZtdConfig(explicitConfigPath: string | undefined): ZtdConfigLike | null {
-  const candidates = explicitConfigPath
-    ? [path.resolve(explicitConfigPath)]
-    : [path.resolve(process.cwd(), 'ztd.config.json')];
-
-  for (const candidate of candidates) {
-    if (!existsSync(candidate)) {
-      continue;
-    }
-    const raw = readFileSync(candidate, 'utf8');
-    const parsed = JSON.parse(raw) as unknown;
-    if (typeof parsed === 'object' && parsed !== null) {
-      return parsed as ZtdConfigLike;
-    }
-  }
-  return null;
+function loadSchemaConfig(explicitConfigPath: string | undefined): SchemaConfigLike | null {
+  if (!explicitConfigPath) return null;
+  const candidate = path.resolve(explicitConfigPath);
+  if (!existsSync(candidate)) return null;
+  const raw = readFileSync(candidate, 'utf8');
+  const parsed = JSON.parse(raw) as unknown;
+  return typeof parsed === 'object' && parsed !== null ? parsed as SchemaConfigLike : null;
 }
 
 function normalizeSearchPath(value: string[] | undefined): string[] | undefined {

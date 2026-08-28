@@ -20,9 +20,6 @@ export type AshibaConfig = {
   format: {
     sql: Partial<SqlFormatterOptions>;
   };
-  tests: {
-    performanceLane: 'traditional' | 'ztd';
-  };
 };
 
 export type ConfigOptions = {
@@ -49,9 +46,6 @@ export function createDefaultConfig(): AshibaConfig {
     },
     format: {
       sql: DEFAULT_SQL_FORMAT_OPTIONS,
-    },
-    tests: {
-      performanceLane: 'traditional',
     },
   };
 }
