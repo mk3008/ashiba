@@ -193,8 +193,8 @@ jobs:
       - name: Build workspace packages used by drift check
         run: pnpm build
 
-      - name: Verify clean Windows checkout drift
-        run: pnpm --dir examples/hono-pg-support-inbox check:drift
+      - name: Verify clean Windows checkout SQL verification
+        run: pnpm --dir examples/hono-pg-support-inbox check:sql
 
       - name: Verify CRLF-only SQL drift tolerance
         shell: pwsh
@@ -211,4 +211,4 @@ jobs:
             [System.IO.File]::WriteAllText($path, $crlf, [System.Text.UTF8Encoding]::new($false))
           }
           git ls-files --eol -- $files
-          pnpm --dir examples/hono-pg-support-inbox check:drift
+          pnpm --dir examples/hono-pg-support-inbox check:sql
