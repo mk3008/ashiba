@@ -13,7 +13,6 @@ import { registerDdlCommand } from './commands/ddl.js';
 import { registerGateCommand } from './commands/gate.js';
 import { registerLintCommand } from './commands/lint.js';
 import { registerModelGenCommand } from './commands/model-gen.js';
-import { registerPerfCommand } from './commands/perf.js';
 import { registerProjectCommand } from './commands/project.js';
 import { registerQueryCommand } from './commands/query.js';
 import { registerSqlResourceCommand } from './commands/sql-resource.js';
@@ -66,7 +65,6 @@ Detailed command catalog:
   registerGateCommand(program);
   registerLintCommand(program);
   registerModelGenCommand(program);
-  registerPerfCommand(program);
   registerProjectCommand(program);
   registerQueryCommand(program);
   registerSqlResourceCommand(program);

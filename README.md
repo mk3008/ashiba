@@ -90,8 +90,8 @@ architecture.
 ## Other development tools
 
 The CLI also provides optional SQL linting, formatting, query analysis,
-resource comparison, DDL migration review, gate scaffolding, and performance
-evidence commands. Discover the exact current surface with:
+resource comparison, DDL migration review, and gate scaffolding. Discover the
+exact current surface with:
 
 ```bash
 npx ashiba describe command --format json
