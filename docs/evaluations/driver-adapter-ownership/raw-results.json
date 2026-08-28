@@ -1,0 +1,33 @@
+{
+  "startingSha": "d54854b34ea435af7c46ef4bb0cdf3b902954977",
+  "decision": "REDUCE",
+  "dbmsSupportChanged": false,
+  "namedParameterDecision": "KEEP-NAMED-AS-CORE",
+  "currentProductConsumers": {
+    "pg": ["examples/hono-pg-support-inbox"],
+    "mysql2": [],
+    "mssql": []
+  },
+  "evidence": {
+    "nativePgReference": "examples/postgres-ticket-queue-reference",
+    "adapterTests": [
+      "packages/driver-adapter-core/tests/driver-adapter-core.test.ts",
+      "packages/driver-adapter-pg/tests/driver-adapter-pg.test.ts",
+      "packages/driver-adapter-mysql2/tests/driver-adapter-mysql2.test.ts",
+      "packages/driver-adapter-mssql/tests/driver-adapter-mssql.test.ts"
+    ],
+    "priorAblation": "docs/evaluations/dynamic-mechanism-value-ablation.md",
+    "focusedTests": {
+      "core": "21 passed",
+      "pg": "65 passed; 3 live-dependent skipped",
+      "mysql2": "4 passed",
+      "mssql": "4 passed",
+      "nativePgReference": "1 passed; 1 live-dependent skipped"
+    }
+  },
+  "limitations": [
+    "No new MySQL or SQL Server live adapter benchmark was run; existing selected-driver live evidence is used because adapters add no DB semantics.",
+    "Support Inbox native migration is not implemented in this evaluation.",
+    "Optional-condition compression remains productization pending."
+  ]
+}
