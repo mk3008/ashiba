@@ -40,7 +40,7 @@ const adapter = createPostgresAdapter(pool, {
 This option is an assertion about caller-owned driver configuration, not a
 parser configuration API. Ashiba never installs, replaces, or introspects
 node-postgres type parsers. Generate the matching development contract with
-`ashiba feature query postgres-contract --driver-profile custom:application-v1`;
+`ashiba postgres-contract --driver-profile custom:application-v1`;
 custom profiles keep driver values as `unknown` until application-owned decoding
 proves a narrower type.
 

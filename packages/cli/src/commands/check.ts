@@ -1,7 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import type { Command } from 'commander';
 import { formatProjectCheckResult, runProjectCheck, type ProjectCheckOptions, type ProjectCheckResult } from './project.js';
-import { runFeatureGeneratedRefresh, type FeatureGeneratedRefreshResult } from './feature.js';
 
 export type AshibaCheckLevel = 'fast' | 'full';
 
@@ -9,9 +8,6 @@ export interface AshibaCheckOptions extends ProjectCheckOptions {
   fast?: boolean;
   full?: boolean;
   testCommand?: string;
-  /** @deprecated Use testCommand. */
-  mapperTestCommand?: string;
-  fixGenerated?: boolean;
 }
 
 export interface AshibaCheckCommandResult {
@@ -19,8 +15,7 @@ export interface AshibaCheckCommandResult {
   level: AshibaCheckLevel;
   ok: boolean;
   projectCheck: ProjectCheckResult;
-  generatedRefresh?: FeatureGeneratedRefreshResult;
-  mapperTest?: {
+  verificationTest?: {
     command: string;
     ok: boolean;
     status: number | null;
@@ -46,8 +41,6 @@ export function registerCheckCommand(program: Command): void {
     .option('--fast', 'Run the fast local check only. This is the default.', false)
     .option('--full', 'Run the fast check and the configured verification test command.', false)
     .option('--test-command <command>', 'Verification test command used by --full')
-    .option('--mapper-test-command <command>', 'Deprecated alias for --test-command')
-    .option('--fix-generated', 'Refresh safe library-owned artifacts before reporting application-owned changes', false)
     .action((options: AshibaCheckOptions) => {
       const result = runAshibaCheck(options);
       if (options.format === 'json') {
@@ -64,23 +57,19 @@ export function registerCheckCommand(program: Command): void {
  */
 export function runAshibaCheck(options: AshibaCheckOptions = {}): AshibaCheckCommandResult {
   const level = resolveCheckLevel(options);
-  const generatedRefresh = options.fixGenerated === true
-    ? runFeatureGeneratedRefresh({ rootDir: options.rootDir })
-    : undefined;
   const projectCheck = runProjectCheck(options);
   const result: AshibaCheckCommandResult = {
     kind: 'ashiba-check',
     level,
-    ok: projectCheck.ok && (generatedRefresh?.applicationOwnedIssues.length ?? 0) === 0,
+    ok: projectCheck.ok,
     projectCheck,
-    ...(generatedRefresh ? { generatedRefresh } : {}),
   };
 
   if (level === 'full' && projectCheck.ok) {
-    const command = (options.testCommand ?? options.mapperTestCommand ?? DEFAULT_TEST_COMMAND).trim();
-    const mapperTest = runMapperTestCommand(command, projectCheck.rootDir, options.format === 'json');
-    result.mapperTest = mapperTest;
-    result.ok = result.ok && mapperTest.ok;
+    const command = (options.testCommand ?? DEFAULT_TEST_COMMAND).trim();
+    const verificationTest = runVerificationTestCommand(command, projectCheck.rootDir, options.format === 'json');
+    result.verificationTest = verificationTest;
+    result.ok = result.ok && verificationTest.ok;
   }
 
   return result;
@@ -94,31 +83,20 @@ export function formatAshibaCheckResult(result: AshibaCheckCommandResult, option
     `Ashiba check: ${result.ok ? 'ok' : 'failed'}`,
     `- level: ${result.level}`,
     '',
-    formatProjectCheckResult(result.projectCheck, options).trimEnd(),
+    formatProjectCheckResult(result.projectCheck).trimEnd(),
   ];
-
-  if (result.generatedRefresh) {
-    lines.push(
-      '',
-      'Generated refresh:',
-      `- changed generated files: ${result.generatedRefresh.changedGeneratedFiles.length}`,
-      ...result.generatedRefresh.changedGeneratedFiles.map((file) => `  - ${file}`),
-      `- application-owned issues: ${result.generatedRefresh.applicationOwnedIssues.length}`,
-      ...result.generatedRefresh.applicationOwnedIssues.map((issue) => `  - ${issue}`),
-    );
-  }
 
   if (result.level === 'fast') {
     lines.push('', 'Next:', '- Use `ashiba check --full` before push, review, or CI when selected verification tests should run.');
-  } else if (result.mapperTest) {
+  } else if (result.verificationTest) {
     lines.push(
       '',
-      `Verification test: ${result.mapperTest.ok ? 'ok' : 'failed'}`,
-      `- command: ${result.mapperTest.command}`,
+      `Verification test: ${result.verificationTest.ok ? 'ok' : 'failed'}`,
+      `- command: ${result.verificationTest.command}`,
     );
-    if (!result.mapperTest.ok) {
+    if (!result.verificationTest.ok) {
       lines.push('- next: Fix the selected verification test failure, then rerun `ashiba check --full`.');
-      if (result.mapperTest.error) lines.push(`- error: ${result.mapperTest.error}`);
+      if (result.verificationTest.error) lines.push(`- error: ${result.verificationTest.error}`);
     }
   } else {
     lines.push(
@@ -139,7 +117,7 @@ function resolveCheckLevel(options: AshibaCheckOptions): AshibaCheckLevel {
   return options.full === true ? 'full' : 'fast';
 }
 
-function runMapperTestCommand(command: string, cwd: string, captureOutput: boolean): NonNullable<AshibaCheckCommandResult['mapperTest']> {
+function runVerificationTestCommand(command: string, cwd: string, captureOutput: boolean): NonNullable<AshibaCheckCommandResult['verificationTest']> {
   if (command.length === 0) {
     return {
       command,

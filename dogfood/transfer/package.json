@@ -38,8 +38,7 @@
     "lint": "node ./scripts/check-sql-leading-commas.mjs && eslint src tests --ext .ts",
     "lint:sql": "node ./scripts/check-sql-leading-commas.mjs",
     "lint:fix": "eslint . --fix",
-    "ashiba:generate": "node ../../packages/cli/dist/index.js feature query refresh create-transfer-destination-definition insert-transfer-destination-definition && node ../../packages/cli/dist/index.js feature query refresh create-transfer-setting insert-transfer-setting && node ../../packages/cli/dist/index.js feature query refresh create-transfer-setting insert-transfer-setting-destination-definition && node ../../packages/cli/dist/index.js feature query refresh create-transfer-setting resolve-transfer-destination-definitions",
-    "check:drift": "node ../../packages/cli/dist/index.js check"
+    "check:sql": "node ../../packages/cli/dist/index.js project check --root-dir ."
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,md,sql}": [

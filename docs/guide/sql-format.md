@@ -4,15 +4,13 @@ title: SQL Format
 
 # SQL Format
 
-Ashiba formats SQL when it creates new scaffolded SQL files.
+Ashiba formats SQL only when explicitly requested.
 
 The goal is not to take ownership of every SQL file in your repository. SQL is yours, so Ashiba keeps formatting conservative:
 
-- new scaffolded SQL is formatted with Ashiba's default style
 - existing SQL is not reformatted unless you explicitly ask for it
 - SSSQL commands do not use formatting as a side effect
 - unsafe formatting is skipped instead of written
-- writes refresh generated query metadata when the SQL belongs to a feature query
 
 ## Default Style
 
@@ -47,11 +45,12 @@ The full generated config includes the complete option set. The defaults prefer 
 Use `query format` when you want to review or apply formatting to an existing SQL file:
 
 ```bash
-npx ashiba query format src/features/users/queries/list/list.sql --diff
-npx ashiba query format src/features/users/queries/list/list.sql --write
+npx ashiba query format src/queries/list.sql --diff
+npx ashiba query format src/queries/list.sql --write
 ```
 
-When `--write` changes a feature query SQL file, Ashiba also refreshes `generated/query.meta.ts` in the same query boundary. Formatting should not create metadata drift.
+When formatting changes canonical SQL, regenerate its binding metadata with
+`ashiba model-gen` before running `--check`.
 
 Format every SQL file under the configured `sqlRoots` in `ashiba.config.json`:
 
@@ -62,7 +61,7 @@ npx ashiba query format --all --write
 Use `--check` in a local gate or CI when formatting drift should fail the command:
 
 ```bash
-npx ashiba query format src/features/users/queries/list/list.sql --check
+npx ashiba query format src/queries/list.sql --check
 npx ashiba query format --all --check
 ```
 

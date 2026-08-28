@@ -8,7 +8,6 @@ import { normalizeSchemaPathConfig } from './schema-path.js';
 
 export type AshibaConfig = {
   $schema: string;
-  featureRoot: string;
   sqlRoots: string[];
   defaultSchema: string;
   searchPath: string[];
@@ -17,12 +16,6 @@ export type AshibaConfig = {
   };
   sql: {
     parameterStyle: 'colon' | 'at' | 'both';
-  };
-  mutation: {
-    optimisticLock: {
-      versionColumn: string;
-      scaffold: 'off' | 'when-column-exists';
-    };
   };
   format: {
     sql: Partial<SqlFormatterOptions>;
@@ -37,23 +30,15 @@ export type ConfigOptions = {
 };
 
 export type ProjectPathConfig = {
-  featureRoot: string;
   sqlRoots: string[];
   defaultSchema: string;
   searchPath: string[];
-  mutation: {
-    optimisticLock: {
-      versionColumn: string;
-      scaffold: 'off' | 'when-column-exists';
-    };
-  };
 };
 
 export function createDefaultConfig(): AshibaConfig {
   return {
     $schema: 'https://ashiba.dev/schema/ashiba-config.json',
-    featureRoot: 'src/features',
-    sqlRoots: ['src/features'],
+    sqlRoots: ['src'],
     defaultSchema: 'public',
     searchPath: ['public'],
     ddl: {
@@ -61,12 +46,6 @@ export function createDefaultConfig(): AshibaConfig {
     },
     sql: {
       parameterStyle: 'both',
-    },
-    mutation: {
-      optimisticLock: {
-        versionColumn: 'version_key',
-        scaffold: 'when-column-exists',
-      },
     },
     format: {
       sql: DEFAULT_SQL_FORMAT_OPTIONS,
@@ -81,31 +60,16 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
   const configPath = path.join(rootDir, 'ashiba.config.json');
   if (!existsSync(configPath)) {
     return {
-      featureRoot: 'src/features',
-      sqlRoots: ['src/features'],
+      sqlRoots: ['src'],
       defaultSchema: 'public',
       searchPath: ['public'],
-      mutation: {
-        optimisticLock: {
-          versionColumn: 'version_key',
-          scaffold: 'when-column-exists',
-        },
-      },
     };
   }
 
   let parsed: {
-    featureRoot?: unknown;
     sqlRoots?: unknown;
-    features?: { sourceDir?: unknown };
     defaultSchema?: unknown;
     searchPath?: unknown;
-    mutation?: {
-      optimisticLock?: {
-        versionColumn?: unknown;
-        scaffold?: unknown;
-      };
-    };
   };
   try {
     parsed = JSON.parse(readFileSync(configPath, 'utf8')) as typeof parsed;
@@ -118,9 +82,6 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
     );
   }
 
-  const featureRoot = nonEmptyString(parsed.featureRoot)
-    ?? nonEmptyString(parsed.features?.sourceDir)
-    ?? 'src/features';
   const sqlRoots = Array.isArray(parsed.sqlRoots)
     ? parsed.sqlRoots
       .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
@@ -136,16 +97,9 @@ export function loadProjectPathConfig(rootDir: string): ProjectPathConfig {
     searchPath: rawSearchPath,
   });
   return {
-    featureRoot,
-    sqlRoots: sqlRoots.length > 0 ? sqlRoots : [featureRoot],
+    sqlRoots: sqlRoots.length > 0 ? sqlRoots : ['src'],
     defaultSchema,
     searchPath,
-    mutation: {
-      optimisticLock: {
-        versionColumn: nonEmptyString(parsed.mutation?.optimisticLock?.versionColumn) ?? 'version_key',
-        scaffold: parsed.mutation?.optimisticLock?.scaffold === 'off' ? 'off' : 'when-column-exists',
-      },
-    },
   };
 }
 

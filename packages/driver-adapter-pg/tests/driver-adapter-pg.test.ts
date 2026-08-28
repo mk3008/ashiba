@@ -102,7 +102,10 @@ describe('@ashiba-ts/driver-adapter-pg', () => {
 
     try {
       const generated = runModelGen({ rootDir, sqlFile: 'queries/canonical.sql' });
-      const source = querySource(sourceSql, { analysis: generated.analysis, bindings: generated.bindings });
+      const source = querySource(sourceSql, {
+        analysis: { sourceHash: generated.sourceHash },
+        bindings: { postgres: { ...generated.bindings.postgres, sourceHash: generated.sourceHash } },
+      });
 
       expect(compilePostgresQuery(source, { id: 7 })).toMatchObject({
         sql: 'select $1::integer as id\n/* outer /* nested :not_a_parameter */ outer */\nwhere $1::integer = $1::integer',

@@ -25,6 +25,7 @@ export default defineConfig({
           { text: 'SSSQL (current implementation)', link: '/guide/sssql' },
           { text: 'Safe Sort (current implementation)', link: '/guide/safe-sort' },
           { text: 'SQL Format', link: '/guide/sql-format' },
+          { text: 'Scaffold Migration', link: '/guide/scaffold-migration' },
         ],
       },
       { text: 'Concepts', link: '/concepts/concept-map' },
@@ -39,6 +40,7 @@ export default defineConfig({
         { text: 'SSSQL (current implementation)', link: '/guide/sssql' },
         { text: 'Safe Sort (current implementation)', link: '/guide/safe-sort' },
         { text: 'SQL Format', link: '/guide/sql-format' },
+        { text: 'Scaffold Migration', link: '/guide/scaffold-migration' },
       ],
       '/generated/api/': [
         { text: 'Command API', link: '/generated/api/commands' },
