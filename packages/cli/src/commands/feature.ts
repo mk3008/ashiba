@@ -477,7 +477,7 @@ function withConfiguredFeatureRoot<T extends { rootDir?: string; featureRoot?: s
 }
 
 /**
- * Scaffolds an editable RFBA-style feature boundary from DDL and query metadata.
+ * Scaffolds an editable feature boundary from DDL and query metadata.
  */
 export function runFeatureScaffold(options: FeatureScaffoldOptions): FeatureScaffoldResult {
   const rootDir = path.resolve(options.rootDir ?? '.');
@@ -690,7 +690,7 @@ export function runFeatureQueryMetadataRefresh(options: FeatureQueryMetadataRefr
 
 /**
  * Uses a development PostgreSQL instance as an optional, non-executing type
- * oracle and stores the deterministic result beside the VSA-local query.
+ * oracle and stores the deterministic result beside the query-local SQL asset.
  */
 export async function runFeatureQueryPostgresContract(
   options: FeatureQueryPostgresContractOptions,

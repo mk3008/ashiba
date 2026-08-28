@@ -41,6 +41,4 @@ The query boundary lives under `queries/insert-transfer-destination-definition/`
 
 `insert-transfer-destination-definition.sql` explicitly lists caller-supplied columns, casts structured values, omits generated red-transfer SQL and timestamps so the DB defaults apply, and returns the inserted row.
 
-## RFBA Note
-
 Feature-specific validation remains local to this feature. `src/libraries/` is reserved for logic that can stand on its own as a reusable package-level library.

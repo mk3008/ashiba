@@ -156,7 +156,7 @@ export function registerSqlResourceCommand(program: Command): void {
     .description('Generate and compare language-neutral PostgreSQL SQL resource snapshots');
 
   resource.command('snapshot')
-    .description('Describe every canonical VSA query against a development PostgreSQL database')
+    .description('Describe every canonical SQL query against a development PostgreSQL database')
     .option('--root-dir <path>', 'Project root directory', process.cwd())
     .option('--database-url <url>', 'Development/test PostgreSQL connection URL')
     .option('--database-url-env <name>', 'Environment variable containing the PostgreSQL URL', 'ASHIBA_POSTGRES_DATABASE_URL')

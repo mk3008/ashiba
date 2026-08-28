@@ -346,7 +346,7 @@ describe.skipIf(!databaseUrl)('PostgreSQL-derived query contract live', () => {
     ]);
   });
 
-  test('writes a VSA-local contract and rejects false application result self-reporting and staleness', async () => {
+  test('writes a query-local contract and rejects false application result self-reporting and staleness', async () => {
     const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-postgres-contract-command-'));
     const queryDir = path.join(rootDir, 'src/features/report-load/queries/load');
     mkdirSync(path.join(queryDir, 'generated'), { recursive: true });

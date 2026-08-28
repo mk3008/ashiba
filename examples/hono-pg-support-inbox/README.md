@@ -132,28 +132,6 @@ Because both calls share the same borrowed PostgreSQL client, they commit or rol
 
 This is intentional: Ashiba keeps SQL boundaries generated and reviewable, while customer-owned application code decides where transactions start, which isolation level to use, and how workflow failures should be reported.
 
-## RFBA Shape Inspection
-
-This demo keeps each use-case feature in the Ashiba scaffold standard shape:
-
-```text
-boundary.ts  -> exposes execute as the feature entrypoint
-input.ts     -> parses and normalizes caller input
-workflow.ts  -> composes query boundaries through injectable Queries
-output.ts    -> shapes the caller-facing result
-queries/     -> visible SQL, query metadata, and selected logic tests
-```
-
-Run RFBA inspection after hand edits:
-
-```sh
-npx ashiba rfba inspect
-```
-
-The inspection uses `ashiba.config.json` `featureRoot`, so this example's subsystem root `src/features/support-inbox` is handled directly. Non-standard shapes are reported as warnings, not errors; customer-owned code can intentionally diverge, but the divergence stays visible during review.
-
-RFBA treats boundary files as module closure points. A boundary may expose more than one contract type, but it should usually expose only one runtime function entrypoint. Multiple exported functions are a review signal: either the feature boundary is too broad, or implementation details are leaking through over-export.
-
 ## Files To Inspect
 
 - `db/ddl/public.sql` defines the demo schema.

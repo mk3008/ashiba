@@ -40,7 +40,7 @@ ashiba check
 ## What This Package Owns
 
 The CLI owns development-time scaffolding, query analysis, DDL review, model
-generation, contract checks, RFBA inspection, sqlgrep-style query tools, and
+generation, contract checks, sqlgrep-style query tools, and
 performance evidence.
 
 Generated application code is expected to be editable and free of an ORM runtime or hidden query DSL. The CLI generator is not in the runtime path. Native database drivers are the runtime execution baseline; an application may opt into Ashiba preparation or an Ashiba adapter as a compatibility/convenience seam. The CLI may generate query model metadata such as source hashes, statement shape, named-parameter binding metadata, result contracts, safe-sort insertion positions, optional-condition compression ranges, and sortable dictionaries so those optional surfaces can avoid runtime AST parsing.
@@ -72,7 +72,7 @@ configuration. Use a development/test database, not production. See the
 
 ## SQL resource fleets
 
-`sql-resource snapshot` projects canonical VSA-local `.sql` files into
+`sql-resource snapshot` projects canonical query-local `.sql` files into
 language-neutral resource JSON plus separate executable PostgreSQL SQL. The
 metadata points to the canonical SQL rather than embedding its body. It carries
 OID-free recursive database type identity, driver representation, capabilities,

@@ -717,12 +717,4 @@ export const COMMANDS: readonly CommandSpec[] = [
     options: [commonFormat],
     examples: ['npx ashiba perf report diff perf/baseline.json perf/candidate.json'],
   },
-  {
-    name: 'rfba inspect',
-    summary: 'Inspect feature/query review boundaries.',
-    useCase: 'Confirm the project still exposes reviewable feature boundaries and query.ts files, while surfacing non-standard RFBA shapes as warnings instead of blocking customer-owned code.',
-    usage: 'ashiba rfba inspect [options]',
-    options: [commonRoot, commonFormat],
-    examples: ['npx ashiba rfba inspect'],
-  },
 ];

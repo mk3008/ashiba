@@ -20,7 +20,6 @@ import { runModelGen } from '../src/commands/model-gen.js';
 import { runPerfInit, runPerfReportDiff, runPerfRun, runPerfScenarioInit, runPerfScenarioMeasure } from '../src/commands/perf.js';
 import { formatProjectCheckResult, runProjectCheck } from '../src/commands/project.js';
 import { runQueryFormat, runQueryFormatAll, runQueryLint, runQueryOptionalAdd, runQuerySlice, runQueryStructure, runQueryUses } from '../src/commands/query.js';
-import { runRfbaInspect } from '../src/commands/rfba.js';
 import { collectTableReferences } from '../src/commands/table-resolution.js';
 
 describe('@ashiba-ts/cli smoke', () => {
@@ -131,7 +130,6 @@ describe('@ashiba-ts/cli smoke', () => {
       'perf scenario init',
       'perf scenario measure',
       'perf report diff',
-      'rfba inspect',
     ]));
     expect(rendered).toContain('Ashiba command catalog');
     expect(rendered).toContain('- query graph: Build a dependency graph for CTE-heavy SQL.');
@@ -4947,104 +4945,6 @@ describe('@ashiba-ts/cli smoke', () => {
       expect(timedOut.nextActions[0]).toContain('Treat the timeout as performance evidence');
       expect(timedOut.nextActions).toContain('Collect EXPLAIN evidence and pass --explain on the next measurement so the timing result has a plan to review.');
       expect(existsSync(path.join(rootDir, 'perf/scenarios/users-list/evidence/timeout.json'))).toBe(false);
-    } finally {
-      rmSync(rootDir, { recursive: true, force: true });
-    }
-  });
-
-  test('inspects RFBA boundaries', () => {
-    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-rfba-'));
-
-    try {
-      mkdirSync(path.join(rootDir, 'db', 'ddl'), { recursive: true });
-      writeFileSync(path.join(rootDir, 'db', 'ddl', 'public.sql'), 'create table public.users (user_id integer primary key, email text not null);', 'utf8');
-      runFeatureScaffold({ rootDir, table: 'users', action: 'list' });
-
-      const rfba = runRfbaInspect({ rootDir });
-
-      expect(rfba.attainment).toMatchObject({
-        overall: 'done',
-        issueCount: 0,
-        nextActions: [],
-      });
-      expect(rfba.features[0]?.boundary).toEqual({
-        path: 'src/features/users-list/boundary.ts',
-        exists: true,
-      });
-      expect(rfba.features[0]?.standard).toEqual({
-        status: 'standard',
-        warnings: [],
-      });
-      expect(rfba.features[0]?.queries[0]?.sql).toEqual({
-        path: 'src/features/users-list/queries/list/list.sql',
-        exists: true,
-      });
-    } finally {
-      rmSync(rootDir, { recursive: true, force: true });
-    }
-  });
-
-  test('reports RFBA standard drift as warnings without failing ownership checks', () => {
-    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-rfba-standard-warning-'));
-
-    try {
-      const featureDir = path.join(rootDir, 'src/features/users-list');
-      const queryDir = path.join(featureDir, 'queries/list');
-      mkdirSync(queryDir, { recursive: true });
-      writeFileSync(path.join(featureDir, 'boundary.ts'), [
-        'export type { UsersListRequest } from \'./input.js\';',
-        'export async function execute(): Promise<void> {}',
-        'export async function customEntrypoint(): Promise<void> {}',
-        '',
-      ].join('\n'), 'utf8');
-      writeFileSync(path.join(featureDir, 'input.ts'), 'export function parseInput(raw: unknown): unknown { return raw; }\n', 'utf8');
-      writeFileSync(path.join(featureDir, 'workflow.ts'), 'export async function executeWorkflow(raw: unknown): Promise<unknown> { return raw; }\n', 'utf8');
-      writeFileSync(path.join(featureDir, 'output.ts'), 'export function buildOutput(value: unknown): unknown { return value; }\n', 'utf8');
-      writeFileSync(path.join(queryDir, 'query.ts'), 'export {};\n', 'utf8');
-      writeFileSync(path.join(queryDir, 'list.sql'), 'select 1;\n', 'utf8');
-
-      const rfba = runRfbaInspect({ rootDir });
-
-      expect(rfba.attainment).toMatchObject({
-        overall: 'done',
-        issueCount: 0,
-        nextActions: [],
-      });
-      expect(rfba.features[0]?.standard.status).toBe('custom');
-      expect(rfba.features[0]?.standard.warnings).toEqual([
-        'Boundary exposes multiple runtime entrypoints (execute, customEntrypoint); RFBA expects one primary function entrypoint, usually execute. Split the boundary or mark this as custom-owned code if the extra entrypoints are intentional.',
-        'Input boundary should expose parseRequest(raw: unknown): src/features/users-list/input.ts.',
-        'Workflow should expose a Queries interface so query dependencies stay injectable: src/features/users-list/workflow.ts.',
-        'Workflow should receive parsed input, not raw unknown input: src/features/users-list/workflow.ts.',
-        'Output boundary should expose buildResult(...): src/features/users-list/output.ts.',
-      ]);
-    } finally {
-      rmSync(rootDir, { recursive: true, force: true });
-    }
-  });
-
-  test('reports RFBA boundary gaps with next actions', () => {
-    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-rfba-gaps-'));
-
-    try {
-      const queryDir = path.join(rootDir, 'src/features/users-list/queries/list');
-      mkdirSync(queryDir, { recursive: true });
-      writeFileSync(path.join(queryDir, 'list.sql'), 'select user_id from public.users;', 'utf8');
-
-      const rfba = runRfbaInspect({ rootDir });
-
-      expect(rfba.attainment.overall).toBe('partial');
-      expect(rfba.attainment.issueCount).toBe(2);
-      expect(rfba.attainment.nextActions).toEqual([
-        'Add feature boundary.ts files so reviewers can enter through feature behavior.',
-        'Add query.ts files that expose editable mapper/query contracts.',
-      ]);
-      expect(rfba.features[0]?.issues).toEqual([
-        'Feature boundary file is missing: src/features/users-list/boundary.ts.',
-      ]);
-      expect(rfba.features[0]?.queries[0]?.issues).toEqual([
-        'Query file is missing: src/features/users-list/queries/list/query.ts.',
-      ]);
     } finally {
       rmSync(rootDir, { recursive: true, force: true });
     }

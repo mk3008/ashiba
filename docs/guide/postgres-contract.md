@@ -22,7 +22,7 @@ that mutation. Run the command only against a development/test database: parse
 and catalog resolution still depend on the real schema and acquire normal
 metadata locks.
 
-The output is VSA-local:
+The output is query-local:
 
 ```text
 src/features/<feature>/queries/<query>/
