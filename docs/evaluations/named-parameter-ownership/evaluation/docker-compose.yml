@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:18
+    network_mode: bridge
+    environment:
+      POSTGRES_DB: named_parameter_eval
+      POSTGRES_USER: named_parameter_eval
+      POSTGRES_PASSWORD: named_parameter_eval
+    ports: ["55434:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U named_parameter_eval -d named_parameter_eval"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  mysql:
+    image: mysql:8.4
+    network_mode: bridge
+    environment:
+      MYSQL_DATABASE: named_parameter_eval
+      MYSQL_USER: named_parameter_eval
+      MYSQL_PASSWORD: named_parameter_eval
+      MYSQL_ROOT_PASSWORD: named_parameter_eval_root
+    ports: ["53306:3306"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pnamed_parameter_eval_root"]
+      interval: 3s
+      timeout: 4s
+      retries: 40
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    network_mode: bridge
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "NamedParameterEval!42"
+    ports: ["51433:1433"]
