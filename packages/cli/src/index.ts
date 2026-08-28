@@ -20,7 +20,6 @@ import { registerModelGenCommand } from './commands/model-gen.js';
 import { registerPerfCommand } from './commands/perf.js';
 import { registerProjectCommand } from './commands/project.js';
 import { registerQueryCommand } from './commands/query.js';
-import { registerRfbaCommand } from './commands/rfba.js';
 import { registerSqlResourceCommand } from './commands/sql-resource.js';
 import { registerStandalonePostgresContractCommand } from './commands/standalone-postgres-contract.js';
 
@@ -62,7 +61,7 @@ Core message:
 
 Status:
   This CLI includes scaffolding, DDL review, query analysis, contract checks,
-  model generation, RFBA inspection, and performance evidence.
+  model generation, and performance evidence.
 
 Common use cases:
 ${commonUseCases}
@@ -85,7 +84,6 @@ Detailed command catalog:
   registerPerfCommand(program);
   registerProjectCommand(program);
   registerQueryCommand(program);
-  registerRfbaCommand(program);
   registerSqlResourceCommand(program);
   registerStandalonePostgresContractCommand(program);
   applyCommandCatalogToProgram(program);

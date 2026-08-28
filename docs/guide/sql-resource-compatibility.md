@@ -18,7 +18,7 @@ export ASHIBA_POSTGRES_DATABASE_URL=postgresql://localhost/application_test
 npx ashiba sql-resource snapshot --out generated/schema-before.json
 ```
 
-For each VSA query at
+For each canonical query at
 `src/features/<feature>/queries/<query>/<query>.sql`, Ashiba writes:
 
 ```text
@@ -41,7 +41,7 @@ silently treating an older successful resource contract as current. The fleet
 snapshot retains the same failure as comparison evidence.
 
 The database contract excludes OIDs from comparison identity. OIDs remain in
-the lower-level VSA-local PostgreSQL evidence because they are useful catalog
+the lower-level query-local PostgreSQL evidence because they are useful catalog
 lookup keys in one cluster. Resource identity instead uses schema/name/kind,
 recursive array element and domain base identity, enum values, domain
 constraints, and relevant type modifiers. Human-readable `formattedName` is

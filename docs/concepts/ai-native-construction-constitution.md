@@ -53,7 +53,7 @@ decision that every current mechanism is a universal guarantee.
 
 ## Non-goals for this phase
 
-- Defining a general query builder, repository abstraction, VSA mandate, or
+- Defining a general query builder, repository abstraction, prescribed application layout, or
   application framework.
 - Claiming all dynamic SQL is unsafe or that all SQL is directly executable
   without a parameter/resource derivation.

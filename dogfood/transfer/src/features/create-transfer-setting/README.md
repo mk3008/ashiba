@@ -44,18 +44,6 @@ Each destination item contains:
 Destination definitions are resolved by `destination_definition_name` before inserting the setting row.
 Unknown destination definitions fail the operation before any setting row is inserted.
 
-## Boundary Shape
-
-The public boundary follows the RFBA review order:
-
-1. parse input
-2. execute workflow
-3. build output
-
-`workflow.ts` owns the transaction, destination definition lookup, source SQL hashing, and inserts.
-`output.ts` only reshapes generated query results into the public return value.
-It does not revalidate DB rows with Zod; DB constraints, queryspec contracts, generated row mappers, and ZTD tests cover the SQL/result binding path.
-
 ## SQL
 
 The feature owns three query boundaries:
