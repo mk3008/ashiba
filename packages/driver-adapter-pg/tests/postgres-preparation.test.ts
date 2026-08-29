@@ -39,6 +39,81 @@ describe('@ashiba-ts/driver-adapter-pg preparation', () => {
     expect(() => preparePostgresQuery(source, { owner_id: 7, state: 'open', extra: true } as never)).toThrow('Unused SQL parameter');
     expect(() => preparePostgresQuery({ ...source, sql: `${source.sql} -- stale` }, { owner_id: 7, state: 'open' })).toThrow('generated from different source SQL');
   });
+
+  test('prepares compressed optional conditions for direct native pg execution', () => {
+    const sourceSql = 'select * from users where tenant_id = :tenant_id and (:status is null or status = :status)';
+    const compiledSql = 'select * from users where tenant_id = $1 and ($2 is null or status = $3)';
+    const sourceBranch = 'and (:status is null or status = :status)';
+    const compiledBranch = 'and ($2 is null or status = $3)';
+    const sourceBranchStart = sourceSql.indexOf(sourceBranch);
+    const compiledBranchStart = compiledSql.indexOf(compiledBranch);
+    const sourceExpressionStart = sourceSql.indexOf('(:status is null or status = :status)');
+    const compiledExpressionStart = compiledSql.indexOf('($2 is null or status = $3)');
+    const query = {
+      sql: sourceSql,
+      queryModel: {
+        analysis: {
+          astParse: 'ok' as const,
+          statementKind: 'select' as const,
+          hasTopLevelOrderBy: false as const,
+          sourceHash: hash(sourceSql),
+          optionalConditionCompression: {
+            enabled: true as const,
+            branches: [{
+              parameterName: 'status',
+              kind: 'expression' as const,
+              sourceRange: {
+                start: sourceExpressionStart,
+                end: sourceExpressionStart + '(:status is null or status = :status)'.length,
+                text: '(:status is null or status = :status)',
+              },
+              removalRange: {
+                start: sourceBranchStart,
+                end: sourceBranchStart + sourceBranch.length,
+                text: sourceBranch,
+              },
+              presentReplacement: {
+                start: sourceExpressionStart,
+                end: sourceExpressionStart + '(:status is null or status = :status)'.length,
+                text: 'status = :status',
+              },
+            }],
+          },
+        },
+        bindings: {
+          postgres: {
+            style: 'indexed' as const,
+            sql: compiledSql,
+            parameterNames: ['tenant_id', 'status', 'status'],
+            sourceHash: hash(sourceSql),
+            optionalConditionCompression: {
+              branches: [{
+                parameterName: 'status',
+                removalRange: {
+                  start: compiledBranchStart,
+                  end: compiledBranchStart + compiledBranch.length,
+                  text: compiledBranch,
+                },
+                presentReplacement: {
+                  start: compiledExpressionStart,
+                  end: compiledExpressionStart + '($2 is null or status = $3)'.length,
+                  text: 'status = $3',
+                },
+              }],
+            },
+          },
+        },
+      },
+    };
+
+    expect(preparePostgresQuery(query, { tenant_id: 10, status: null }, {
+      optionalConditionCompression: true,
+    })).toMatchObject({
+      sql: 'select * from users where tenant_id = $1 ',
+      values: [10],
+      parameterNames: ['tenant_id'],
+    });
+  });
 });
 
 function hash(value: string): string {
