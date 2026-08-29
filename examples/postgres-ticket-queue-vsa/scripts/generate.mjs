@@ -1,8 +1,9 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname.replace(/^\//, '').replaceAll('/', '\\');
+const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const sqlDir = join(root, 'src', 'tickets', 'sql');
 const outDir = join(root, 'src', 'tickets', 'generated');
 for (const file of readdirSync(sqlDir).filter((name) => name.endsWith('.sql') && name !== 'schema.sql')) {
