@@ -48,7 +48,16 @@
     "focusedMigrationEvidenceReproduction": "pass",
     "pnpmVerify": "pass",
     "pnpmDocsBuild": "pass",
-    "gitDiffCheck": "pass"
+    "gitDiffCheck": "pass",
+    "remoteCi": {
+      "workflow": "Verify",
+      "run": "33255921230",
+      "verify": "pass",
+      "postgresLive": "pass",
+      "postgresTicketQueueReference": "pass",
+      "supportInboxExample": "pass",
+      "supportInboxExampleAutocrlf": "pass"
+    }
   },
   "telemetry": {
     "creditAwareDelegations": 4,

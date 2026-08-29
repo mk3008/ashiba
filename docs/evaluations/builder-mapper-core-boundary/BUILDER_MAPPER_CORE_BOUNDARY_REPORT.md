@@ -113,6 +113,17 @@ controls. It does not claim production frequency for every sort shape or audit
 external adopters. No external migration tool was benchmarked; this is an
 ownership boundary comparison, not a product ranking.
 
+## Verification
+
+Passed locally: isolated finite-sort control, exact migration JSON
+reproduction, `pnpm verify`, `pnpm docs:build`, and `git diff --check`.
+
+The PR's remote `Verify` workflow also passed: `verify`, `postgres-live`,
+`postgres-ticket-queue-reference`, `support-inbox-example`, and
+`support-inbox-example-autocrlf`. No database or container resource was created
+by this evaluation; repository verification temporary resources were cleaned by
+their scripts.
+
 ## Follow-up
 
 Follow-up is implementation planning, not part of this evaluation: remove the
