@@ -14,4 +14,31 @@ describe('@ashiba-ts/named-parameters', () => {
     expect(bindNamedParameters(statement, { id: 7, omittedStatus: null }, { allowedUnusedNames: new Set(['omittedStatus']) }).values).toEqual([7]);
     expect(() => bindNamedParameters(statement, { id: 7, unrelated: true }, { allowedUnusedNames: new Set(['omittedStatus']) })).toThrow(NamedParameterError);
   });
+
+  test('keeps repeated mysql2 occurrences as separate native values', () => {
+    const statement = {
+      style: 'anonymous' as const,
+      sql: 'select id from tickets where owner = ? or reviewer = ? and state = ?',
+      valueNames: ['owner', 'owner', 'state'],
+    };
+
+    expect(bindNamedParameters(statement, { owner: 7, state: 'open' })).toMatchObject({
+      sql: statement.sql,
+      values: [7, 7, 'open'],
+    });
+  });
+
+  test('keeps mssql parameter names separate from values', () => {
+    const statement = {
+      style: 'named' as const,
+      sql: 'select id from tickets where owner = @owner or reviewer = @owner and state = @state',
+      parameterNames: ['owner', 'state'],
+    };
+    const hostile = "open'); drop table tickets; --";
+
+    expect(bindNamedParameters(statement, { owner: 7, state: hostile })).toMatchObject({
+      sql: statement.sql,
+      values: [7, hostile],
+    });
+  });
 });

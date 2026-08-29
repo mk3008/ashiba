@@ -163,8 +163,8 @@ Ashiba should preserve the philosophical split:
 
 - `rawsql-ts` core owns AST parsing and SQL structural primitives.
 - `@ashiba-ts/cli` owns dev-time analysis, generated metadata, drift checks, and review artifacts.
-- Driver adapters own execution, named binding, safe sort insertion, optional-condition compression from trusted metadata, and observer events.
-- Driver adapters should not contain SQL AST analysis or regex-based query planning.
+- Native drivers own execution. Optional adapters may perform bounded named binding, safe sort insertion, optional-condition compression from trusted metadata, and observer events without becoming application execution architecture.
+- Optional adapters should not contain SQL AST analysis or regex-based query planning.
 
 If future pipeline/scalar support needs runtime execution, it should live in an explicit extension package or customer-owned adapter boundary. It should not silently turn Ashiba core into an ORM runtime or hidden query planner.
 

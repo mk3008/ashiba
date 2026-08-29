@@ -1,0 +1,49 @@
+{
+  "startingSha": "9ca87b249297060e0d9af1e29be40545ae423d24",
+  "phase": "driver-adapter-reduction-phase-1",
+  "removedPackages": [
+    "@ashiba-ts/driver-adapter-mysql2",
+    "@ashiba-ts/driver-adapter-mssql"
+  ],
+  "removedCoreSurface": [
+    "withAshibaRetry",
+    "AshibaRetryPolicy",
+    "AshibaRetryDecision",
+    "AshibaRetryContext",
+    "AshibaRetryEvent",
+    "AshibaRetryObserver",
+    "AshibaRetryPolicyError"
+  ],
+  "retainedCoreReason": "The deferred PostgreSQL adapter and current Support Inbox example still consume query-model, execution-event, query-source, cardinality, safe-sort, and optional-condition contracts.",
+  "dbmsPositioningChanged": false,
+  "goldenPathChanged": false,
+  "scopeChanged": false,
+  "deferred": [
+    "PostgreSQL adapter ordinary execution wrapper",
+    "runtime source-hash gate placement",
+    "safe-sort final ownership",
+    "optional-condition compression productization",
+    "Support Inbox PostgreSQL adapter migration"
+  ],
+  "verification": {
+    "namedParameters": "8 passed after MySQL repeated-occurrence and MSSQL named-value coverage additions",
+    "adapterCore": "13 passed after retry test removal",
+    "adapterPg": "65 passed; 3 live-dependent skipped",
+    "cli": "24 passed; 2 skipped",
+    "supportInbox": "17 passed; 25 live-dependent skipped",
+    "ticketQueue": "1 passed; 1 live-dependent skipped",
+    "publishOrder": "5 public packages; 3 internal dependency edges",
+    "customerTutorial": "passed",
+    "consumerInstall": "passed",
+    "customerFunctional": "passed"
+  },
+  "liveVerification": {
+    "ashibaTestDatabaseUrlPresent": false,
+    "ashibaPostgresDatabaseUrlPresent": false,
+    "result": "not run; no runtime or PostgreSQL behavior changed in this phase"
+  },
+  "cleanup": {
+    "consumerInstallTemporaryDirectoriesRemoved": 6,
+    "databaseOrContainerCreated": false
+  }
+}
