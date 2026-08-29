@@ -28,6 +28,6 @@ native-driver behavior, the PostgreSQL adapter, the standalone PostgreSQL
 contract, or DBMS support. The skipped live evidence is nevertheless a stated
 limitation rather than a pass.
 
-Seven consumer-install temporary directories created during this phase were
-explicitly removed after verification. No database or container was created by
-this phase.
+Consumer-install temporary directories created during this phase were
+explicitly removed after each verification run. No database or container was
+created by this phase.
