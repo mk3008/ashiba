@@ -1,0 +1,9 @@
+{
+  "startingSha": "defcf2b6ac0a205c26a343d0e39d0c9f12cd24b9",
+  "overallDecision": "REDUCE",
+  "decisions": {"ddlMigrationGenerate":"KEEP","sqlResourceSnapshot":"KEEP","sqlResourceCompare":"KEEP","gateScaffold":"REMOVE","ddlPullPgDump":"REMOVE"},
+  "goldenPathChanged": false,
+  "scopeChanged": false,
+  "productCodeChanged": false,
+  "verification": {"pnpmVerify":"pass","docsBuild":"pass","gitDiffCheck":"pass","remoteCi":{"verify":"success","postgresLive":"success","postgresTicketQueueReference":"success","supportInboxExample":"success","supportInboxExampleAutocrlf":"success"},"temporaryResources":"none"}
+}
