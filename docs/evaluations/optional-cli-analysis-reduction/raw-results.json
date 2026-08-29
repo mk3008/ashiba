@@ -1,0 +1,28 @@
+{
+  "startingSha": "0607247823df6f8dccb2ff73eb67d8d8d6796b73",
+  "removedCommands": [
+    "query format",
+    "query lint",
+    "query outline",
+    "query graph",
+    "query slice"
+  ],
+  "retainedCommands": [
+    "query uses table",
+    "query uses column",
+    "lint (DDL-backed checks only)"
+  ],
+  "focusedVerification": {
+    "queryUses": "pass",
+    "ddlLint": "pass",
+    "cliCatalog": "pass"
+  },
+  "repositoryVerification": "pass",
+  "docsBuild": "pass",
+  "diffCheck": "pass",
+  "livePostgres": {
+    "status": "not-run-to-completion",
+    "reason": "The already-running local PostgreSQL container rejected its documented environment password (28P01); no credential reset or database mutation was performed."
+  },
+  "temporaryResources": "none created; failed live connection did not create a test schema"
+}
