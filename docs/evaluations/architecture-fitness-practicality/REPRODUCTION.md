@@ -11,6 +11,19 @@ node packages/cli/dist/index.js query uses table public.tickets --root-dir examp
 corepack pnpm --filter @ashiba-ts/cli test -- query-uses.test.ts ddl-lint.test.ts ddl-diff.test.ts sql-resource.test.ts
 ```
 
+Reproduce the DDL migration distinction without writing product files:
+
+```powershell
+node packages/cli/dist/index.js ddl migration generate `
+  --from docs/evaluations/architecture-fitness-practicality/evaluation/fixtures/ddl/before.sql `
+  --to docs/evaluations/architecture-fitness-practicality/evaluation/fixtures/ddl/after.sql `
+  --format json --dry-run
+```
+
+The committed `evaluation/generated/add-resolved-at.sql` is the generated SQL;
+`evaluation/generated/add-resolved-at.json` is the separate dry-run summary,
+apply-plan, and risk evidence.
+
 Run the live SQL-resource suite only with a disposable PostgreSQL database URL:
 
 ```powershell

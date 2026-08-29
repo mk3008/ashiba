@@ -6,7 +6,7 @@
 | B change | `read-current.sql` -> `read-changed.sql` | pass: added locale and stale artifact check exited 1 |
 | C sort | Support Inbox / Ticket Queue | concern: broad CASE ordering versus compact allowlist |
 | D write | Ticket Queue live verify | pass: native transaction + rollback |
-| E schema | DDL fixture / Support Inbox | mixed: query uses/lint useful, migration output needs review |
+| E schema | DDL fixture / Support Inbox | mixed: query uses/lint useful; additive generated SQL and recreate-style applyPlan metadata require distinct review |
 | F failure | negative-control script and focused tests | pass: bounded guards fail at their authority |
 
 Run commands are listed in [REPRODUCTION.md](REPRODUCTION.md).

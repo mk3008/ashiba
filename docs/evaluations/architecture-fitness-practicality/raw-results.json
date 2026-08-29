@@ -21,6 +21,21 @@
     "staleMetadataCheckExit": 1,
     "ddlLintPositive": "pass",
     "ddlLintMissingColumn": "fail-closed",
+    "ddlMigrationGenerate": {
+      "hasChanges": true,
+      "generatedSql": "ALTER TABLE \"tickets\" ADD COLUMN \"resolved_at\" timestamptz NULL;",
+      "summaryChangeKind": "add_column",
+      "applyPlanOperations": [
+        "drop_table_cascade",
+        "recreate_table",
+        "create_table"
+      ],
+      "destructiveRisks": [
+        "semantic_constraint_change:public.tickets"
+      ],
+      "operationalRisks": [],
+      "rawEvidence": "evaluation/generated/add-resolved-at.json"
+    },
     "queryUsesSupportInbox": {
       "catalogsScanned": 7,
       "statementsScanned": 7,
@@ -40,7 +55,7 @@
   "optionalCapabilityPracticality": {
     "queryUses": "situationally-useful",
     "ddlBackedLint": "clearly-useful",
-    "ddlMigrationGenerate": "situationally-useful-review-only",
+    "ddlMigrationGenerate": "situationally-useful-review-tool-with-apply-plan-consistency-concern",
     "sqlResource": "situationally-useful-no-current-app-or-ci-consumer",
     "postgresContract": "clearly-useful-where-opted-in"
   },

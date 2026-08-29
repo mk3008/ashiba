@@ -26,7 +26,7 @@ canonical SQL -> deterministic binding metadata -> bindNamedParameters
 | B change | pass | `locale` added a result/filter/input; `model-gen --check` rejected intentionally stale metadata. |
 | C sort | concern | Ticket Queue's small allowlist is natural; Support Inbox's 337-line CASE ordering is safe but materially broadens review. |
 | D transaction | pass | Ticket Queue verified direct pg transaction/rollback and native named binding. |
-| E schema | mixed | DDL lint caught a missing column; query uses reported AST impact; an additive fixture migration rendered recreate/drop risk. |
+| E schema | mixed | DDL lint caught a missing column; query uses reported AST impact. The generated migration SQL added the nullable column, while its separate apply-plan metadata represented a table recreate. |
 | F failures | pass | Binding, freshness, DDL, AST, contract, and rollback controls detected their bounded failures. |
 
 See [TASK_MATRIX.md](TASK_MATRIX.md), [FAILURE_DETECTION_MATRIX.md](FAILURE_DETECTION_MATRIX.md), and `evaluation/` for reproducible fixtures.
@@ -49,7 +49,7 @@ the removed runtime package based on this one consumer.
 | --- | --- |
 | query uses | situationally useful: AST-first impact inspection found four high-confidence `public.tickets` matches across seven Support Inbox catalogs. It requires the intended QuerySpec/canonical layout. |
 | DDL-backed lint | clearly useful: fail-closed mechanical table/column/literal checks; fixture mismatch failed before execution. |
-| DDL migration generate | situationally useful: deterministic risk/review evidence, not migration application; additive fixture rendered recreate/drop risk. |
+| DDL migration generate | situationally useful review tool: generated SQL was additive, but its separate apply-plan metadata represented table recreate and needs consistency review. |
 | sql-resource snapshot/compare | situationally useful, limited current use: live mutation matrix is strong, but no active application/CI consumer exists. |
 | PostgreSQL contract | clearly useful where opted in: live Ticket Queue checks caught stale SQL and false type declarations. |
 
@@ -77,6 +77,29 @@ Reconsider only if independent applications repeatedly reimplement a removed
 runtime abstraction, broad CASE sorting becomes recurring structural friction, or
 sql-resource remains unused despite its maintenance cost. No implementation work
 is authorized here.
+
+### DDL migration evidence correction
+
+For the nullable `resolved_at` fixture, the generated migration SQL is exactly
+`ALTER TABLE "tickets" ADD COLUMN "resolved_at" timestamptz NULL;`; it does not
+drop or recreate the table. The machine-readable dry-run result is retained as
+[`evaluation/generated/add-resolved-at.json`](evaluation/generated/add-resolved-at.json).
+Its summary is `add_column`, `hasChanges` is true, and `operationalRisks` is
+empty. Separately, its `applyPlan.operations` contains `drop_table_cascade`,
+`recreate_table`, and `create_table`, while `destructiveRisks` contains one
+`semantic_constraint_change` for `public.tickets`.
+
+The current risk output does not report `table_rebuild` or `full_table_copy`;
+it does not mechanically mirror the conceptual apply-plan operations.
+
+This is not evidence that the SQL generator emitted destructive SQL. It is a
+review-tool consistency concern: SQL output and apply-plan representation are
+two potential authorities with different operation models. A reviewer or a
+machine consumer could misinterpret the apply plan as the generated migration.
+The follow-up boundary is **DDL Migration ApplyPlan Consistency Evaluation**:
+decide whether apply plans remain durable public evidence, should derive from the
+same operation model as generated SQL, or should be removed to lower Maintenance
+Surface.
 
 ## Invariants
 

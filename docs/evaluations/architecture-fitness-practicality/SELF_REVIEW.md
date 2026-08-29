@@ -11,6 +11,9 @@ remaining change-safety reduction.
 - [x] Directly observed results are separated from inference. The AI lane is not
   described as a general benchmark; the failed Docker compose start is not
   presented as a product failure.
+- [x] DDL migration generated SQL, apply-plan metadata, and risk output are
+  recorded as separate observations. No report claims that recreate operations
+  were emitted as migration SQL.
 - [x] No product API, package, Scope, Golden Path, or DBMS change occurred, and
   no removed runtime abstraction was reintroduced.
 - [x] Live runs used temporary schemas/tables and cleanup is recorded.
@@ -29,7 +32,9 @@ remaining change-safety reduction.
 - **blocker:** none.
 - **follow-up:** re-evaluate a narrow application design only if large CASE sort
   SQL recurs independently; re-evaluate sql-resource ownership with a real
-  recurring consumer or sustained lack of one.
+  recurring consumer or sustained lack of one; run a DDL Migration ApplyPlan
+  Consistency Evaluation before treating apply-plan metadata as durable review
+  authority.
 - **nit:** none.
 
 ## Review readiness
