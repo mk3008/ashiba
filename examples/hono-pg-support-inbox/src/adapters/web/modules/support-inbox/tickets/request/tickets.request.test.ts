@@ -16,6 +16,10 @@ describe('support inbox request parsing', () => {
       channel: null,
       tag: null,
       keyword: null,
+      sort_1: null,
+      sort_2: null,
+      sort_3: null,
+      sort_4: null,
       limit: 10,
       offset: 0,
     });
@@ -32,7 +36,7 @@ describe('support inbox request parsing', () => {
     });
   });
 
-  test('maps public sort choice to reviewed safe sort keys', () => {
+  test('maps public sort choice to reviewed finite sort keys', () => {
     const filters = parseTicketFilters(new URL('http://localhost/tickets?sort=vip-first'));
 
     expect(toTicketSort(filters)).toEqual([
@@ -42,7 +46,7 @@ describe('support inbox request parsing', () => {
     ]);
   });
 
-  test('maps header column sort choices to reviewed safe sort keys', () => {
+  test('maps header column sort choices to reviewed finite sort keys', () => {
     const filters = parseTicketFilters(new URL('http://localhost/tickets?sort=customer_name.asc,updated_at.desc'));
 
     expect(filters.sort).toBe('customer_name.asc,updated_at.desc');

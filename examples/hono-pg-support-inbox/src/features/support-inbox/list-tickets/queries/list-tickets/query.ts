@@ -1,6 +1,6 @@
 import { queryMany, type FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
-import { queryModel } from './generated/query.meta.js';
+import { bindingMetadata } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const listTicketsSql = querySql;
@@ -9,8 +9,7 @@ export const listTicketsQuery: FeatureQuerySource<ListTicketsQueryParams, ListTi
   path: 'list-tickets.sql',
   sqlPath: 'list-tickets.sql',
   sql: listTicketsSql,
-  queryModel,
-  optionalConditionCompression: true,
+  binding: bindingMetadata.bindings.postgres,
   metadata: {
     sqlId: 'list-tickets',
     queryId: 'list-tickets',
@@ -29,6 +28,10 @@ export interface ListTicketsQueryParams {
   keyword: unknown;
   limit: number;
   offset: number;
+  sort_1: string | null;
+  sort_2: string | null;
+  sort_3: string | null;
+  sort_4: string | null;
 }
 
 export interface ListTicketsQueryResult {

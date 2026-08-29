@@ -17,20 +17,19 @@ hero:
 features:
   - title: "SQL is yours"
     details: "Keep SQL as application-owned source code. Read it, edit it, review it, and run it in your SQL client."
-  - title: "Generated code is yours"
-    details: "Ashiba writes ordinary TypeScript into your repo, including DTOs, mapper boundaries, query contracts, and runtime metadata. SQL logic tests are explicit and selective."
+  - title: "Generated metadata is deterministic"
+    details: "Ashiba generates reviewable binding metadata from canonical SQL and can check it for freshness. Application types and semantic tests remain application-owned."
   - title: "Safety is checked"
-    details: "Deterministic contract checks catch stale SQL, DDL, metadata, and editable TypeScript boundaries; selected behavior tests cover semantics those checks cannot prove."
+    details: "Deterministic checks cover binding artifacts and optional database-derived contract facts; application tests cover behavior those checks cannot prove."
   - title: "No ORM runtime"
-    details: "Your app owns native-driver execution of explicit SQL; optional Ashiba preparation/adapters add narrow deterministic convenience. No hidden query DSL or object layer."
+    details: "Your app owns native-driver execution of explicit SQL. No hidden query DSL or object layer."
 ---
 
 ## Documentation
 
 - [Command API](./generated/api/commands.md)
-- [SSSQL notation](./guide/sssql.md)
-- [Safe sort](./guide/safe-sort.md)
 - [Runtime boundary](./guide/runtime-boundary.md)
+- [Driver surface migration](./guide/driver-adapter-migration.md)
 - [SQL format](./guide/sql-format.md)
 - [PostgreSQL-derived query contracts](./guide/postgres-contract.md)
 - [SQL resources and schema compatibility](./guide/sql-resource-compatibility.md)

@@ -25,13 +25,12 @@ The application owns its pool, client, transaction, commit/rollback,
 TypeScript types, business semantics, migration application, and live tests.
 It may choose how SQL is bundled or loaded at runtime.
 
-## Optional convenience
+## Application integration
 
-Existing DBMS adapters remain optional deterministic convenience surfaces for
-applications that choose metadata-backed safe sort, optional compression,
-observation, or retry classification. They do not become a mandatory execution
-layer and do not own connections or transactions. PostgreSQL is the primary
-evidence lane; MySQL and SQL Server are supported secondary runtime targets.
+Applications own native-driver integration, including pools, transactions,
+logging, retry policy, optional filters, and finite reviewed sort mappings.
+PostgreSQL is the primary evidence lane; MySQL and SQL Server remain supported
+secondary runtime targets.
 
 The standalone PostgreSQL contract is also optional. It describes canonical
 SQL through real PostgreSQL without executing mutations and compares the

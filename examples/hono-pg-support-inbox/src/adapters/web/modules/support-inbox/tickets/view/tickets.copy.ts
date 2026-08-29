@@ -50,12 +50,12 @@ export const copy = {
     routeTitle: '受信箱一覧 (/tickets)',
     routeBullets: [
       '実務でよく使う条件でフィルタ',
-      '業務優先の並び替えを safe sort で選択',
+      '業務優先の並び替えをレビュー済みの候補から選択',
       '最新メッセージの要点を一覧表示',
       'SLA状態を視覚的に把握',
     ],
-    sortTitle: 'safe sort の例',
-    safeSortSurfaceTitle: '公開 safe sort',
+    sortTitle: 'レビュー済みの並び順',
+    reviewedSortSurfaceTitle: '公開された並び順候補',
     stableSortLabel: '固定の安定順序',
     sortBullets: [
       'アクション優先',
@@ -69,10 +69,10 @@ export const copy = {
     valueBullets: [
       'SQLクライアントで確認できるSQLを資産として保つ',
       '複雑な一覧ロジックを1枚のSQLに集約',
-      'optional filter と safe sort を安全に扱う',
-      'DTO / Mapper / Mapper Test / Drift Check が変更に強い保守体験を支える',
+      'optional filter とレビュー済みの並び順を安全に扱う',
+      'アプリケーションの型とテストが変更に強い保守体験を支える',
       'AIが変更しても、人間がレビューすべき範囲が狭い',
     ],
-    note: 'フィルタは安全なパラメータとして扱われ、SQLはSSSQLにより安全にoptional条件を適用します。',
+    note: 'フィルタは名前付きパラメータとして扱われ、SQLのnullable guardが可視のoptional条件を表現します。',
   },
 } as const;

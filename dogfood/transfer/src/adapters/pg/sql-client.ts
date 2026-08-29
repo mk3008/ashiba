@@ -1,4 +1,4 @@
-import { preparePostgresQuery, type AshibaPostgresQuerySource } from '@ashiba-ts/driver-adapter-pg';
+import { bindNamedParameters } from '@ashiba-ts/named-parameters';
 import type {
   AnyFeatureQuerySource,
   AshibaQueryParams,
@@ -9,9 +9,9 @@ import type {
 /**
  * Adapt a node-postgres `pg`-style queryable (Client or Pool) into a feature query executor.
  *
- * Generated query sources keep the reviewed canonical SQL and binding metadata.
- * Ashiba prepares positional SQL and ordered values; the application invokes the
- * native driver, owns its pool, and keeps transaction policy at this boundary.
+ * Generated query sources keep reviewed binding metadata. The application binds
+ * values, invokes the native driver, owns its pool, and keeps transaction
+ * policy at this boundary.
  *
  * Usage:
  *   // This runtime example uses DATABASE_URL for application code.
@@ -25,14 +25,7 @@ export function fromPg(queryable: {
 }): FeatureQueryExecutor {
   return {
     async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
-      const postgresQuery: AshibaPostgresQuerySource<AshibaQueryParams<Query>, AshibaQueryRow<Query>> = {
-        sql: query.sql,
-        sqlPath: query.sqlPath,
-        queryModel: query.queryModel,
-      };
-      const prepared = preparePostgresQuery(postgresQuery, { ...params }, {
-        optionalConditionCompression: query.optionalConditionCompression,
-      });
+      const prepared = bindNamedParameters(query.binding, { ...params });
       const result = await queryable.query(prepared.sql, prepared.values);
       return result.rows as AshibaQueryRow<Query>[];
     },

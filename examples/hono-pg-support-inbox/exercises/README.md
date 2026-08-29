@@ -1,6 +1,10 @@
 # Support Inbox Exercises
 
-This directory contains patch-backed exercises for the Support Inbox demo.
+This directory contains historical patch-backed exercises for the Support
+Inbox demo. They preserve past adoption evidence; they are not current Ashiba
+runtime guidance. The current application path uses visible nullable guards,
+application-owned finite sort mappings, generated binding metadata, and native
+`pg` execution.
 
 Each exercise keeps the starter demo unchanged and stores a verified solution as a patch. This lets the repository preserve realistic improvement tasks while still proving that each task is implementable after library upgrades.
 
@@ -8,7 +12,7 @@ Grid-header sorting with Shift-click multi-sort is part of the starter demo now,
 
 ## Exercises
 
-- `sql-inspection-review/` - Review the live SQL console and explain why dynamic filters and dynamic safe sort do not hide the SQL.
+- `sql-inspection-review/` - Historical review of visible SQL and dynamic filters/sort behavior.
 - `contract-boundary-narrowing/` - Narrow conservative generated request contracts from `unknown` to application-owned types and verify the edit loop.
 - `optional-priority-filter/` - Add a `priority` optional filter and follow the CLI/typecheck/test trail.
 - `add-customer-locale-column/` - Add a list result column from SQL and follow metadata, DTO, mapper, and UI changes.

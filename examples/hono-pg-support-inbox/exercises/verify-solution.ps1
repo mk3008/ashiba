@@ -101,9 +101,7 @@ try {
   }
 
   Invoke-Step 'Build local packages used by file: dependencies' {
-    pnpm -C $worktree --filter '@ashiba-ts/driver-adapter-core' build
-    pnpm -C $worktree --filter '@ashiba-ts/driver-adapter-pg' build
-    pnpm -C $worktree --filter '@ashiba-ts/testkit-adapter-pg' build
+    pnpm -C $worktree --filter '@ashiba-ts/named-parameters' build
   }
 
   Invoke-Step 'Refresh example file: dependency copies' {

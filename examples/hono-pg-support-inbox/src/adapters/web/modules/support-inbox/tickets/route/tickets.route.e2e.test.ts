@@ -41,8 +41,8 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('請求書のダウンロードができない');
     expect(html).toContain('Live Query Console');
     expect(html).toContain('GET /tickets');
-    expect(html).toContain('<td>$1</td><td>limit</td><td>10</td>');
-    expect(html).toContain('<td>$2</td><td>offset</td><td>0</td>');
+    expect(html).toContain('<td>$12</td><td>limit</td><td>10</td>');
+    expect(html).toContain('<td>$13</td><td>offset</td><td>0</td>');
     expect(html).toContain('tag_matched_tickets as');
     expect(html).toContain('join filtered_tickets as ft on ft.ticket_id = tm.ticket_id');
     expect(html).toContain('join searchable_tickets as st on st.ticket_id = ttl.ticket_id');
@@ -191,9 +191,9 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('ログインできません');
     expect(html).toContain('プランの変更方法を教えてください');
     expect(html).not.toContain('Demo is not ready');
-    expect(html).toContain('t.status = $1');
-    expect(html).toContain('<td>$1</td><td>status</td><td>open</td>');
-    expect(html).toContain('<td>$2</td><td>limit</td><td>10</td>');
+    expect(html).toContain('t.status = $2');
+    expect(html).toContain('<td>$2</td><td>status</td><td>open</td>');
+    expect(html).toContain('<td>$12</td><td>limit</td><td>10</td>');
     expect(html).not.toContain('cast($1 as text) is null or t.status = $2');
     expect(html).not.toContain('where true');
   });
@@ -301,7 +301,7 @@ describeDb('support inbox HTTP filters', () => {
     ['/tickets?sort=customer-reply-new', '並び順: 顧客からの返信: 新しい順'],
     ['/tickets?sort=updated-new', '並び順: 更新日時: 新しい順'],
     ['/tickets?sort=vip-first', '並び順: VIP優先'],
-  ])('renders safe sort choice %s through the HTTP route', async (path, label) => {
+  ])('renders reviewed finite sort choice %s through the HTTP route', async (path, label) => {
     const response = await app.request(path);
     const html = await response.text();
 
@@ -318,7 +318,8 @@ describeDb('support inbox HTTP filters', () => {
     expect(response.status).toBe(200);
     expectReadyHtml(html);
     expect(html).toContain('並び順: 顧客 昇順 → 更新日時 降順');
-    expect(html).toContain('cast(st.customer_name as text) asc, st.updated_at desc, st.ticket_id asc');
+    expect(html).toContain('case when $8 = &#39;customer_name.asc&#39;');
+    expect(html).toContain('case when $9 = &#39;updated_at.desc&#39;');
     expect(html).toContain('data-sort-key="customer_name">顧客<span class="sortMarker">↑</span>');
     expect(html).toContain('data-sort-key="updated_at">更新日時<span class="sortMarker">↓2</span>');
   });
@@ -534,24 +535,6 @@ describeDb('support inbox HTTP filters', () => {
 });
 
 describe('support inbox demo error messages', () => {
-  test('explains query metadata drift separately from database startup', async () => {
-    const app = createWebApp({
-      pool: failingPool(Object.assign(new Error('Query model binding metadata was generated from different source SQL.'), {
-        code: 'ASHIBA_QUERY_MODEL_STALE',
-      })),
-    });
-
-    const response = await app.request('/tickets');
-    const html = await response.text();
-
-    expect(response.status).toBe(503);
-    expect(html).toContain('The visible SQL and generated Ashiba metadata are out of sync.');
-    expect(html).toContain('check:drift');
-    expect(html).toContain('This is not a PostgreSQL startup or seed-data problem.');
-    expect(html).toContain('code: ASHIBA_QUERY_MODEL_STALE');
-    expect(html).not.toContain('PostgreSQL is not reachable or the seed data has not been loaded.');
-  });
-
   test('keeps PostgreSQL connection failures actionable', async () => {
     const app = createWebApp({
       pool: failingPool(Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:55433'), {

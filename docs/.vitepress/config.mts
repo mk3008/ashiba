@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress';
 
 export default defineConfig({
   title: 'Ashiba',
-  description: 'Runtime-free SQL scaffolder for TypeScript applications.',
+  description: 'SQL-first tooling and verification for TypeScript applications.',
   lang: 'en-US',
   base: '/ashiba/',
   cleanUrls: true,
@@ -22,8 +22,8 @@ export default defineConfig({
           { text: 'Ashiba Scope', link: '/design/ashiba-scope' },
           { text: 'Guide Overview', link: '/guide/' },
           { text: 'SQL Guidelines', link: '/guide/sql-guidelines' },
-          { text: 'SSSQL (current implementation)', link: '/guide/sssql' },
-          { text: 'Safe Sort (current implementation)', link: '/guide/safe-sort' },
+          { text: 'Runtime Boundary', link: '/guide/runtime-boundary' },
+          { text: 'Driver Surface Migration', link: '/guide/driver-adapter-migration' },
           { text: 'SQL Format', link: '/guide/sql-format' },
           { text: 'Scaffold Migration', link: '/guide/scaffold-migration' },
           { text: 'ZTD/Testkit Migration', link: '/guide/ztd-testkit-migration' },
@@ -38,8 +38,8 @@ export default defineConfig({
       '/guide/': [
         { text: 'Guide Overview', link: '/guide/' },
         { text: 'SQL Guidelines', link: '/guide/sql-guidelines' },
-        { text: 'SSSQL (current implementation)', link: '/guide/sssql' },
-        { text: 'Safe Sort (current implementation)', link: '/guide/safe-sort' },
+        { text: 'Runtime Boundary', link: '/guide/runtime-boundary' },
+        { text: 'Driver Surface Migration', link: '/guide/driver-adapter-migration' },
         { text: 'SQL Format', link: '/guide/sql-format' },
         { text: 'Scaffold Migration', link: '/guide/scaffold-migration' },
         { text: 'ZTD/Testkit Migration', link: '/guide/ztd-testkit-migration' },

@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "typecheck": "pnpm --filter @ashiba-ts/driver-adapter-core build && pnpm --filter @ashiba-ts/driver-adapter-pg build && tsc --noEmit -p tsconfig.json",
+    "typecheck": "pnpm --filter @ashiba-ts/named-parameters build && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "verify": "pnpm typecheck && pnpm check:sql && pnpm test",
     "check:sql": "node node_modules/@ashiba-ts/cli/dist/index.js project check --root-dir .",
@@ -15,8 +15,7 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
-    "@ashiba-ts/driver-adapter-core": "workspace:*",
-    "@ashiba-ts/driver-adapter-pg": "workspace:*",
+    "@ashiba-ts/named-parameters": "workspace:*",
     "@hono/node-server": "^2.0.10",
     "hono": "^4.12.34",
     "pg": "^8.16.3"

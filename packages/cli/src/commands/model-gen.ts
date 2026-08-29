@@ -6,8 +6,6 @@ import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 import { ColumnReference, SimpleSelectQuery, SqlParser, TableSource, UpdateQuery } from 'rawsql-ts';
 import { normalizeSqlSource } from '../sql-source.js';
 import { extractSqlResultColumnAstItems, extractSqlResultColumnContracts } from './sql-result-columns.js';
-import { buildSqlSafeSortMetadata } from './sql-safe-sort-metadata.js';
-import { buildSqlOptionalConditionCompressionMetadata } from './sql-optional-condition-compression-metadata.js';
 import { loadDdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
 import { loadProjectPathConfig } from './config.js';
 import { inferSqlExpressionNullability } from './sql-expression-type.js';
@@ -88,7 +86,6 @@ export function analyzeQueryModel(
   sql: string,
   namedParameters: readonly string[],
   resultColumns: ReturnType<typeof extractSqlResultColumnContracts>,
-  _options: { optionalConditionCompression?: boolean; parameterTypes?: Record<string, string> } = {},
 ) {
   return {
     sourceHash: `sha256:${createHash('sha256').update(normalizeSqlSource(sql)).digest('hex')}`,
@@ -96,27 +93,7 @@ export function analyzeQueryModel(
     resultColumnNullability: Object.fromEntries(resultColumns.map((column) => [column.name, column.nullability])),
     namedParameters: [...namedParameters],
     parserCapabilities: { parser: { status: 'unaffected' }, parameterBinding: 'unaffected' },
-    safeSort: buildSqlSafeSortMetadata(sql),
-    optionalConditionCompression: _options.optionalConditionCompression ? buildSqlOptionalConditionCompressionMetadata(sql) : undefined,
   };
-}
-
-export function buildPostgresSafeSortBindingMetadata(sql = '', safeSort: ReturnType<typeof buildSqlSafeSortMetadata>): { safeSortInsertion?: { index: number; end?: number } } {
-  if (safeSort.insertion.status !== 'ready') return {};
-  const at = (index: number) => compileNamedParameters(sql.slice(0, index), { rendering: { style: 'indexed', prefix: '$' } }).sql.length;
-  return { safeSortInsertion: { index: at(safeSort.insertion.index), ...(safeSort.insertion.end === undefined ? {} : { end: at(safeSort.insertion.end) }) } };
-}
-
-export function buildPostgresOptionalConditionCompressionBindingMetadata(sql = '', metadata: ReturnType<typeof buildSqlOptionalConditionCompressionMetadata> | undefined) {
-  if (!metadata) return {};
-  const at = (index: number) => compileNamedParameters(sql.slice(0, index), { rendering: { style: 'indexed', prefix: '$' } }).sql.length;
-  const text = (start: number, value: string) => {
-    const prefix = compileNamedParameters(sql.slice(0, start), { rendering: { style: 'indexed', prefix: '$' } }).sql;
-    return compileNamedParameters(`${sql.slice(0, start)}${value}`, { rendering: { style: 'indexed', prefix: '$' } }).sql.slice(prefix.length);
-  };
-  return { optionalConditionCompression: {
-    branches: metadata.branches.map((branch) => ({ parameterName: branch.parameterName, removalRange: { start: at(branch.removalRange.start), end: at(branch.removalRange.end) }, presentReplacement: { start: at(branch.presentReplacement.start), end: at(branch.presentReplacement.end), text: text(branch.presentReplacement.start, branch.presentReplacement.text) } })),
-  } };
 }
 
 /** Generate deterministic, driver-specific binding metadata from canonical SQL. */

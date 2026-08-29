@@ -1,6 +1,6 @@
 import { queryMany, type FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
-import { queryModel } from './generated/query.meta.js';
+import { bindingMetadata } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const insertTransferDestinationDefinitionSql = querySql;
@@ -9,7 +9,7 @@ export const insertTransferDestinationDefinitionQuery: FeatureQuerySource<Insert
   path: 'insert-transfer-destination-definition.sql',
   sqlPath: 'insert-transfer-destination-definition.sql',
   sql: insertTransferDestinationDefinitionSql,
-  queryModel,
+  binding: bindingMetadata.bindings.postgres,
   metadata: {
     sqlId: 'insert-transfer-destination-definition',
     queryId: 'insert-transfer-destination-definition',

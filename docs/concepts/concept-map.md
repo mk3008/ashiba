@@ -28,7 +28,7 @@ canonical SQL
 |---|---|---|
 | Repository philosophy | Repository-wide concepts and policies | Keeps SQL visible and defines the native-driver and application-ownership boundaries. |
 | SQL tooling and verification | `@ashiba-ts/cli` | Generates deterministic binding artifacts, checks their freshness, provides optional PostgreSQL contract commands, and exposes retained SQL inspection tooling. |
-| Binding and driver packages | `@ashiba-ts/named-parameters`, `@ashiba-ts/driver-adapter-*` | Provides deterministic parameter handling and bounded driver-specific convenience; native drivers remain execution owners. |
+| Binding package | `@ashiba-ts/named-parameters` | Provides deterministic parameter handling; native drivers remain execution owners. |
 | Optional SQL tooling | Retained CLI and package capabilities | Provides explicit inspection, formatting, linting, migration, DDL, or metadata assistance only where that capability is currently retained. |
 
 ## Customer Contact Review Lanes
@@ -46,7 +46,7 @@ canonical SQL
 | `ashiba` | Ashiba | mostly done | SQL-first tooling and verification product. PostgreSQL is the primary evidence path; MySQL and SQL Server remain supported secondary DBMS targets. |
 | `visible-sql` | Visible SQL | mostly done | Canonical SQL remains readable, reviewable, editable, executable, and searchable. Application values use meaningful named parameters. |
 | `boring-mechanical-boundaries` | Boring Mechanical Boundaries | mostly done | Ashiba owns deterministic named-parameter lowering, binding metadata, freshness, missing/unused parameter rejection, and optional DB-derived contract facts. |
-| `runtime-boundary` | Native Driver Baseline | mostly done | Ashiba tooling is not the runtime execution owner. Applications call native drivers; preparation and adapters are optional convenience. |
+| `runtime-boundary` | Native Driver Baseline | mostly done | Ashiba tooling is not the runtime execution owner. Applications bind values and call native drivers directly. |
 | `no-orm-runtime` | No ORM Runtime | mostly done | Ashiba does not own entities, relation loading, unit-of-work tracking, transaction policy, or application architecture. |
 | `no-query-dsl-ceremony` | No Query DSL Ceremony | mostly done | SQL remains ordinary dialect SQL without Ashiba-only directives or runtime rewriting. |
 | `deterministic-generated-metadata` | Deterministic Generated Metadata | mostly done | Binding metadata and optional retained metadata are source-derived development artifacts, distinct from application source architecture. |
@@ -71,18 +71,15 @@ canonical SQL
 | `migration-artifact` | Migration Artifact | mostly done | Optional CLI support can emit reviewable migration SQL and risk information; applications own connection, apply, rollback, scheduling, and migration-platform policy. |
 | `cli-no-hidden-sql-rewrite` | CLI No Hidden SQL Rewrite | mostly done | CLI tooling does not interpolate application values or conceal runtime SQL rewriting in application execution. |
 
-## Driver Package Concepts
+## Binding Concepts
 
-These concepts belong to driver-neutral binding libraries and production driver adapters. SQL semantic proof remains application-owned.
+These concepts belong to the driver-neutral binding library. SQL semantic proof
+and runtime integration remain application-owned.
 
 | ID | Display name | Status | Notes |
 |---|---|---|---|
 | `named-parameter-binding` | Named Parameter Binding | mostly done | Canonical `:name` or ecosystem-native named parameters lower deterministically to driver placeholders and a separate value representation. |
 | `parameter-contract-check` | Parameter Contract Check | mostly done | The binder rejects missing and unused parameters before execution. |
-| `thin-driver-adapter` | Optional Driver Adapter | mostly done | Adapters may provide DBMS-specific deterministic convenience, but are not a mandatory execution architecture and do not own transactions. |
-| `safe-sort-profile` | Safe Sort Profile | mostly done | The retained driver-wrapper safe-sort surface accepts only metadata-backed whitelisted keys and rejects stale metadata. |
-| `optional-condition-compression` | Optional Condition Compression | partial | Retained optional-condition support is explicit, metadata-backed, source-checked, and free of Ashiba-only SQL markers. |
-| `logger-ready-execution-event` | Logger-Ready Execution Event | mostly done | Optional driver observer events make bounded execution information available without changing native driver ownership. |
 
 ## Category Relationship View
 
@@ -91,7 +88,6 @@ flowchart TD
   Repo["Repository philosophy"]
   CLI["@ashiba-ts/cli"]
   Binding["@ashiba-ts/named-parameters"]
-  Drivers["Optional driver adapters"]
   App["Application"]
 
   Repo --> VisibleSql["Visible canonical SQL"]
@@ -107,7 +103,6 @@ flowchart TD
   VisibleSql --> Generate
   Metadata --> Binding
   Binding --> NativeDriver["native driver"]
-  Drivers --> NativeDriver
   NativeBoundary --> NativeDriver
   NativeDriver --> App
   Contract --> App
@@ -122,8 +117,7 @@ flowchart TD
 - Binding artifacts are deterministic and freshness checks cover the artifacts Ashiba generates.
 - Missing and unused parameters fail before execution.
 - Optional PostgreSQL contracts are explicitly invoked mechanical proof; they do not replace application semantic tests.
-- Native drivers remain the baseline execution owners. Optional adapters must not become a generic execution layer or transaction owner.
-- Retained metadata-backed features fail closed when metadata is missing or stale.
+- Native drivers remain the execution owners. Applications own pools, logging, transactions, optional query variants, and finite sort mappings.
 - Application behavior, result shaping, transactions, rollback policy, migration application, and SQL semantic proof remain application-owned.
 - Ashiba does not prescribe application architecture, directory layout, or an application testing framework.
 - Public package, CLI, docs, and generated deterministic artifact surfaces must not promise removed application-generation or test-framework behavior.

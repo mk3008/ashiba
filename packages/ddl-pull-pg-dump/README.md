@@ -13,7 +13,7 @@ Start with the repository README for the full SQL-first workflow:
 
 ## What This Package Owns
 
-This package is intentionally separate from `@ashiba-ts/driver-adapter-pg` because PostgreSQL DDL pull depends on external DBMS tooling such as `pg_dump`, not on a TypeScript database driver contract.
+This package is separate from runtime query execution because PostgreSQL DDL pull depends on external DBMS tooling such as `pg_dump`, not on a TypeScript database driver contract.
 
 The package name is deliberately `@ashiba-ts/ddl-pull-pg-dump`: `ddl-pull` names the Ashiba capability and `pg-dump` names the wrapped executable. A generic DDL pull package would need to own equivalent pull behavior for PostgreSQL, MySQL, SQL Server, and other supported database families. This package only wraps explicit PostgreSQL `pg_dump` usage.
 

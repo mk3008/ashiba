@@ -50,8 +50,6 @@ export interface SqlResource {
   };
   capabilities: {
     parser: unknown;
-    optionalSubtraction: unknown;
-    safeSort: unknown;
   };
   contract: {
     database: {
@@ -232,8 +230,6 @@ export async function createSqlResourceFleetSnapshot(options: SnapshotOptions): 
         },
         capabilities: {
           parser: model.analysis.parserCapabilities,
-          optionalSubtraction: model.analysis.optionalConditionCompression,
-          safeSort: model.analysis.safeSort,
         },
         contract: toPortableContract(contract),
         provenance: {

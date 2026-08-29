@@ -1,5 +1,3 @@
-import type { AshibaPostgresPreparationOptions } from '@ashiba-ts/driver-adapter-pg';
-
 import type { ListTicketsQueryParams } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
 
 export type TicketSortKey =
@@ -39,7 +37,7 @@ export type TicketFilters = {
   selectedTicketId?: string;
 };
 
-type SortInput = NonNullable<AshibaPostgresPreparationOptions['sort']>[number];
+export type SortInput = { key: string; direction?: 'asc' | 'desc' };
 
 export const ticketSortInputs: Record<TicketSortKey, readonly SortInput[]> = {
   'action-required': [
@@ -101,6 +99,7 @@ export function parseTicketFilters(url: URL): TicketFilters {
 }
 
 export function toListTicketsParams(filters: TicketFilters): ListTicketsQueryParams {
+  const sort = toTicketSort(filters).map((item) => `${item.key}.${item.direction ?? 'asc'}`);
   return {
     status: nullable(filters.status),
     customerTier: nullable(filters.customerTier),
@@ -111,6 +110,10 @@ export function toListTicketsParams(filters: TicketFilters): ListTicketsQueryPar
     keyword: nullable(filters.keyword),
     limit: 10,
     offset: (filters.page - 1) * 10,
+    sort_1: sort[0] ?? null,
+    sort_2: sort[1] ?? null,
+    sort_3: sort[2] ?? null,
+    sort_4: sort[3] ?? null,
   };
 }
 
