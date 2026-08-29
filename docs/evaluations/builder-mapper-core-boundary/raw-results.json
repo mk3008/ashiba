@@ -1,0 +1,62 @@
+{
+  "startingSha": "ea71387c1697555b042d6ba76031823be37268b1",
+  "decisions": {
+    "dynamicSort": "CONTEXTUAL",
+    "migration": "REMOVE-FROM-ASHIBA",
+    "applyPlan": "REMOVE",
+    "architecture": "CORE-BOUNDARY-ACCEPTED"
+  },
+  "invariants": {
+    "scopeChanged": false,
+    "goldenPathChanged": false,
+    "dbmsPositioningChanged": false,
+    "productCodeChanged": false,
+    "publicApiChanged": false,
+    "currentProductDocsChanged": false
+  },
+  "sortControl": {
+    "status": "pass",
+    "reviewedKeys": ["subject", "createdAt", "priority"],
+    "acceptedCases": ["single known key", "multi-sort"],
+    "rejectedCases": ["unknown key", "hostile key", "invalid direction", "duplicate key", "too many keys"],
+    "stableTieBreaker": "st.ticket_id asc",
+    "rawExternalInputInsertedIntoSql": false,
+    "evidence": "evaluation/sort/reviewed-finite-composition.mjs"
+  },
+  "migrationControl": {
+    "fixture": "nullable resolved_at column addition",
+    "generatedSql": "ALTER TABLE \"tickets\" ADD COLUMN \"resolved_at\" timestamptz NULL;",
+    "hasChanges": true,
+    "summaryChangeKind": "add_column",
+    "applyPlanOperations": ["drop_table_cascade", "recreate_table", "create_table"],
+    "destructiveRisks": ["semantic_constraint_change:public.tickets"],
+    "operationalRisks": [],
+    "interpretation": "Generated SQL is additive; applyPlan and risk output are separate review representations.",
+    "evidence": "evaluation/migration/add-resolved-at.json",
+    "reproduction": "pass"
+  },
+  "consumerCensus": {
+    "core": ["Support Inbox", "Ticket Queue"],
+    "migrationGenerate": ["CLI command/catalog", "CLI tests", "Support Inbox exercise", "current migration guide"],
+    "migrationRuntimeOrStandardCiConsumer": false,
+    "applyPlanMachineConsumer": false,
+    "sqlResourceApplicationOrCiConsumer": false,
+    "detachedExperimentalRetainEvidence": false
+  },
+  "verification": {
+    "isolatedFiniteSortControl": "pass",
+    "focusedMigrationEvidenceReproduction": "pass",
+    "pnpmVerify": "pass",
+    "pnpmDocsBuild": "pass",
+    "gitDiffCheck": "pass"
+  },
+  "telemetry": {
+    "creditAwareDelegations": 4,
+    "models": ["gpt-5.6-luna"],
+    "retryCount": 0,
+    "escalationCount": 0,
+    "token": "unavailable",
+    "credit": "unavailable"
+  },
+  "temporaryResources": "No database/container resources created; isolated evaluation script leaves no runtime resource."
+}
