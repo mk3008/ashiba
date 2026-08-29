@@ -43,7 +43,7 @@
     "result": "not run; no runtime or PostgreSQL behavior changed in this phase"
   },
   "cleanup": {
-    "consumerInstallTemporaryDirectoriesRemoved": 6,
+    "consumerInstallTemporaryDirectoriesRemoved": 7,
     "databaseOrContainerCreated": false
   }
 }
