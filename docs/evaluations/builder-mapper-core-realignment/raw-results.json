@@ -39,7 +39,17 @@
     "consumerInstall": "pass",
     "customerTutorialDocker": "pass",
     "customerFunctional": "pass",
-    "remoteCi": "pending PR creation"
+    "remoteCi": {
+      "workflow": "Verify",
+      "headSha": "3deb5c7f3101b99b6d1c5a71d9fba8efe04354b2",
+      "checks": {
+        "verify": "pass",
+        "postgres-live": "pass",
+        "postgres-ticket-queue-reference": "pass",
+        "support-inbox-example": "pass",
+        "support-inbox-example-autocrlf": "pass"
+      }
+    }
   },
   "temporaryResources": "Support Inbox PostgreSQL container and temporary .env were removed after the live verification."
 }
