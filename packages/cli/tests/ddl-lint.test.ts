@@ -45,4 +45,40 @@ describe('DDL-backed lint', () => {
       expect(result.files[0]?.output).not.toContain('parameter');
     });
   });
+
+  test('fails closed when no DDL model is available', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-lint-'));
+    try {
+      writeFileSync(path.join(rootDir, 'query.sql'), 'select 1', 'utf8');
+
+      expect(() => runLint('query.sql', { rootDir })).toThrow(/DDL-backed lint requires an available DDL model/);
+      try {
+        runLint('query.sql', { rootDir });
+      } catch (error) {
+        expect(error).toMatchObject({ code: 'ASHIBA_LINT_DDL_MODEL_UNAVAILABLE' });
+      }
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  test('fails closed when configured DDL source directory is missing', () => {
+    const rootDir = mkdtempSync(path.join(tmpdir(), 'ashiba-ddl-lint-'));
+    try {
+      writeFileSync(path.join(rootDir, 'query.sql'), 'select 1', 'utf8');
+      writeFileSync(path.join(rootDir, 'ashiba.config.json'), JSON.stringify({ ddl: { sourceDir: 'missing-ddl' } }), 'utf8');
+
+      try {
+        runLint('query.sql', { rootDir });
+        throw new Error('Expected unavailable DDL model failure.');
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: 'ASHIBA_LINT_DDL_MODEL_UNAVAILABLE',
+          nextAction: expect.stringContaining('Pass --ddl-dir <path>'),
+        });
+      }
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
 });

@@ -77,10 +77,21 @@ export function runLint(targetPath: string, options: LintOptions = {}): LintResu
   const target = path.resolve(rootDir, targetPath);
   const files = collectTargetSqlFiles(target);
   const ddlModel = loadDdlSchemaModel(rootDir, options.ddlDir);
+  if (!ddlModel) {
+    throw invalidCliInputError(
+      'ASHIBA_LINT_DDL_MODEL_UNAVAILABLE',
+      'DDL-backed lint requires an available DDL model, but no DDL directory could be resolved.',
+      'Pass --ddl-dir <path> for an existing DDL directory, or configure an existing ddl.sourceDir/ddlDir in ashiba.config.json before rerunning lint.',
+      {
+        rootDir,
+        ddlDir: options.ddlDir ?? null,
+      },
+    );
+  }
   const schemaPath = loadProjectPathConfig(rootDir);
   const results = files.map((file) => {
     try {
-      const ddlIssues = ddlModel ? lintSqlAgainstDdl(readFileSync(file, 'utf8'), ddlModel, schemaPath) : [];
+      const ddlIssues = lintSqlAgainstDdl(readFileSync(file, 'utf8'), ddlModel, schemaPath);
       return {
         file: normalizePath(path.relative(rootDir, file)),
         ok: ddlIssues.length === 0,
