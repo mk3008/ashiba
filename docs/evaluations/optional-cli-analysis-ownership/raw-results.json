@@ -1,0 +1,70 @@
+{
+  "startingSha": "bc67816229620b1ae935b969106baadac9d2ff73",
+  "scope": "evaluation-only",
+  "environment": {
+    "node": "v22.14.0",
+    "pnpm": "10.19.0"
+  },
+  "currentSurface": {
+    "commands": [
+      "lint",
+      "query uses table",
+      "query uses column",
+      "query outline",
+      "query graph",
+      "query slice",
+      "query format",
+      "query lint"
+    ],
+    "directPerfOrStandardVerifyConsumer": false,
+    "directOptionalFamilyTestsFound": 0
+  },
+  "experiments": {
+    "supportInboxUses": {
+      "target": "public.tickets",
+      "catalogs": 7,
+      "statements": 7,
+      "highConfidenceMatches": 4,
+      "fallbackOrUnresolvedWarnings": 0
+    },
+    "usesInvalidSql": {
+      "exitCode": 1,
+      "errorCode": "ASHIBA_QUERY_USES_AST_PARSE_FAILED",
+      "defaultFailureMode": "fail-closed"
+    },
+    "formatterCommentSafety": {
+      "changed": true,
+      "safe": false,
+      "checkExitCode": 1,
+      "reason": "formatting would drop SQL comments"
+    },
+    "ddlLint": {
+      "missingColumnExitCode": 1,
+      "literalInsertMismatchExitCode": 1,
+      "parameterConflictExitCode": 0,
+      "interpretation": "narrow static DDL checks; not parameter-semantic proof"
+    },
+    "queryLint": {
+      "unusedCteReported": true,
+      "standaloneExitCode": 0,
+      "interpretation": "advisory rather than fail-closed gate"
+    }
+  },
+  "decisions": {
+    "overall": "REDUCE",
+    "formatter": "REMOVE",
+    "lint": "REDUCE_TO_DDL_BACKED_GUARDS",
+    "queryLint": "REMOVE",
+    "queryUses": "KEEP",
+    "outline": "REMOVE",
+    "graph": "REMOVE",
+    "slice": "REMOVE"
+  },
+  "invariants": {
+    "scopeChangeRequired": false,
+    "goldenPathChanged": false,
+    "productCodeChanged": false,
+    "currentProductDocsChanged": false,
+    "temporaryDatabaseResourcesCreated": false
+  }
+}
