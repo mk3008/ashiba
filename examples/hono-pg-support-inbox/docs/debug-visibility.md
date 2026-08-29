@@ -2,7 +2,7 @@
 
 The Support Inbox demo has two visibility surfaces:
 
-- application logging at the PostgreSQL adapter boundary
+- application logging at the application-owned PostgreSQL client boundary
 - the browser-only Live Query Console used by the demo page
 
 They have different safety rules. The application logger should be safe by default. The demo console may show more detail because it is a local adoption demo whose purpose is to make the SQL execution shape visible.
@@ -66,7 +66,7 @@ The historical rawsql-ts / ztd-cli reference for this shape is preserved in `doc
 
 ## Parameter Values
 
-Ashiba SQL files use named parameters, and the PostgreSQL adapter emits `parameterNames`. This is enough to understand which named parameters were bound to `$1`, `$2`, and so on.
+Ashiba SQL files use named parameters, and the application-owned PostgreSQL client emits `parameterNames`. This is enough to understand which named parameters were bound to `$1`, `$2`, and so on.
 
 Parameter values are useful during local debugging, but they are also the highest leakage risk. Use this policy:
 
@@ -86,7 +86,7 @@ The example uses log profiles so the customer can choose the observation cost:
 | `minimal` | high-volume production endpoints | completion summaries only; no start events, no parameter names, no SQL text |
 | `standard` | ordinary local/staging observation | API and SQL start/end events, timing, row count, query identity, parameter names |
 | `debug` | incident investigation without raw values | `standard` plus operation, filter keys, sort keys, query variant, query-model summary, SQL hashes |
-| `trace` | local/demo maximum visibility | `debug` plus source SQL, compiled SQL, params, and masked params |
+| `trace` | local/demo maximum visibility | `debug` plus source SQL, compiled SQL, masked params, and raw params only where the application explicitly supplies them |
 
 Use `trace` only for local or short-lived debugging. It can record parameter values and SQL text.
 
@@ -115,7 +115,7 @@ Useful local flags:
 - `ASHIBA_DEMO_LOG_FILE=path/to/app.log`: override the log file path
 - `ASHIBA_DEMO_LOG_CONSOLE=0`: write only to the file, not stdout
 - `ASHIBA_DEMO_SQL_LOG_SQL_TEXT=1`: include compiled SQL text
-- `ASHIBA_DEMO_SQL_LOG_PARAMS=1`: include raw parameter values and masked parameters
+- `ASHIBA_DEMO_SQL_LOG_PARAMS=1`: include masked parameters and any raw values explicitly supplied by the local/demo SQL client
 
 `ASHIBA_DEMO_SQL_LOG`, `ASHIBA_DEMO_SQL_LOG_FILE`, and `ASHIBA_DEMO_SQL_LOG_CONSOLE` are still accepted as compatibility aliases for this demo.
 
@@ -160,11 +160,11 @@ Keep logger wiring at the SQL client adapter boundary:
 query -> feature -> sqlClient -> logger
 ```
 
-Feature code should receive `FeatureQueryExecutor`. It should not import `pg`, pino, winston, OpenTelemetry, or adapter observer code directly.
+Feature code should receive `FeatureQueryExecutor`. It should not import `pg`, pino, winston, OpenTelemetry, or application logging code directly.
 
 The example wiring is:
 
-- `src/adapters/pg/pool.ts` creates the Ashiba PostgreSQL adapter and provides the observer.
+- `src/adapters/pg/pool.ts` prepares deterministic SQL, calls native `pg`, and emits application-owned log events.
 - `src/adapters/logger/appLogger.ts` is the application-owned logging hook.
 - `src/adapters/web/modules/support-inbox/tickets/view/tickets.presenter.ts` overrides the observer for the local demo console.
 
@@ -177,7 +177,7 @@ This example intentionally does not choose a production logger. Reasonable choic
 - winston if the application already standardizes on it
 - console only for a small demo or local development
 
-Ashiba should not own this choice. The adapter observer should hand structured events to the application's existing logging and telemetry boundary.
+Ashiba should not own this choice. The application-owned SQL client boundary should hand structured events to the application's existing logging and telemetry boundary.
 
 ## Storage Choice
 
@@ -192,7 +192,7 @@ Do not store raw SQL text and raw parameter values in long-lived production logs
 
 ## Performance And Alerts
 
-The observer emits `elapsedMs` and `rowCount`, so application code can add performance monitoring without parsing SQL.
+The application-owned SQL client emits `elapsedMs` and `rowCount`, so application code can add performance monitoring without parsing SQL.
 
 Useful alerts:
 
@@ -225,7 +225,7 @@ When adding another demo or application screen:
 1. Give each query stable metadata: `sqlId`, `queryId`, and `sqlPath`.
 2. Generate or propagate a request correlation ID at the inbound adapter boundary.
 3. Add stable caller metadata such as `apiRoute` at the inbound adapter boundary.
-4. Wire the adapter observer at the application SQL client boundary.
+4. Wire application-owned SQL events at the application SQL client boundary.
 5. Log query identity, caller route, request ID, execution ID, timing, row count, warnings, named parameter order, and parameter summary by default.
 6. Choose a default log profile and make high-cost fields opt-in.
 7. Keep SQL text and raw parameter values behind local/debug-only opt-ins.

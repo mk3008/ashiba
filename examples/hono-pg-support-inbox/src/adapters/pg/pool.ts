@@ -1,12 +1,11 @@
 import { Pool, type PoolConfig } from 'pg';
 import {
-  createPostgresAdapter,
-  type AshibaPostgresAdapterOptions,
-  type AshibaPostgresExecuteOptions,
+  type AshibaPostgresPreparationOptions,
   type AshibaPostgresQuerySource,
+  preparePostgresQuery,
 } from '@ashiba-ts/driver-adapter-pg';
 
-import { logSqlExecution } from '#adapters/logger/appLogger.js';
+import { logSqlExecution, type SqlExecutionLogEvent } from '#adapters/logger/appLogger.js';
 import type {
   AnyFeatureQuerySource,
   AshibaQueryParams,
@@ -19,8 +18,10 @@ export type PgConnectionSettings = {
   pool?: PoolConfig;
 };
 
-export type PgFeatureQueryExecutorOptions = AshibaPostgresAdapterOptions & {
-  executeOptions?: AshibaPostgresExecuteOptions;
+export type PgFeatureQueryExecutorOptions = {
+  preparationOptions?: AshibaPostgresPreparationOptions & { metadata?: Record<string, unknown> };
+  observer?: { emit(event: SqlExecutionLogEvent): void };
+  includeUnmaskedParamsInEvents?: boolean;
 };
 
 export type PgTransactionOptions = {
@@ -59,19 +60,15 @@ export function createPgPool(settings: PgConnectionSettings = {}): Pool {
  *   query -> feature -> sqlClient -> logger
  *
  * SQL logging is intentionally delegated to ../logger/appLogger.ts. Fill that
- * file with your application logger (pino, winston, console, etc.). Feature code
- * should receive only FeatureQueryExecutor; it should not import pg, pino,
- * the Ashiba driver adapter, or logger code directly.
+ * file with your application logger (pino, winston, console, etc.). This
+ * application boundary prepares deterministic SQL, then directly calls native
+ * `pg`. Feature code should not import pg, pino, or logger code directly.
  */
 export function createPgSqlClient(
   queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },
   options: PgFeatureQueryExecutorOptions = {},
 ): FeatureQueryExecutor {
-  const { executeOptions, observer, ...adapterOptions } = options;
-  const adapter = createPostgresAdapter(queryable, {
-    ...adapterOptions,
-    observer: observer ?? { emit: logSqlExecution },
-  });
+  const { preparationOptions, observer, includeUnmaskedParamsInEvents = false } = options;
   return {
     async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
       const queryAnalysis = query.queryModel.analysis;
@@ -79,29 +76,75 @@ export function createPgSqlClient(
           sql: query.sql,
           sqlPath: query.sqlPath,
           queryModel: query.queryModel,
-          metadata: {
-            ...query.metadata,
-            sqlId: query.metadata?.sqlId ?? query.id,
-            queryId: query.metadata?.queryId ?? query.id,
-            sqlPath: query.metadata?.sqlPath ?? query.sqlPath,
-            queryModelSourceHash: queryAnalysis.sourceHash,
-            queryModelStatementKind: queryAnalysis.statementKind,
-            queryModelRootQueryShape: queryAnalysis.rootQueryShape,
-            queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
-            queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
-          },
       };
-      const result = await adapter.execute(
+      const { metadata: suppliedMetadata, ...postgresPreparationOptions } = preparationOptions ?? {};
+      const prepared = preparePostgresQuery(
         postgresQuery,
         { ...params },
         {
-          ...executeOptions,
-          optionalConditionCompression: query.optionalConditionCompression ?? executeOptions?.optionalConditionCompression,
+          ...postgresPreparationOptions,
+          optionalConditionCompression: query.optionalConditionCompression ?? postgresPreparationOptions.optionalConditionCompression,
         },
       );
-      return result.rows;
+      const startedAt = Date.now();
+      const metadata = {
+        ...suppliedMetadata,
+        sqlId: query.metadata?.sqlId ?? query.id,
+        queryId: query.metadata?.queryId ?? query.id,
+        sqlPath: query.metadata?.sqlPath ?? query.sqlPath,
+        queryModelSourceHash: queryAnalysis.sourceHash,
+        queryModelStatementKind: queryAnalysis.statementKind,
+        queryModelRootQueryShape: queryAnalysis.rootQueryShape,
+        queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
+        queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
+      };
+      const emit = (event: SqlExecutionLogEvent) => {
+        logSqlExecution(event);
+        observer?.emit(event);
+      };
+      emit({
+        phase: 'start',
+        metadata,
+        sourceSql: prepared.sourceSql,
+        compiledSql: prepared.sql,
+        parameterNames: prepared.parameterNames,
+        maskedParams: maskPreparedParams(prepared.values),
+        ...(includeUnmaskedParamsInEvents ? { params: prepared.values } : {}),
+      });
+      try {
+        const result = await queryable.query(prepared.sql, prepared.values);
+        emit({
+          phase: 'end',
+          metadata,
+          sourceSql: prepared.sourceSql,
+          compiledSql: prepared.sql,
+          parameterNames: prepared.parameterNames,
+          maskedParams: maskPreparedParams(prepared.values),
+          ...(includeUnmaskedParamsInEvents ? { params: prepared.values } : {}),
+          elapsedMs: Date.now() - startedAt,
+          rowCount: result.rowCount ?? result.rows.length,
+        });
+        return result.rows as AshibaQueryRow<Query>[];
+      } catch (error) {
+        emit({
+          phase: 'error',
+          metadata,
+          sourceSql: prepared.sourceSql,
+          compiledSql: prepared.sql,
+          parameterNames: prepared.parameterNames,
+          maskedParams: maskPreparedParams(prepared.values),
+          ...(includeUnmaskedParamsInEvents ? { params: prepared.values } : {}),
+          elapsedMs: Date.now() - startedAt,
+          error,
+        });
+        throw error;
+      }
     },
   };
+}
+
+function maskPreparedParams(values: readonly unknown[]): readonly string[] {
+  return values.map((value) => value === null || value === undefined ? '<nullish>' : '<masked>');
 }
 
 /**

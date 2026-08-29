@@ -1,4 +1,4 @@
-import type { AshibaPostgresExecuteOptions } from '@ashiba-ts/driver-adapter-pg';
+import type { AshibaPostgresPreparationOptions } from '@ashiba-ts/driver-adapter-pg';
 
 import type { ListTicketsQueryParams } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
 
@@ -39,7 +39,7 @@ export type TicketFilters = {
   selectedTicketId?: string;
 };
 
-type SortInput = NonNullable<AshibaPostgresExecuteOptions['sort']>[number];
+type SortInput = NonNullable<AshibaPostgresPreparationOptions['sort']>[number];
 
 export const ticketSortInputs: Record<TicketSortKey, readonly SortInput[]> = {
   'action-required': [

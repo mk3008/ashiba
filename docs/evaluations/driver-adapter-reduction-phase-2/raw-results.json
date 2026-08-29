@@ -1,0 +1,34 @@
+{
+  "startingSha": "259cbcb78c4ca2c777566cf746db1c81be544689",
+  "phase": "driver-adapter-reduction-phase-2",
+  "supportInboxExecutionOwner": "application-native-pg",
+  "removed": [
+    "createPostgresAdapter",
+    "PostgreSQL transient error classifier",
+    "core execution observer/event/masking",
+    "core feature executor/cardinality helpers"
+  ],
+  "retained": [
+    "preparePostgresQuery",
+    "named binding",
+    "optional-condition compression",
+    "safe sort",
+    "PostgreSQL contract profile validation"
+  ],
+  "deferred": [
+    "safe sort final ownership",
+    "runtime source-hash final placement",
+    "optional-condition compression productization",
+    "PostgreSQL package placement"
+  ],
+  "liveVerification": {
+    "status": "passed",
+    "database": "isolated Support Inbox PostgreSQL 16 container",
+    "checks": [
+      "pnpm verify:postgres-live",
+      "Support Inbox verify: 43 tests, including application-owned masking event coverage",
+      "Ticket Queue reference verify: 4 live tests, 4 contracts, 3 negative controls"
+    ],
+    "note": "The Ticket Queue dedicated Compose service could not allocate a Docker network because host address pools were exhausted; its separate tables were verified on the isolated Support Inbox PostgreSQL instance."
+  }
+}

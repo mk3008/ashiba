@@ -1,4 +1,4 @@
-import { queryOne, type FeatureQuerySource } from '@ashiba-ts/driver-adapter-core';
+import { queryOne, type FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
 import { queryModel } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';

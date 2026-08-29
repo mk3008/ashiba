@@ -14,14 +14,10 @@ Start with the repository README for the full SQL-first workflow:
 
 It provides shared types and helpers for:
 
-- masked parameter logging
-- logger-ready execution events
-- deterministic adapter metadata types
-- `many` / `one` / `oneOrNull` cardinality helpers
+- deterministic query-model and contract metadata types
 - dialect-extensible query model binding slots
 - safe sort profile rendering
-- common query execution contracts used by driver adapters
 
-Existing application projects may use adapter metadata with this
-package and a concrete adapter such as `@ashiba-ts/driver-adapter-pg`; native
-driver execution remains an equally valid application-owned baseline.
+Existing application projects may use deterministic preparation with this
+package and `@ashiba-ts/driver-adapter-pg`; native driver execution is the
+application-owned baseline.

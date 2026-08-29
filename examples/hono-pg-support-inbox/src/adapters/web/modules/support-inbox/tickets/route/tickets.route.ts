@@ -26,7 +26,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
     logApiRequest({ ...requestContext, phase: 'start' });
     try {
       const executor = createPgSqlClient(dependencies.pool, {
-        executeOptions: {
+        preparationOptions: {
           metadata: requestContext,
         },
       });
@@ -81,7 +81,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       const result = await withPgTransaction(dependencies.pool, (executor) =>
         executeCreateTicket(executor, body),
         {
-          executeOptions: {
+          preparationOptions: {
             metadata: requestContext,
           },
         },
@@ -92,7 +92,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       c.status(400);
       logApiRequest({ ...requestContext, phase: 'error', status: 400, elapsedMs: Date.now() - startedAt, error });
       const executor = createPgSqlClient(dependencies.pool, {
-        executeOptions: {
+        preparationOptions: {
           metadata: requestContext,
         },
       });
@@ -119,7 +119,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       const result = await withPgTransaction(dependencies.pool, (executor) =>
         executeUpdateTicketStatus(executor, { ...body, ticket_id: ticketId }),
         {
-          executeOptions: {
+          preparationOptions: {
             metadata: requestContext,
           },
         },
