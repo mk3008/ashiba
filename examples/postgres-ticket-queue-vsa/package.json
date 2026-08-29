@@ -7,7 +7,7 @@
     "generate": "node scripts/generate.mjs",
     "check:generated": "node scripts/check-generated.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node test/tickets.test.mjs",
+    "test": "pnpm run generate && node test/tickets.test.mjs",
     "start": "node src/app.mjs"
   },
   "dependencies": {
