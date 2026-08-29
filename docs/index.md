@@ -30,7 +30,7 @@ features:
 - [Command API](./generated/api/commands.md)
 - [Runtime boundary](./guide/runtime-boundary.md)
 - [Driver surface migration](./guide/driver-adapter-migration.md)
-- [SQL format](./guide/sql-format.md)
+- [Optional CLI analysis migration](./guide/optional-cli-analysis-migration.md)
 - [PostgreSQL-derived query contracts](./guide/postgres-contract.md)
 - [SQL resources and schema compatibility](./guide/sql-resource-compatibility.md)
 - [Verification value audit](./evaluations/verification-value-audit.md)

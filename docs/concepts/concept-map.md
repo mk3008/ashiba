@@ -67,7 +67,7 @@ canonical SQL
 | `binding-artifact-freshness` | Binding Artifact Freshness | mostly done | `model-gen --check` verifies that a checked-in binding artifact still matches canonical SQL. |
 | `postgresql-contract` | Optional PostgreSQL Contract | mostly done | Explicit commands compare application-declared parameter/result types with real PostgreSQL and default `pg` representations. It is mechanical proof, not a SQL logic-test framework. |
 | `application-owned-sql-tests` | Application-Owned SQL Tests | mostly done | SQL business logic, database state, transaction isolation, locking, and mutation correctness belong to physical database, integration, or live tests owned by the application. |
-| `deterministic-sql-inspection` | Deterministic SQL Inspection | mostly done | Retained query analysis, formatting, linting, resource, DDL, and migration capabilities remain explicit SQL tooling rather than an execution architecture. |
+| `deterministic-sql-inspection` | Deterministic SQL Inspection | mostly done | Retained AST-first query uses, DDL-backed lint, resource, DDL, and migration capabilities remain explicit SQL tooling rather than an execution architecture. |
 | `migration-artifact` | Migration Artifact | mostly done | Optional CLI support can emit reviewable migration SQL and risk information; applications own connection, apply, rollback, scheduling, and migration-platform policy. |
 | `cli-no-hidden-sql-rewrite` | CLI No Hidden SQL Rewrite | mostly done | CLI tooling does not interpolate application values or conceal runtime SQL rewriting in application execution. |
 

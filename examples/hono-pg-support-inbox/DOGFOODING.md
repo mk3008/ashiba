@@ -64,7 +64,7 @@ Product note:
 
 - Resolved in the CLI after this demo was built.
 - `ashiba feature import` now accepts formatter output when it preserves comments, named parameters, and AST round-trip output. This allows harmless normalization such as adding explicit `AS` to table aliases.
-- `query format` remains more conservative because it rewrites an existing SQL file directly.
+- This historical dogfood observation concerned the removed `query format` command; use application-owned formatting for existing SQL files.
 
 ### SQL lint needed CTE naming and keyword search adjustments
 
@@ -255,7 +255,7 @@ This report is treated as customer-style adoption feedback. The report correctly
 
 | Priority | Status | Task | Notes |
 | --- | --- | --- | --- |
-| P0 | open | Classify rawsql-ts unsupported-SQL paths into blocked vs degraded vs unaffected. | rawsql-ts is not an ORM runtime dependency, so an unsupported parse does not automatically mean production runtime is blocked. Validate where users truly get stuck: scaffold/import/check metadata, SSSQL compression, safe sort metadata, SQL formatting, query uses/outline/slice, and generated tests. |
+| P0 | open | Classify rawsql-ts unsupported-SQL paths into blocked vs degraded vs unaffected. | rawsql-ts is not an ORM runtime dependency, so an unsupported parse does not automatically mean production runtime is blocked. Validate where users truly get stuck: scaffold/import/check metadata, query uses, retained DDL lint, and generated tests. |
 | P0 | open | Document the no-runtime-dependency nuance of rawsql-ts. | Explain that many Ashiba paths use rawsql-ts at development/generation/check time. If users do not use SSSQL compression or safe-sort adapter features, rawsql-ts limitations may affect tooling rather than application runtime. |
 | P0 | partial | Improve initial generated contract quality without promising perfect automatic type ownership. | CLI result type inference now handles timestamp/date-like SQL types as `string`, PostgreSQL `bigint`/`numeric` values as `string`, safe JS numeric SQL types such as `integer`/`double precision` as `number`, simple typed arrays such as `text[]` as `string[]`, `array_agg`, `min`/`max` argument types, CTE aliases, and derived subquery aliases. PostgreSQL custom/domain/extension/json/expression types still require customer-owned edits. |
 | P1 | done | Add a dogfooding case for editing generated DTO/mapper types after scaffold. | Added `exercises/contract-boundary-narrowing/`, a patch-backed exercise that narrows conservative `unknown` request params into customer-owned types and verifies the feature boundary with typecheck/tests. SQL and mapper assets intentionally stay unchanged in this exercise because the SQL shape does not change. |

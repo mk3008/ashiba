@@ -16,9 +16,7 @@ import {
   type SqlComponent,
   type ValueComponent,
 } from 'rawsql-ts';
-import { runQueryLint } from './query.js';
 import { loadDdlSchemaModel, type DdlSchemaModel, type DdlSchemaTable } from './ddl-schema-model.js';
-import { inferParsedSqlParameterTypes } from './sql-parameter-types.js';
 import { loadProjectPathConfig } from './config.js';
 import {
   normalizeIdentifier,
@@ -35,7 +33,6 @@ export interface LintOptions {
   rootDir?: string;
   ddlDir?: string;
   format?: 'text' | 'json';
-  rules?: string;
 }
 
 export interface LintResult {
@@ -46,13 +43,12 @@ export interface LintResult {
     ok: boolean;
     output: string;
     ddlIssues: DdlLintIssue[];
-    analysisNotes: string[];
   }>;
   ok: boolean;
 }
 
 interface DdlLintIssue {
-  code: 'ddl-missing-table' | 'ddl-missing-column' | 'ddl-insert-type-mismatch' | 'ddl-parameter-type-conflict';
+  code: 'ddl-missing-table' | 'ddl-missing-column' | 'ddl-insert-type-mismatch';
   target: string;
   message: string;
 }
@@ -60,12 +56,11 @@ interface DdlLintIssue {
 export function registerLintCommand(program: Command): void {
   program
     .command('lint')
-    .description('Lint SQL files for maintainability and analysis-safety issues')
-    .argument('<path>', 'SQL file or directory to lint')
-    .option('--root-dir <path>', 'Project root for config and DDL-aware rules', '.')
-    .option('--ddl-dir <path>', 'DDL directory for DDL-aware table and column checks')
+    .description('Check SQL files against an explicit DDL model')
+    .argument('<path>', 'SQL file or directory to check')
+    .option('--root-dir <path>', 'Project root for config and DDL-aware checks', '.')
+    .option('--ddl-dir <path>', 'DDL directory for mechanical table, column, and literal-type checks')
     .option('--format <format>', 'Output format: text or json', 'text')
-    .option('--rules <list>', 'Comma-separated query lint rules')
     .action((targetPath: string, options: LintOptions) => {
       const result = runLint(targetPath, options);
       if (options.format === 'json') {
@@ -82,17 +77,26 @@ export function runLint(targetPath: string, options: LintOptions = {}): LintResu
   const target = path.resolve(rootDir, targetPath);
   const files = collectTargetSqlFiles(target);
   const ddlModel = loadDdlSchemaModel(rootDir, options.ddlDir);
+  if (!ddlModel) {
+    throw invalidCliInputError(
+      'ASHIBA_LINT_DDL_MODEL_UNAVAILABLE',
+      'DDL-backed lint requires an available DDL model, but no DDL directory could be resolved.',
+      'Pass --ddl-dir <path> for an existing DDL directory, or configure an existing ddl.sourceDir/ddlDir in ashiba.config.json before rerunning lint.',
+      {
+        rootDir,
+        ddlDir: options.ddlDir ?? null,
+      },
+    );
+  }
   const schemaPath = loadProjectPathConfig(rootDir);
   const results = files.map((file) => {
     try {
-      const output = runQueryLint(file, { rootDir, rules: options.rules, format: 'text' });
-      const ddlIssues = ddlModel ? lintSqlAgainstDdl(readFileSync(file, 'utf8'), ddlModel, schemaPath) : [];
+      const ddlIssues = lintSqlAgainstDdl(readFileSync(file, 'utf8'), ddlModel, schemaPath);
       return {
         file: normalizePath(path.relative(rootDir, file)),
-        ok: ddlIssues.length === 0 && !/^\[(error|warn)\]/m.test(output) && !/analysis-risk|unused-cte|join-direction/.test(output),
-        output: appendDdlIssueOutput(output, ddlIssues),
+        ok: ddlIssues.length === 0,
+        output: appendDdlIssueOutput('', ddlIssues),
         ddlIssues,
-        analysisNotes: [],
       };
     } catch (error) {
       return {
@@ -100,7 +104,6 @@ export function runLint(targetPath: string, options: LintOptions = {}): LintResu
         ok: false,
         output: error instanceof Error ? error.message : String(error),
         ddlIssues: [],
-        analysisNotes: [],
       };
     }
   });
@@ -239,7 +242,6 @@ function lintSqlAgainstDdl(
     }
   }
   issues.push(...lintInsertValueTypes(parsed, model, schemaPath));
-  issues.push(...lintParameterTypeConflicts(parsed, model, schemaPath));
 
   for (const update of collectUpdateSetColumnReferences(parsed)) {
     const table = resolveTable(model, update, schemaPath);
@@ -274,21 +276,6 @@ function lintSqlAgainstDdl(
   }
 
   return dedupeDdlIssues(issues);
-}
-
-function lintParameterTypeConflicts(
-  query: ReturnType<typeof SqlParser.parse>,
-  model: DdlSchemaModel,
-  schemaPath: Partial<SchemaPathConfig>,
-): DdlLintIssue[] {
-  const inference = inferParsedSqlParameterTypes(query, model, schemaPath);
-  return inference.conflicts.filter((conflict) => conflict.bindings.every((binding) => binding.confidence === 'certain')).map((conflict) => ({
-    code: 'ddl-parameter-type-conflict',
-    target: conflict.parameter,
-    message: `SQL parameter ${conflict.parameter} is bound to incompatible DDL-backed types: ${
-      conflict.bindings.map((binding) => `${binding.context} ${binding.table}.${binding.column} (${binding.typeName} -> ${binding.typeScriptType})`).join(', ')
-    }.`,
-  }));
 }
 
 function lintInsertValueTypes(
@@ -356,13 +343,12 @@ function isBooleanType(typeName: string): boolean {
   return /^(boolean|bool)$/.test(typeName);
 }
 
-function appendDdlIssueOutput(output: string, issues: DdlLintIssue[], notes: string[] = []): string {
-  if (issues.length === 0 && notes.length === 0) {
+function appendDdlIssueOutput(output: string, issues: DdlLintIssue[]): string {
+  if (issues.length === 0) {
     return output;
   }
-  const noteLines = notes.map((note) => `[info] ${note}`);
   const issueLines = issues.map((issue) => `[error] ${issue.code}: ${issue.message}`);
-  return `${output.trimEnd()}\n${[...noteLines, ...issueLines].join('\n')}\n`;
+  return `${output.trimEnd()}\n${issueLines.join('\n')}\n`;
 }
 
 function collectQualifiedColumnReferences(query: ReturnType<typeof SqlParser.parse>): Array<{ qualifier: string; column: string }> {
