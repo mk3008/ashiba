@@ -27,7 +27,7 @@ container:
 | Check | Result |
 | --- | --- |
 | `pnpm verify:postgres-live` | passed: native pg preparation live test (1) and CLI SQL-resource live tests (2) |
-| Support Inbox `pnpm verify` | passed: 42 tests, including DB-backed route/integration proof |
+| Support Inbox `pnpm verify` | passed: 43 tests, including DB-backed route/integration proof and application-owned masking event coverage |
 | Ticket Queue reference `pnpm verify` | passed: 4 live tests, 4 contracts, 3 negative controls |
 
 The Ticket Queue dedicated Compose service could not allocate a Docker network

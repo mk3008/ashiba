@@ -1,6 +1,6 @@
 import { Pool, type PoolConfig } from 'pg';
 import {
-  type AshibaPostgresExecuteOptions,
+  type AshibaPostgresPreparationOptions,
   type AshibaPostgresQuerySource,
   preparePostgresQuery,
 } from '@ashiba-ts/driver-adapter-pg';
@@ -19,7 +19,7 @@ export type PgConnectionSettings = {
 };
 
 export type PgFeatureQueryExecutorOptions = {
-  executeOptions?: AshibaPostgresExecuteOptions & { metadata?: Record<string, unknown> };
+  preparationOptions?: AshibaPostgresPreparationOptions & { metadata?: Record<string, unknown> };
   observer?: { emit(event: SqlExecutionLogEvent): void };
   includeUnmaskedParamsInEvents?: boolean;
 };
@@ -68,7 +68,7 @@ export function createPgSqlClient(
   queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },
   options: PgFeatureQueryExecutorOptions = {},
 ): FeatureQueryExecutor {
-  const { executeOptions, observer, includeUnmaskedParamsInEvents = false } = options;
+  const { preparationOptions, observer, includeUnmaskedParamsInEvents = false } = options;
   return {
     async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
       const queryAnalysis = query.queryModel.analysis;
@@ -77,13 +77,13 @@ export function createPgSqlClient(
           sqlPath: query.sqlPath,
           queryModel: query.queryModel,
       };
-      const { metadata: suppliedMetadata, ...preparationOptions } = executeOptions ?? {};
+      const { metadata: suppliedMetadata, ...postgresPreparationOptions } = preparationOptions ?? {};
       const prepared = preparePostgresQuery(
         postgresQuery,
         { ...params },
         {
-          ...preparationOptions,
-          optionalConditionCompression: query.optionalConditionCompression ?? preparationOptions.optionalConditionCompression,
+          ...postgresPreparationOptions,
+          optionalConditionCompression: query.optionalConditionCompression ?? postgresPreparationOptions.optionalConditionCompression,
         },
       );
       const startedAt = Date.now();
@@ -108,6 +108,8 @@ export function createPgSqlClient(
         sourceSql: prepared.sourceSql,
         compiledSql: prepared.sql,
         parameterNames: prepared.parameterNames,
+        maskedParams: maskPreparedParams(prepared.values),
+        ...(includeUnmaskedParamsInEvents ? { params: prepared.values } : {}),
       });
       try {
         const result = await queryable.query(prepared.sql, prepared.values);
@@ -117,6 +119,7 @@ export function createPgSqlClient(
           sourceSql: prepared.sourceSql,
           compiledSql: prepared.sql,
           parameterNames: prepared.parameterNames,
+          maskedParams: maskPreparedParams(prepared.values),
           ...(includeUnmaskedParamsInEvents ? { params: prepared.values } : {}),
           elapsedMs: Date.now() - startedAt,
           rowCount: result.rowCount ?? result.rows.length,
@@ -129,6 +132,7 @@ export function createPgSqlClient(
           sourceSql: prepared.sourceSql,
           compiledSql: prepared.sql,
           parameterNames: prepared.parameterNames,
+          maskedParams: maskPreparedParams(prepared.values),
           ...(includeUnmaskedParamsInEvents ? { params: prepared.values } : {}),
           elapsedMs: Date.now() - startedAt,
           error,
@@ -137,6 +141,10 @@ export function createPgSqlClient(
       }
     },
   };
+}
+
+function maskPreparedParams(values: readonly unknown[]): readonly string[] {
+  return values.map((value) => value === null || value === undefined ? '<nullish>' : '<masked>');
 }
 
 /**

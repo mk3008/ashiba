@@ -20,9 +20,9 @@ Application code supplies SQL text and query-model metadata, calls
 `preparePostgresQuery`, then calls native `pg.query(prepared.sql, prepared.values)`.
 Loading, bundling, embedding, and optional source-path provenance are
 application/build-tool owned; this package does not load SQL through `node:fs`.
-The adapter still passes a SQL string to the wrapped `pg` client internally, but
-it does not expose an `execute(sql: string, ...)` convenience boundary for
-arbitrary runtime SQL input.
+It never wraps or calls a `pg` client. The application keeps the direct native
+execution boundary after preparation; this package has no `execute(sql: string,
+...)` convenience API for arbitrary runtime SQL input.
 
 Preparation verifies the source SQL hash and uses CLI-generated indexed PostgreSQL SQL plus its `parameterNames` identity list. Binding is performed by the shared package; it never parses or rewrites canonical SQL at runtime. If metadata is absent or stale, preparation fails before the application calls the native driver.
 

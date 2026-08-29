@@ -19,6 +19,9 @@ export type AshibaPostgresPreparationOptions = {
    * `custom:<id>` value whenever custom node-postgres type parsers are active.
    */
   driverProfile?: PostgresDriverRepresentationProfile;
+  optionalConditionCompression?: boolean;
+  sortProfile?: AshibaSortProfile;
+  sort?: readonly AshibaSortInput[];
 };
 
 /**
@@ -45,15 +48,6 @@ export type AshibaPostgresQuerySource<Params extends object = Record<string, unk
 export type AnyAshibaPostgresQuerySource = AshibaPostgresQuerySource<any, any>;
 
 /**
- * Per-execution metadata and safe sort options for PostgreSQL execution.
- */
-export type AshibaPostgresExecuteOptions = AshibaPostgresPreparationOptions & {
-  optionalConditionCompression?: boolean;
-  sortProfile?: AshibaSortProfile;
-  sort?: readonly AshibaSortInput[];
-};
-
-/**
  * Ordinary PostgreSQL SQL plus ordered values derived from a reviewed source.
  * This is intentionally a data result, not a runtime query AST or builder.
  */
@@ -78,8 +72,8 @@ export type AshibaPostgresCompiledQuery = {
 export type AshibaPostgresPreparedQuery = AshibaPostgresCompiledQuery;
 
 /**
- * Adapter-facing error decoration for observer events. Parameter validation and
- * ordering remain owned by `@ashiba-ts/named-parameters`.
+ * Preparation error decoration. Parameter validation and ordering remain owned
+ * by `@ashiba-ts/named-parameters`.
  */
 export class AshibaParameterError extends NamedParameterError {
   readonly causeText: string;
@@ -139,7 +133,7 @@ type TextEdit = TextRange & {
 export function preparePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
   query: Query,
   params: AshibaQueryParams<Query>,
-  options: AshibaPostgresExecuteOptions = {},
+  options: AshibaPostgresPreparationOptions = {},
 ): AshibaPostgresPreparedQuery {
   validateDriverProfile(query, options.driverProfile ?? 'node-postgres-default');
   const normalizedParams = Object.fromEntries(Object.entries(params));
@@ -177,7 +171,7 @@ export function preparePostgresQuery<Query extends AnyAshibaPostgresQuerySource>
 function preparePostgresExecution(
   query: AnyAshibaPostgresQuerySource,
   params: Readonly<Record<string, unknown>>,
-  options: AshibaPostgresExecuteOptions,
+  options: AshibaPostgresPreparationOptions,
 ): {
   sourceSql: string;
   sql: string;
@@ -629,7 +623,7 @@ function renumberPostgresPlaceholders(
 
 function getSortInsertion(
   query: AnyAshibaPostgresQuerySource,
-  options: AshibaPostgresExecuteOptions,
+  options: AshibaPostgresPreparationOptions,
 ): {
   insertion: { index: number; end?: number; mode: 'order-by' | 'prepend-comma' | 'comma' | 'replace' };
   compiledInsertion: { index: number; end?: number; mode: 'order-by' | 'prepend-comma' | 'comma' | 'replace' };

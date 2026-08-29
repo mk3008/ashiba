@@ -73,7 +73,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters, conte
         listEvents.push(event);
       },
     },
-    executeOptions: {
+    preparationOptions: {
       metadata: toSqlMetadata(context, filters, 'list'),
       sort: toTicketSort(filters),
     },
@@ -91,7 +91,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters, conte
 
 async function loadTicketDetail(pool: Pool, ticketId: string, context: SupportInboxRequestContext): Promise<TicketDetail> {
   const executor = createPgSqlClient(pool, {
-    executeOptions: {
+    preparationOptions: {
       metadata: toSqlMetadata(context, undefined, 'detail'),
     },
   });
