@@ -74,7 +74,7 @@ directly. No Transfer ownership or product-direction decision was made.
 
 ## Migration impact
 
-See [Driver surface migration](../../guide/driver-adapter-migration.md) for
+See the historical driver-surface migration record for
 ordinary PostgreSQL execution, named binding, visible optional filters, finite
 sort mappings, application logging/transactions, and the standalone contract.
 

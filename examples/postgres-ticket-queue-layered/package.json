@@ -1,0 +1,23 @@
+{
+  "name": "postgres-ticket-queue-layered",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "^22.0.0 || ^24.0.0" },
+  "scripts": {
+    "generate": "ashiba model-gen sql/list_tickets.sql --out src/generated/listTickets.ts && ashiba model-gen sql/get_ticket.sql --out src/generated/getTicket.ts && ashiba model-gen sql/assign_ticket.sql --out src/generated/assignTicket.ts && ashiba model-gen sql/insert_ticket_event.sql --out src/generated/insertTicketEvent.ts",
+    "generate:check": "ashiba model-gen sql/list_tickets.sql --out src/generated/listTickets.ts --check && ashiba model-gen sql/get_ticket.sql --out src/generated/getTicket.ts --check && ashiba model-gen sql/assign_ticket.sql --out src/generated/assignTicket.ts --check && ashiba model-gen sql/insert_ticket_event.sql --out src/generated/insertTicketEvent.ts --check",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@ashiba-ts/cli": "workspace:*",
+    "@ashiba-ts/named-parameters": "workspace:*",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "@types/pg": "^8.20.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

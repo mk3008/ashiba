@@ -1,0 +1,39 @@
+{
+  "startingSha": "bae5330631f863f4f8e63b8145c180b707a2ba71",
+  "decision": "READY-WITH-CONCERNS",
+  "support": {
+    "node22Npm10": "pass-local",
+    "node24Npm11": "pending-ci"
+  },
+  "architectureReferences": {
+    "minimal": "pass-existing",
+    "vsa": "pass-runner-oracle",
+    "layered": "pass-runner-oracle"
+  },
+  "cleanRoom": {
+    "vsa": "pass-after-two-runner-detected-repairs",
+    "layered": "pass-after-nullable-guard-repair"
+  },
+  "invariants": {
+    "scopeChanged": false,
+    "goldenPathChanged": false,
+    "productRuntimeArchitectureChanged": false
+  },
+  "runnerOwnedOracle": {
+    "postgres": "pass",
+    "coverage": ["filters", "finite sort", "pagination", "get", "assign", "injected audit rollback"],
+    "candidateTestsUsedAsAuthority": false
+  },
+  "verification": {
+    "typecheck": "pass",
+    "build": "pass",
+    "test": "pass",
+    "verify": "pass",
+    "docsBuild": "pass",
+    "diffCheck": "pass",
+    "npmDistributionLocal": "pass-node22-npm10",
+    "commandCatalogStaleScan": "clean",
+    "currentDocsStaleScan": "clean"
+  },
+  "temporaryResources": "postgres oracle container removed"
+}

@@ -52,7 +52,7 @@ canonical SQL
 | `deterministic-generated-metadata` | Deterministic Generated Metadata | mostly done | Binding metadata and optional retained metadata are source-derived development artifacts, distinct from application source architecture. |
 | `passive-failure-surface` | Passive Failure Surface | partial | Ordinary checks should expose invalid canonical SQL, stale binding metadata, and stale optional contract facts with a clear cause and recovery action. |
 | `application-semantic-ownership` | Application Semantic Ownership | mostly done | Applications own business behavior, result shaping, transactions, rollback policy, migration application, and physical database, integration, or live tests. |
-| `no-ai-behavior-file-distribution` | No AI Behavior File Distribution | mostly done | Ashiba does not distribute `AGENTS.md`, `SKILL.md`, skills, prompts, or other AI-agent behavior files. |
+| `no-ai-behavior-file-distribution` | No AI Behavior File Distribution | mostly done | Ashiba does not generate, install, or enforce agent behavior files. Documentation may provide a copyable, invariant-focused `AGENTS.md` sample. |
 | `tooling-ast-dependency-policy` | Tooling AST Dependency Policy | partial | Development tooling may use tested SQL AST APIs. Structural analysis must not silently fall back to unsafe parsing. |
 | `file-backed-runtime-sql` | Canonical SQL Text At Runtime | partial | Canonical SQL is normally file-backed for review and tooling, while runtime integration may receive application-supplied SQL text and provenance without requiring `node:fs`. |
 | `public-api-and-help-surface` | Public API and Help Surface | partial | Public exports require documentation and CLI commands require discoverable help. |

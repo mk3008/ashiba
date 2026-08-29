@@ -135,6 +135,31 @@ importers:
         specifier: ^4.1.7
         version: 4.1.7(@types/node@22.19.19)(vite@6.4.3(@types/node@22.19.19)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
 
+  examples/postgres-ticket-queue-layered:
+    dependencies:
+      '@ashiba-ts/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@ashiba-ts/named-parameters':
+        specifier: workspace:*
+        version: link:../../packages/named-parameters
+      pg:
+        specifier: ^8.21.0
+        version: 8.21.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.18.7
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
+      tsx:
+        specifier: ^4.20.5
+        version: 4.22.4
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
   examples/postgres-ticket-queue-reference:
     dependencies:
       '@ashiba-ts/named-parameters':
@@ -159,6 +184,25 @@ importers:
       vitest:
         specifier: ^4.1.7
         version: 4.1.7(@types/node@22.18.7)(vite@6.4.3(@types/node@22.18.7)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
+
+  examples/postgres-ticket-queue-vsa:
+    dependencies:
+      '@ashiba-ts/named-parameters':
+        specifier: workspace:*
+        version: link:../../packages/named-parameters
+      pg:
+        specifier: ^8.21.0
+        version: 8.21.0
+    devDependencies:
+      '@ashiba-ts/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.18.7
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
 
   packages/cli:
     dependencies:

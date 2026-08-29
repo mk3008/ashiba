@@ -18,6 +18,7 @@
     "verify:postgres-live": "node scripts/require-postgres-live-url.mjs && pnpm --filter @ashiba-ts/cli test:live",
     "pack:cli": "pnpm --filter @ashiba-ts/cli pack --pack-destination ../../tmp",
     "verify:consumer-install": "node scripts/verify-consumer-install.mjs",
+    "verify:npm-distribution": "node scripts/verify-npm-distribution.mjs",
     "verify:publish-order": "node scripts/verify-publish-order.mjs",
     "verify:customer-tutorial": "node scripts/verify-customer-tutorial.mjs",
     "verify:customer-tutorial:docker": "node scripts/verify-customer-tutorial.mjs --with-docker",

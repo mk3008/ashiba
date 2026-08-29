@@ -1,0 +1,22 @@
+{
+  "name": "postgres-ticket-queue-vsa",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "^22 || ^24" },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "check:generated": "node scripts/check-generated.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node test/tickets.test.mjs",
+    "start": "node src/app.mjs"
+  },
+  "dependencies": {
+    "@ashiba-ts/named-parameters": "workspace:*",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "@ashiba-ts/cli": "workspace:*",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}

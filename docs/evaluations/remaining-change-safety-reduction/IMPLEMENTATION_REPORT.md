@@ -42,7 +42,7 @@ process wrapper was added.
 
 ## Migration boundary
 
-[`docs/guide/change-safety-migration.md`](../../guide/change-safety-migration.md)
+the historical change-safety migration record
 documents the intentional breaking removal. Applications own package scripts,
 CI, hooks, native `pg_dump` flags/output paths/credentials, and any local
 wrapper. They can call retained Ashiba checks directly where useful.

@@ -23,7 +23,7 @@ The pre-change census found `ashiba ddl migration generate` only in the CLI regi
 
 This change removes the command, the whole migration-only `ddl-diff` surface, `DdlApplyPlan`/`ApplyPlanOperation`, the migration risk model, the exercise, and the promo script. No compatibility command, alias, forwarding wrapper, or replacement migration framework is retained.
 
-The current migration boundary is documented in [`docs/guide/change-safety-migration.md`](../../guide/change-safety-migration.md): use dedicated migration tooling, native database tooling, or application-owned reviewed SQL migrations. Ashiba can still read DDL as an optional verification input; migration authoring, apply/rollback, history, deployment, credentials, and scheduling remain external or application-owned.
+The current migration boundary is historical evidence: use dedicated migration tooling, native database tooling, or application-owned reviewed SQL migrations. Ashiba can still read DDL as an optional verification input; migration authoring, apply/rollback, history, deployment, credentials, and scheduling remain external or application-owned.
 
 ## Support Inbox finite sort composition
 
