@@ -1,0 +1,34 @@
+{
+  "startingSha": "4c7caf53e6e690b581d5d2a8193a553d7c84d50a",
+  "evaluation": "optional-condition-compression-durable-productization",
+  "decision": "REMOVE",
+  "scopeChangeRequired": false,
+  "goldenPathChanged": false,
+  "productCodeChanged": false,
+  "currentProductDocsChanged": false,
+  "currentConsumers": {
+    "ashibaDogfood": [
+      "support-inbox/list-tickets",
+      "support-inbox/get-ticket-detail",
+      "support-inbox/create-ticket/list-customers-for-ticket",
+      "support-inbox/list-ticket-customer-options/list-customers-for-ticket"
+    ],
+    "detachedExperimental": ["transfer/resolve-transfer-destination-definitions"],
+    "metadataFiles": 11,
+    "metadataBytes": 67810
+  },
+  "existingAblation": {
+    "staleCoordinateMutationsRejected": "5/5",
+    "compressionFirstDetectorFreshRepairs": "2/4",
+    "ordinaryAlternativeGreenRepairs": "4/4",
+    "artifactBytesRatioAt100Queries": 32.1,
+    "artifactFilesRatioAt100Queries": 6,
+    "independentlyMeasuredRuntimeOutcomeReduction": false
+  },
+  "evidenceStrength": "medium",
+  "focusedVerification": {
+    "driverAdapterPg": "3 passed; 1 live test skipped without database URL",
+    "cliParameterMetadata": "24 passed; 2 live tests skipped without database URL"
+  },
+  "temporaryResources": "none created by this evaluation"
+}
