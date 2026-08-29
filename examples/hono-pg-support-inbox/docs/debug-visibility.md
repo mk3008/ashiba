@@ -85,7 +85,7 @@ The example uses log profiles so the customer can choose the observation cost:
 | `off` | production paths where the platform logger is wired elsewhere | writes nothing |
 | `minimal` | high-volume production endpoints | completion summaries only; no start events, no parameter names, no SQL text |
 | `standard` | ordinary local/staging observation | API and SQL start/end events, timing, row count, query identity, parameter names |
-| `debug` | incident investigation without raw values | `standard` plus operation, filter keys, sort keys, query variant, query-model summary, SQL hashes |
+| `debug` | incident investigation without raw values | `standard` plus operation, filter keys, sort keys, and query variant |
 | `trace` | local/demo maximum visibility | `debug` plus source SQL, compiled SQL, masked params, and raw params only where the application explicitly supplies them |
 
 Use `trace` only for local or short-lived debugging. It can record parameter values and SQL text.
@@ -143,10 +143,10 @@ The Live Query Console is a teaching surface, not the production logging policy.
 It intentionally shows:
 
 - the SQL file path
-- compiled SQL after optional-condition compression and safe sort
+- compiled SQL with visible nullable guards and reviewed sort parameters
 - placeholder-to-name mapping
 - parameter values for local inspection
-- selected safe sort keys
+- selected reviewed sort values
 - stable suffix ordering
 - elapsed time and row count when available
 
@@ -164,7 +164,7 @@ Feature code should receive `FeatureQueryExecutor`. It should not import `pg`, p
 
 The example wiring is:
 
-- `src/adapters/pg/pool.ts` prepares deterministic SQL, calls native `pg`, and emits application-owned log events.
+- `src/adapters/pg/pool.ts` binds deterministic metadata, calls native `pg`, and emits application-owned log events.
 - `src/adapters/logger/appLogger.ts` is the application-owned logging hook.
 - `src/adapters/web/modules/support-inbox/tickets/view/tickets.presenter.ts` overrides the observer for the local demo console.
 
@@ -199,7 +199,7 @@ Useful alerts:
 - error rate by `sqlId`
 - p95 / p99 latency by `sqlId`
 - unexpected high row count by `sqlId`
-- repeated adapter warnings, especially stale metadata or unsafe runtime input
+- generated-artifact freshness failures found before deployment and native-driver errors observed by the application
 - missing `end` / `error` event for a `start` event after a timeout window
 - repeated slow executions from the same `requestId`
 

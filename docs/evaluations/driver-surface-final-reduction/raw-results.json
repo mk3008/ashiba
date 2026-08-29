@@ -1,0 +1,31 @@
+{
+  "startingSha": "08b9f0bff7310a6ff778831abcca4cabce9ee75a",
+  "removedPackages": [
+    "@ashiba-ts/driver-adapter-core",
+    "@ashiba-ts/driver-adapter-pg"
+  ],
+  "removedCommands": [
+    "ashiba query optional add",
+    "ashiba query optional refresh",
+    "ashiba query optional remove"
+  ],
+  "retained": [
+    "@ashiba-ts/named-parameters",
+    "model-gen binding metadata and freshness",
+    "standalone postgres-contract"
+  ],
+  "focusedVerification": {
+    "supportInboxDb": "42 tests passed against PostgreSQL",
+    "ticketQueueReference": "4 live tests, 4 contracts, and 3 negative controls passed",
+    "cliPostgresLive": "2 tests passed",
+    "namedParameters": "8 tests passed",
+    "transfer": "24 tests passed"
+  },
+  "temporaryResources": {
+    "databases": [
+      "ashiba_driver_reduction_test",
+      "ashiba_ticket_queue_reduction_test"
+    ],
+    "status": "removed after final verification"
+  }
+}

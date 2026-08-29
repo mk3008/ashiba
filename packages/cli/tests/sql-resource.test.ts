@@ -172,7 +172,7 @@ function resource(id: string, databaseType: PostgresPortableDatabaseTypeIdentity
       dialect: 'postgresql', path: `${id}.postgres.sql`, sourceHash: 'sha256:compiled',
       parameterStyle: 'indexed', parameterNames: [],
     },
-    capabilities: { parser: { status: 'ok' }, optionalSubtraction: [], safeSort: [] },
+    capabilities: { parser: { status: 'ok' } },
     contract: {
       database: { system: 'postgresql', serverMajor: 18, parameters: [], results: [field], dependencies: [] },
       driver: { profile: 'node-postgres-default', parameters: [], results: [driverField] },

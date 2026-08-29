@@ -1,27 +1,14 @@
-import { createHash } from 'node:crypto';
 import { describe, expect, test } from 'vitest';
 
 import { createPgSqlClient } from './pool.js';
 
-const sourceSql = 'select :id::integer as id';
 const source = {
   id: 'pool-test',
-  sql: sourceSql,
-  queryModel: {
-    analysis: {
-      astParse: 'ok' as const,
-      statementKind: 'select' as const,
-      hasTopLevelOrderBy: false as const,
-      sourceHash: hash(sourceSql),
-    },
-    bindings: {
-      postgres: {
-        style: 'indexed' as const,
-        sql: 'select $1::integer as id',
-        parameterNames: ['id'],
-        sourceHash: hash(sourceSql),
-      },
-    },
+  sql: 'select :id::integer as id',
+  binding: {
+    style: 'indexed' as const,
+    sql: 'select $1::integer as id',
+    parameterNames: ['id'],
   },
 };
 
@@ -57,7 +44,3 @@ describe('application-owned native pg logging boundary', () => {
     });
   });
 });
-
-function hash(value: string): string {
-  return `sha256:${createHash('sha256').update(value).digest('hex')}`;
-}

@@ -13,7 +13,7 @@ with
     ),
     /* 一覧の主対象となるチケット集合をここで確定する。 */
     /* チケット、顧客、タグ、SLA、言語、チャネルなど、後続の集計前に適用できる条件はここで寄せる。 */
-    /* safe sort 用の action_required、priority_rank、vip_rank もこの段階で算出する。 */
+    /* レビュー済みの並び順で使う action_required、priority_rank、vip_rank もこの段階で算出する。 */
     filtered_tickets as (
         select
             t.ticket_id
@@ -145,14 +145,14 @@ with
             left join latest_message as lm on lm.ticket_id = ft.ticket_id
         where
             (
-                :keyword is null
+                cast(:keyword as text) is null
                 or ft.subject ilike '%' || :keyword || '%'
                 or ft.customer_name ilike '%' || :keyword || '%'
                 or lm.latest_message_body ilike '%' || :keyword || '%'
             )
     ),
     /* 顧客からの最新返信日時を集計する。 */
-    /* safe sort の「顧客からの返信: 新しい順」で使う補助値。 */
+    /* レビュー済みの並び順「顧客からの返信: 新しい順」で使う補助値。 */
     last_customer_reply as (
         select
             tm.ticket_id
@@ -180,8 +180,8 @@ with
         group by
             ttl.ticket_id
     )
-/* 最終 select は UI と generated mapper の境界。 */
-/* DB固有の型推論に寄りすぎないよう、表示・DTOで使う値は必要に応じて明示 cast する。 */
+/* 最終 select は application view の入力を定義する。 */
+/* DB固有の型推論に寄りすぎないよう、application type で使う値は必要に応じて明示 cast する。 */
 select
     count(*) over() as total_count
     , cast(st.ticket_id as bigint) as ticket_id
@@ -210,21 +210,127 @@ from
     left join last_customer_reply as lcr on lcr.ticket_id = st.ticket_id
     left join aggregated_tags as tags on tags.ticket_id = st.ticket_id
 order by
-    st.ticket_id
-    , cast(st.subject as text)
-    , cast(st.customer_name as text)
-    , cast(st.customer_tier as text)
-    , cast(st.status as text)
-    , st.priority_rank
-    , st.sla_due_at
-    , cast(st.sla_state as text)
-    , st.latest_message_at
-    , cast(st.language as text)
-    , cast(st.channel as text)
-    , st.updated_at desc
-    , st.action_required
-    , lcr.last_customer_reply_at desc
-    , st.vip_rank
+    case when :sort_1 = 'ticket_id.asc' then st.ticket_id end asc
+    , case when :sort_1 = 'ticket_id.desc' then st.ticket_id end desc
+    , case when :sort_1 = 'subject.asc' then cast(st.subject as text) end asc
+    , case when :sort_1 = 'subject.desc' then cast(st.subject as text) end desc
+    , case when :sort_1 = 'customer_name.asc' then cast(st.customer_name as text) end asc
+    , case when :sort_1 = 'customer_name.desc' then cast(st.customer_name as text) end desc
+    , case when :sort_1 = 'customer_tier.asc' then cast(st.customer_tier as text) end asc
+    , case when :sort_1 = 'customer_tier.desc' then cast(st.customer_tier as text) end desc
+    , case when :sort_1 = 'status.asc' then cast(st.status as text) end asc
+    , case when :sort_1 = 'status.desc' then cast(st.status as text) end desc
+    , case when :sort_1 = 'priority_rank.asc' then st.priority_rank end asc
+    , case when :sort_1 = 'priority_rank.desc' then st.priority_rank end desc
+    , case when :sort_1 = 'sla_due_at.asc' then st.sla_due_at end asc
+    , case when :sort_1 = 'sla_due_at.desc' then st.sla_due_at end desc
+    , case when :sort_1 = 'sla_state.asc' then cast(st.sla_state as text) end asc
+    , case when :sort_1 = 'sla_state.desc' then cast(st.sla_state as text) end desc
+    , case when :sort_1 = 'latest_message_at.asc' then st.latest_message_at end asc
+    , case when :sort_1 = 'latest_message_at.desc' then st.latest_message_at end desc
+    , case when :sort_1 = 'language.asc' then cast(st.language as text) end asc
+    , case when :sort_1 = 'language.desc' then cast(st.language as text) end desc
+    , case when :sort_1 = 'channel.asc' then cast(st.channel as text) end asc
+    , case when :sort_1 = 'channel.desc' then cast(st.channel as text) end desc
+    , case when :sort_1 = 'updated_at.asc' then st.updated_at end asc
+    , case when :sort_1 = 'updated_at.desc' then st.updated_at end desc
+    , case when :sort_1 = 'action_required.asc' then st.action_required end asc
+    , case when :sort_1 = 'action_required.desc' then st.action_required end desc
+    , case when :sort_1 = 'last_customer_reply_at.asc' then lcr.last_customer_reply_at end asc
+    , case when :sort_1 = 'last_customer_reply_at.desc' then lcr.last_customer_reply_at end desc
+    , case when :sort_1 = 'vip_rank.asc' then st.vip_rank end asc
+    , case when :sort_1 = 'vip_rank.desc' then st.vip_rank end desc
+    , case when :sort_2 = 'ticket_id.asc' then st.ticket_id end asc
+    , case when :sort_2 = 'ticket_id.desc' then st.ticket_id end desc
+    , case when :sort_2 = 'subject.asc' then cast(st.subject as text) end asc
+    , case when :sort_2 = 'subject.desc' then cast(st.subject as text) end desc
+    , case when :sort_2 = 'customer_name.asc' then cast(st.customer_name as text) end asc
+    , case when :sort_2 = 'customer_name.desc' then cast(st.customer_name as text) end desc
+    , case when :sort_2 = 'customer_tier.asc' then cast(st.customer_tier as text) end asc
+    , case when :sort_2 = 'customer_tier.desc' then cast(st.customer_tier as text) end desc
+    , case when :sort_2 = 'status.asc' then cast(st.status as text) end asc
+    , case when :sort_2 = 'status.desc' then cast(st.status as text) end desc
+    , case when :sort_2 = 'priority_rank.asc' then st.priority_rank end asc
+    , case when :sort_2 = 'priority_rank.desc' then st.priority_rank end desc
+    , case when :sort_2 = 'sla_due_at.asc' then st.sla_due_at end asc
+    , case when :sort_2 = 'sla_due_at.desc' then st.sla_due_at end desc
+    , case when :sort_2 = 'sla_state.asc' then cast(st.sla_state as text) end asc
+    , case when :sort_2 = 'sla_state.desc' then cast(st.sla_state as text) end desc
+    , case when :sort_2 = 'latest_message_at.asc' then st.latest_message_at end asc
+    , case when :sort_2 = 'latest_message_at.desc' then st.latest_message_at end desc
+    , case when :sort_2 = 'language.asc' then cast(st.language as text) end asc
+    , case when :sort_2 = 'language.desc' then cast(st.language as text) end desc
+    , case when :sort_2 = 'channel.asc' then cast(st.channel as text) end asc
+    , case when :sort_2 = 'channel.desc' then cast(st.channel as text) end desc
+    , case when :sort_2 = 'updated_at.asc' then st.updated_at end asc
+    , case when :sort_2 = 'updated_at.desc' then st.updated_at end desc
+    , case when :sort_2 = 'action_required.asc' then st.action_required end asc
+    , case when :sort_2 = 'action_required.desc' then st.action_required end desc
+    , case when :sort_2 = 'last_customer_reply_at.asc' then lcr.last_customer_reply_at end asc
+    , case when :sort_2 = 'last_customer_reply_at.desc' then lcr.last_customer_reply_at end desc
+    , case when :sort_2 = 'vip_rank.asc' then st.vip_rank end asc
+    , case when :sort_2 = 'vip_rank.desc' then st.vip_rank end desc
+    , case when :sort_3 = 'ticket_id.asc' then st.ticket_id end asc
+    , case when :sort_3 = 'ticket_id.desc' then st.ticket_id end desc
+    , case when :sort_3 = 'subject.asc' then cast(st.subject as text) end asc
+    , case when :sort_3 = 'subject.desc' then cast(st.subject as text) end desc
+    , case when :sort_3 = 'customer_name.asc' then cast(st.customer_name as text) end asc
+    , case when :sort_3 = 'customer_name.desc' then cast(st.customer_name as text) end desc
+    , case when :sort_3 = 'customer_tier.asc' then cast(st.customer_tier as text) end asc
+    , case when :sort_3 = 'customer_tier.desc' then cast(st.customer_tier as text) end desc
+    , case when :sort_3 = 'status.asc' then cast(st.status as text) end asc
+    , case when :sort_3 = 'status.desc' then cast(st.status as text) end desc
+    , case when :sort_3 = 'priority_rank.asc' then st.priority_rank end asc
+    , case when :sort_3 = 'priority_rank.desc' then st.priority_rank end desc
+    , case when :sort_3 = 'sla_due_at.asc' then st.sla_due_at end asc
+    , case when :sort_3 = 'sla_due_at.desc' then st.sla_due_at end desc
+    , case when :sort_3 = 'sla_state.asc' then cast(st.sla_state as text) end asc
+    , case when :sort_3 = 'sla_state.desc' then cast(st.sla_state as text) end desc
+    , case when :sort_3 = 'latest_message_at.asc' then st.latest_message_at end asc
+    , case when :sort_3 = 'latest_message_at.desc' then st.latest_message_at end desc
+    , case when :sort_3 = 'language.asc' then cast(st.language as text) end asc
+    , case when :sort_3 = 'language.desc' then cast(st.language as text) end desc
+    , case when :sort_3 = 'channel.asc' then cast(st.channel as text) end asc
+    , case when :sort_3 = 'channel.desc' then cast(st.channel as text) end desc
+    , case when :sort_3 = 'updated_at.asc' then st.updated_at end asc
+    , case when :sort_3 = 'updated_at.desc' then st.updated_at end desc
+    , case when :sort_3 = 'action_required.asc' then st.action_required end asc
+    , case when :sort_3 = 'action_required.desc' then st.action_required end desc
+    , case when :sort_3 = 'last_customer_reply_at.asc' then lcr.last_customer_reply_at end asc
+    , case when :sort_3 = 'last_customer_reply_at.desc' then lcr.last_customer_reply_at end desc
+    , case when :sort_3 = 'vip_rank.asc' then st.vip_rank end asc
+    , case when :sort_3 = 'vip_rank.desc' then st.vip_rank end desc
+    , case when :sort_4 = 'ticket_id.asc' then st.ticket_id end asc
+    , case when :sort_4 = 'ticket_id.desc' then st.ticket_id end desc
+    , case when :sort_4 = 'subject.asc' then cast(st.subject as text) end asc
+    , case when :sort_4 = 'subject.desc' then cast(st.subject as text) end desc
+    , case when :sort_4 = 'customer_name.asc' then cast(st.customer_name as text) end asc
+    , case when :sort_4 = 'customer_name.desc' then cast(st.customer_name as text) end desc
+    , case when :sort_4 = 'customer_tier.asc' then cast(st.customer_tier as text) end asc
+    , case when :sort_4 = 'customer_tier.desc' then cast(st.customer_tier as text) end desc
+    , case when :sort_4 = 'status.asc' then cast(st.status as text) end asc
+    , case when :sort_4 = 'status.desc' then cast(st.status as text) end desc
+    , case when :sort_4 = 'priority_rank.asc' then st.priority_rank end asc
+    , case when :sort_4 = 'priority_rank.desc' then st.priority_rank end desc
+    , case when :sort_4 = 'sla_due_at.asc' then st.sla_due_at end asc
+    , case when :sort_4 = 'sla_due_at.desc' then st.sla_due_at end desc
+    , case when :sort_4 = 'sla_state.asc' then cast(st.sla_state as text) end asc
+    , case when :sort_4 = 'sla_state.desc' then cast(st.sla_state as text) end desc
+    , case when :sort_4 = 'latest_message_at.asc' then st.latest_message_at end asc
+    , case when :sort_4 = 'latest_message_at.desc' then st.latest_message_at end desc
+    , case when :sort_4 = 'language.asc' then cast(st.language as text) end asc
+    , case when :sort_4 = 'language.desc' then cast(st.language as text) end desc
+    , case when :sort_4 = 'channel.asc' then cast(st.channel as text) end asc
+    , case when :sort_4 = 'channel.desc' then cast(st.channel as text) end desc
+    , case when :sort_4 = 'updated_at.asc' then st.updated_at end asc
+    , case when :sort_4 = 'updated_at.desc' then st.updated_at end desc
+    , case when :sort_4 = 'action_required.asc' then st.action_required end asc
+    , case when :sort_4 = 'action_required.desc' then st.action_required end desc
+    , case when :sort_4 = 'last_customer_reply_at.asc' then lcr.last_customer_reply_at end asc
+    , case when :sort_4 = 'last_customer_reply_at.desc' then lcr.last_customer_reply_at end desc
+    , case when :sort_4 = 'vip_rank.asc' then st.vip_rank end asc
+    , case when :sort_4 = 'vip_rank.desc' then st.vip_rank end desc
+    , st.ticket_id asc
 limit
     :limit
 offset

@@ -1,4 +1,6 @@
-import type { FeatureQueryModel } from '@ashiba-ts/driver-adapter-core';
+import type { ParameterBinding } from '@ashiba-ts/named-parameters';
+
+export type PostgresBinding = Extract<ParameterBinding, { style: 'indexed' }>;
 
 /** Application-owned typed SQL boundary for Support Inbox. */
 export interface FeatureQuerySource<Params extends object = Record<string, unknown>, Row = unknown> {
@@ -10,8 +12,7 @@ export interface FeatureQuerySource<Params extends object = Record<string, unkno
   path: string;
   sqlPath?: string;
   sql: string;
-  queryModel: FeatureQueryModel;
-  optionalConditionCompression?: boolean;
+  binding: PostgresBinding;
   metadata?: Record<string, unknown>;
 }
 

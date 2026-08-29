@@ -346,13 +346,6 @@ function extractQueryShape(metadata: Record<string, unknown> | undefined): Recor
     filterKeys: metadata.filterKeys,
     sortKeys: metadata.sortKeys,
     queryVariant: metadata.queryVariant,
-    queryModel: {
-      sourceHash: metadata.queryModelSourceHash,
-      statementKind: metadata.queryModelStatementKind,
-      rootQueryShape: metadata.queryModelRootQueryShape,
-      optionalConditionCompression: metadata.queryModelOptionalConditionCompression,
-      safeSortInsertionStatus: metadata.queryModelSafeSortInsertionStatus,
-    },
   };
 }
 

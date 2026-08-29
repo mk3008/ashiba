@@ -40,7 +40,6 @@ import {
 } from './analysis.js';
 import { buildRelationGraphFromCreateTableQueries, getOutgoingRelations } from 'rawsql-ts';
 import { invalidCliInputError } from '../../errors.js';
-import { buildSqlOptionalConditionCompressionMetadata } from '../../commands/sql-optional-condition-compression-metadata.js';
 
 export type QueryLintFormat = 'text' | 'json';
 export type QueryLintSeverity = 'error' | 'warning' | 'info';
@@ -483,7 +482,7 @@ function buildDuplicateIssues(
 }
 
 function detectAnalysisRiskPatterns(sql: string): QueryLintIssue[] {
-  const safeStringConcatRanges = collectSafeSssqlStringConcatRanges(sql);
+  const safeStringConcatRanges: Array<{ start: number; end: number }> = [];
   return ANALYSIS_RISK_PATTERNS
     .filter(({ pattern, riskPattern }) => hasUnsafeAnalysisRiskOccurrence(sql, pattern, riskPattern, safeStringConcatRanges))
     .map(({ riskPattern, message }) => ({
@@ -492,14 +491,6 @@ function detectAnalysisRiskPatterns(sql: string): QueryLintIssue[] {
       risk_pattern: riskPattern,
       message
     }));
-}
-
-function collectSafeSssqlStringConcatRanges(sql: string): Array<{ start: number; end: number }> {
-  try {
-    return buildSqlOptionalConditionCompressionMetadata(sql).branches.map((branch) => branch.sourceRange);
-  } catch {
-    return [];
-  }
 }
 
 function hasUnsafeAnalysisRiskOccurrence(

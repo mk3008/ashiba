@@ -1,6 +1,6 @@
 import { queryMany, type FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
-import { queryModel } from './generated/query.meta.js';
+import { bindingMetadata } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const getTicketDetailSql = querySql;
@@ -9,8 +9,7 @@ export const getTicketDetailQuery: FeatureQuerySource<GetTicketDetailQueryParams
   path: 'get-ticket-detail.sql',
   sqlPath: 'get-ticket-detail.sql',
   sql: getTicketDetailSql,
-  queryModel,
-  optionalConditionCompression: true,
+  binding: bindingMetadata.bindings.postgres,
   metadata: {
     sqlId: 'get-ticket-detail',
     queryId: 'get-ticket-detail',

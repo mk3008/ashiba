@@ -31,7 +31,7 @@ export type SqlInspection = {
   sqlPath: string;
   apiRoute: string;
   selectedSort: string;
-  safeSortKeys: string;
+  reviewedSortKeys: string;
   stableOrder: string;
   parameterNames: readonly string[];
   boundParams: readonly BoundParam[];
@@ -73,10 +73,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters, conte
         listEvents.push(event);
       },
     },
-    preparationOptions: {
-      metadata: toSqlMetadata(context, filters, 'list'),
-      sort: toTicketSort(filters),
-    },
+    metadata: toSqlMetadata(context, filters, 'list'),
   });
   const tickets = await executeListTicketsQuery(listExecutor, toListTicketsParams(filters));
   const selectedTicketId = filters.selectedTicketId ?? tickets[0]?.ticket_id?.toString();
@@ -91,9 +88,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters, conte
 
 async function loadTicketDetail(pool: Pool, ticketId: string, context: SupportInboxRequestContext): Promise<TicketDetail> {
   const executor = createPgSqlClient(pool, {
-    preparationOptions: {
-      metadata: toSqlMetadata(context, undefined, 'detail'),
-    },
+    metadata: toSqlMetadata(context, undefined, 'detail'),
   });
   const messages = await executeGetTicketDetailQuery(executor, { ticketId });
   return {
@@ -108,7 +103,7 @@ function buildSqlInspection(filters: TicketFilters, rowCount: number, events: re
     sqlPath: 'src/features/support-inbox/list-tickets/queries/list-tickets/list-tickets.sql',
     apiRoute: context.apiRoute,
     selectedSort: filters.sort,
-    safeSortKeys:
+    reviewedSortKeys:
       toTicketSort(filters)
         .map((item) => `${item.key} ${item.direction ?? 'asc'}`)
         .join(', ') || 'なし',

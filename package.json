@@ -15,7 +15,7 @@
     "test": "pnpm -r --filter \"!@ashiba-ts/transfer-dogfood\" --filter \"!@ashiba-ts/ddl-docs-cli\" run --if-present test",
     "project:check": "node packages/cli/dist/index.js project check",
     "verify": "pnpm typecheck && pnpm build && pnpm project:check && pnpm test && pnpm verify:publish-order && pnpm docs:build && pnpm verify:consumer-install && pnpm verify:customer-tutorial:docker && pnpm verify:customer-functional",
-    "verify:postgres-live": "node scripts/require-postgres-live-url.mjs && pnpm --filter @ashiba-ts/driver-adapter-pg test:live && pnpm --filter @ashiba-ts/cli test:live",
+    "verify:postgres-live": "node scripts/require-postgres-live-url.mjs && pnpm --filter @ashiba-ts/cli test:live",
     "pack:cli": "pnpm --filter @ashiba-ts/cli pack --pack-destination ../../tmp",
     "verify:consumer-install": "node scripts/verify-consumer-install.mjs",
     "verify:publish-order": "node scripts/verify-publish-order.mjs",

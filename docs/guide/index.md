@@ -7,16 +7,9 @@ Short guides for Ashiba concepts that are easier to understand as named patterns
 - [Ashiba Scope](../design/ashiba-scope.md): normative product-boundary source of truth.
 - [SQL Guidelines](./sql-guidelines.md): non-normative advice for readable, locally explainable SQL.
 
-## Current Implementation References
-
-The following pages describe existing implementation behavior and terminology.
-They do not define the normative product boundary.
-
-- [SSSQL (current implementation)](./sssql.md): historical implementation terminology and optional-condition subtraction behavior.
-- [Safe Sort (current implementation)](./safe-sort.md): current generated-metadata dynamic `ORDER BY` implementation.
-
 ## Other Guides
 
-- [Runtime Boundary](./runtime-boundary.md): Native-driver baseline execution, the minimal named-SQL bind path, and optional adapter capabilities.
-- [SQL Format](./sql-format.md): scaffolded SQL style and explicit safe formatting for existing SQL files.
+- [Runtime Boundary](./runtime-boundary.md): Native-driver baseline execution and the minimal named-SQL bind path.
+- [Driver surface migration](./driver-adapter-migration.md): migrate removed driver adapters and runtime query rewrites to application-owned integration.
+- [SQL Format](./sql-format.md): explicit safe formatting for existing SQL files.
 - [SQL Resources and Schema Compatibility](./sql-resource-compatibility.md): expose canonical SQL outside TypeScript and compare a PostgreSQL schema change against the full SQL fleet.

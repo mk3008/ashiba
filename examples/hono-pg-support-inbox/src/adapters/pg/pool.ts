@@ -1,9 +1,5 @@
 import { Pool, type PoolConfig } from 'pg';
-import {
-  type AshibaPostgresPreparationOptions,
-  type AshibaPostgresQuerySource,
-  preparePostgresQuery,
-} from '@ashiba-ts/driver-adapter-pg';
+import { bindNamedParameters } from '@ashiba-ts/named-parameters';
 
 import { logSqlExecution, type SqlExecutionLogEvent } from '#adapters/logger/appLogger.js';
 import type {
@@ -19,7 +15,7 @@ export type PgConnectionSettings = {
 };
 
 export type PgFeatureQueryExecutorOptions = {
-  preparationOptions?: AshibaPostgresPreparationOptions & { metadata?: Record<string, unknown> };
+  metadata?: Record<string, unknown>;
   observer?: { emit(event: SqlExecutionLogEvent): void };
   includeUnmaskedParamsInEvents?: boolean;
 };
@@ -68,35 +64,16 @@ export function createPgSqlClient(
   queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },
   options: PgFeatureQueryExecutorOptions = {},
 ): FeatureQueryExecutor {
-  const { preparationOptions, observer, includeUnmaskedParamsInEvents = false } = options;
+  const { metadata: suppliedMetadata, observer, includeUnmaskedParamsInEvents = false } = options;
   return {
     async query<Query extends AnyFeatureQuerySource>(query: Query, params: AshibaQueryParams<Query>): Promise<AshibaQueryRow<Query>[]> {
-      const queryAnalysis = query.queryModel.analysis;
-      const postgresQuery: AshibaPostgresQuerySource<AshibaQueryParams<Query>, AshibaQueryRow<Query>> = {
-          sql: query.sql,
-          sqlPath: query.sqlPath,
-          queryModel: query.queryModel,
-      };
-      const { metadata: suppliedMetadata, ...postgresPreparationOptions } = preparationOptions ?? {};
-      const prepared = preparePostgresQuery(
-        postgresQuery,
-        { ...params },
-        {
-          ...postgresPreparationOptions,
-          optionalConditionCompression: query.optionalConditionCompression ?? postgresPreparationOptions.optionalConditionCompression,
-        },
-      );
+      const prepared = bindNamedParameters(query.binding, { ...params }) as Query['binding'] & { values: readonly unknown[] };
       const startedAt = Date.now();
       const metadata = {
         ...suppliedMetadata,
         sqlId: query.metadata?.sqlId ?? query.id,
         queryId: query.metadata?.queryId ?? query.id,
         sqlPath: query.metadata?.sqlPath ?? query.sqlPath,
-        queryModelSourceHash: queryAnalysis.sourceHash,
-        queryModelStatementKind: queryAnalysis.statementKind,
-        queryModelRootQueryShape: queryAnalysis.rootQueryShape,
-        queryModelOptionalConditionCompression: queryAnalysis.optionalConditionCompression?.enabled,
-        queryModelSafeSortInsertionStatus: queryAnalysis.safeSort?.insertion?.status,
       };
       const emit = (event: SqlExecutionLogEvent) => {
         logSqlExecution(event);
@@ -105,7 +82,7 @@ export function createPgSqlClient(
       emit({
         phase: 'start',
         metadata,
-        sourceSql: prepared.sourceSql,
+        sourceSql: query.sql,
         compiledSql: prepared.sql,
         parameterNames: prepared.parameterNames,
         maskedParams: maskPreparedParams(prepared.values),
@@ -116,7 +93,7 @@ export function createPgSqlClient(
         emit({
           phase: 'end',
           metadata,
-          sourceSql: prepared.sourceSql,
+          sourceSql: query.sql,
           compiledSql: prepared.sql,
           parameterNames: prepared.parameterNames,
           maskedParams: maskPreparedParams(prepared.values),
@@ -129,7 +106,7 @@ export function createPgSqlClient(
         emit({
           phase: 'error',
           metadata,
-          sourceSql: prepared.sourceSql,
+          sourceSql: query.sql,
           compiledSql: prepared.sql,
           parameterNames: prepared.parameterNames,
           maskedParams: maskPreparedParams(prepared.values),
@@ -148,8 +125,7 @@ function maskPreparedParams(values: readonly unknown[]): readonly string[] {
 }
 
 /**
- * Low-level compatibility alias. Prefer createPgSqlClient in new application code
- * so logger wiring stays visibly attached to the SQL client boundary.
+ * Convenience alias for application-owned feature wiring.
  */
 export function createPgFeatureQueryExecutor(
   queryable: { query(sql: string, values: readonly unknown[]): Promise<{ rows: unknown[]; rowCount?: number | null }> },

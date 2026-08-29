@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { describe, expect, test } from 'vitest';
 
 import { fromPg } from '../../../src/adapters/pg/sql-client.js';
@@ -16,7 +15,6 @@ describe('fromPg', () => {
 
     const sql =
       'select * from transfer_destination_definition where destination_definition_name = any(:names) and is_enabled = :enabled';
-    const sourceHash = `sha256:${createHash('sha256').update(sql).digest('hex')}`;
     const query: FeatureQuerySource<
       { names: string[]; enabled: boolean },
       { destination_definition_id: string }
@@ -25,22 +23,10 @@ describe('fromPg', () => {
       path: 'resolve-transfer-destination-definitions.sql',
       sqlPath: 'resolve-transfer-destination-definitions.sql',
       sql,
-      queryModel: {
-        analysis: {
-          astParse: 'ok',
-          statementKind: 'select',
-          rootQueryShape: 'simple-select',
-          hasTopLevelOrderBy: false,
-          sourceHash,
-        },
-        bindings: {
-          postgres: {
-            sourceHash,
-            style: 'indexed',
-            sql: 'select * from transfer_destination_definition where destination_definition_name = any($1) and is_enabled = $2',
-            parameterNames: ['names', 'enabled'],
-          },
-        },
+      binding: {
+        style: 'indexed',
+        sql: 'select * from transfer_destination_definition where destination_definition_name = any($1) and is_enabled = $2',
+        parameterNames: ['names', 'enabled'],
       },
     };
 

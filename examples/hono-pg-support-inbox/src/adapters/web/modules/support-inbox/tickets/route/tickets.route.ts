@@ -26,9 +26,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
     logApiRequest({ ...requestContext, phase: 'start' });
     try {
       const executor = createPgSqlClient(dependencies.pool, {
-        preparationOptions: {
-          metadata: requestContext,
-        },
+        metadata: requestContext,
       });
       const customers = (await executeListTicketCustomerOptions(executor, {})).items;
       logApiRequest({ ...requestContext, phase: 'end', status: 200, elapsedMs: Date.now() - startedAt });
@@ -81,9 +79,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       const result = await withPgTransaction(dependencies.pool, (executor) =>
         executeCreateTicket(executor, body),
         {
-          preparationOptions: {
-            metadata: requestContext,
-          },
+          metadata: requestContext,
         },
       );
       logApiRequest({ ...requestContext, phase: 'end', status: 303, elapsedMs: Date.now() - startedAt });
@@ -92,9 +88,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       c.status(400);
       logApiRequest({ ...requestContext, phase: 'error', status: 400, elapsedMs: Date.now() - startedAt, error });
       const executor = createPgSqlClient(dependencies.pool, {
-        preparationOptions: {
-          metadata: requestContext,
-        },
+        metadata: requestContext,
       });
       const customers = (await executeListTicketCustomerOptions(executor, {})).items;
       return c.html(renderCreateTicketPage({ customers, error }));
@@ -119,9 +113,7 @@ export function mountTicketsRoutes(app: Hono, dependencies: WebAppDependencies):
       const result = await withPgTransaction(dependencies.pool, (executor) =>
         executeUpdateTicketStatus(executor, { ...body, ticket_id: ticketId }),
         {
-          preparationOptions: {
-            metadata: requestContext,
-          },
+          metadata: requestContext,
         },
       );
       const fallbackLocation = `/tickets?ticketId=${encodeURIComponent(String(result.ticket_id ?? ticketId))}#ticket-detail`;

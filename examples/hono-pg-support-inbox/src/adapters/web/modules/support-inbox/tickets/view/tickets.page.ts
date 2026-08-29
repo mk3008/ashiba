@@ -242,22 +242,6 @@ function diagnoseDemoError(error: unknown): DemoErrorDiagnosis {
   }
 
   if (
-    code === 'ASHIBA_QUERY_MODEL_STALE' ||
-    code === 'ASHIBA_BINDING_METADATA_REQUIRED' ||
-    message.includes('Query model binding metadata was generated from different source SQL')
-  ) {
-    return {
-      code: code ?? 'ASHIBA_QUERY_MODEL_STALE',
-      summary: 'The visible SQL and generated Ashiba metadata are out of sync.',
-      actions: [
-        'Run pnpm --dir examples/hono-pg-support-inbox check:drift to see the drift.',
-        'Run pnpm --dir examples/hono-pg-support-inbox ashiba:generate, then rerun check:drift before starting the demo.',
-        'This is not a PostgreSQL startup or seed-data problem.',
-      ],
-    };
-  }
-
-  if (
     code === 'ECONNREFUSED' ||
     code === 'ENOTFOUND' ||
     code === 'ETIMEDOUT' ||

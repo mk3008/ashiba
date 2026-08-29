@@ -51,12 +51,9 @@ importers:
 
   dogfood/transfer:
     dependencies:
-      '@ashiba-ts/driver-adapter-core':
+      '@ashiba-ts/named-parameters':
         specifier: workspace:*
-        version: link:../../packages/driver-adapter-core
-      '@ashiba-ts/driver-adapter-pg':
-        specifier: workspace:*
-        version: link:../../packages/driver-adapter-pg
+        version: link:../../packages/named-parameters
       zod:
         specifier: ^4.3.6
         version: 4.4.3
@@ -103,12 +100,9 @@ importers:
 
   examples/hono-pg-support-inbox:
     dependencies:
-      '@ashiba-ts/driver-adapter-core':
+      '@ashiba-ts/named-parameters':
         specifier: workspace:*
-        version: link:../../packages/driver-adapter-core
-      '@ashiba-ts/driver-adapter-pg':
-        specifier: workspace:*
-        version: link:../../packages/driver-adapter-pg
+        version: link:../../packages/named-parameters
       '@hono/node-server':
         specifier: ^2.0.10
         version: 2.0.10(hono@4.13.0)
@@ -212,34 +206,6 @@ importers:
       '@types/node':
         specifier: ^22.13.10
         version: 22.19.19
-
-  packages/driver-adapter-core:
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.10
-        version: 22.19.19
-
-  packages/driver-adapter-pg:
-    dependencies:
-      '@ashiba-ts/driver-adapter-core':
-        specifier: workspace:*
-        version: link:../driver-adapter-core
-      '@ashiba-ts/named-parameters':
-        specifier: workspace:*
-        version: link:../named-parameters
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.10
-        version: 22.19.19
-      '@types/pg':
-        specifier: ^8.20.0
-        version: 8.20.0
-      fast-check:
-        specifier: ^4.8.0
-        version: 4.8.0
-      pg:
-        specifier: ^8.21.0
-        version: 8.21.0
 
   packages/named-parameters:
     devDependencies:
@@ -1556,10 +1522,6 @@ packages:
   extendable-error@0.1.7:
     resolution: {integrity: sha512-UOiS2in6/Q0FK0R0q6UY9vYpQ21mr/Qn1KOnte7vsACuNJf514WvCCUHSRCPcgjPT2bAhNIJdlE6bVap1GKmeg==}
 
-  fast-check@4.8.0:
-    resolution: {integrity: sha512-GOJ158CUMnN6cSahsv4+ExARvIDuzzinFjkp0E9WtiBa5zcVeLozVkWaE4IzFcc+Y48Wp1EDlUZsXRyAztQcSg==}
-    engines: {node: '>=12.17.0'}
-
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
 
@@ -2216,9 +2178,6 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
-
-  pure-rand@8.4.0:
-    resolution: {integrity: sha512-IoM8YF/jY0hiugFo/wOWqfmarlE6J0wc6fDK1PhftMk7MGhVZl88sZimmqBBFomLOCSmcCCpsfj7wXASCpvK9A==}
 
   quansync@0.2.11:
     resolution: {integrity: sha512-AifT7QEbW9Nri4tAwR5M/uzpBuqfZf+zwaEM/QkzEjj7NBuFD2rBuy0K3dE+8wltbezDV7JMA0WfnCPYRSYbXA==}
@@ -4139,10 +4098,6 @@ snapshots:
 
   extendable-error@0.1.7: {}
 
-  fast-check@4.8.0:
-    dependencies:
-      pure-rand: 8.4.0
-
   fast-deep-equal@3.1.3: {}
 
   fast-fifo@1.3.2: {}
@@ -4752,8 +4707,6 @@ snapshots:
       once: 1.4.0
 
   punycode@2.3.1: {}
-
-  pure-rand@8.4.0: {}
 
   quansync@0.2.11: {}
 

@@ -1,6 +1,6 @@
 import { queryMany, type FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
-import { queryModel } from './generated/query.meta.js';
+import { bindingMetadata } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const updateTicketStatusSql = querySql;
@@ -9,7 +9,7 @@ export const updateTicketStatusQuery: FeatureQuerySource<UpdateTicketStatusQuery
   path: 'update-ticket-status.sql',
   sqlPath: 'update-ticket-status.sql',
   sql: updateTicketStatusSql,
-  queryModel,
+  binding: bindingMetadata.bindings.postgres,
   metadata: {
     sqlId: 'update-ticket-status',
     queryId: 'update-ticket-status',

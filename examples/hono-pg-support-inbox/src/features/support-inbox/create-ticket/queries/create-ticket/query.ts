@@ -1,6 +1,6 @@
 import { queryOne, type FeatureQuerySource } from '#features/_shared/featureQueryExecutor.js';
 import type { FeatureQueryExecutor } from '#features/_shared/featureQueryExecutor.js';
-import { queryModel } from './generated/query.meta.js';
+import { bindingMetadata } from './generated/query.meta.js';
 import { querySql } from './generated/query.sql.js';
 
 export const createTicketSql = querySql;
@@ -9,7 +9,7 @@ export const createTicketQuery: FeatureQuerySource<CreateTicketQueryParams, Crea
   path: 'create-ticket.sql',
   sqlPath: 'create-ticket.sql',
   sql: createTicketSql,
-  queryModel,
+  binding: bindingMetadata.bindings.postgres,
   metadata: {
     sqlId: 'create-ticket',
     queryId: 'create-ticket',
