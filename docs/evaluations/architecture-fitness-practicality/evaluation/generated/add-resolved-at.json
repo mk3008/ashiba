@@ -1,0 +1,57 @@
+{
+  "kind": "ddl-migration-generate",
+  "from": "docs\\evaluations\\architecture-fitness-practicality\\evaluation\\fixtures\\ddl\\before.sql",
+  "to": "docs\\evaluations\\architecture-fitness-practicality\\evaluation\\fixtures\\ddl\\after.sql",
+  "fromFiles": [],
+  "toFiles": [],
+  "dryRun": true,
+  "hasChanges": true,
+  "safety": {
+    "dropTables": true,
+    "dropColumns": true,
+    "dropConstraints": true,
+    "dropIndexes": true
+  },
+  "summary": [
+    {
+      "schema": "public",
+      "table": "tickets",
+      "changeKind": "add_column",
+      "details": {
+        "column": "resolved_at",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    }
+  ],
+  "applyPlan": {
+    "operations": [
+      {
+        "kind": "drop_table_cascade",
+        "target": "public.tickets",
+        "sql": "DROP TABLE IF EXISTS \"public\".\"tickets\" CASCADE;"
+      },
+      {
+        "kind": "recreate_table",
+        "target": "public.tickets"
+      },
+      {
+        "kind": "create_table",
+        "target": "public.tickets",
+        "sql": "create table tickets (\n  ticket_id bigint primary key,\n  customer_id bigint not null references customers(customer_id),\n  status text not null,\n  subject text not null,\n  created_at timestamptz not null,\n  resolved_at timestamptz null\n);"
+      }
+    ]
+  },
+  "risks": {
+    "destructiveRisks": [
+      {
+        "kind": "semantic_constraint_change",
+        "target": "public.tickets",
+        "guidance": [
+          "review_if_required"
+        ]
+      }
+    ],
+    "operationalRisks": []
+  }
+}

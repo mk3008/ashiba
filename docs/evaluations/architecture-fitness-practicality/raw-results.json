@@ -1,0 +1,72 @@
+{
+  "startingSha": "892df4fbe887a8f216a5ed19cc9aab6e8e00a4a",
+  "decision": "FIT-WITH-CONCERNS",
+  "invariants": {
+    "scopeChanged": false,
+    "goldenPathChanged": false,
+    "productCodeChanged": false,
+    "dbmsPositioningChanged": false
+  },
+  "taskResults": {
+    "readQuery": "pass",
+    "queryChange": "pass",
+    "dynamicSort": "concern",
+    "transactionWrite": "pass",
+    "schemaChange": "mixed",
+    "failureInjection": "pass"
+  },
+  "executedEvidence": {
+    "aiTrialShape": "pass",
+    "bindingNegativeControls": "pass",
+    "staleMetadataCheckExit": 1,
+    "ddlLintPositive": "pass",
+    "ddlLintMissingColumn": "fail-closed",
+    "ddlMigrationGenerate": {
+      "hasChanges": true,
+      "generatedSql": "ALTER TABLE \"tickets\" ADD COLUMN \"resolved_at\" timestamptz NULL;",
+      "summaryChangeKind": "add_column",
+      "applyPlanOperations": [
+        "drop_table_cascade",
+        "recreate_table",
+        "create_table"
+      ],
+      "destructiveRisks": [
+        "semantic_constraint_change:public.tickets"
+      ],
+      "operationalRisks": [],
+      "rawEvidence": "evaluation/generated/add-resolved-at.json"
+    },
+    "queryUsesSupportInbox": {
+      "catalogsScanned": 7,
+      "statementsScanned": 7,
+      "ticketsHighConfidenceMatches": 4
+    },
+    "focusedOptionalCliTests": "pass: 29 passed, 2 skipped",
+    "sqlResourceLive": "pass: 31 passed",
+    "ticketQueueLiveVerify": "pass: 4 contract queries, 3 negative controls; transaction rollback test passed",
+    "remotePrCi": {
+      "verify": "pass",
+      "postgresLive": "pass",
+      "postgresTicketQueueReference": "pass",
+      "supportInboxExample": "pass",
+      "supportInboxExampleAutocrlf": "pass"
+    }
+  },
+  "optionalCapabilityPracticality": {
+    "queryUses": "situationally-useful",
+    "ddlBackedLint": "clearly-useful",
+    "ddlMigrationGenerate": "situationally-useful-review-tool-with-apply-plan-consistency-concern",
+    "sqlResource": "situationally-useful-no-current-app-or-ci-consumer",
+    "postgresContract": "clearly-useful-where-opted-in"
+  },
+  "environment": {
+    "ticketQueueCompose": "blocked: Docker predefined address pools exhausted",
+    "sqlResourceFirstDatabase": "blocked: existing container credentials rejected",
+    "fallbackLiveDatabase": "existing isolated evaluation PostgreSQL service",
+    "temporarySchemasAndTables": "cleaned"
+  },
+  "telemetry": {
+    "token": "unavailable",
+    "credit": "unavailable"
+  }
+}
