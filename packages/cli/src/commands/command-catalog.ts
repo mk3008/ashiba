@@ -10,7 +10,6 @@ export const COMMANDS: readonly CommandSpec[] = [
   { name: 'project check', summary: 'Run project-level SQL safety checks.', useCase: 'Check configured SQL roots without feature-layout ownership.', usage: 'ashiba project check' },
   { name: 'postgres-contract', summary: 'Derive a standalone PostgreSQL contract.', useCase: 'Optionally verify parameter/result contracts from real PostgreSQL.', usage: 'ashiba postgres-contract <write|check> <sqlFile>' },
   { name: 'ddl migration generate', summary: 'Generate reviewable SQL from DDL snapshots.', useCase: 'Review DDL changes without mutating a database.', usage: 'ashiba ddl migration generate --from <path> --to <path>' },
-  { name: 'gate scaffold', summary: 'Scaffold passive local check gates.', useCase: 'Add an opt-in project check command or CI gate.', usage: 'ashiba gate scaffold' },
   { name: 'lint', summary: 'Check SQL against an explicit DDL model.', useCase: 'Detect mechanically decidable DDL table, column, and literal-type mismatches.', usage: 'ashiba lint <path> --ddl-dir <path>' },
   { name: 'query uses table', summary: 'Find SQL table usage.', useCase: 'Inspect the impact of a table change.', usage: 'ashiba query uses table <table>' },
   { name: 'query uses column', summary: 'Find SQL column usage.', useCase: 'Inspect the impact of a column change.', usage: 'ashiba query uses column <column>' },
