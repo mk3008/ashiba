@@ -14,7 +14,8 @@ resource comparison.
   commands, named binding, model generation, and PostgreSQL contract have not
   been redesigned or removed.
 - **done** — the implementation report and raw results distinguish local
-  passing checks from the still-pending PR CI result.
+  passing checks from PR #102's passing remote verification, live, consumer,
+  and Windows jobs.
 - **done** — `tmp/RETRO.md` was checked; no open PR-gate item applies.
 
 ## Cycle 2: human acceptance review
@@ -28,10 +29,10 @@ whether to accept that intentional breaking ownership reduction.
 ## Triage
 
 - Blocker: none.
-- Follow-up: PR CI will confirm platform and live consumer paths.
+- Follow-up: none required for this reduction.
 - Nit: none.
 
 ## Review readiness
 
-Ready for PR creation after PR-body readiness validation. Final human review
-readiness also requires the requested remote CI confirmation.
+Ready for human review. The required remote CI confirmation is recorded in the
+raw results; merge remains a human decision.

@@ -34,7 +34,16 @@
     "pnpmVerify": "pass",
     "docsBuild": "pass",
     "gitDiffCheck": "pass",
-    "remoteCi": "pending-pr-creation"
+    "remoteCi": {
+      "head": "a27b7b755affa62178c3ad1e501c4ea33045dab2",
+      "run": "https://github.com/mk3008/ashiba/actions/runs/33251018917",
+      "verify": "pass",
+      "postgresLive": "pass",
+      "postgresTicketQueueReference": "pass",
+      "supportInboxExample": "pass",
+      "supportInboxExampleAutocrlf": "pass",
+      "codeRabbit": "pass (manual review required)"
+    }
   },
   "temporaryResources": "No database or container resource was created or changed. Local node_modules is an ignored worktree dependency installation."
 }

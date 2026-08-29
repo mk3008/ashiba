@@ -74,9 +74,10 @@ CLI → ddl migration generate | sql-resource snapshot / compare
 Local verification results and remote CI status are recorded in
 `raw-results.json`. Focused retained command tests, project check, command
 catalog inspection, repository verification, documentation build, publish and
-consumer-install checks are included. The change has no native execution or
-database-runtime behavior, so no local live database was altered; the PR CI
-live jobs are the remote confirmation.
+consumer-install checks passed. PR #102's `verify`, PostgreSQL live, Ticket
+Queue, Support Inbox, and Windows/CRLF jobs also passed. The change has no
+native execution or database-runtime behavior, so no local live database was
+altered; those PR CI live jobs are the remote confirmation.
 
 ## Invariants and limitations
 
