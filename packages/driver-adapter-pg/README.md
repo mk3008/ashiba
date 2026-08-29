@@ -50,6 +50,6 @@ Root compound queries such as `UNION`, `INTERSECT`, and `EXCEPT` are rejected fr
 
 Current contract tests cover `pg` compatible query delegation, named parameter binding, unused parameter rejection before driver execution, query-model-gated safe sort rendering, stale metadata rejection, masked/unmasked observer events, and error event emission.
 
-For transient database failures, use `classifyPostgresTransientError` or `isPostgresTransientError` as input to an explicit retry boundary such as `withAshibaRetry` from `@ashiba-ts/driver-adapter-core`. The classifier only identifies retry candidates; application code still decides whether the operation is safe to run again.
+For transient database failures, `classifyPostgresTransientError` and `isPostgresTransientError` identify retry candidates. The application owns retry, idempotency, and logging policy.
 
 Live PostgreSQL smoke can be run by setting `ASHIBA_TEST_DATABASE_URL` or `DATABASE_URL` before `pnpm verify:postgres-live`. Without that environment variable, the live smoke is skipped.

@@ -16,7 +16,6 @@ It provides shared types and helpers for:
 
 - masked parameter logging
 - logger-ready execution events
-- explicit retry policy helpers for visible transient-failure retry boundaries
 - deterministic adapter metadata types
 - `many` / `one` / `oneOrNull` cardinality helpers
 - dialect-extensible query model binding slots
@@ -26,8 +25,3 @@ It provides shared types and helpers for:
 Existing application projects may use adapter metadata with this
 package and a concrete adapter such as `@ashiba-ts/driver-adapter-pg`; native
 driver execution remains an equally valid application-owned baseline.
-
-`withAshibaRetry` is intentionally policy-driven. It does not decide that SQL,
-transactions, external side effects, or SAGA workflows are safe to execute again.
-Application code must pass an explicit classifier and own idempotency,
-compensation, and logging policy.
