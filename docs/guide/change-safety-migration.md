@@ -29,12 +29,18 @@ Call native `pg_dump` directly, or own a small project-local script when its
 flags, output path, credential handling, and platform behavior need to be
 standardized. Ashiba no longer wraps the external executable.
 
-The retained optional review capabilities are unchanged:
+## Database migrations
 
-- `ashiba ddl migration generate` produces reviewable DDL-diff SQL and risk
-  information without applying a migration.
-- `ashiba sql-resource snapshot` and `ashiba sql-resource compare` retain the
-  optional fleet-level SQL resource comparison boundary.
-
-Application migration application, deployment, credentials, CI scheduling,
+Ashiba does not author or own migration lifecycle. Use a dedicated migration
+library, native database tooling, or application-owned reviewed SQL migrations.
+Migration apply, rollback, history, deployment, credentials, CI scheduling,
 and live tests remain application-owned.
+
+Ashiba may still read DDL as an optional verification input, for example for
+narrow DDL-backed SQL lint. Combining a migration tool with Ashiba through an
+application or AI-assisted workflow is normal integration; Ashiba does not
+provide a migration command, generic migration interface, or compatibility
+wrapper.
+
+`ashiba sql-resource snapshot` and `ashiba sql-resource compare` remain the
+separate optional fleet-level SQL resource comparison boundary.

@@ -41,8 +41,8 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).toContain('請求書のダウンロードができない');
     expect(html).toContain('Live Query Console');
     expect(html).toContain('GET /tickets');
-    expect(html).toContain('<td>$12</td><td>limit</td><td>10</td>');
-    expect(html).toContain('<td>$13</td><td>offset</td><td>0</td>');
+    expect(html).toContain('<td>$8</td><td>limit</td><td>10</td>');
+    expect(html).toContain('<td>$9</td><td>offset</td><td>0</td>');
     expect(html).toContain('tag_matched_tickets as');
     expect(html).toContain('join filtered_tickets as ft on ft.ticket_id = tm.ticket_id');
     expect(html).toContain('join searchable_tickets as st on st.ticket_id = ttl.ticket_id');
@@ -193,7 +193,7 @@ describeDb('support inbox HTTP filters', () => {
     expect(html).not.toContain('Demo is not ready');
     expect(html).toContain('t.status = $2');
     expect(html).toContain('<td>$2</td><td>status</td><td>open</td>');
-    expect(html).toContain('<td>$12</td><td>limit</td><td>10</td>');
+    expect(html).toContain('<td>$8</td><td>limit</td><td>10</td>');
     expect(html).not.toContain('cast($1 as text) is null or t.status = $2');
     expect(html).not.toContain('where true');
   });
@@ -318,8 +318,10 @@ describeDb('support inbox HTTP filters', () => {
     expect(response.status).toBe(200);
     expectReadyHtml(html);
     expect(html).toContain('並び順: 顧客 昇順 → 更新日時 降順');
-    expect(html).toContain('case when $8 = &#39;customer_name.asc&#39;');
-    expect(html).toContain('case when $9 = &#39;updated_at.desc&#39;');
+    expect(html).toContain('cast(st.customer_name as text) asc');
+    expect(html).toContain('st.updated_at desc');
+    expect(html).toContain('st.ticket_id asc');
+    expect(html).not.toContain('case when $8');
     expect(html).toContain('data-sort-key="customer_name">顧客<span class="sortMarker">↑</span>');
     expect(html).toContain('data-sort-key="updated_at">更新日時<span class="sortMarker">↓2</span>');
   });

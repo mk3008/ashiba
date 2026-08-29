@@ -89,8 +89,8 @@ replace application-owned execution architecture.
 
 ## Other development tools
 
-The CLI also provides optional SQL linting, query impact inspection, resource
-comparison, and DDL migration review. Discover the exact current surface with:
+The CLI also provides optional SQL linting, query impact inspection, and
+resource comparison. Discover the exact current surface with:
 
 ```bash
 npx ashiba describe command --format json

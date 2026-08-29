@@ -21,10 +21,6 @@ export function parseRequest(raw: unknown): SupportInboxRequest {
     keyword: record.keyword,
     limit: readNumber(record.limit, 'limit'),
     offset: readNumber(record.offset, 'offset'),
-    sort_1: null,
-    sort_2: null,
-    sort_3: null,
-    sort_4: null,
   };
 }
 

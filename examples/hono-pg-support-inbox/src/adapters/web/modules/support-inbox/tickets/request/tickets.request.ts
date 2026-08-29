@@ -1,4 +1,4 @@
-import type { ListTicketsQueryParams } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
+import type { ListTicketsQueryParams, ListTicketsSort, ListTicketsSortKey } from '#features/support-inbox/list-tickets/queries/list-tickets/query.js';
 
 export type TicketSortKey =
   | 'action-required'
@@ -37,7 +37,7 @@ export type TicketFilters = {
   selectedTicketId?: string;
 };
 
-export type SortInput = { key: string; direction?: 'asc' | 'desc' };
+export type SortInput = ListTicketsSort;
 
 export const ticketSortInputs: Record<TicketSortKey, readonly SortInput[]> = {
   'action-required': [
@@ -99,7 +99,6 @@ export function parseTicketFilters(url: URL): TicketFilters {
 }
 
 export function toListTicketsParams(filters: TicketFilters): ListTicketsQueryParams {
-  const sort = toTicketSort(filters).map((item) => `${item.key}.${item.direction ?? 'asc'}`);
   return {
     status: nullable(filters.status),
     customerTier: nullable(filters.customerTier),
@@ -110,10 +109,6 @@ export function toListTicketsParams(filters: TicketFilters): ListTicketsQueryPar
     keyword: nullable(filters.keyword),
     limit: 10,
     offset: (filters.page - 1) * 10,
-    sort_1: sort[0] ?? null,
-    sort_2: sort[1] ?? null,
-    sort_3: sort[2] ?? null,
-    sort_4: sort[3] ?? null,
   };
 }
 
@@ -179,7 +174,7 @@ function parseColumnSort(value: string): SortInput[] {
     }
     seen.add(key);
     result.push({
-      key: ticketColumnSortInputs[key as TicketColumnSortKey],
+      key: ticketColumnSortInputs[key as TicketColumnSortKey] as ListTicketsSortKey,
       direction,
     });
   }

@@ -18,6 +18,29 @@ export const listTicketsQuery: FeatureQuerySource<ListTicketsQueryParams, ListTi
   },
 };
 
+export const listTicketsSortTerms = {
+  ticket_id: { asc: 'st.ticket_id asc', desc: 'st.ticket_id desc' },
+  subject: { asc: 'cast(st.subject as text) asc', desc: 'cast(st.subject as text) desc' },
+  customer_name: { asc: 'cast(st.customer_name as text) asc', desc: 'cast(st.customer_name as text) desc' },
+  customer_tier: { asc: 'cast(st.customer_tier as text) asc', desc: 'cast(st.customer_tier as text) desc' },
+  status: { asc: 'cast(st.status as text) asc', desc: 'cast(st.status as text) desc' },
+  priority_rank: { asc: 'st.priority_rank asc', desc: 'st.priority_rank desc' },
+  sla_due_at: { asc: 'st.sla_due_at asc', desc: 'st.sla_due_at desc' },
+  sla_state: { asc: 'cast(st.sla_state as text) asc', desc: 'cast(st.sla_state as text) desc' },
+  latest_message_at: { asc: 'st.latest_message_at asc', desc: 'st.latest_message_at desc' },
+  language: { asc: 'cast(st.language as text) asc', desc: 'cast(st.language as text) desc' },
+  channel: { asc: 'cast(st.channel as text) asc', desc: 'cast(st.channel as text) desc' },
+  updated_at: { asc: 'st.updated_at asc', desc: 'st.updated_at desc' },
+  action_required: { asc: 'st.action_required asc', desc: 'st.action_required desc' },
+  last_customer_reply_at: { asc: 'lcr.last_customer_reply_at asc', desc: 'lcr.last_customer_reply_at desc' },
+  vip_rank: { asc: 'st.vip_rank asc', desc: 'st.vip_rank desc' },
+} as const;
+
+export type ListTicketsSortKey = keyof typeof listTicketsSortTerms;
+export type ListTicketsSort = { key: ListTicketsSortKey; direction: 'asc' | 'desc' };
+
+const stableOrderBy = 'order by\n    st.ticket_id asc';
+
 export interface ListTicketsQueryParams {
   tag: string | null;
   status: string | null;
@@ -28,10 +51,6 @@ export interface ListTicketsQueryParams {
   keyword: unknown;
   limit: number;
   offset: number;
-  sort_1: string | null;
-  sort_2: string | null;
-  sort_3: string | null;
-  sort_4: string | null;
 }
 
 export interface ListTicketsQueryResult {
@@ -61,7 +80,57 @@ export interface ListTicketsQueryResult {
 
 export async function executeListTicketsQuery(
   executor: FeatureQueryExecutor,
-  params: ListTicketsQueryParams
+  params: ListTicketsQueryParams,
+  sort: readonly ListTicketsSort[] = [],
 ): Promise<ListTicketsQueryResult[]> {
-  return queryMany(executor, listTicketsQuery, params);
+  return queryMany(executor, composeListTicketsQuery(sort), params);
+}
+
+export function composeListTicketsQuery(sort: readonly ListTicketsSort[]): FeatureQuerySource<ListTicketsQueryParams, ListTicketsQueryResult> {
+  const orderBy = renderOrderBy(sort);
+  return {
+    ...listTicketsQuery,
+    sql: replaceStableOrder(listTicketsQuery.sql, orderBy),
+    binding: {
+      ...listTicketsQuery.binding,
+      sql: replaceStableOrder(listTicketsQuery.binding.sql, orderBy),
+    },
+  };
+}
+
+function renderOrderBy(sort: readonly ListTicketsSort[]): string {
+  if (sort.length > 4) {
+    throw new Error('Support Inbox accepts at most four reviewed sort terms including ticket_id.');
+  }
+
+  const seen = new Set<ListTicketsSortKey>();
+  const terms = sort.map(({ key, direction }) => {
+    if (!Object.hasOwn(listTicketsSortTerms, key)) {
+      throw new Error(`Unsupported Support Inbox sort key: ${key}`);
+    }
+    if (direction !== 'asc' && direction !== 'desc') {
+      throw new Error(`Unsupported Support Inbox sort direction: ${direction}`);
+    }
+    if (seen.has(key)) {
+      throw new Error(`Duplicate Support Inbox sort key: ${key}`);
+    }
+    seen.add(key);
+    return listTicketsSortTerms[key][direction];
+  });
+
+  if (!seen.has('ticket_id')) {
+    if (terms.length === 4) {
+      throw new Error('Support Inbox accepts at most four reviewed sort terms including ticket_id.');
+    }
+    terms.push('st.ticket_id asc');
+  }
+
+  return ['order by', ...terms.map((term, index) => `    ${index === 0 ? '' : ', '}${term}`)].join('\n');
+}
+
+function replaceStableOrder(sql: string, orderBy: string): string {
+  if (!sql.includes(stableOrderBy)) {
+    throw new Error('List tickets SQL is missing its stable ORDER BY anchor.');
+  }
+  return sql.replace(stableOrderBy, orderBy);
 }

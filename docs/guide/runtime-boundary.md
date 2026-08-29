@@ -29,6 +29,9 @@ It may choose how SQL is bundled or loaded at runtime.
 
 Applications own native-driver integration, including pools, transactions,
 logging, retry policy, optional filters, and finite reviewed sort mappings.
+External input must never become SQL syntax directly. A closed, validated input
+set may select source-controlled, reviewed SQL literals (such as a bounded sort
+term); that finite composition is distinct from interpolating raw request text.
 PostgreSQL is the primary evidence lane; MySQL and SQL Server remain supported
 secondary runtime targets.
 

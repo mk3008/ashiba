@@ -1,0 +1,55 @@
+{
+  "startingSha": "2d5176407a567bdf5f75d28479cf0c6a4ba4436c",
+  "scopeChanged": false,
+  "goldenPathChanged": false,
+  "dbmsPositioningChanged": false,
+  "productCodeChanged": true,
+  "migrationRemoval": {
+    "command": "removed",
+    "applyPlan": "removed",
+    "currentConsumerCensus": "no runtime, CI, standard verification, or retained-capability consumer"
+  },
+  "supportInboxSort": {
+    "canonicalSqlLines": { "before": 337, "after": 217 },
+    "caseTerms": { "before": 120, "after": 0 },
+    "reviewedLiterals": 30,
+    "bindingParameterNames": { "before": 13, "after": 9 }
+  },
+  "orchestration": {
+    "skill": "Credit Aware Orchestration",
+    "delegations": 2,
+    "model": "gpt-5.6-luna",
+    "purpose": ["migration consumer census", "Support Inbox sort consumer census"],
+    "retries": 0,
+    "escalations": 0,
+    "tokenTelemetry": "unavailable",
+    "creditTelemetry": "unavailable",
+    "metricsLedger": "tmp/orchestration-metrics/builder-mapper-core-realignment/metrics.jsonl",
+    "finished": true
+  },
+  "verification": {
+    "focusedSupportInboxLive": "pass (49 tests)",
+    "pnpmTypecheck": "pass",
+    "pnpmBuild": "pass",
+    "pnpmTest": "pass",
+    "pnpmVerify": "pass",
+    "pnpmDocsBuild": "pass",
+    "gitDiffCheck": "pass",
+    "publishOrder": "pass",
+    "consumerInstall": "pass",
+    "customerTutorialDocker": "pass",
+    "customerFunctional": "pass",
+    "remoteCi": {
+      "workflow": "Verify",
+      "headSha": "3deb5c7f3101b99b6d1c5a71d9fba8efe04354b2",
+      "checks": {
+        "verify": "pass",
+        "postgres-live": "pass",
+        "postgres-ticket-queue-reference": "pass",
+        "support-inbox-example": "pass",
+        "support-inbox-example-autocrlf": "pass"
+      }
+    }
+  },
+  "temporaryResources": "Support Inbox PostgreSQL container and temporary .env were removed after the live verification."
+}

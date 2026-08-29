@@ -16,4 +16,3 @@ Grid-header sorting with Shift-click multi-sort is part of the starter demo now,
 - `contract-boundary-narrowing/` - Narrow conservative generated request contracts from `unknown` to application-owned types and verify the edit loop.
 - `optional-priority-filter/` - Add a `priority` optional filter and follow the CLI/typecheck/test trail.
 - `add-customer-locale-column/` - Add a list result column from SQL and follow metadata, DTO, mapper, and UI changes.
-- `ddl-migration-script-from-git/` - Add a DDL column and generate reviewable migration SQL from the committed Git snapshot.
