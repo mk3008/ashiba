@@ -12,4 +12,5 @@ Short guides for Ashiba concepts that are easier to understand as named patterns
 - [Runtime Boundary](./runtime-boundary.md): Native-driver baseline execution and the minimal named-SQL bind path.
 - [Driver surface migration](./driver-adapter-migration.md): migrate removed driver adapters and runtime query rewrites to application-owned integration.
 - [Optional CLI Analysis Migration](./optional-cli-analysis-migration.md): migrate removed formatter and advisory analysis commands while retaining query uses and DDL-backed lint.
+- [Change-Safety Migration](./change-safety-migration.md): migrate removed gate scaffolding and the `pg_dump` wrapper to project-local tooling.
 - [SQL Resources and Schema Compatibility](./sql-resource-compatibility.md): expose canonical SQL outside TypeScript and compare a PostgreSQL schema change against the full SQL fleet.

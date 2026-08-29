@@ -10,7 +10,6 @@ import { applyCommandCatalogToProgram, formatCommonUseCases } from './commands/c
 import { registerConfigCommand } from './commands/config.js';
 import { registerDescribeCommand } from './commands/describe.js';
 import { registerDdlCommand } from './commands/ddl.js';
-import { registerGateCommand } from './commands/gate.js';
 import { registerLintCommand } from './commands/lint.js';
 import { registerModelGenCommand } from './commands/model-gen.js';
 import { registerProjectCommand } from './commands/project.js';
@@ -62,7 +61,6 @@ Detailed command catalog:
   registerConfigCommand(program);
   registerDescribeCommand(program);
   registerDdlCommand(program);
-  registerGateCommand(program);
   registerLintCommand(program);
   registerModelGenCommand(program);
   registerProjectCommand(program);

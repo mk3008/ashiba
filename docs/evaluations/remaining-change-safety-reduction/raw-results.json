@@ -1,0 +1,49 @@
+{
+  "startingSha": "6fed8cb35af57f94cd18cbd59f846e7a4d11e140",
+  "decision": "REDUCE_IMPLEMENTED",
+  "removed": {
+    "gateScaffold": true,
+    "ddlPullPgDumpPackage": true,
+    "compatibilityShim": false
+  },
+  "retained": {
+    "ddlMigrationGenerate": "unchanged",
+    "sqlResourceSnapshot": "unchanged",
+    "sqlResourceCompare": "unchanged",
+    "projectCheck": "unchanged"
+  },
+  "invariants": {
+    "scopeChanged": false,
+    "goldenPathChanged": false,
+    "dbmsPositioningChanged": false,
+    "productRuntimeChanged": false
+  },
+  "consumerCensus": {
+    "gateScaffoldCurrentConsumers": 0,
+    "ddlPullPgDumpCurrentConsumers": 0,
+    "unexpectedConsumer": false
+  },
+  "verification": {
+    "focusedRetainedTests": "pass",
+    "typecheck": "pass",
+    "build": "pass",
+    "projectCheck": "pass",
+    "commandCatalog": "pass",
+    "lockfile": "pass",
+    "pnpmTest": "pass",
+    "pnpmVerify": "pass",
+    "docsBuild": "pass",
+    "gitDiffCheck": "pass",
+    "remoteCi": {
+      "head": "7bc14388240933a0157714ff0f934cd0695e7f74",
+      "run": "https://github.com/mk3008/ashiba/actions/runs/33251135066",
+      "verify": "pass",
+      "postgresLive": "pass",
+      "postgresTicketQueueReference": "pass",
+      "supportInboxExample": "pass",
+      "supportInboxExampleAutocrlf": "pass",
+      "codeRabbit": "pass (manual review required)"
+    }
+  },
+  "temporaryResources": "No database or container resource was created or changed. Local node_modules is an ignored worktree dependency installation."
+}
