@@ -1,0 +1,40 @@
+{
+  "startingSha": "9544f7490d65acd492b61974eb1f2f9ced844924",
+  "evaluation": "postgres-preparation-residual-ownership",
+  "decision": "REDUCE",
+  "scopeChangeRequired": false,
+  "goldenPathChanged": false,
+  "productCodeChanged": false,
+  "currentProductDocsChanged": false,
+  "packages": {
+    "driverAdapterCore": "REMOVE_CANDIDATE_AFTER_TYPE_EXTRACTION",
+    "driverAdapterPg": "REDUCE_NOT_DURABLE_GENERAL_PREPARATION_PACKAGE"
+  },
+  "capabilities": {
+    "ordinaryPreparation": "REMOVE_FROM_PG_PACKAGE",
+    "runtimeSourceHash": "REDUCE",
+    "safeSort": "REMOVE_FROM_RUNTIME_PACKAGE",
+    "optionalConditionCompression": "KEEP_OPTIONAL_PRODUCTIZATION_PENDING",
+    "postgresContractProfile": "KEEP_OPTIONAL_OUTSIDE_PREPARATION"
+  },
+  "currentConsumers": {
+    "ashibaProductDogfood": ["examples/hono-pg-support-inbox"],
+    "detachedExperimental": ["dogfood/transfer"],
+    "adapterPackages": ["driver-adapter-pg", "driver-adapter-core"]
+  },
+  "evidence": [
+    "docs/evaluations/driver-adapter-reduction-phase-2/IMPLEMENTATION_REPORT.md",
+    "docs/evaluations/driver-adapter-reduction-phase-2/VERIFICATION.md",
+    "docs/evaluations/driver-adapter-ownership/CAPABILITY_OWNERSHIP.md",
+    "docs/evaluations/dynamic-mechanism-value-ablation.md",
+    "packages/driver-adapter-pg/tests/postgres-preparation.test.ts",
+    "packages/driver-adapter-core/tests/driver-adapter-core.test.ts"
+  ],
+  "evidenceStrength": "medium",
+  "focusedVerification": {
+    "driverAdapterCore": "2 passed",
+    "driverAdapterPg": "3 passed; 1 live test skipped without database URL",
+    "cliModelGenAndMetadata": "24 passed; 2 live tests skipped without database URL"
+  },
+  "temporaryResources": "none created by this evaluation"
+}
