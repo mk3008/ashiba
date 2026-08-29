@@ -16,10 +16,6 @@ describe('support inbox request parsing', () => {
       channel: null,
       tag: null,
       keyword: null,
-      sort_1: null,
-      sort_2: null,
-      sort_3: null,
-      sort_4: null,
       limit: 10,
       offset: 0,
     });

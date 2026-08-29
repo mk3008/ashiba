@@ -9,7 +9,6 @@ import { registerCheckCommand } from './commands/check.js';
 import { applyCommandCatalogToProgram, formatCommonUseCases } from './commands/command-catalog.js';
 import { registerConfigCommand } from './commands/config.js';
 import { registerDescribeCommand } from './commands/describe.js';
-import { registerDdlCommand } from './commands/ddl.js';
 import { registerLintCommand } from './commands/lint.js';
 import { registerModelGenCommand } from './commands/model-gen.js';
 import { registerProjectCommand } from './commands/project.js';
@@ -60,7 +59,6 @@ Detailed command catalog:
   registerCheckCommand(program);
   registerConfigCommand(program);
   registerDescribeCommand(program);
-  registerDdlCommand(program);
   registerLintCommand(program);
   registerModelGenCommand(program);
   registerProjectCommand(program);

@@ -120,7 +120,7 @@ export function loadDdlSchemaModelWithDiagnostics(rootDir: string, ddlDir?: stri
           message: `Table ownership is unstable because ${table.canonicalName} is defined in more than one DDL file.`,
           file: table.sourceFile,
           table: table.canonicalName,
-          nextAction: 'Move the table definition to a single stable DDL file so generated models and migration review read the same owner.',
+          nextAction: 'Move the table definition to a single stable DDL file so generated models and DDL-backed checks read the same owner.',
         });
         continue;
       }

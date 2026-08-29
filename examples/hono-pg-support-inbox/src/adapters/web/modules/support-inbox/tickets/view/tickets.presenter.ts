@@ -75,7 +75,7 @@ export async function loadSupportInbox(pool: Pool, filters: TicketFilters, conte
     },
     metadata: toSqlMetadata(context, filters, 'list'),
   });
-  const tickets = await executeListTicketsQuery(listExecutor, toListTicketsParams(filters));
+  const tickets = await executeListTicketsQuery(listExecutor, toListTicketsParams(filters), toTicketSort(filters));
   const selectedTicketId = filters.selectedTicketId ?? tickets[0]?.ticket_id?.toString();
   const selectedTicket = selectedTicketId ? await loadTicketDetail(pool, selectedTicketId, context) : undefined;
   return {
