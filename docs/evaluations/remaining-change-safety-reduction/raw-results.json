@@ -35,8 +35,8 @@
     "docsBuild": "pass",
     "gitDiffCheck": "pass",
     "remoteCi": {
-      "head": "a27b7b755affa62178c3ad1e501c4ea33045dab2",
-      "run": "https://github.com/mk3008/ashiba/actions/runs/33251018917",
+      "head": "7bc14388240933a0157714ff0f934cd0695e7f74",
+      "run": "https://github.com/mk3008/ashiba/actions/runs/33251135066",
       "verify": "pass",
       "postgresLive": "pass",
       "postgresTicketQueueReference": "pass",
