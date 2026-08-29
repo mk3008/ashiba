@@ -5,5 +5,5 @@
   "goldenPathChanged": false,
   "scopeChanged": false,
   "productCodeChanged": false,
-  "verification": "pending"
+  "verification": {"pnpmVerify":"pass","docsBuild":"pass","gitDiffCheck":"pass","remoteCi":{"verify":"success","postgresLive":"success","postgresTicketQueueReference":"success","supportInboxExample":"success","supportInboxExampleAutocrlf":"success"},"temporaryResources":"none"}
 }

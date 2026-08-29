@@ -73,5 +73,7 @@ multiple independent products demonstrate the same contract need.
 ## Invariants and verification
 
 Scope change required: no. Golden Path changed: no. Product code changed: no.
-Evaluation artifacts only. Repository verification and docs build are recorded
-in `raw-results.json`.
+Evaluation artifacts only. `pnpm verify`, `pnpm docs:build`, and `git diff
+--check` passed locally. The PR-head remote CI verify, PostgreSQL live, Ticket
+Queue, Support Inbox, and Windows/CRLF jobs also succeeded; details are in
+`raw-results.json`. No temporary resource was created.
