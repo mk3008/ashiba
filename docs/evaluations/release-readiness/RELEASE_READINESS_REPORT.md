@@ -2,11 +2,11 @@
 
 ## Decision
 
-**READY-WITH-CONCERNS** pending the new Node 22/24 npm-distribution CI matrix.
-The locally available Node 22/npm 10 proof and the independent application
-oracles pass. Node 24/npm 11 is a formal CI lane because this workstation has
-no Node 24 runtime; do not upgrade the decision to `READY` until that lane is
-green.
+**READY.** The Node 22/npm 10 and Node 24/npm 11 npm-distribution matrix,
+full verification, PostgreSQL live, Ticket Queue, Support Inbox, and CRLF CI
+jobs all passed on run `33279721842`. The local Node 22/npm 10 proof and the
+independent application oracles also pass. Node 24/npm 11 remains CI evidence
+because this workstation has no Node 24 runtime.
 
 ## Current boundary
 

@@ -39,9 +39,9 @@ for the new Node 22/24 distribution matrix.
 - [x] `pnpm typecheck`, `pnpm build`, `pnpm test`, `pnpm verify`,
   `pnpm docs:build`, and `git diff --check` pass.
 - [x] Command-catalog and current-doc stale scans are clean.
-- [x] Raw results record completed local checks; Node 24/npm 11 remains CI
-  confirmation, so the decision remains READY-WITH-CONCERNS until that lane is
-  green.
+- [x] The final support matrix, full verification, PostgreSQL live, Ticket
+  Queue, Support Inbox, and CRLF CI jobs are green on run `33279721842`.
+  Release readiness is READY.
 
 No product API, package topology, Scope decision, or Golden Path decision is
 changed by this release-readiness work.
