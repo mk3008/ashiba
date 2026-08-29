@@ -1,0 +1,46 @@
+{
+  "trial": "ai-native-read-query",
+  "status": "pass",
+  "scope": "evaluation-only",
+  "task": "Add a PostgreSQL-shaped read query with multiple parameters, a nullable filter, a join, multiple result columns, and limit pagination.",
+  "filesTouched": 5,
+  "commands": [
+    {
+      "command": "node verify-shape.mjs",
+      "result": "pass",
+      "exitCode": 0
+    }
+  ],
+  "initialCorrectness": "pass",
+  "retries": 0,
+  "repairCount": 0,
+  "changedFiles": [
+    "list-customer-orders.sql",
+    "list-customer-orders.bindings.ts",
+    "application-path.ts",
+    "verify-shape.mjs",
+    "README.md"
+  ],
+  "ashibaSpecificConcepts": [
+    "canonical .sql source",
+    "model-gen-shaped binding metadata",
+    "bindNamedParameters",
+    "model-gen --check (documented next step)"
+  ],
+  "hiddenConventions": [
+    "generated modules are treated as read-only",
+    "PostgreSQL binding uses indexed placeholders",
+    "pool lifecycle and row mapping remain application-owned"
+  ],
+  "liveDatabase": "not run; no credentials or database state were required",
+  "tokenTelemetry": "unavailable",
+  "creditTelemetry": "unavailable",
+  "recoveryObservation": "No recovery was required; the first static-shape run passed.",
+  "acceptance": {
+    "canonicalSqlVisible": true,
+    "generatedBindingShapeExplicit": true,
+    "bindBeforeNativeQuery": true,
+    "noSqlInterpolation": true,
+    "verificationCommandReproducible": true
+  }
+}
