@@ -1,7 +1,7 @@
 export type {
   FeatureQueryExecutor as SqlClient,
   FeatureQuerySource,
-} from '@ashiba-ts/driver-adapter-core';
+} from '#features/_shared/featureQueryExecutor.js';
 
 /**
  * Minimal SQL client contract shared by the app and adapter boundaries.

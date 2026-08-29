@@ -29,7 +29,6 @@ export function fromPg(queryable: {
         sql: query.sql,
         sqlPath: query.sqlPath,
         queryModel: query.queryModel,
-        metadata: query.metadata,
       };
       const prepared = preparePostgresQuery(postgresQuery, { ...params }, {
         optionalConditionCompression: query.optionalConditionCompression,

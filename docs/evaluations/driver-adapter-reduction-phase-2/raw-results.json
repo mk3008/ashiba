@@ -1,0 +1,28 @@
+{
+  "startingSha": "259cbcb78c4ca2c777566cf746db1c81be544689",
+  "phase": "driver-adapter-reduction-phase-2",
+  "supportInboxExecutionOwner": "application-native-pg",
+  "removed": [
+    "createPostgresAdapter",
+    "PostgreSQL transient error classifier",
+    "core execution observer/event/masking",
+    "core feature executor/cardinality helpers"
+  ],
+  "retained": [
+    "preparePostgresQuery",
+    "named binding",
+    "optional-condition compression",
+    "safe sort",
+    "PostgreSQL contract profile validation"
+  ],
+  "deferred": [
+    "safe sort final ownership",
+    "runtime source-hash final placement",
+    "optional-condition compression productization",
+    "PostgreSQL package placement"
+  ],
+  "liveVerification": {
+    "status": "blocked",
+    "reason": "No ASHIBA_TEST_DATABASE_URL or ASHIBA_POSTGRES_DATABASE_URL; Docker Desktop unavailable"
+  }
+}

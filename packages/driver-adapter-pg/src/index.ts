@@ -1,45 +1,19 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import {
-  type AshibaMaskPolicy,
   type AshibaQueryModelAnalysis,
   type AshibaSortInput,
   type AshibaSortProfile,
-  type AshibaSqlExecutionMetadata,
-  type AshibaSqlExecutionObserver,
   type AshibaQueryParams,
-  type AshibaQueryRow,
   type AshibaTypedQuerySource,
   type FeatureQueryPostgresDialectBinding,
   type PostgresDriverRepresentationProfile,
   AshibaSortError,
-  maskParams,
-  normalizeError,
   renderSafeOrderBy,
 } from '@ashiba-ts/driver-adapter-core';
 import { bindNamedParameters, NamedParameterError } from '@ashiba-ts/named-parameters';
 
-/**
- * Minimal pg-compatible query result consumed by the adapter.
- */
-export type NodePostgresQueryResult<Row = unknown> = {
-  rows: Row[];
-  rowCount?: number | null;
-};
-
-/**
- * Minimal pg-compatible client or pool contract.
- */
-export type NodePostgresQueryable<Row = unknown> = {
-  query(sql: string, values: readonly unknown[]): Promise<NodePostgresQueryResult<Row>>;
-};
-
-/**
- * Adapter-level options for execution observation and parameter masking.
- */
-export type AshibaPostgresAdapterOptions = {
-  observer?: AshibaSqlExecutionObserver;
-  maskPolicy?: AshibaMaskPolicy;
-  includeUnmaskedParamsInEvents?: boolean;
+/** Bounded preparation options; the application owns native pg execution. */
+export type AshibaPostgresPreparationOptions = {
   /**
    * Representation profile used by the caller-owned pg client. Pass a stable
    * `custom:<id>` value whenever custom node-postgres type parsers are active.
@@ -65,7 +39,6 @@ export type AshibaPostgresQuerySource<Params extends object = Record<string, unk
   sql: string;
   sqlPath?: string;
   queryModel: AshibaPostgresQueryModel;
-  metadata?: AshibaSqlExecutionMetadata;
 };
 
 /** PostgreSQL query source with a concrete type-only Params/Row contract. */
@@ -74,22 +47,10 @@ export type AnyAshibaPostgresQuerySource = AshibaPostgresQuerySource<any, any>;
 /**
  * Per-execution metadata and safe sort options for PostgreSQL execution.
  */
-export type AshibaPostgresExecuteOptions = {
-  metadata?: AshibaSqlExecutionMetadata;
+export type AshibaPostgresExecuteOptions = AshibaPostgresPreparationOptions & {
   optionalConditionCompression?: boolean;
   sortProfile?: AshibaSortProfile;
   sort?: readonly AshibaSortInput[];
-};
-
-/**
- * Optional PostgreSQL adapter convenience interface exposed to application code.
- */
-export type AshibaPostgresAdapter = {
-  execute<Query extends AnyAshibaPostgresQuerySource>(
-    query: Query,
-    params: AshibaQueryParams<Query>,
-    options?: AshibaPostgresExecuteOptions,
-  ): Promise<NodePostgresQueryResult<AshibaQueryRow<Query>>>;
 };
 
 /**
@@ -115,16 +76,6 @@ export type AshibaPostgresCompiledQuery = {
  * or call `pg.query` from this boundary.
  */
 export type AshibaPostgresPreparedQuery = AshibaPostgresCompiledQuery;
-
-/**
- * Classification result for PostgreSQL errors that may be retried by a
- * caller-owned visible retry boundary.
- */
-export type AshibaPostgresRetryClassification = {
-  retryable: boolean;
-  code?: string;
-  reason?: string;
-};
 
 /**
  * Adapter-facing error decoration for observer events. Parameter validation and
@@ -180,119 +131,6 @@ type TextEdit = TextRange & {
   text: string;
 };
 
-const POSTGRES_TRANSIENT_SQLSTATES = new Set([
-  '40001', // serialization_failure
-  '40P01', // deadlock_detected
-  '53300', // too_many_connections
-  '57P01', // admin_shutdown
-  '57P02', // crash_shutdown
-  '57P03', // cannot_connect_now
-  '08000', // connection_exception
-  '08001', // sqlclient_unable_to_establish_sqlconnection
-  '08003', // connection_does_not_exist
-  '08004', // sqlserver_rejected_establishment_of_sqlconnection
-  '08006', // connection_failure
-  '08007', // transaction_resolution_unknown
-]);
-
-const POSTGRES_TRANSIENT_NODE_ERROR_CODES = new Set([
-  'ECONNRESET',
-  'ECONNREFUSED',
-  'EPIPE',
-  'ETIMEDOUT',
-  'ENETDOWN',
-  'ENETRESET',
-  'ENETUNREACH',
-  'EHOSTDOWN',
-  'EHOSTUNREACH',
-]);
-
-/**
- * Create an optional Ashiba convenience adapter around a pg-compatible client or pool.
- */
-export function createPostgresAdapter(
-  client: NodePostgresQueryable,
-  options: AshibaPostgresAdapterOptions = {},
-): AshibaPostgresAdapter {
-  return {
-    async execute<Query extends AnyAshibaPostgresQuerySource>(
-      query: Query,
-      params: AshibaQueryParams<Query>,
-      executeOptions: AshibaPostgresExecuteOptions = {},
-    ): Promise<NodePostgresQueryResult<AshibaQueryRow<Query>>> {
-      const sql = query.sql;
-      const queryModel = query.queryModel;
-      const metadata = {
-        ...query.metadata,
-        ...executeOptions.metadata,
-        sqlPath: executeOptions.metadata?.sqlPath ?? query.metadata?.sqlPath ?? query.sqlPath,
-        dialect: executeOptions.metadata?.dialect ?? query.metadata?.dialect ?? 'postgres',
-      };
-      const warnings = buildSqlSourceWarnings(query, metadata);
-      const startedAt = Date.now();
-      const executionId = randomUUID();
-      let sourceSql = sql;
-      let compiledSql = sql;
-      let bound: { sql: string; parameterNames: readonly string[]; values: readonly unknown[] } | undefined;
-
-      try {
-        validateDriverProfile(query, options.driverProfile ?? 'node-postgres-default');
-        const compiled = preparePostgresQuery(query, params, executeOptions);
-        sourceSql = compiled.sourceSql;
-        compiledSql = compiled.sql;
-        bound = compiled;
-
-        options.observer?.emit({
-          phase: 'start',
-          executionId,
-          metadata,
-          ...(warnings.length > 0 ? { warnings } : {}),
-          sourceSql,
-          compiledSql,
-          parameterNames: bound.parameterNames,
-          maskedParams: maskParams(bound.values, options.maskPolicy),
-          ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
-        });
-
-        const result = await client.query(bound.sql, bound.values);
-        options.observer?.emit({
-          phase: 'end',
-          executionId,
-          metadata,
-          ...(warnings.length > 0 ? { warnings } : {}),
-          sourceSql,
-          compiledSql: bound.sql,
-          parameterNames: bound.parameterNames,
-          maskedParams: maskParams(bound.values, options.maskPolicy),
-          ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
-          elapsedMs: Date.now() - startedAt,
-          rowCount: result.rowCount ?? result.rows.length,
-        });
-        return result as NodePostgresQueryResult<AshibaQueryRow<Query>>;
-      } catch (error) {
-        options.observer?.emit({
-          phase: 'error',
-          executionId,
-          metadata,
-          ...(warnings.length > 0 ? { warnings } : {}),
-          sourceSql,
-          ...(bound
-            ? {
-              compiledSql: bound.sql,
-              parameterNames: bound.parameterNames,
-              maskedParams: maskParams(bound.values, options.maskPolicy),
-              ...(options.includeUnmaskedParamsInEvents ? { params: bound.values } : {}),
-            }
-            : {}),
-          elapsedMs: Date.now() - startedAt,
-          error: normalizeError(error),
-        });
-        throw error;
-      }
-    },
-  };
-}
-
 /**
  * Compile one application-supplied SQL text query into normal PostgreSQL SQL and ordered values
  * without executing it. The returned SQL is suitable for logging, debugging,
@@ -303,6 +141,7 @@ export function preparePostgresQuery<Query extends AnyAshibaPostgresQuerySource>
   params: AshibaQueryParams<Query>,
   options: AshibaPostgresExecuteOptions = {},
 ): AshibaPostgresPreparedQuery {
+  validateDriverProfile(query, options.driverProfile ?? 'node-postgres-default');
   const normalizedParams = Object.fromEntries(Object.entries(params));
   const sortInsertion = getSortInsertion(query, options);
   const prepared = preparePostgresExecution(query, normalizedParams, options);
@@ -333,70 +172,6 @@ export function preparePostgresQuery<Query extends AnyAshibaPostgresQuerySource>
       safeSortKeys: (options.sort ?? []).map((entry) => entry.key),
     },
   };
-}
-
-/**
- * @deprecated Prefer `preparePostgresQuery(query, params, options)` and call
- * the application-owned native PostgreSQL client with `prepared.sql` and
- * `prepared.values`. This compatibility name will remain until the next
- * planned pre-1.0 surface review.
- */
-export function compilePostgresQuery<Query extends AnyAshibaPostgresQuerySource>(
-  query: Query,
-  params: AshibaQueryParams<Query>,
-  options: AshibaPostgresExecuteOptions = {},
-): AshibaPostgresPreparedQuery {
-  return preparePostgresQuery(query, params, options);
-}
-
-/**
- * Classify PostgreSQL/pg errors that can be candidates for an explicit retry policy.
- *
- * This does not mean the operation is safe to retry. Application code still
- * owns transaction boundaries, idempotency, and SAGA/compensation decisions.
- */
-export function classifyPostgresTransientError(error: unknown): AshibaPostgresRetryClassification {
-  const code = getErrorCode(error);
-  if (!code) {
-    return { retryable: false };
-  }
-  if (POSTGRES_TRANSIENT_SQLSTATES.has(code)) {
-    return {
-      retryable: true,
-      code,
-      reason: `PostgreSQL reported transient SQLSTATE ${code}.`,
-    };
-  }
-  if (POSTGRES_TRANSIENT_NODE_ERROR_CODES.has(code)) {
-    return {
-      retryable: true,
-      code,
-      reason: `Node PostgreSQL driver reported transient connection error ${code}.`,
-    };
-  }
-  return { retryable: false, code };
-}
-
-/**
- * Return true when the error is a PostgreSQL transient failure candidate.
- */
-export function isPostgresTransientError(error: unknown): boolean {
-  return classifyPostgresTransientError(error).retryable;
-}
-
-function buildSqlSourceWarnings(
-  query: AnyAshibaPostgresQuerySource,
-  metadata: AshibaSqlExecutionMetadata,
-): readonly { code: string; message: string; nextAction?: string }[] {
-  if (query.sqlPath || metadata.sqlPath || metadata.sqlFile) {
-    return [];
-  }
-
-  return [{
-    code: 'ASHIBA_STRING_SQL_SOURCE',
-    message: 'SQL execution did not include optional SQL provenance metadata.',
-    nextAction: 'Supply sqlPath or sqlFile metadata when application logging needs to point reviewers to the SQL owner.',
-  }];
 }
 
 function preparePostgresExecution(

@@ -1,68 +1,4 @@
 /**
- * Controls whether parameter values are exposed in driver observer events.
- */
-export type AshibaMaskPolicy = 'always' | 'development' | 'never';
-
-/**
- * Stable identity fields that make SQL execution events traceable by applications.
- */
-export type AshibaSqlExecutionMetadata = {
-  sqlId?: string;
-  queryId?: string;
-  requestId?: string;
-  apiMethod?: string;
-  apiPath?: string;
-  apiRoute?: string;
-  operation?: string;
-  filterKeys?: readonly string[];
-  sortKeys?: readonly string[];
-  queryVariant?: string;
-  queryModelSourceHash?: string;
-  queryModelStatementKind?: string;
-  queryModelRootQueryShape?: string;
-  queryModelOptionalConditionCompression?: boolean;
-  queryModelSafeSortInsertionStatus?: string;
-  sqlFile?: string;
-  sqlPath?: string;
-  dialect?: string;
-};
-
-/**
- * Structured event emitted by optional Ashiba driver adapters around SQL execution.
- */
-export type AshibaSqlExecutionEvent = {
-  phase: 'start' | 'end' | 'error';
-  executionId?: string;
-  metadata?: AshibaSqlExecutionMetadata;
-  warnings?: readonly {
-    code: string;
-    message: string;
-    nextAction?: string;
-  }[];
-  sourceSql?: string;
-  compiledSql?: string;
-  parameterNames?: readonly string[];
-  maskedParams?: readonly unknown[];
-  params?: readonly unknown[];
-  elapsedMs?: number;
-  rowCount?: number;
-  error?: {
-    name: string;
-    message: string;
-    code?: string;
-    cause?: string;
-    nextAction?: string;
-  };
-};
-
-/**
- * Application-provided observer hook for integrating Ashiba driver events with a logger.
- */
-export type AshibaSqlExecutionObserver = {
-  emit(event: AshibaSqlExecutionEvent): void;
-};
-
-/**
  * Allowed direction values for safe sort rendering.
  */
 export type AshibaSortDirection = 'asc' | 'desc';
@@ -421,7 +357,6 @@ export interface FeatureQuerySourceBase {
   sql: string;
   queryModel: FeatureQueryModel;
   optionalConditionCompression?: boolean;
-  metadata?: AshibaSqlExecutionMetadata;
 }
 
 /**
@@ -432,87 +367,6 @@ export interface FeatureQuerySource<Params extends object = Record<string, unkno
 
 /** Any typed feature query source while preserving its concrete contract. */
 export type AnyFeatureQuerySource = FeatureQuerySourceBase & AshibaTypedQuerySource<any, any>;
-
-/**
- * Optional feature-level SQL execution convenience boundary.
- *
- * Feature and workflow code depend on this instead of pg, logger packages, or
- * concrete adapter implementations.
- */
-export interface FeatureQueryExecutor<Query extends AnyFeatureQuerySource = AnyFeatureQuerySource> {
-  query(
-    query: Query,
-    params: AshibaQueryParams<Query>,
-  ): Promise<AshibaQueryRow<Query>[]>;
-}
-
-/**
- * Error raised when a feature query boundary receives a row count that does
- * not match the helper-selected cardinality contract.
- */
-export class FeatureQueryCardinalityError extends Error {
-  readonly code: 'ASHIBA_QUERY_EXPECTED_ONE_ROW' | 'ASHIBA_QUERY_EXPECTED_ZERO_OR_ONE_ROW';
-  readonly queryId: string;
-  readonly rowCount: number;
-  readonly causeText: string;
-  readonly nextAction: string;
-  readonly details: { queryId: string; rowCount: number };
-
-  constructor(code: FeatureQueryCardinalityError['code'], query: FeatureQuerySource, rowCount: number) {
-    const expected = code === 'ASHIBA_QUERY_EXPECTED_ONE_ROW' ? 'one row' : 'zero or one row';
-    super(`${query.id} query expected ${expected}, but got ${rowCount}.`);
-    this.name = 'FeatureQueryCardinalityError';
-    this.code = code;
-    this.queryId = query.id;
-    this.rowCount = rowCount;
-    this.causeText = 'The selected feature query cardinality helper received a row count outside its contract.';
-    this.nextAction = code === 'ASHIBA_QUERY_EXPECTED_ONE_ROW'
-      ? 'Use queryMany for mutation workflows that need to handle zero rows, or use queryOne only when the SQL contract really guarantees exactly one row.'
-      : 'Use queryMany when multiple rows are valid, or tighten the SQL so queryOneOrNull can only receive zero or one row.';
-    this.details = { queryId: query.id, rowCount };
-  }
-}
-
-/**
- * Execute a feature query and return every row.
- */
-export async function queryMany<Query extends AnyFeatureQuerySource>(
-  executor: FeatureQueryExecutor<Query>,
-  query: Query,
-  params: AshibaQueryParams<Query>,
-): Promise<AshibaQueryRow<Query>[]> {
-  return executor.query(query, params);
-}
-
-/**
- * Execute a feature query that must return exactly one row.
- */
-export async function queryOne<Query extends AnyFeatureQuerySource>(
-  executor: FeatureQueryExecutor<Query>,
-  query: Query,
-  params: AshibaQueryParams<Query>,
-): Promise<AshibaQueryRow<Query>> {
-  const rows = await queryMany(executor, query, params);
-  if (rows.length !== 1) {
-    throw new FeatureQueryCardinalityError('ASHIBA_QUERY_EXPECTED_ONE_ROW', query, rows.length);
-  }
-  return rows[0];
-}
-
-/**
- * Execute a feature query that may return no row, but must not return many.
- */
-export async function queryOneOrNull<Query extends AnyFeatureQuerySource>(
-  executor: FeatureQueryExecutor<Query>,
-  query: Query,
-  params: AshibaQueryParams<Query>,
-): Promise<AshibaQueryRow<Query> | null> {
-  const rows = await queryMany(executor, query, params);
-  if (rows.length > 1) {
-    throw new FeatureQueryCardinalityError('ASHIBA_QUERY_EXPECTED_ZERO_OR_ONE_ROW', query, rows.length);
-  }
-  return rows[0] ?? null;
-}
 
 /**
  * Error raised when a safe sort request violates the reviewed query model or sort profile.
@@ -538,14 +392,6 @@ export class AshibaSortError extends Error {
     this.causeText = describeSortErrorCause(code);
     this.nextAction = describeSortErrorNextAction(code);
   }
-}
-
-/**
- * Return parameter values according to the requested event masking policy.
- */
-export function maskParams(values: readonly unknown[], policy: AshibaMaskPolicy = 'always'): readonly unknown[] | undefined {
-  if (policy === 'never') return values;
-  return values.map(maskValue);
 }
 
 /**
@@ -583,29 +429,6 @@ export function renderSafeOrderBy(profile: AshibaSortProfile, input: readonly As
   });
 
   return `order by ${fragments.join(', ')}`;
-}
-
-/**
- * Convert unknown thrown values into the structured error shape used by driver events.
- */
-export function normalizeError(error: unknown): { name: string; message: string; code?: string; cause?: string; nextAction?: string } {
-  if (error instanceof Error) {
-    const maybeCode = 'code' in error && typeof error.code === 'string' ? error.code : undefined;
-    const cause = 'causeText' in error && typeof error.causeText === 'string' ? error.causeText : undefined;
-    const nextAction = 'nextAction' in error && typeof error.nextAction === 'string' ? error.nextAction : undefined;
-    return {
-      name: error.name,
-      message: error.message,
-      ...(maybeCode ? { code: maybeCode } : {}),
-      ...(cause ? { cause } : {}),
-      ...(nextAction ? { nextAction } : {}),
-    };
-  }
-
-  return {
-    name: 'Error',
-    message: String(error),
-  };
 }
 
 function describeSortErrorCause(code: AshibaSortError['code']): string {
@@ -652,9 +475,4 @@ function describeSortErrorNextAction(code: AshibaSortError['code']): string {
     case 'ASHIBA_SORT_PROFILE_OUTSIDE_QUERY_MODEL':
       return 'Use the SQL expressions recorded in the query model sortable dictionary, or regenerate metadata after changing the visible SQL.';
   }
-}
-
-function maskValue(value: unknown): string {
-  if (value === null || value === undefined) return '<nullish>';
-  return '<masked>';
 }
