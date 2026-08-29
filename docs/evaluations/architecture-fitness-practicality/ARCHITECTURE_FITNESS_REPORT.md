@@ -69,6 +69,10 @@ Inbox run. Ticket Queue's own compose start was blocked by exhausted Docker
 address pools; an existing isolated evaluation PostgreSQL service was used after
 checking target tables were absent, and temporary tables were removed.
 
+Remote PR confirmation: the `verify`, `postgres-live`, `postgres-ticket-queue-reference`,
+`support-inbox-example`, and `support-inbox-example-autocrlf` jobs all passed for
+the evaluation commit.
+
 Reconsider only if independent applications repeatedly reimplement a removed
 runtime abstraction, broad CASE sorting becomes recurring structural friction, or
 sql-resource remains unused despite its maintenance cost. No implementation work

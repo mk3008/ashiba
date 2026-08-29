@@ -28,7 +28,14 @@
     },
     "focusedOptionalCliTests": "pass: 29 passed, 2 skipped",
     "sqlResourceLive": "pass: 31 passed",
-    "ticketQueueLiveVerify": "pass: 4 contract queries, 3 negative controls; transaction rollback test passed"
+    "ticketQueueLiveVerify": "pass: 4 contract queries, 3 negative controls; transaction rollback test passed",
+    "remotePrCi": {
+      "verify": "pass",
+      "postgresLive": "pass",
+      "postgresTicketQueueReference": "pass",
+      "supportInboxExample": "pass",
+      "supportInboxExampleAutocrlf": "pass"
+    }
   },
   "optionalCapabilityPracticality": {
     "queryUses": "situationally-useful",
