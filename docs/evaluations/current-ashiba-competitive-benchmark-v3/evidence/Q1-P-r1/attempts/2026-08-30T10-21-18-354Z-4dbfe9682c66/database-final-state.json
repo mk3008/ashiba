@@ -1,0 +1,484 @@
+{
+  "status": "captured",
+  "source": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-P-r1\\evidence\\runner.json.pre-cleanup.json",
+  "sourceSha256": "086957d40bb735f19541656446ea52851c1062bc3c9ea0295cb0149101841947",
+  "value": {
+    "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+    "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-P-r1\\candidate\\dist\\application.js",
+    "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-P-r1\\candidate",
+    "workloads": [
+      "Q1"
+    ],
+    "source": {
+      "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-P-r1\\candidate",
+      "files": [
+        {
+          "path": "dist/application.d.ts",
+          "kind": "file",
+          "bytes": 828,
+          "sha256": "9df4040ba4b0b5f68dab39b2845907dc6b5e0f4a673f356288f78aa150b8506b"
+        },
+        {
+          "path": "dist/application.js",
+          "kind": "file",
+          "bytes": 4877,
+          "sha256": "7912c7518c843dbc0e16f998a02b5045d5850f1cb50147c38396c3cb4be9ba03"
+        },
+        {
+          "path": "package-lock.json",
+          "kind": "file",
+          "bytes": 284626,
+          "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+        },
+        {
+          "path": "package.json",
+          "kind": "file",
+          "bytes": 288,
+          "sha256": "b1b96528fd323d45b9a2f1c83881ff970b114c7e358747a2ce926a03d1483acc"
+        },
+        {
+          "path": "PLAN.md",
+          "kind": "file",
+          "bytes": 1472,
+          "sha256": "c6d27dc073563b17710412dd1de6f5242ac076740a83fd6375fe13487a65185f"
+        },
+        {
+          "path": "RUN_REPORT.md",
+          "kind": "file",
+          "bytes": 1061,
+          "sha256": "46ec1e8de92a370653ebb7a50ffe96a97684de48cd3e5209d53afb4a246cbbd4"
+        },
+        {
+          "path": "src/application.ts",
+          "kind": "file",
+          "bytes": 5814,
+          "sha256": "4641eb5eef109bf51d938e972669032be59c06879c856df1373cfdfe2ee750ca"
+        },
+        {
+          "path": "tsconfig.json",
+          "kind": "file",
+          "bytes": 373,
+          "sha256": "bcfa075e16f8da75f54c42a71c2050b448cfe1efd69610cbd557c70636697f0e"
+        }
+      ],
+      "findings": [],
+      "pass": true
+    },
+    "checks": [
+      {
+        "id": "Q1-result-equivalence",
+        "status": "pass",
+        "detail": "candidate-owned query result matches frozen independent oracle"
+      },
+      {
+        "id": "Q1-executed-sql-matches-source",
+        "status": "pass",
+        "detail": "candidate reports the same SQL as source and execution text"
+      },
+      {
+        "id": "Q1-candidate-explain",
+        "status": "pass",
+        "detail": "candidate-owned EXPLAIN evidence has matching SQL and a credible PostgreSQL FORMAT JSON plan"
+      },
+      {
+        "id": "Q1-close",
+        "status": "pass",
+        "detail": "close resolves with no value"
+      },
+      {
+        "id": "Q1-close-idempotent",
+        "status": "pass",
+        "detail": "close is idempotent"
+      },
+      {
+        "id": "Q1-closed-rejection",
+        "status": "pass",
+        "detail": "investigate rejects after close"
+      }
+    ],
+    "events": [
+      {
+        "operation": "investigate",
+        "input": {
+          "requestedTag": "vip",
+          "tier": "gold"
+        },
+        "startedAt": "2026-08-30T10:21:31.057Z",
+        "status": "resolved",
+        "output": {
+          "rows": [
+            {
+              "customer_id": "9002",
+              "display_name": "Beta Co",
+              "region": "east",
+              "has_requested_tag": false,
+              "paid_order_count": "1",
+              "paid_total_cents": "5000",
+              "latest_order_cents": "5000",
+              "value_band": "high"
+            },
+            {
+              "customer_id": "9001",
+              "display_name": "Acme",
+              "region": "east",
+              "has_requested_tag": true,
+              "paid_order_count": "2",
+              "paid_total_cents": "2000",
+              "latest_order_cents": "800",
+              "value_band": "normal"
+            },
+            {
+              "customer_id": "9004",
+              "display_name": "No Orders",
+              "region": "east",
+              "has_requested_tag": true,
+              "paid_order_count": "0",
+              "paid_total_cents": "0",
+              "latest_order_cents": null,
+              "value_band": "none"
+            }
+          ],
+          "sourceSql": "WITH ranked_orders AS (\n  SELECT\n    c.customer_id,\n    c.display_name,\n    c.region,\n    c.tags @> ARRAY[$1::text]::text[] AS has_requested_tag,\n    o.order_id,\n    o.total_cents::bigint AS total_cents,\n    ROW_NUMBER() OVER (\n      PARTITION BY c.customer_id\n      ORDER BY o.created_at DESC, o.order_id DESC\n    ) AS order_rank\n  FROM \"ashiba_v3_2d14b667ce40908c\".customers AS c\n  LEFT JOIN \"ashiba_v3_2d14b667ce40908c\".orders AS o\n    ON o.customer_id = c.customer_id\n   AND o.state = 'paid'::\"ashiba_v3_2d14b667ce40908c\".order_state\n  WHERE c.profile->>'tier' = $2::text\n), summary AS (\n  SELECT\n    customer_id,\n    display_name,\n    region,\n    has_requested_tag,\n    COUNT(order_id)::bigint AS paid_order_count,\n    COALESCE(SUM(total_cents), 0)::bigint AS paid_total_cents,\n    MAX(total_cents) FILTER (WHERE order_rank = 1)::bigint AS latest_order_cents\n  FROM ranked_orders\n  GROUP BY customer_id, display_name, region, has_requested_tag\n)\nSELECT\n  customer_id::text AS customer_id,\n  display_name,\n  region,\n  has_requested_tag,\n  paid_order_count::text AS paid_order_count,\n  paid_total_cents::text AS paid_total_cents,\n  latest_order_cents::text AS latest_order_cents,\n  CASE\n    WHEN paid_total_cents >= 5000 THEN 'high'\n    WHEN paid_total_cents > 0 THEN 'normal'\n    ELSE 'none'\n  END AS value_band\nFROM summary\nORDER BY paid_total_cents DESC, customer_id ASC",
+          "executedSql": "WITH ranked_orders AS (\n  SELECT\n    c.customer_id,\n    c.display_name,\n    c.region,\n    c.tags @> ARRAY[$1::text]::text[] AS has_requested_tag,\n    o.order_id,\n    o.total_cents::bigint AS total_cents,\n    ROW_NUMBER() OVER (\n      PARTITION BY c.customer_id\n      ORDER BY o.created_at DESC, o.order_id DESC\n    ) AS order_rank\n  FROM \"ashiba_v3_2d14b667ce40908c\".customers AS c\n  LEFT JOIN \"ashiba_v3_2d14b667ce40908c\".orders AS o\n    ON o.customer_id = c.customer_id\n   AND o.state = 'paid'::\"ashiba_v3_2d14b667ce40908c\".order_state\n  WHERE c.profile->>'tier' = $2::text\n), summary AS (\n  SELECT\n    customer_id,\n    display_name,\n    region,\n    has_requested_tag,\n    COUNT(order_id)::bigint AS paid_order_count,\n    COALESCE(SUM(total_cents), 0)::bigint AS paid_total_cents,\n    MAX(total_cents) FILTER (WHERE order_rank = 1)::bigint AS latest_order_cents\n  FROM ranked_orders\n  GROUP BY customer_id, display_name, region, has_requested_tag\n)\nSELECT\n  customer_id::text AS customer_id,\n  display_name,\n  region,\n  has_requested_tag,\n  paid_order_count::text AS paid_order_count,\n  paid_total_cents::text AS paid_total_cents,\n  latest_order_cents::text AS latest_order_cents,\n  CASE\n    WHEN paid_total_cents >= 5000 THEN 'high'\n    WHEN paid_total_cents > 0 THEN 'normal'\n    ELSE 'none'\n  END AS value_band\nFROM summary\nORDER BY paid_total_cents DESC, customer_id ASC",
+          "params": [
+            "vip",
+            "gold"
+          ]
+        },
+        "durationMs": 17
+      },
+      {
+        "operation": "explain",
+        "input": {
+          "requestedTag": "vip",
+          "tier": "gold"
+        },
+        "startedAt": "2026-08-30T10:21:31.074Z",
+        "status": "resolved",
+        "output": {
+          "sourceSql": "WITH ranked_orders AS (\n  SELECT\n    c.customer_id,\n    c.display_name,\n    c.region,\n    c.tags @> ARRAY[$1::text]::text[] AS has_requested_tag,\n    o.order_id,\n    o.total_cents::bigint AS total_cents,\n    ROW_NUMBER() OVER (\n      PARTITION BY c.customer_id\n      ORDER BY o.created_at DESC, o.order_id DESC\n    ) AS order_rank\n  FROM \"ashiba_v3_2d14b667ce40908c\".customers AS c\n  LEFT JOIN \"ashiba_v3_2d14b667ce40908c\".orders AS o\n    ON o.customer_id = c.customer_id\n   AND o.state = 'paid'::\"ashiba_v3_2d14b667ce40908c\".order_state\n  WHERE c.profile->>'tier' = $2::text\n), summary AS (\n  SELECT\n    customer_id,\n    display_name,\n    region,\n    has_requested_tag,\n    COUNT(order_id)::bigint AS paid_order_count,\n    COALESCE(SUM(total_cents), 0)::bigint AS paid_total_cents,\n    MAX(total_cents) FILTER (WHERE order_rank = 1)::bigint AS latest_order_cents\n  FROM ranked_orders\n  GROUP BY customer_id, display_name, region, has_requested_tag\n)\nSELECT\n  customer_id::text AS customer_id,\n  display_name,\n  region,\n  has_requested_tag,\n  paid_order_count::text AS paid_order_count,\n  paid_total_cents::text AS paid_total_cents,\n  latest_order_cents::text AS latest_order_cents,\n  CASE\n    WHEN paid_total_cents >= 5000 THEN 'high'\n    WHEN paid_total_cents > 0 THEN 'normal'\n    ELSE 'none'\n  END AS value_band\nFROM summary\nORDER BY paid_total_cents DESC, customer_id ASC",
+          "executedSql": "WITH ranked_orders AS (\n  SELECT\n    c.customer_id,\n    c.display_name,\n    c.region,\n    c.tags @> ARRAY[$1::text]::text[] AS has_requested_tag,\n    o.order_id,\n    o.total_cents::bigint AS total_cents,\n    ROW_NUMBER() OVER (\n      PARTITION BY c.customer_id\n      ORDER BY o.created_at DESC, o.order_id DESC\n    ) AS order_rank\n  FROM \"ashiba_v3_2d14b667ce40908c\".customers AS c\n  LEFT JOIN \"ashiba_v3_2d14b667ce40908c\".orders AS o\n    ON o.customer_id = c.customer_id\n   AND o.state = 'paid'::\"ashiba_v3_2d14b667ce40908c\".order_state\n  WHERE c.profile->>'tier' = $2::text\n), summary AS (\n  SELECT\n    customer_id,\n    display_name,\n    region,\n    has_requested_tag,\n    COUNT(order_id)::bigint AS paid_order_count,\n    COALESCE(SUM(total_cents), 0)::bigint AS paid_total_cents,\n    MAX(total_cents) FILTER (WHERE order_rank = 1)::bigint AS latest_order_cents\n  FROM ranked_orders\n  GROUP BY customer_id, display_name, region, has_requested_tag\n)\nSELECT\n  customer_id::text AS customer_id,\n  display_name,\n  region,\n  has_requested_tag,\n  paid_order_count::text AS paid_order_count,\n  paid_total_cents::text AS paid_total_cents,\n  latest_order_cents::text AS latest_order_cents,\n  CASE\n    WHEN paid_total_cents >= 5000 THEN 'high'\n    WHEN paid_total_cents > 0 THEN 'normal'\n    ELSE 'none'\n  END AS value_band\nFROM summary\nORDER BY paid_total_cents DESC, customer_id ASC",
+          "params": [
+            "vip",
+            "gold"
+          ],
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Sort",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 43.74,
+                "Total Cost": 43.74,
+                "Plan Rows": 2,
+                "Plan Width": 225,
+                "Disabled": false,
+                "Sort Key": [
+                  "((summary.paid_total_cents)::text) DESC",
+                  "((summary.customer_id)::text)"
+                ],
+                "Plans": [
+                  {
+                    "Node Type": "Subquery Scan",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Alias": "summary",
+                    "Startup Cost": 43.44,
+                    "Total Cost": 43.73,
+                    "Plan Rows": 2,
+                    "Plan Width": 225,
+                    "Disabled": false,
+                    "Plans": [
+                      {
+                        "Node Type": "Aggregate",
+                        "Strategy": "Sorted",
+                        "Partial Mode": "Simple",
+                        "Parent Relationship": "Subquery",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 43.44,
+                        "Total Cost": 43.68,
+                        "Plan Rows": 2,
+                        "Plan Width": 97,
+                        "Disabled": false,
+                        "Group Key": [
+                          "ranked_orders.customer_id",
+                          "ranked_orders.display_name",
+                          "ranked_orders.region",
+                          "ranked_orders.has_requested_tag"
+                        ],
+                        "Plans": [
+                          {
+                            "Node Type": "Incremental Sort",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 43.44,
+                            "Total Cost": 43.61,
+                            "Plan Rows": 2,
+                            "Plan Width": 97,
+                            "Disabled": false,
+                            "Sort Key": [
+                              "ranked_orders.customer_id",
+                              "ranked_orders.display_name",
+                              "ranked_orders.region",
+                              "ranked_orders.has_requested_tag"
+                            ],
+                            "Presorted Key": [
+                              "ranked_orders.customer_id"
+                            ],
+                            "Plans": [
+                              {
+                                "Node Type": "Subquery Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Alias": "ranked_orders",
+                                "Startup Cost": 43.35,
+                                "Total Cost": 43.52,
+                                "Plan Rows": 2,
+                                "Plan Width": 97,
+                                "Disabled": false,
+                                "Plans": [
+                                  {
+                                    "Node Type": "WindowAgg",
+                                    "Parent Relationship": "Subquery",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Startup Cost": 43.35,
+                                    "Total Cost": 43.5,
+                                    "Plan Rows": 2,
+                                    "Plan Width": 105,
+                                    "Disabled": false,
+                                    "Window": "w1 AS (PARTITION BY c.customer_id ORDER BY o.created_at, o.order_id ROWS UNBOUNDED PRECEDING)",
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Incremental Sort",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Startup Cost": 43.35,
+                                        "Total Cost": 43.45,
+                                        "Plan Rows": 2,
+                                        "Plan Width": 128,
+                                        "Disabled": false,
+                                        "Sort Key": [
+                                          "c.customer_id",
+                                          "o.created_at DESC",
+                                          "o.order_id DESC"
+                                        ],
+                                        "Presorted Key": [
+                                          "c.customer_id"
+                                        ],
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Merge Join",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Left",
+                                            "Startup Cost": 43.31,
+                                            "Total Cost": 43.36,
+                                            "Plan Rows": 2,
+                                            "Plan Width": 128,
+                                            "Disabled": false,
+                                            "Inner Unique": false,
+                                            "Merge Cond": "(c.customer_id = o.customer_id)",
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Sort",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Startup Cost": 17.36,
+                                                "Total Cost": 17.37,
+                                                "Plan Rows": 2,
+                                                "Plan Width": 104,
+                                                "Disabled": false,
+                                                "Sort Key": [
+                                                  "c.customer_id"
+                                                ],
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "Seq Scan",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Relation Name": "customers",
+                                                    "Alias": "c",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 17.35,
+                                                    "Plan Rows": 2,
+                                                    "Plan Width": 104,
+                                                    "Disabled": false,
+                                                    "Filter": "((profile ->> 'tier'::text) = 'gold'::text)"
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Node Type": "Sort",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Startup Cost": 25.95,
+                                                "Total Cost": 25.97,
+                                                "Plan Rows": 6,
+                                                "Plan Width": 32,
+                                                "Disabled": false,
+                                                "Sort Key": [
+                                                  "o.customer_id"
+                                                ],
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "Seq Scan",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Relation Name": "orders",
+                                                    "Alias": "o",
+                                                    "Startup Cost": 0,
+                                                    "Total Cost": 25.88,
+                                                    "Plan Rows": 6,
+                                                    "Plan Width": 32,
+                                                    "Disabled": false,
+                                                    "Filter": "(state = 'paid'::order_state)"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "durationMs": 1
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T10:21:31.075Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T10:21:31.075Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "investigate",
+        "input": {},
+        "startedAt": "2026-08-30T10:21:31.075Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "APPLICATION_CLOSED",
+          "message": "application is closed"
+        },
+        "durationMs": 1
+      }
+    ],
+    "cleanup": {
+      "status": "pending",
+      "recordedBeforeCleanup": true
+    },
+    "startedAt": "2026-08-30T10:21:28.894Z",
+    "schema": "ashiba_v3_2d14b667ce40908c",
+    "candidateRole": "ashiba_v3_candidate_7373e144e3a2256f",
+    "finalDatabaseState": {
+      "tickets": [
+        {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "102",
+          "title": "Export is slow",
+          "status": "pending",
+          "assignee": "bob",
+          "priority": 3,
+          "metadata": {
+            "channel": "web"
+          }
+        },
+        {
+          "id": "103",
+          "title": "Password reset",
+          "status": "open",
+          "assignee": null,
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "104",
+          "title": "Close account",
+          "status": "closed",
+          "assignee": "alice",
+          "priority": 1,
+          "metadata": {
+            "channel": "web"
+          }
+        }
+      ],
+      "ticketAudit": [],
+      "accounts": [
+        {
+          "account_id": "7001",
+          "balance_cents": "10000"
+        },
+        {
+          "account_id": "7002",
+          "balance_cents": "5000"
+        }
+      ],
+      "transferAudit": [],
+      "workItems": [
+        {
+          "id": "8001",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8002",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8003",
+          "state": "queued",
+          "claimed_by": null
+        }
+      ]
+    },
+    "status": "P",
+    "preCleanupRecord": {
+      "status": "written",
+      "path": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-P-r1\\evidence\\runner.json.pre-cleanup.json",
+      "writtenAt": "2026-08-30T10:21:31.087Z"
+    }
+  }
+}

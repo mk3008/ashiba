@@ -1,0 +1,38 @@
+{
+  "status": "executed-not-scored",
+  "commands": [
+    {
+      "slot": "typecheck",
+      "command": "npm run typecheck",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T10:25:48.835Z",
+      "finishedAt": "2026-08-30T10:25:50.108Z",
+      "stdout": "logs/typecheck.stdout.log",
+      "stderr": "logs/typecheck.stderr.log"
+    },
+    {
+      "slot": "build",
+      "command": "npm run build",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T10:25:50.108Z",
+      "finishedAt": "2026-08-30T10:25:51.360Z",
+      "stdout": "logs/build.stdout.log",
+      "stderr": "logs/build.stderr.log"
+    },
+    {
+      "slot": "test",
+      "command": "npm run test",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T10:25:51.360Z",
+      "finishedAt": "2026-08-30T10:25:51.929Z",
+      "stdout": "logs/test.stdout.log",
+      "stderr": "logs/test.stderr.log"
+    }
+  ]
+}
