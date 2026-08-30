@@ -16,7 +16,8 @@ or calibration evidence.
 - **Cause:** the runner's JSON-safe event serialization attempted
   `JSON.parse(JSON.stringify(undefined))` for the specified `close(): Promise<void>`
   result. The reference application correctly resolved with `undefined`.
-- **Correction:** `runner.mjs` preserves `undefined` before JSON serialization.
+- **Correction:** `runner.mjs` preserves `undefined` before JSON serialization
+  in commit `e1b3bbc`.
 - **Scope:** runner event recording only; public API, workload semantics, oracle
   assertions, and treatment policy are unchanged.
 - **Affected scored cells:** none. Scored cells at correction: 0.
@@ -30,7 +31,7 @@ or calibration evidence.
   read-only final-state collector.
 - **Cause:** `databaseState()` submitted independent state reads concurrently
   on one PostgreSQL `Client`.
-- **Correction:** issue those runner-owned reads serially.
+- **Correction:** issue those runner-owned reads serially in commit `77d4879`.
 - **Scope:** diagnostic output and oracle query scheduling only; no public API,
   candidate workload, expected result, or treatment policy changed.
 - **Affected scored cells:** none. Scored cells at correction: 0.

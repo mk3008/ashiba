@@ -1,0 +1,14 @@
+{
+  "seed": "ashiba-v3-primary-20260830",
+  "policy": "Fixed interleaved order. No cell may begin before its packet and the common reference/negative controls pass.",
+  "cells": [
+    "G1-A-r1", "G1-P-r1", "G1-S-r1", "G1-D-r1", "G1-K-r1", "G1-G-r1",
+    "G1-A-r2", "G1-P-r2", "G1-S-r2", "G1-D-r2", "G1-K-r2", "G1-G-r2",
+    "T1-A-r1", "T1-P-r1", "T1-S-r1", "T1-D-r1", "T1-K-r1", "T1-G-r1",
+    "T1-A-r2", "T1-P-r2", "T1-S-r2", "T1-D-r2", "T1-K-r2", "T1-G-r2",
+    "T2-A-r1", "T2-P-r1", "T2-S-r1", "T2-D-r1", "T2-K-r1", "T2-G-r1",
+    "T2-A-r2", "T2-P-r2", "T2-S-r2", "T2-D-r2", "T2-K-r2", "T2-G-r2",
+    "Q1-A-r1", "Q1-P-r1", "Q1-S-r1", "Q1-D-r1", "Q1-K-r1", "Q1-G-r1",
+    "Q1-A-r2", "Q1-P-r2", "Q1-S-r2", "Q1-D-r2", "Q1-K-r2", "Q1-G-r2"
+  ]
+}
