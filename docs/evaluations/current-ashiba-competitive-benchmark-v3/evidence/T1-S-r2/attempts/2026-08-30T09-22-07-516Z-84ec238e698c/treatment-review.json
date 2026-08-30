@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Actual sqlc generation/provenance is present, but runner static inspection rejected candidate-local schema SQL under protocol policy.",
+  "decidedAt": "2026-08-30T09:22:25.565Z",
+  "decidedBy": "coordinator-required"
+}

@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Ashiba tarball compile/bind with native pg is present in the candidate data path.",
+  "decidedAt": "2026-08-30T09:21:54.679Z",
+  "decidedBy": "coordinator-required"
+}

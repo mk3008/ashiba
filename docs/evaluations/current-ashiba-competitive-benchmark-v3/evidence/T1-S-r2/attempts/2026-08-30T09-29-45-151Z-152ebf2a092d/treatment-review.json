@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Real sqlc generated query/types and generation provenance remain present; repair removed candidate-owned DDL while using protocol-owned DDL input.",
+  "decidedAt": "2026-08-30T09:30:01.892Z",
+  "decidedBy": "coordinator-required"
+}

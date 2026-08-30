@@ -1,0 +1,23 @@
+{
+  "name": "benchmark-v3-arm-p-packet",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.18.0"
+  },
+  "scripts": {
+    "prisma:init": "prisma orm init --target postgres --authoring psl --confirm candidate",
+    "contract:emit": "prisma contract emit",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "node --test test/application.test.mjs"
+  },
+  "dependencies": {
+    "@prisma/orm-postgres": "8.0.0-rc.8"
+  },
+  "devDependencies": {
+    "@types/pg": "8.15.6",
+    "prisma": "8.0.0-rc.12",
+    "typescript": "5.9.3"
+  }
+}

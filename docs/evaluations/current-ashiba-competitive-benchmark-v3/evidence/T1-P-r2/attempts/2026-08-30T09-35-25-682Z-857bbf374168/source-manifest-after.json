@@ -1,0 +1,103 @@
+{
+  "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-P-r2\\candidate",
+  "fileCount": 13,
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 3546,
+    "sha256": "e44e1fa932979a8383043db96ad0f377a6a8aa010030479f855296a29b1dd0d2"
+  },
+  "files": [
+    {
+      "path": ".env.example",
+      "bytes": 217,
+      "sha256": "ab54bb637cd1b4fb48a527d84fd78de1a66b82c781b4d8a904566a9326da2e80",
+      "lockfile": false,
+      "excludedFromSnapshot": true
+    },
+    {
+      "path": ".gitattributes",
+      "bytes": 286,
+      "sha256": "536f8e9a0ab8acc02ff4584354a23bcbe1676da9bcdfa84a7aad66c7789c4a9a",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 25,
+      "sha256": "05fe7a628802f976b8ae34365446aecda0a7bc06c61dbd4bbc9b7b4f02a08b75",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "dist/application.js",
+      "bytes": 3546,
+      "sha256": "e44e1fa932979a8383043db96ad0f377a6a8aa010030479f855296a29b1dd0d2",
+      "lockfile": false,
+      "excludedFromSnapshot": false,
+      "includedBecause": "declared-entrypoint"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 296024,
+      "sha256": "7514bb6fec80654d4e9729a531313b241e266522412f46dc2adfa8ba53a85101",
+      "lockfile": true,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package.json",
+      "bytes": 584,
+      "sha256": "d941551e6c7defab281cad0b8f207f9f660271232e0907b7322f835134f47511",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 4084,
+      "sha256": "f310573b0e0329d9d474d17f9e979d93e41a851fb59141e39c9a549dcb5738fa",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/prisma/contract.d.ts",
+      "bytes": 27732,
+      "sha256": "c67de544df011120e3ad53e26143516eb8479c8b08f19b25e35ed2c7de3e27e2",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/prisma/contract.json",
+      "bytes": 11097,
+      "sha256": "36aa61c1aaa4cf667f72ac4e78a42f13c5b3bccd38fa5756b801981ea70bf669",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/prisma/contract.prisma",
+      "bytes": 535,
+      "sha256": "e1982d13185a96c110e4d03a51cea39765801694ec1c8f61a6d4b316677c718e",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "test/application.test.mjs",
+      "bytes": 881,
+      "sha256": "b5a19aa7ab52e4535b2b2514426314cccfc5d0630cc40231b67d96dcfde01c4c",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "tsconfig.build.json",
+      "bytes": 240,
+      "sha256": "fb84796b9ac4ac15e860b12062c67ef8eeea6afa0033d4d28c2dc101881c9497",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 521,
+      "sha256": "85b7dee5a6ce3b5cf4e5f81cdd92bbd274021383a89ddaddaa6b59f31f8e7679",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    }
+  ]
+}

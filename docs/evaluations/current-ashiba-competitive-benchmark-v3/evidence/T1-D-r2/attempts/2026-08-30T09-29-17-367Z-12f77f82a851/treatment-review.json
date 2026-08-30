@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Drizzle is the candidate main query and transaction data path. Initial agent build directory denial is an environment incident, not a candidate repair; coordinator reran the unchanged build before controller capture.",
+  "decidedAt": "2026-08-30T09:29:38.837Z",
+  "decidedBy": "coordinator-required"
+}
