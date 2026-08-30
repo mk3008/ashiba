@@ -26,8 +26,9 @@ export async function materializeE1Cell({ cell, snapshot, destination }) {
   const files = await walk(baselineRoot);
   const manifest = { cell, control: 'E1', arm: match[1], sourceSnapshot: source, files, sha256: sha(json(files)) };
   await writeFile(join(absolute, 'baseline-manifest.json'), `${json(manifest)}\n`);
-  for (const file of ['E1_ASSIGNMENT.md', 'RUNNER_API.md', 'PREREGISTRATION.md']) await cp(join(HERE, file), join(packetRoot, file));
-  await writeFile(join(packetRoot, 'CELL.json'), `${JSON.stringify({ cell, control: 'E1', arm: match[1], replicate: 1, protocol: 'secondary-controls-v1', baselineManifest: '../baseline-manifest.json' }, null, 2)}\n`);
+  for (const file of ['E1_ASSIGNMENT.md', 'RUNNER_API.md', 'PREREGISTRATION.md', 'FORBIDDEN_PATTERNS.json']) await cp(join(HERE, file), join(packetRoot, file));
+  const patterns = JSON.parse(await readFile(join(HERE, 'FORBIDDEN_PATTERNS.json'), 'utf8')).arms[match[1]];
+  await writeFile(join(packetRoot, 'CELL.json'), `${JSON.stringify({ cell, control: 'E1', arm: match[1], replicate: 1, protocol: 'secondary-controls-v1', baselineManifest: '../baseline-manifest.json', forbiddenPatterns: patterns }, null, 2)}\n`);
   return { cell, arm: match[1], source, candidateRoot, baselineRoot, packetRoot, evidenceRoot, baselineManifest: join(absolute, 'baseline-manifest.json') };
 }
 

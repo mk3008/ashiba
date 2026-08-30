@@ -9,6 +9,26 @@ No scored candidate has started at preregistration.
 Entries are append-only. A correction does not overwrite the preceding failed
 or calibration evidence.
 
+# H-004 — E1 forbidden-marker packet omission
+
+- **Observed:** 2026-08-30, after E1 candidate directories were materialized
+  but before any E1 runner result was recorded.
+- **Original evidence:** the interrupted materializations remain outside the
+  durable scored/control set; `E1-A-r1` completed candidate-local preparation
+  and `E1-P-r1`/`E1-S-r1` were interrupted before runner execution.
+- **Cause:** the E1 runner API required arm-specific forbidden treatment
+  markers to be frozen in each exit packet, but the materializer copied no
+  such packet file.
+- **Correction:** freeze `FORBIDDEN_PATTERNS.json`, copy it into every E1
+  packet, and write the arm-specific patterns into `CELL.json`. The patterns
+  match executable imports/dependency entries/configuration markers rather
+  than explanatory prose.
+- **Affected controls:** all six pre-correction E1 materializations; no E1
+  runner output and no primary cell is affected.
+- **Required remeasure:** discard those materializations as unscored setup and
+  freshly materialize every E1 cell after the correction commit.
+- **Status:** pending correction commit.
+
 # H-003 — AF baseline TypeScript configuration correction
 
 - **Observed:** 2026-08-30, after AF-V initial attempts had been materialized
