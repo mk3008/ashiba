@@ -19,9 +19,8 @@ for (const entry of plan.packages) {
 }
 
 const namedParameters = packageByName.get('@ashiba-ts/named-parameters');
-const cli = packageByName.get('@ashiba-ts/cli');
-if (!namedParameters || !cli || namedParameters.order >= cli.order) {
-  throw new Error('Expected @ashiba-ts/named-parameters to publish before @ashiba-ts/cli.');
+if (!namedParameters) {
+  throw new Error('Expected @ashiba-ts/named-parameters in the public publish plan.');
 }
 
 console.log(`publish-order verification passed: ${plan.packages.length} public packages, ${[...plan.packages].flatMap((entry) => entry.internalDependencies).length} internal dependency edges.`);

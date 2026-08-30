@@ -58,9 +58,6 @@ importers:
         specifier: ^4.3.6
         version: 4.4.3
     devDependencies:
-      '@ashiba-ts/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@testcontainers/postgresql':
         specifier: ^11.14.0
         version: 11.14.0
@@ -98,48 +95,8 @@ importers:
         specifier: ^4.0.7
         version: 4.1.7(@types/node@22.18.7)(vite@6.4.3(@types/node@22.18.7)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
 
-  examples/hono-pg-support-inbox:
-    dependencies:
-      '@ashiba-ts/named-parameters':
-        specifier: workspace:*
-        version: link:../../packages/named-parameters
-      '@hono/node-server':
-        specifier: ^2.0.10
-        version: 2.0.10(hono@4.13.0)
-      hono:
-        specifier: ^4.12.34
-        version: 4.13.0
-      pg:
-        specifier: ^8.16.3
-        version: 8.21.0
-    devDependencies:
-      '@ashiba-ts/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@types/node':
-        specifier: ^22.13.10
-        version: 22.19.19
-      '@types/pg':
-        specifier: ^8.15.5
-        version: 8.20.0
-      dotenv:
-        specifier: ^16.6.1
-        version: 16.6.1
-      tsx:
-        specifier: ^4.21.0
-        version: 4.22.4
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^4.1.7
-        version: 4.1.7(@types/node@22.19.19)(vite@6.4.3(@types/node@22.19.19)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
-
   examples/postgres-ticket-queue-layered:
     dependencies:
-      '@ashiba-ts/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@ashiba-ts/named-parameters':
         specifier: workspace:*
         version: link:../../packages/named-parameters
@@ -169,9 +126,6 @@ importers:
         specifier: ^8.16.3
         version: 8.21.0
     devDependencies:
-      '@ashiba-ts/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.13.10
         version: 22.18.7
@@ -194,9 +148,6 @@ importers:
         specifier: ^8.21.0
         version: 8.21.0
     devDependencies:
-      '@ashiba-ts/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
       '@types/node':
         specifier: ^22.13.10
         version: 22.18.7
@@ -209,31 +160,6 @@ importers:
       vitest:
         specifier: ^4.1.7
         version: 4.1.7(@types/node@22.18.7)(vite@6.4.3(@types/node@22.18.7)(lightningcss@1.32.0)(tsx@4.22.4)(yaml@2.9.0))
-
-  packages/cli:
-    dependencies:
-      '@ashiba-ts/named-parameters':
-        specifier: workspace:*
-        version: link:../named-parameters
-      commander:
-        specifier: ^12.0.0
-        version: 12.1.0
-      diff:
-        specifier: ^8.0.2
-        version: 8.0.4
-      pg:
-        specifier: ^8.21.0
-        version: 8.21.0
-      rawsql-ts:
-        specifier: ^0.24.2
-        version: 0.24.2
-    devDependencies:
-      '@types/node':
-        specifier: ^22.13.10
-        version: 22.19.19
-      '@types/pg':
-        specifier: ^8.20.0
-        version: 8.20.0
 
   packages/ddl-docs-cli:
     dependencies:
@@ -653,12 +579,6 @@ packages:
     resolution: {integrity: sha512-wtF6h+DY6M3YaDBPAmvuuA6jV8Sif9MjtOI5euKFWRgCDl5PeDpPsHR9u2l6St5ceY8AZgoNDww5+HvEsXFsGg==}
     engines: {node: '>=6'}
     hasBin: true
-
-  '@hono/node-server@2.0.10':
-    resolution: {integrity: sha512-ZcnNVhKTmyDJeg0UlnZjvM73JBsTAuhrH/J4fjwGOw59PwOW51r4J+p6CsKZWXdKSme4MFqU62CZMOsdDrU4CA==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      hono: ^4
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -1336,10 +1256,6 @@ packages:
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
 
-  commander@12.1.0:
-    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
-    engines: {node: '>=18'}
-
   commander@14.0.3:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
     engines: {node: '>=20'}
@@ -1413,10 +1329,6 @@ packages:
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
-
-  diff@8.0.4:
-    resolution: {integrity: sha512-DPi0FmjiSU5EvQV0++GFDOJ9ASQUVFh5kD+OzOnYdi7n3Wpm9hWWGfB/O2blfHcMVTL5WkQXSnRiK9makhrcnw==}
-    engines: {node: '>=0.3.1'}
 
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
@@ -1685,10 +1597,6 @@ packages:
 
   hast-util-whitespace@3.0.0:
     resolution: {integrity: sha512-88JUN06ipLwsnv+dVn+OIYOvAuvBMy/Qoi6O7mQHxdPXpjy+Cd6xRkWwux7DKO+4sYILtLBRIKgsdpS2gQc7qw==}
-
-  hono@4.13.0:
-    resolution: {integrity: sha512-jhunvfHWxd7J5EFfSgH4xsYJzSe/lfqbUCxiyyeaQasUsXeEHXtzVid+7EOGByc5JnFa23SSFL3Y2RV/z1T+eQ==}
-    engines: {node: '>=16.9.0'}
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
@@ -3206,10 +3114,6 @@ snapshots:
       protobufjs: 7.6.5
       yargs: 17.7.3
 
-  '@hono/node-server@2.0.10(hono@4.13.0)':
-    dependencies:
-      hono: 4.13.0
-
   '@humanfs/core@0.19.2':
     dependencies:
       '@humanfs/types': 0.15.0
@@ -3893,8 +3797,6 @@ snapshots:
 
   comma-separated-tokens@2.0.3: {}
 
-  commander@12.1.0: {}
-
   commander@14.0.3: {}
 
   commander@2.20.3: {}
@@ -3956,8 +3858,6 @@ snapshots:
   devlop@1.1.0:
     dependencies:
       dequal: 2.0.3
-
-  diff@8.0.4: {}
 
   dir-glob@3.0.1:
     dependencies:
@@ -4272,8 +4172,6 @@ snapshots:
   hast-util-whitespace@3.0.0:
     dependencies:
       '@types/hast': 3.0.4
-
-  hono@4.13.0: {}
 
   hookable@5.5.3: {}
 

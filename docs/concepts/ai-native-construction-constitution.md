@@ -8,14 +8,14 @@ decision that every current mechanism is a universal guarantee.
 
 | Candidate | Status | Confirmed evidence | Boundary / open question |
 |---|---|---|---|
-| Canonical SQL ownership | **Proven/current invariant** | `.sql` is declared canonical and generated `query.sql.ts` is a runtime snapshot in [the runtime boundary](../guide/runtime-boundary.md); `README.md` directs edits to SQL rather than its generated snapshot. | Applies to Ashiba-managed query resources, not to arbitrary SQL an application chooses to hide elsewhere. |
-| Parameter binding | **Proven/current invariant** | `bindNamedParameters` uses generated binding metadata and rejects missing or unused names before the application calls its native driver. | It does not police an application's separate direct-driver calls. |
+| Canonical SQL ownership | **Proven/current invariant** | `.sql` remains the visible source of query behavior; applications may load or embed it through ordinary tooling. | Applies to SQL an application chooses to keep canonical, not to a prescribed filesystem layout. |
+| Parameter binding | **Proven/current invariant** | `compileNamedParameters` and `bindNamedParameters` deterministically lower named SQL and reject missing or unused names before the application calls its native driver. | It does not police an application's separate direct-driver calls. |
 | Runtime input must not freely become SQL syntax | **Strong hypothesis** | Application-owned finite mappings can keep public sort selection separate from raw request text. | A whole-application non-interpolation guarantee is not established. |
-| Runtime capability must not silently exceed canonical SQL | **Strong hypothesis** | Build-time binding metadata freshness ties generated driver SQL to visible canonical SQL. | Application-owned optional branches and sort mappings need ordinary review and tests; Ashiba no longer performs runtime SQL rewriting. |
+| Runtime capability must not silently exceed canonical SQL | **Strong hypothesis** | Applications compile canonical SQL at a controlled initialization or build point; the prepared representation is not a second source of truth. | Application-owned optional branches and sort mappings need ordinary review and tests; Ashiba does not perform runtime SQL rewriting or freshness lifecycle management. |
 | Optional query behavior | **Strong hypothesis** | Nullable guards and explicit visible SQL variants keep optional predicates reviewable. | Applications choose the appropriate SQL shape and own semantic proof. |
 | Closed-world syntax construction when construction is unavoidable | **Strong hypothesis** | A finite application-owned mapping can select already-visible SQL behavior without request text becoming syntax. | Completeness and review of that mapping are application responsibilities. |
-| Independent SQL executability | **Strong hypothesis** | The Concept Map calls for SQL that remains usable in SQL clients, and SQL-resource work can emit PostgreSQL-executable derived SQL. | Named-parameter canonical source is not necessarily unmodified PostgreSQL client syntax; the executable resource relationship needs explicit preservation. |
-| PostgreSQL/application contract verification | **Strong hypothesis** | `postgres-contract` prepares canonical SQL against PostgreSQL and derives catalog/driver evidence; live tests prove this lane. The [responsibility placement audit](../evaluations/responsibility-placement-audit.md) independently exercised bigint, numeric, nullable, enum, domain, and array contract evidence against disposable PostgreSQL and a separate JSON oracle. | It is optional and PostgreSQL-specific; it does not prove business semantics, transaction behavior, JSON DTO shape, all nullability implications, or that an arbitrary configured test command ran every required live lane. |
+| Independent SQL executability | **Strong hypothesis** | Canonical SQL remains ordinary target-dialect SQL that can be reviewed in SQL clients and tested through the native driver. | Named-parameter canonical source is not necessarily unmodified PostgreSQL client syntax; applications own any loading or placeholder adaptation needed by their tooling. |
+| Database/application contract verification | **Strong hypothesis** | Native database tooling and application/live tests can check the database and result contract at the boundary. | These checks are optional and application/external-tool owned; they do not prove business semantics, transaction behavior, or DTO shape by themselves. |
 | Declared proof-lane execution | **Open hypothesis** | The proof-lane pilot showed that an external strict manifest can aggregate application-declared command exit results and prevent a selected unit-only command from being treated as the result of separately declared live and transaction commands. | The declaration cannot establish that the declared set is sufficient, nor that a successful command proves the intended semantics. It must not be called application correctness or readiness without an explicit scope. |
 | Thin, replaceable runtime integration | **Strong hypothesis** | The core `FeatureQueryExecutor` seam and runtime boundary deliberately exclude an ORM runtime. | Replaceability is a migration claim that needs application-level evidence, not just an interface. |
 | Application architecture is not owned by Ashiba | **Intentional non-goal** | The runtime boundary leaves workflow, transaction composition, route/worker adapters, retry safety, and migration apply to the application. | Generated examples may still exert architectural pressure; construction pilots must measure it. |
@@ -23,8 +23,8 @@ decision that every current mechanism is a universal guarantee.
 
 ## Candidate rules for the pilot
 
-1. Treat canonical visible SQL as the source of query behavior; derived runtime
-   artifacts may be regenerated but are never a second authority.
+1. Treat canonical visible SQL as the source of query behavior; an application
+   may cache a prepared representation but it is never a second authority.
 2. Accept runtime values through parameter binding. Add SQL syntax only by
    changing reviewable canonical SQL first.
 3. If runtime variability is unavoidable, constrain it to a finite,
@@ -35,10 +35,10 @@ decision that every current mechanism is a universal guarantee.
    runtime query builder. Use a governed builder when the product really owns
    an open query language; this is a working order, not a claim that every
    need fits it.
-5. Keep an independently runnable SQL resource or a documented derivation for
-   a SQL client; do not make correctness depend solely on application code.
-6. Treat PostgreSQL-derived contract output as scoped development evidence and
-   name what it does not prove. A green selected test command proves only that
+5. Keep canonical SQL reviewable and executable through ordinary SQL tooling;
+   do not make correctness depend solely on an opaque application artifact.
+6. Treat database-derived observations as scoped development evidence and name
+   what they do not prove. A green selected test command proves only that
    selected command; it is not proof that required PostgreSQL or transaction
    lanes were covered.
 7. If an application elects to declare proof lanes, distinguish the

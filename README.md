@@ -1,110 +1,77 @@
 # Ashiba
 
-Show me the SQL. Ashiba handles the boring parts.
+Show me the SQL. Ashiba keeps the binding boundary boring and explicit.
 
-Ashiba keeps canonical SQL visible while providing deterministic build-time
-named-parameter lowering and binding metadata. It does not prescribe an
-application architecture, generate DTOs or mappers, or own query execution.
+Ashiba is a small named-parameter primitive for applications that keep their
+canonical SQL visible. It is not an ORM, query builder, architecture
+framework, migration tool, or test runner. The application owns SQL files,
+driver lifecycle, transactions, result mapping, logging, migrations, and
+business tests.
 
-## PostgreSQL Golden Path
+## Builder Mapper path
 
 ```text
-canonical SQL
-  → deterministic build-time lowering and binding metadata
+visible canonical SQL
+  → compileNamedParameters
   → bindNamedParameters
-  → native pg
-  → optional PostgreSQL contract
+  → native driver
   → application/live tests
 ```
 
-The application owns TypeScript types, connection pools, transactions,
-rollback behavior, migrations, and business tests. Values stay separate from
-SQL text until the native driver boundary.
-
-## Start with visible SQL and an AI coding agent
-
-Install the development CLI and the small runtime binder alongside the native
-driver used by your application:
+Install the package next to the native driver:
 
 ```bash
 npm install pg @ashiba-ts/named-parameters
-npm install -D @ashiba-ts/cli typescript
 ```
 
-Write canonical SQL with meaningful named parameters:
-
-```sql
-select id, subject
-from tickets
-where owner_id = :ownerId
-limit :limit;
-```
-
-Generate a committed binding artifact and check it whenever the SQL changes:
-
-```bash
-npx ashiba model-gen src/tickets/list.sql --out src/tickets/list.bindings.ts
-npx ashiba model-gen src/tickets/list.sql --out src/tickets/list.bindings.ts --check
-```
-
-Bind separately and call the native driver directly:
+Compile canonical SQL at a controlled application initialization or build
+point, and cache the returned prepared query there. The loading and caching
+choice belongs to the application; Ashiba does not require a filesystem
+layout or generated module.
 
 ```ts
 import { bindNamedParameters } from '@ashiba-ts/named-parameters';
-import { bindingMetadata } from './tickets/list.bindings.js';
+import { compileNamedParameters } from '@ashiba-ts/named-parameters/compiler';
 
-const prepared = bindingMetadata.bindings.postgres;
+const prepared = compileNamedParameters(
+  'select id, subject from tickets where owner_id = :ownerId limit :limit',
+);
+
 const { sql, values } = bindNamedParameters(prepared, { ownerId, limit });
 const result = await pool.query(sql, values);
 ```
 
-`bindNamedParameters` rejects missing and unused parameter names. It does not
-interpolate values into SQL.
+`bindNamedParameters` rejects missing and unused names before the native driver
+call. Values remain separate from SQL text and are never interpolated.
 
-For a five-minute AI-first path and a copyable project `AGENTS.md`, see
-[Get Started with AI](docs/guide/ai-first-getting-started.md). Your agent can
-discover the supported CLI surface with `npx ashiba describe command --format json`;
-you do not need to memorize commands.
+Optional filters and dynamic order are application concerns. A finite public
+choice may select a reviewed, source-controlled SQL literal; unbounded external
+text must never become SQL syntax. Pools, transactions, rollback, migrations,
+and behavior proof remain application-owned.
 
-For an optional database-derived parameter/result proof, use a development
-PostgreSQL database:
+## AI-first development
 
-```bash
-npx ashiba postgres-contract write src/tickets/list.sql --out tmp/list.contract.json
-npx ashiba postgres-contract check src/tickets/list.sql --contract tmp/list.contract.json \
-  --params-type-file src/tickets/types.ts --params-type ListParams \
-  --result-type-file src/tickets/types.ts --result-type Ticket
-```
-
-See the [architecture references](docs/guide/architecture-references.md) for
-the same canonical SQL / binding core in a minimal module, vertical slices, and
-layers.
+Keep the SQL visible and ask an AI coding agent to implement the application
+using the named-parameter primitive and the native driver. An application may
+use vertical slices, layers, or any other ordinary architecture. See [Get
+Started with AI](docs/guide/ai-first-getting-started.md) and the [architecture
+references](docs/guide/architecture-references.md).
 
 ## Supported DBMS positions
 
-| DBMS | Position | Runtime boundary | DB-derived contract |
-| --- | --- | --- | --- |
-| PostgreSQL / `pg` | PRIMARY | native driver | full optional contract |
-| MySQL / `mysql2` | SUPPORTED-SECONDARY | native driver | no full DB-derived contract |
-| SQL Server / `mssql` | SUPPORTED-SECONDARY | native driver | partial native metadata |
+| DBMS | Position | Runtime boundary |
+| --- | --- | --- |
+| PostgreSQL / `pg` | PRIMARY | native driver |
+| MySQL / `mysql2` | SUPPORTED-SECONDARY | native driver |
+| SQL Server / `mssql` | SUPPORTED-SECONDARY | native driver |
 
-Feature and contract parity are not promised across DBMSs. Native drivers are
-the supported execution boundary; optional PostgreSQL capabilities do not
-replace application-owned execution architecture.
-
-## Optional verification
-
-The CLI also provides optional SQL linting, query impact inspection, and
-resource comparison. Discover the exact current surface with:
-
-```bash
-npx ashiba describe command --format json
-```
+The binding package renders each driver's supported placeholder style. Feature
+parity is not promised across DBMSs.
 
 Ashiba supports Node.js 22 and 24 LTS; Node 24 is recommended. Node 20 is EOL
 and unsupported. Node 26 is not yet a formal support target while it is a
 Current release.
 
-Ashiba does not prescribe application architecture; see the
-[Scope](docs/design/ashiba-scope.md). Historical removal and migration evidence
-lives in the documentation archive rather than the new-user path.
+Historical evaluations and removed tooling are retained in the documentation
+archive as evidence, not as current product instructions. See the [scope
+boundary](docs/design/ashiba-scope.md).

@@ -15,7 +15,6 @@ export default defineConfig({
   themeConfig: {
     logo: '/brand/ashiba-icon.jpg',
     nav: [
-      { text: 'API', link: '/generated/api/commands' },
       {
         text: 'Guides',
         items: [
@@ -23,11 +22,6 @@ export default defineConfig({
           { text: 'Guide Overview', link: '/guide/' },
           { text: 'SQL Guidelines', link: '/guide/sql-guidelines' },
           { text: 'Runtime Boundary', link: '/guide/runtime-boundary' },
-          { text: 'Driver Surface Migration', link: '/guide/driver-adapter-migration' },
-          { text: 'Optional CLI Analysis Migration', link: '/guide/optional-cli-analysis-migration' },
-          { text: 'Change-Safety Migration', link: '/guide/change-safety-migration' },
-          { text: 'Scaffold Migration', link: '/guide/scaffold-migration' },
-          { text: 'ZTD/Testkit Migration', link: '/guide/ztd-testkit-migration' },
         ],
       },
       { text: 'Concepts', link: '/concepts/concept-map' },
@@ -40,14 +34,6 @@ export default defineConfig({
         { text: 'Guide Overview', link: '/guide/' },
         { text: 'SQL Guidelines', link: '/guide/sql-guidelines' },
         { text: 'Runtime Boundary', link: '/guide/runtime-boundary' },
-        { text: 'Driver Surface Migration', link: '/guide/driver-adapter-migration' },
-        { text: 'Optional CLI Analysis Migration', link: '/guide/optional-cli-analysis-migration' },
-        { text: 'Change-Safety Migration', link: '/guide/change-safety-migration' },
-        { text: 'Scaffold Migration', link: '/guide/scaffold-migration' },
-        { text: 'ZTD/Testkit Migration', link: '/guide/ztd-testkit-migration' },
-      ],
-      '/generated/api/': [
-        { text: 'Command API', link: '/generated/api/commands' },
       ],
       '/concepts/': [
         { text: 'Concept Map', link: '/concepts/concept-map' },

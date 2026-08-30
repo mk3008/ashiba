@@ -1,0 +1,32 @@
+{
+  "startingSha": "6e2f3ee35fd22fe80b55f78d992699324fec326b",
+  "productCodeChanged": true,
+  "scopeChanged": true,
+  "goldenPath": "visible SQL -> compileNamedParameters -> bindNamedParameters -> native driver -> application/live tests",
+  "verification": {
+    "pnpmTypecheck": "pass",
+    "pnpmBuild": "pass",
+    "pnpmTest": "pass",
+    "pnpmVerify": "pass",
+    "pnpmDocsBuild": "pass",
+    "gitDiffCheck": "pass",
+    "packedConsumerInstall": "pass",
+    "npmDistributionLocal": "pass (Node 22.14.0 / npm 10.9.2)",
+    "changesetsStatus": "pass after removing pending entries for removed packages",
+    "ticketQueueLive": "not run locally: Docker could not allocate a new network because predefined address pools are exhausted; remote CI is the authority"
+  },
+  "currentSurfaceScan": {
+    "cliPackageOrCommandReferences": 0,
+    "sourceHashReferencesInCurrentDocsExamplesScripts": 0,
+    "historicalPromptRecords": "retained and explicitly labelled historical provenance"
+  },
+  "temporaryResources": "npm consumer temporary directories are removed in finally blocks; Docker network creation failed before a resource was created",
+  "orchestration": {
+    "lanes": 6,
+    "models": ["gpt-5.6-luna"],
+    "retry": 0,
+    "escalation": 0,
+    "tokenTelemetry": "unavailable",
+    "creditTelemetry": "unavailable"
+  }
+}

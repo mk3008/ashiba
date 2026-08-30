@@ -6,8 +6,7 @@ The review center is the SQL contract:
 
 - `queries/<query>/<query>.sql` is the canonical source.
 - `queries/<query>/query.ts` is the feature query boundary.
-- `queries/<query>/generated/query.sql.ts` is the runtime SQL snapshot.
-- `queries/<query>/generated/query.meta.ts` is the generated query model metadata.
+- `queries/<query>/query.ts` is the application-owned DB-facing boundary.
 
 ## Architecture as a Framework
 
@@ -35,11 +34,11 @@ boundary/
 - `queries/<query>/tests`: an application-owned query-local verification group when the application needs it
 - add more child boundaries as child folders when one boundary grows; each child repeats the same `boundary.ts` plus `tests/` rule
 
-`ashiba.config.json` owns the SQL roots, DDL source directory, and formatting. Application tests stay application-owned.
+Application-local configuration owns any SQL roots, DDL source directory, and formatting. Application tests stay application-owned.
 Use `src/features/_shared/*` only for feature-facing shared seams such as `FeatureQueryExecutor`.
 Keep driver-neutral helpers in `src/libraries/*`, driver or sink bindings in `src/adapters/<tech>/*`, and keep `db/` reserved for DDL, migrations, and schema assets.
 
-After SQL-only edits, regenerate only the binding artifact with `ashiba model-gen` and let application-owned tests prove SQL logic where needed.
+After SQL-only edits, keep the canonical SQL and its application-owned binding boundary aligned, then let application-owned tests prove SQL logic where needed.
 
 ## Import Paths
 

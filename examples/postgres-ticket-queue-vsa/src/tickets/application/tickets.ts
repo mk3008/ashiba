@@ -1,13 +1,6 @@
 import { Pool } from 'pg';
 import { bindNamedParameters } from '@ashiba-ts/named-parameters';
-import { bindingMetadata as assignBinding } from '../generated/assign-ticket.generated.js';
-import { bindingMetadata as closeBinding } from '../generated/close-ticket.generated.js';
-import { bindingMetadata as getBinding } from '../generated/get.generated.js';
-import { bindingMetadata as eventBinding } from '../generated/insert-assignment-event.generated.js';
-import { bindingMetadata as createdAscBinding } from '../generated/list-createdAt-asc.generated.js';
-import { bindingMetadata as createdDescBinding } from '../generated/list-createdAt-desc.generated.js';
-import { bindingMetadata as subjectAscBinding } from '../generated/list-subject-asc.generated.js';
-import { bindingMetadata as subjectDescBinding } from '../generated/list-subject-desc.generated.js';
+import { queryBindings } from '../sql/bindings.js';
 
 export type TicketSortKey = 'createdAt' | 'subject';
 export type TicketSortDirection = 'asc' | 'desc';
@@ -61,16 +54,11 @@ export interface TicketApplication {
 }
 
 type TicketRow = Ticket;
-type GeneratedBinding = {
-  bindings: {
-    postgres: { style: 'indexed'; sql: string; parameterNames: readonly string[] };
-  };
-};
-const listBindings: Record<string, GeneratedBinding> = {
-  'createdAt:asc': createdAscBinding,
-  'createdAt:desc': createdDescBinding,
-  'subject:asc': subjectAscBinding,
-  'subject:desc': subjectDescBinding,
+const listBindings: Record<string, typeof queryBindings.createdAsc> = {
+  'createdAt:asc': queryBindings.createdAsc,
+  'createdAt:desc': queryBindings.createdDesc,
+  'subject:asc': queryBindings.subjectAsc,
+  'subject:desc': queryBindings.subjectDesc,
 };
 
 export function createTicketApplication(
@@ -89,7 +77,7 @@ export function createTicketApplication(
     : connectionOrConfig;
   const pool: DbPool = config.pool ?? (new Pool({ connectionString: config.connectionString }) as unknown as DbPool);
   const auditWriter = config.auditWriter ?? (async (client: DbClient, ticketId: number | string) => {
-    const query = bindNamedParameters(eventBinding.bindings.postgres, { ticketId });
+    const query = bindNamedParameters(queryBindings.event, { ticketId });
     await client.query(query.sql, query.values);
   });
 
@@ -101,7 +89,7 @@ export function createTicketApplication(
     const key = `${input.sortKey ?? 'createdAt'}:${input.sortDirection ?? 'asc'}`;
     const selected = listBindings[key];
     if (!selected) throw new RangeError('unsupported ticket sort');
-    const query = bindNamedParameters(selected.bindings.postgres, {
+    const query = bindNamedParameters(selected, {
       status: input.status ?? null,
       assigneeId: input.assigneeId ?? null,
       limit,
@@ -112,7 +100,7 @@ export function createTicketApplication(
   };
 
   const get = async (ticketId: number | string): Promise<Ticket | null> => {
-    const query = bindNamedParameters(getBinding.bindings.postgres, { ticketId });
+    const query = bindNamedParameters(queryBindings.get, { ticketId });
     const result = await pool.query<TicketRow>(query.sql, query.values);
     return result.rows[0] ?? null;
   };
@@ -125,7 +113,7 @@ export function createTicketApplication(
     const client = await pool.connect();
     try {
       await client.query('begin');
-      const update = bindNamedParameters(assignBinding.bindings.postgres, { ticketId, assigneeId });
+      const update = bindNamedParameters(queryBindings.assign, { ticketId, assigneeId });
       const result = await client.query<TicketRow>(update.sql, update.values);
       const row = result.rows[0];
       if (!row) {
@@ -145,7 +133,7 @@ export function createTicketApplication(
   };
 
   const close = async (ticketId: number | string): Promise<Ticket | null> => {
-    const query = bindNamedParameters(closeBinding.bindings.postgres, { ticketId });
+    const query = bindNamedParameters(queryBindings.close, { ticketId });
     const result = await pool.query<TicketRow>(query.sql, query.values);
     return result.rows[0] ?? null;
   };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bindNamedParameters, NamedParameterError } from '@ashiba-ts/named-parameters';
-import { bindingMetadata as getBinding } from '../src/tickets/generated/get.generated.js';
+import { queryBindings } from '../src/tickets/sql/bindings.js';
 import { createTicketApplication, type DbClient } from '../src/tickets/application/tickets.js';
 
 type FakeResult = { rows: any[] };
@@ -32,9 +32,9 @@ class FakePool {
 }
 
 describe('ticket slice', () => {
-  it('rejects missing and unused generated binding names', () => {
-    expect(() => bindNamedParameters(getBinding.bindings.postgres, {})).toThrowError(NamedParameterError);
-    expect(() => bindNamedParameters(getBinding.bindings.postgres, { ticketId: 7, extra: true })).toThrowError(NamedParameterError);
+  it('rejects missing and unused binding names', () => {
+    expect(() => bindNamedParameters(queryBindings.get, {})).toThrowError(NamedParameterError);
+    expect(() => bindNamedParameters(queryBindings.get, { ticketId: 7, extra: true })).toThrowError(NamedParameterError);
   });
 
   it('binds a hostile SQL-looking status as a value', async () => {

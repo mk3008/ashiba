@@ -20,7 +20,7 @@ try {
   await sql("INSERT INTO tickets (subject, status, assignee_id, created_at) VALUES ('Same', 'open', NULL, '2026-01-01T00:00:00Z'), ('Zulu', 'closed', 9, '2026-01-04T00:00:00Z'), ('Alpha', 'open', 3, '2026-01-03T00:00:00Z'), ('Same', 'open', 3, '2026-01-02T00:00:00Z');");
 
   const { createTicketApplication } = await import(pathToFileURL(`${vsaPath}/dist/src/tickets/application/tickets.js`).href);
-  const { bindingMetadata: getBinding } = await import(pathToFileURL(`${vsaPath}/dist/src/tickets/generated/get.generated.js`).href);
+  const { queryBindings } = await import(pathToFileURL(`${vsaPath}/dist/src/tickets/sql/bindings.js`).href);
   const { bindNamedParameters, NamedParameterError } = await import(pathToFileURL(`${vsaPath}/node_modules/@ashiba-ts/named-parameters/dist/index.js`).href);
   const application = createTicketApplication(databaseUrl);
   try {
@@ -38,8 +38,8 @@ try {
     assert.equal((await application.list({ status: hostile })).length, 0, 'hostile value is bound rather than interpolated');
     assert.equal(Number((await sql('SELECT count(*)::int AS count FROM tickets')).rows[0].count), 4, 'hostile value did not alter SQL execution');
 
-    assert.throws(() => bindNamedParameters(getBinding.bindings.postgres, {}), (error) => error instanceof NamedParameterError && error.code === 'ASHIBA_MISSING_PARAMETER');
-    assert.throws(() => bindNamedParameters(getBinding.bindings.postgres, { ticketId: 1, extra: true }), (error) => error instanceof NamedParameterError && error.code === 'ASHIBA_UNUSED_PARAMETER');
+    assert.throws(() => bindNamedParameters(queryBindings.get, {}), (error) => error instanceof NamedParameterError && error.code === 'ASHIBA_MISSING_PARAMETER');
+    assert.throws(() => bindNamedParameters(queryBindings.get, { ticketId: 1, extra: true }), (error) => error instanceof NamedParameterError && error.code === 'ASHIBA_UNUSED_PARAMETER');
 
     await application.assign(1, 77);
     assert.equal(Number((await sql('SELECT assignee_id FROM tickets WHERE id = 1')).rows[0].assignee_id), 77, 'native transaction commits assignment');

@@ -37,8 +37,7 @@
     "format": "prettier . --write",
     "lint": "node ./scripts/check-sql-leading-commas.mjs && eslint src tests --ext .ts",
     "lint:sql": "node ./scripts/check-sql-leading-commas.mjs",
-    "lint:fix": "eslint . --fix",
-    "check:sql": "node ../../packages/cli/dist/index.js project check --root-dir ."
+    "lint:fix": "eslint . --fix"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,md,sql}": [
@@ -53,7 +52,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@ashiba-ts/cli": "workspace:*",
     "@types/pg": "^8.15.5",
     "eslint": "^9.22.0",
     "lint-staged": "^16.2.7",
