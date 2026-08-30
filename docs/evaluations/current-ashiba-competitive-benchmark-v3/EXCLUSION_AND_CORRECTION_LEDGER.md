@@ -48,7 +48,10 @@ or calibration evidence.
   result as corrected evidence beside the preserved original.
 - **Correction commit:** `00afb56` (`docs: correct benchmark reproduction
   controls`).
-- **Status:** correction prepared; no replacement result has been recorded.
+- **Remeasurement evidence commit:** `ee94c6a` (`docs: preserve corrected SD-A
+  control evidence`).
+- **Status:** corrected rerun passed static isolation and completed; the
+  original final failure remains preserved beside `corrected-h007` evidence.
 
 # H-004 — E1 forbidden-marker packet omission
 
