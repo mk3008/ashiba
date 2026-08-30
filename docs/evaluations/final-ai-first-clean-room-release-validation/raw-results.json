@@ -1,0 +1,34 @@
+{
+  "startingSha": "d53cb0b80b8a97433f3850a699d28196a5863219",
+  "productCodeChanged": false,
+  "publicApiChanged": false,
+  "scopeChanged": false,
+  "goldenPathChanged": false,
+  "freshAgent": {
+    "tarball": "@ashiba-ts/named-parameters@0.1.0",
+    "tarballSha256": "3B47B90F9568C55255C6B59DB6DECEA061DA0BEF56DA47DDE6F7BA655C67D0FC",
+    "vsa": { "typecheck": "pass", "candidateTests": "pass", "oracle": "pass", "maintenance": "pass" },
+    "layered": { "typecheck": "pass", "candidateTests": "pass", "oracle": "pass" },
+    "unconstrained": "not-run"
+  },
+  "staticInspection": {
+    "vsaForbiddenSurface": 0,
+    "layeredForbiddenSurface": 0,
+    "workspaceLeak": false,
+    "generatedBindingArtifact": false
+  },
+  "localVerification": {
+    "pnpmTypecheck": "pass",
+    "pnpmBuild": "pass",
+    "pnpmTest": "pass",
+    "pnpmVerify": "pass",
+    "pnpmDocsBuild": "pass",
+    "gitDiffCheck": "pass",
+    "currentStaleCliScan": "pass"
+  },
+  "remoteCi": "pending",
+  "temporaryResources": {
+    "cleanRoom": "removed",
+    "postgresContainer": "removed"
+  }
+}

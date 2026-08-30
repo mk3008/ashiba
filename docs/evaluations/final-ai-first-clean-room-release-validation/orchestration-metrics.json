@@ -1,0 +1,13 @@
+{
+  "runId": "final-ai-first-clean-room-release-validation",
+  "routes": [
+    { "model": "gpt-5.6-luna", "role": "luna_scout", "purpose": "current guidance and product-purpose boundary audit", "outcome": "success" },
+    { "model": "gpt-5.6-luna", "role": "luna_worker", "purpose": "tarball-only VSA Fresh Agent application and maintenance exercise", "outcome": "success" },
+    { "model": "gpt-5.6-luna", "role": "luna_worker", "purpose": "tarball-only Layered Fresh Agent application", "outcome": "success" }
+  ],
+  "modelRetries": 0,
+  "escalations": 0,
+  "tokenTelemetry": "unavailable",
+  "creditTelemetry": "unavailable",
+  "environmentRepair": "Layered candidate created its clean-room dist directory after an ACL failure; no model retry or escalation."
+}
