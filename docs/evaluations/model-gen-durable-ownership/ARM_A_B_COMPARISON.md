@@ -1,41 +1,49 @@
-# Arm A / B comparison
+# Arm A / B / C comparison
 
-Both arms used the same frozen ticket schema and behavioral acceptance. Both
-ultimately passed strict TypeScript, candidate tests, and a runner-owned
-PostgreSQL oracle covering visible SQL, named binding, hostile values,
-missing/unused rejection, filters, all four finite reviewed sort modes and
-stable ties, pagination, get, native transaction, and rollback.
+All arms used the same frozen ticket schema and final PostgreSQL behavioral
+authority. Arm C adds the necessary “do not create the artifact” control to
+the earlier static-artifact comparison.
 
-| Measure | Arm A — current workflow | Arm B — primitive-only |
-| --- | --- | --- |
-| Ashiba input | CLI + named package | named package only |
-| Lowering source | `model-gen` generated module | application-owned static module derived with compiler |
-| Source hash | yes | no |
-| Generic freshness check | byte-for-byte `--check` | no |
-| Initial live SQL repair | typed nullable status guard | typed nullable list guards |
-| Change task | optional `get` status guard | same guard |
-| Source files changed for change | SQL, generated module, app, tests (4) | SQL, static module, app, tests (4), plus emitted dist (2) |
-| Required workflow command | `generate`, then `check:generated` | no Ashiba command; manual synchronization |
-| Intentional source/artifact drift | detected before build/test/DB | build passed with stale binding retained |
-| Final PostgreSQL oracle | pass | pass |
+| Measure | Arm A — current workflow | Arm B — primitive-only static artifact | Arm C — primitive-only no artifact |
+| --- | --- | --- | --- |
+| Ashiba input | CLI + named package | named package only | named package only |
+| Lowering source | model-gen generated module | application-owned compiler-derived module | controlled direct compiler cache |
+| Committed duplicate binding state | yes | yes | no |
+| Source hash | yes | no | no |
+| Generic freshness check | byte-for-byte `--check` | no | no target exists |
+| Initial live SQL repair | typed nullable status guard | typed nullable list guards | typed nullable status/assignee guards |
+| Final strict TS / candidate tests / live oracle | pass | pass | pass |
+| SQL change touch surface | SQL, artifact, application, tests | SQL, static module, application, tests (+ emitted dist) | SQL/application/tests when behavior changes; no binding artifact |
+| Required Ashiba command | generate + check | none | none |
+| Semantic source-only drift | check fails before DB | stale static module remains runnable | changed canonical SQL is directly compiled |
+| Parameter-shape source-only drift | check fails before DB | old binding hides new parameter | fresh binding rejects old call values before DB |
+
+## Interpretation
+
+Arm A's freshness proof is real and retained as evidence for the conditional
+case where an application elects to commit static binding state. Arm B shows
+that a static artifact can be reconstructed without Ashiba CLI, but lacks an
+equivalent check. Neither proves that static state must be part of the default
+architecture.
+
+Arm C provides that missing ablation: the direct compiler/binder path achieves
+the same final safety/behavior without a duplicate artifact. Compilation is
+cached at controlled initialization, not repeated per query. Its startup
+feasibility measurement is recorded in `COMPILE_OVERHEAD.md`.
 
 ## Change-exercise interpretation
 
-Arm A deliberately changed SQL first. Its check failed before compilation,
-testing, or database execution and named the stale output. Regeneration was
-deterministic. It did not catch PostgreSQL type resolution; the live oracle
-caught that, as it should.
+The earlier matched optional-status change remains valid for A/B: A regenerated
+deterministically while B manually synchronized its static module. The new
+controls add a parameter-preserving semantic edit and a parameter-shape edit.
+They prevent a misleading conclusion that every drift checker proves its own
+generated surface necessary. See `ADDITIONAL_DRIFT_CONTROLS.md` for exact
+states, limitations, and reproduction.
 
-Arm B achieved the requested behavior without the CLI, but the fresh agent
-created a static artifact and manually kept it synchronized. The controlled
-source-only drift passed its existing build. An application could choose a
-runtime compilation or implement a correct local freshness check, but the
-latter recreates the core lifecycle under evaluation.
+## Independent primitive safety
 
-## Independent safety conclusion
-
-The named primitive is independently valuable in both arms: it lowers SQL,
-keeps hostile values separate, and rejects missing/unused names. The
-model-generation workflow adds a different proof: canonical SQL and a committed
-precompiled binding module remain exactly synchronized. It is not a SQL
-semantic, type, result-mapping, or transaction proof.
+Every arm depends on the named primitive for lowering, value separation,
+repeated-name ordering, and missing/unused rejection. The primitive does not
+need a source hash or generated module. It catches parameter-shape mismatch
+after the current canonical SQL has been compiled; it cannot discover a
+parameter that a stale static module never represented.

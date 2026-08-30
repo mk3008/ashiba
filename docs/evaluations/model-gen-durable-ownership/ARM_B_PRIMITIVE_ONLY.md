@@ -53,6 +53,11 @@ correct local comparison. It is evidence that obtaining equivalent build-time
 drift proof requires the application/agent to deliberately recreate a
 freshness mechanism; the named compiler/binder alone does not provide it.
 
+Arm C subsequently tested the first alternative rather than treating it as a
+hypothetical: direct controlled initialization eliminated the static artifact
+and its freshness target while retaining the compiler/binder guards. See
+`ARM_C_NO_COMMITTED_ARTIFACT.md` and `ADDITIONAL_DRIFT_CONTROLS.md`.
+
 ## Surface observed
 
 | Measure | Result |
@@ -70,6 +75,7 @@ freshness mechanism; the named compiler/binder alone does not provide it.
 
 It proves that the named compiler/binder primitives are sufficient to build and
 change a realistic strict TypeScript/native-pg application without the CLI.
-It does not prove equivalent source/artifact drift protection or a lower total
-maintenance cost: the agent naturally introduced a static artifact but did not
-implement a correct freshness check.
+It does not prove equivalent source/artifact drift protection for **static
+artifacts**: the agent naturally introduced one but did not implement a correct
+freshness check. It is not evidence that all primitive-only applications must
+adopt static state; Arm C evaluates the no-artifact alternative separately.

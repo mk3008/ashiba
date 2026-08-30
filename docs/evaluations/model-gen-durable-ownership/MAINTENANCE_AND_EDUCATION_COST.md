@@ -46,3 +46,34 @@ taught the CLI/artifact lifecycle, and whether the same follow-up SQL change
 causes more repairs or unsafe drift. Its result belongs in
 `ARM_A_B_COMPARISON.md` and the decision record rather than being inferred
 from code size.
+
+## Additional Arm C reassessment
+
+Arm C resolved the question the original two-arm comparison left open. It did
+not choose a static artifact at all: it loaded the visible SQL, compiled at a
+controlled initialization boundary, and retained the compiled statements in an
+in-memory application cache. It passed strict TypeScript, candidate tests, and
+the shared PostgreSQL oracle with the same named-binding safety.
+
+This removes—not relocates—the following obligations for that application:
+
+| Obligation | Static artifact workflow | Arm C no-artifact workflow |
+| --- | --- | --- |
+| generated TypeScript binding files | committed and reviewed | none |
+| source/artifact duplicate state | yes | none |
+| source hash / exact freshness command | required for proof | no target exists |
+| SQL-only semantic edit repair | regenerate/review artifact | restart/rebuild uses changed SQL |
+| parameter-shape edit with stale binding | freshness must reveal it | current compiler/binder reveals missing value |
+| Ashiba CLI / agent education | generate and check commands | compiler/binder concept only |
+
+The direct compilation cost did not make this operating model impractical in
+the bounded measurement: the reference eight-query set had a 0.0529 ms median
+and a synthetic 1000-query set 2.2286 ms. This is not a universal production
+startup claim; it is enough to reject compile cost as evidence that a committed
+artifact is intrinsically necessary.
+
+The static-artifact check remains useful where an application independently
+chooses static output. The durable question, however, is whether Ashiba must
+own and teach that choice. Arm C says no on the current evidence. The required
+workflow should therefore be reduced rather than preserving generated state
+solely because a checker can validate it.

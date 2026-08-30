@@ -1,74 +1,90 @@
 # Decision
 
-## Model-generation workflow: KEEP
+## Model-generation workflow: REDUCE
 
-Ashiba should retain the current narrow `model-gen` workflow as a durable
-product surface. The decision is not based on human typing convenience, the
-mere presence of current documentation, or the fact that the Arm A reference
-already used it.
+Ashiba should **reduce** `model-gen` from the required/core AI-first workflow.
+The named-parameter compiler and binder remain durable core, but the
+committed/generated binding-artifact plus source-hash/freshness lifecycle no
+longer has evidence strong enough to remain Ashiba's default product contract.
 
-The decisive observed value is deterministic, fail-closed source/artifact
-freshness. Arm A's `--check` rejected an intentionally stale generated binding
-before build, test, or database execution. Arm B passed the same application
-acceptance using only the named primitives, but its fresh agent independently
-created a static binding artifact and did not create equivalent freshness
-proof: a source-only drift control passed its build with stale binding retained.
-Recreating a sound local comparison would move rather than remove this
-maintenance responsibility.
+Arm C supplied the missing comparison: a strict TypeScript, native-`pg`,
+PostgreSQL-backed application used visible canonical SQL, called
+`compileNamedParameters()` once during controlled initialization, cached the
+result, and used `bindNamedParameters()` without a committed duplicate binding
+artifact, source hash, freshness command, or Ashiba CLI. It passed the same
+behavioral oracle as Arms A/B. Controlled semantic drift reached the new SQL
+directly, and a parameter-shape change was rejected by the current binder
+before database execution.
+
+The earlier KEEP argument was correct only under a conditional premise: **if an
+application chooses a committed static binding artifact**, model-gen's exact
+freshness check is a valuable fail-closed guard. It did not establish that the
+artifact itself must exist. The scaffold analogy applies: a generator can
+create state, the state can create drift, and a checker can prevent that drift;
+this chain alone does not justify retaining the generated state or lifecycle.
 
 ## Sub-surface decisions
 
 | Surface | Decision | Reason |
 | --- | --- | --- |
-| Named compiler and binder | KEEP (independent core) | Both arms require deterministic lowering and missing/unused rejection. |
-| `model-gen` CLI / deterministic lowering artifact | KEEP | Standardizes a build-time import boundary rather than application-local parser/lowering code. |
-| Generated binding module | KEEP | Enables a stable, precompiled binding boundary used by current references. |
-| `sourceHash` and exact freshness check | KEEP | Unique observed source/artifact drift proof; binder does not provide it. |
-| All-driver artifact contents | no separate reduction decision | This evaluation live-tested pg only. Current selected-driver renderings remain within the retained workflow, but MySQL/MSSQL artifact granularity needs separate evidence before change. |
-| Shared SQL-resource / PostgreSQL-contract helpers located in `model-gen.ts` | no decision here | They are separate optional-capability consumers and must not be removed by a workflow decision. |
+| Named compiler and binder | KEEP (independent core) | Every arm needs deterministic lowering, value separation, and missing/unused rejection. |
+| Committed/generated binding module as standard path | REMOVE from the proposed core workflow | Arm C reached equal checked behavior without duplicate state. |
+| `sourceHash` and binding-artifact freshness as standard path | REMOVE from the proposed core workflow | Their target disappears in Arm C; they are conditional static-artifact proof, not execution proof. |
+| `model-gen` CLI | REDUCE | Do not teach or require it in the default AI-first path. A later implementation must decide whether an optional static-artifact convenience warrants a retained/re-homed CLI after consumer migration. |
+| All-driver artifact contents | no separate decision | Arm C live-tested pg. MySQL/MSSQL migration design requires its own evidence. |
+| Shared SQL-resource / PostgreSQL-contract helpers located in `model-gen.ts` | no decision here | They are independent optional-capability consumers and must be separated before any implementation removal. |
 
-## Limits
+## What this does and does not prove
 
-`model-gen` does not validate nullable PostgreSQL type resolution, business
-semantics, result mapping, transaction behavior, or application tests. Arm A
-and Arm B both needed an explicit SQL cast repair detected only by live
-PostgreSQL proof. The workflow adds synchronization proof, not semantic SQL
-correctness.
+The decision is not “AI can write it” and it is not a claim that static
+artifacts are unsafe. It is an observed replacement operating model: direct,
+controlled compilation is fast in the bounded measurement, retains the named
+primitive's deterministic checks, eliminates duplicate source/artifact state,
+and passes the same PostgreSQL behavioral oracle.
 
-## Maintenance verdict
+Model-gen remains better than an application-local hand-maintained static
+artifact **when that artifact is chosen**. The strongest KEEP evidence is that
+Arm A's `--check` rejected both semantic and parameter-shape source drift
+before build/test/database. The strongest REMOVE evidence is Arm C: no artifact
+means no artifact freshness lifecycle, while current canonical SQL still drives
+the binder and runtime behavior.
 
-The maintained surface is real—CLI/API, artifact format, hash/check semantics,
-driver renderings, docs, prompts, reference scripts, tests, and compatibility.
-The primitive-only arm shows that simple applications can operate without it,
-so the benefit is not required for execution. But it does not demonstrate a
-comparable safety/maintenance alternative. Its naturally reconstructed static
-artifact reintroduced the coupling without the proof. On current evidence,
-centralized ownership costs less than repeatedly teaching or rebuilding an
-equivalent lifecycle.
+`model-gen` still does not validate nullable PostgreSQL type resolution,
+business semantics, result mapping, transaction behavior, or application tests.
+All arms needed live PostgreSQL proof for an untyped nullable guard.
 
-## Scope verdict
+## Scope and implementation implication
 
-Scope verdict: in-scope
-Affected boundary: deterministic binding metadata and source freshness
-Current scope: Ashiba core/current decision
-Observed proposal: evidence-based evaluation without product change
-Why this matters: the workflow is retained only if its proof exceeds its durable
-maintenance cost.
-Recommended next action: retain the current workflow; do not create a removal
-implementation task.
+This evaluation makes **no** product, Scope, Golden Path, public API, or
+current documentation change. The current Scope still lists deterministic
+binding metadata/source freshness as a current decision.
 
-Scope change required: no. Golden Path change required: no. Product code
-changed: no.
+Scope change required for a future implementation: **yes**. Golden Path change
+required for a future implementation: **yes**. The proposed direction is:
+
+```text
+canonical SQL
+→ application-controlled direct compileNamedParameters cache
+→ bindNamedParameters
+→ native driver
+→ application/live tests
+```
+
+That is a follow-up design/migration task, not an implicit change in this PR.
+It must separately inventory selected-driver usage, re-home independent helper
+exports, migrate references/distribution verification, and decide whether any
+optional static-artifact convenience remains public.
 
 ## Evidence strength and reconsideration
 
-Evidence strength: **medium**. It includes current consumer/history census,
-one strict fresh primitive-only agent, a matched change exercise, a deliberate
-drift control, and independent PostgreSQL oracles. It is not a broad population
-study of applications or agents.
+Evidence strength: **medium**. It includes three bounded arms, one independent
+Fresh Agent no-artifact application, shared PostgreSQL behavior checks,
+semantic and parameter-shape controls, and compilation feasibility data. It is
+not a broad population study, does not measure deployment bundling strategies,
+and does not live-test direct compilation for MySQL/MSSQL.
 
-Reconsider only if repeated primitive-only applications demonstrate equivalent
-fail-closed source/artifact proof without reintroducing an Ashiba-equivalent
-generator/check convention, or if current selected-driver support materially
-changes. AI capability alone, a one-off direct compiler script, or a preference
-for fewer commands is not enough.
+Reconsider REDUCE only if a selected-driver/application class cannot use a
+controlled direct compiler cache without material runtime or distribution cost,
+or if multiple production-like no-artifact trials show an unmitigated safety or
+review failure. Preference for generated files or a generic desire for fewer
+commands is not enough.
