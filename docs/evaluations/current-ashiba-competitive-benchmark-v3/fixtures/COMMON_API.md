@@ -1,26 +1,86 @@
-# Frozen common candidate API and behaviour
+# Frozen common TypeScript API and behaviour
 
-The runner imports `createApplication(runtime)` from `src/application.ts`.
-`runtime` contains a PostgreSQL connection string, a safe evaluator-chosen
-schema name, and an audit-failure injection flag. Candidates may wrap it in
-their own infrastructure but may not require the runner to construct queries,
-transactions, or tool-specific artefacts.
+The evaluator imports `createApplication(runtime)` from the candidate's built
+ESM entrypoint (normally the build output for `src/application.ts`). The
+candidate's TypeScript public boundary is exactly the following contract.
 
-The returned object must expose:
+```ts
+export type TicketStatus = 'open' | 'pending' | 'closed';
+export type TicketSort = 'id' | 'priority' | 'createdAt';
+export type SortDirection = 'asc' | 'desc';
 
-- `list(input)` — optional status/assignee filters, reviewed finite sort,
-  stable `id` tie-breaker, and offset pagination;
-- `get(input)` — a ticket lookup;
-- `create(input)` and `assign(input)` — ticket mutation; assign writes an
-  audit record in the same transaction and rolls back on injected failure;
-- `transfer(input)` — debit, credit, and audit atomically; insufficient funds
-  and an injected post-debit failure leave no partial state;
-- `claim(input)` — concurrent workers cannot claim the same queued work item;
-- `investigate(input)` — execute the supplied complex PostgreSQL query and
-  return enough source/executed-SQL information for the runner to request an
-  `EXPLAIN`.
+export interface Runtime {
+  connectionString: string;
+  schema: string;
+}
+
+export interface Ticket {
+  id: string;
+  title: string;
+  status: TicketStatus;
+  assignee: string | null;
+  priority: number;
+  createdAt: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface ApplicationError extends Error {
+  code: 'VALIDATION' | 'NOT_FOUND' | 'INSUFFICIENT_FUNDS' | 'APPLICATION_CLOSED';
+}
+
+export interface Application {
+  list(input?: { status?: TicketStatus; assignee?: string | null; sort?: TicketSort; direction?: SortDirection; offset?: number; limit?: number }): Promise<Ticket[]>;
+  get(input: { id: string }): Promise<Ticket | null>;
+  create(input: { title: string; status: TicketStatus; assignee: string | null; priority: number; metadata?: Record<string, unknown> }): Promise<Ticket>;
+  assign(input: { id: string; assignee: string | null }): Promise<{ id: string; assignee: string | null }>;
+  transfer(input: { fromAccountId: string; toAccountId: string; amountCents: string; note: string }): Promise<{ status: 'ok'; applied: true }>;
+  claim(input: { workerId: string }): Promise<{ claimedWorkId: string | null }>;
+  investigate(input: { requestedTag: string; tier: string }): Promise<{ rows: unknown[]; sourceSql: string; executedSql: string; params: readonly string[] }>;
+  explain(input: { requestedTag: string; tier: string }): Promise<{ sourceSql: string; executedSql: string; params: readonly string[]; plan: unknown }>;
+  close(): Promise<void>;
+}
+
+export function createApplication(runtime: Runtime): Application | Promise<Application>;
+```
+
+## Input, output, and error semantics
+
+All identifiers and money amounts are base-10 integer strings. `id`, account
+IDs, and `amountCents` must be positive; `amountCents` must be greater than
+zero. `priority` is an integer from 1 through 5. `offset` is an integer from 0
+through 10,000, and `limit` is an integer from 1 through 100. Unsupported sort
+values, malformed inputs, and out-of-range pagination reject with
+`code: 'VALIDATION'`. `get` returns `null` for an absent ticket; `assign` on an
+absent ticket rejects with `code: 'NOT_FOUND'`; an unaffordable transfer rejects
+with `code: 'INSUFFICIENT_FUNDS'`.
+
+`list` applies supplied status and assignee filters. An `assignee: null` filter
+matches only unassigned rows. It sorts by the selected finite source-controlled
+field and direction, then `id ASC` as the stable tie-breaker, before offset and
+limit. Returned ticket timestamps are ISO-8601 strings, IDs are strings, and
+metadata is JSON-safe data. Returned values must not expose a database client
+or driver object.
+
+`create` returns the persisted ticket. `assign` writes its audit row in the
+same transaction as the ticket update. `transfer` debits, credits, and audits
+in a single transaction. `claim` uses a concurrency-safe claim: concurrent
+workers may not receive the same work ID. The evaluator enables a private
+database trigger after the relevant mutation point for rollback checks. No
+runtime property, public input field, environment variable, or candidate test
+may enable or predict that injection.
+
+For Q1, candidates own execution of the supplied PostgreSQL task query and
+their own `EXPLAIN (FORMAT JSON)` call. `investigate` and `explain` receive the
+same data parameters (`requestedTag`, `tier`), not evaluator SQL. Each result
+must identify the candidate-owned executed SQL and bound parameter values.
+The runner independently computes the expected rows from its frozen oracle and
+records plan evidence returned by `explain`; it does not execute candidate SQL
+as the plan oracle.
+
+`close()` is required, resolves with no value, and is idempotent. Every other
+operation after a successful close rejects with `code: 'APPLICATION_CLOSED'`.
+The runner calls it on every application instance, including control failures.
 
 The runner owns DDL, seed data, nonce schema lifecycle, behavioural assertions,
-and cleanup. It uses parameterized assertions and never imports candidate
-queries, generated types, or candidate tests.
-
+failure injection, independent database observations, and cleanup. It never
+imports candidate SQL, generated types, tests, or stdout as an oracle.

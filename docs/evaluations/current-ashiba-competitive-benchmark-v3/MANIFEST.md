@@ -25,3 +25,12 @@ Prisma version/status inconsistency is a recorded limitation, not a claim that
 the RC is GA. Drizzle's official current quickstart references an RC, so the
 benchmark explicitly pins the stable line rather than mixing release channels.
 
+## Ashiba distribution artifact
+
+The baseline-local package tarball is committed at
+`fixtures/artifacts/ashiba-ts-named-parameters-0.1.0.tgz`. It was built after
+the package TypeScript build with npm lifecycle scripts disabled during packing
+because the dist output was already produced by the frozen workspace build.
+SHA-256: `64B95657AF62120D5B8662224B298CC610A74280E515B33EE485E41247BDCC4D`.
+The npm integrity reported by `npm pack` is
+`sha512-uPqbsQT23NLY/nuW4lBl49EbxDDRyfOGUmWbiD/amLOcgF6e1shzI47yhQEXxFYtkt3O0thaCF5N+mP17GxJEg==`.
