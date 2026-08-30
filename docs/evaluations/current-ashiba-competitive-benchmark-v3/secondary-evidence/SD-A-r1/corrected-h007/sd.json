@@ -1,0 +1,384 @@
+{
+  "harness": "sd-schema-drift-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "SD",
+  "arm": "A",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-A-r1-corrected-h007-20260831\\candidate\\dist\\application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-A-r1-corrected-h007-20260831\\candidate",
+  "candidateSourceManifest": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 520,
+      "sha256": "a34cc43576a0f8345d47ef496b313ba1784dafefe4b51166abd3fd321ae466db"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 12258,
+      "sha256": "7a885912131e1af76e012d2dc0313fec0869401954045b8cef2bc789bbce76e5"
+    },
+    {
+      "path": "test/application.test.mjs",
+      "bytes": 1036,
+      "sha256": "384b84bf198a8bc44aa56e20d7ac01674bb8d16c467eee8da90eb91b6233b3d3"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 290,
+      "sha256": "0389a0984d28a636aa1f39d365bf1259ecd829fc938994d183103a96446e0033"
+    }
+  ],
+  "baselineSourceHash": "f6bacdfc2f67ea0606488e2c657d1f294d5ce0890106d34bca8ab02280343506",
+  "staticInspection": {
+    "pass": true,
+    "findings": []
+  },
+  "commands": {
+    "typecheck": "npm run typecheck",
+    "test": "npm test"
+  },
+  "mutations": [
+    {
+      "mutation": "column-rename",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1108,
+            "stdout": "\n> typecheck\n> tsc --noEmit -p tsconfig.json\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1491,
+            "stdout": "\n> test\n> npm run build && node --test test/application.test.mjs\n\n\n> build\n> tsc -p tsconfig.json\n\nTAP version 13\n# Subtest: close is idempotent and rejects later workload operations\nok 1 - close is idempotent and rejects later workload operations\n  ---\n  duration_ms: 22.3815\n  ...\n# Subtest: invalid inputs reject before a database connection is attempted\nok 2 - invalid inputs reject before a database connection is attempted\n  ---\n  duration_ms: 0.6618\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 130.3672\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "fail",
+          "detail": {
+            "name": "error",
+            "code": "42703",
+            "message": "column \"title\" does not exist"
+          }
+        }
+      ],
+      "startedAt": "2026-08-30T20:57:58.689Z",
+      "sourceHashBefore": "f6bacdfc2f67ea0606488e2c657d1f294d5ce0890106d34bca8ab02280343506",
+      "schema": "ashiba_v3_3556533887112127",
+      "firstDetectionStage": "application-execution",
+      "finalDatabaseState": {
+        "status": "unavailable",
+        "error": {
+          "name": "error",
+          "code": "42703",
+          "message": "column \"title\" does not exist"
+        }
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "f6bacdfc2f67ea0606488e2c657d1f294d5ce0890106d34bca8ab02280343506",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T20:58:01.681Z"
+    },
+    {
+      "mutation": "nullability-tighten",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1055,
+            "stdout": "\n> typecheck\n> tsc --noEmit -p tsconfig.json\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 2032,
+            "stdout": "\n> test\n> npm run build && node --test test/application.test.mjs\n\n\n> build\n> tsc -p tsconfig.json\n\nTAP version 13\n# Subtest: close is idempotent and rejects later workload operations\nok 1 - close is idempotent and rejects later workload operations\n  ---\n  duration_ms: 1.4879\n  ...\n# Subtest: invalid inputs reject before a database connection is attempted\nok 2 - invalid inputs reject before a database connection is attempted\n  ---\n  duration_ms: 0.659\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 107.7406\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "pass",
+          "detail": "get and list resolved after database-only mutation"
+        }
+      ],
+      "startedAt": "2026-08-30T20:58:01.681Z",
+      "sourceHashBefore": "f6bacdfc2f67ea0606488e2c657d1f294d5ce0890106d34bca8ab02280343506",
+      "schema": "ashiba_v3_9bc392e558325242",
+      "firstDetectionStage": "not-detected-in-measured-stages",
+      "finalDatabaseState": {
+        "tickets": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": "runner-compatible",
+            "priority": 5,
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "ticketAudit": [],
+        "accounts": [
+          {
+            "account_id": "7001",
+            "balance_cents": "10000"
+          },
+          {
+            "account_id": "7002",
+            "balance_cents": "5000"
+          }
+        ],
+        "transferAudit": [],
+        "workItems": [
+          {
+            "id": "8001",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8002",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8003",
+            "state": "queued",
+            "claimed_by": null
+          }
+        ]
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "f6bacdfc2f67ea0606488e2c657d1f294d5ce0890106d34bca8ab02280343506",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T20:58:04.858Z"
+    },
+    {
+      "mutation": "integer-to-bigint",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1009,
+            "stdout": "\n> typecheck\n> tsc --noEmit -p tsconfig.json\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1553,
+            "stdout": "\n> test\n> npm run build && node --test test/application.test.mjs\n\n\n> build\n> tsc -p tsconfig.json\n\nTAP version 13\n# Subtest: close is idempotent and rejects later workload operations\nok 1 - close is idempotent and rejects later workload operations\n  ---\n  duration_ms: 1.1387\n  ...\n# Subtest: invalid inputs reject before a database connection is attempted\nok 2 - invalid inputs reject before a database connection is attempted\n  ---\n  duration_ms: 0.4858\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 148.6701\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "pass",
+          "detail": "get and list resolved after database-only mutation"
+        }
+      ],
+      "startedAt": "2026-08-30T20:58:04.858Z",
+      "sourceHashBefore": "f6bacdfc2f67ea0606488e2c657d1f294d5ce0890106d34bca8ab02280343506",
+      "schema": "ashiba_v3_785cc3dc0ce5bae6",
+      "firstDetectionStage": "not-detected-in-measured-stages",
+      "finalDatabaseState": {
+        "tickets": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": "5",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": "3",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": "5",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": "1",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "ticketAudit": [],
+        "accounts": [
+          {
+            "account_id": "7001",
+            "balance_cents": "10000"
+          },
+          {
+            "account_id": "7002",
+            "balance_cents": "5000"
+          }
+        ],
+        "transferAudit": [],
+        "workItems": [
+          {
+            "id": "8001",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8002",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8003",
+            "state": "queued",
+            "claimed_by": null
+          }
+        ]
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "f6bacdfc2f67ea0606488e2c657d1f294d5ce0890106d34bca8ab02280343506",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T20:58:07.509Z"
+    }
+  ],
+  "startedAt": "2026-08-30T20:57:58.688Z",
+  "status": "P",
+  "finishedAt": "2026-08-30T20:58:07.509Z"
+}
