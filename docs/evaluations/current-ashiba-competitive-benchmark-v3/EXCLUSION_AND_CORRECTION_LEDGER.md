@@ -22,7 +22,8 @@ or calibration evidence.
   alters the frozen packet nor regenerates expected hashes.
 - **Affected scored cells:** none. This is a reproduction-scope correction,
   not a harness, candidate, or result correction.
-- **Correction commit:** pending.
+- **Correction commit:** `00afb56` (`docs: correct benchmark reproduction
+  controls`).
 - **Status:** prepared; the wrapper's observed PASS is retained in
   `FROZEN_PACKET_REPRODUCTION.md`.
 
@@ -45,7 +46,8 @@ or calibration evidence.
 - **Required remeasure:** freshly materialize and rerun SD-A with unchanged
   candidate source, lockfile, and schema-drift mutations; record the new
   result as corrected evidence beside the preserved original.
-- **Correction commit:** pending.
+- **Correction commit:** `00afb56` (`docs: correct benchmark reproduction
+  controls`).
 - **Status:** correction prepared; no replacement result has been recorded.
 
 # H-004 — E1 forbidden-marker packet omission
