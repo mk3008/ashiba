@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-30T12:48:28.128Z",
+  "generatedAt": "2026-08-30T13:53:39.498Z",
   "generator": {
     "path": "fixtures/aggregate-results.mjs",
     "sha256": "72d747d5c162ad1ae1c6fadc80ffcbdc65009a1e6ef4f374a929ad7e4e2304d5"
@@ -20,8 +20,8 @@
   "inventory": {
     "primaryCellCount": 48,
     "primaryAttemptCount": 67,
-    "secondaryCellCount": 12,
-    "secondaryObservationCount": 20
+    "secondaryCellCount": 30,
+    "secondaryObservationCount": 26
   },
   "primary": [
     {
@@ -20237,6 +20237,368 @@
             ]
           },
           "deltaComplete": true
+        }
+      ],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "E1-A-r1",
+      "workloadOrControl": "E1",
+      "arm": "A",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/E1-A-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "E1-D-r1",
+      "workloadOrControl": "E1",
+      "arm": "D",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/E1-D-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "E1-G-r1",
+      "workloadOrControl": "E1",
+      "arm": "G",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/E1-G-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "E1-K-r1",
+      "workloadOrControl": "E1",
+      "arm": "K",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/E1-K-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "E1-P-r1",
+      "workloadOrControl": "E1",
+      "arm": "P",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/E1-P-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "E1-S-r1",
+      "workloadOrControl": "E1",
+      "arm": "S",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/E1-S-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "SD-A-r1",
+      "workloadOrControl": "SD",
+      "arm": "A",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/SD-A-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "SD-D-r1",
+      "workloadOrControl": "SD",
+      "arm": "D",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/SD-D-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "SD-G-r1",
+      "workloadOrControl": "SD",
+      "arm": "G",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/SD-G-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "SD-K-r1",
+      "workloadOrControl": "SD",
+      "arm": "K",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/SD-K-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "SD-P-r1",
+      "workloadOrControl": "SD",
+      "arm": "P",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/SD-P-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "SD-S-r1",
+      "workloadOrControl": "SD",
+      "arm": "S",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/SD-S-r1",
+      "observationCount": 0,
+      "observations": [],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-A-r1",
+      "workloadOrControl": "X1",
+      "arm": "A",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/X1-A-r1",
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-A-r1/final/runner.json",
+          "sha256": "fa59ed44fc707153e4cd88b180448c388fd5cf5b62749aefd0f48afa11c9eeaf",
+          "live": {
+            "status": "F",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 3,
+              "statusCounts": {
+                "fail": 2,
+                "pass": 1
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "not-run"
+            },
+            "startedAt": "2026-08-30T12:58:21.613Z",
+            "finishedAt": "2026-08-30T12:58:21.627Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
+        }
+      ],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-D-r1",
+      "workloadOrControl": "X1",
+      "arm": "D",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/X1-D-r1",
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-D-r1/final/runner.json",
+          "sha256": "7894f122598fd892fe02cca1f9a2ccd8920f3f8f92e9f8399bcf98319ba503d1",
+          "live": {
+            "status": "F",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 3,
+              "statusCounts": {
+                "pass": 2,
+                "fail": 1
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "pass",
+              "schema": "pass",
+              "role": "pass",
+              "connection": "pass"
+            },
+            "startedAt": "2026-08-30T13:13:06.019Z",
+            "finishedAt": "2026-08-30T13:13:06.112Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
+        }
+      ],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-G-r1",
+      "workloadOrControl": "X1",
+      "arm": "G",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/X1-G-r1",
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-G-r1/final/runner.json",
+          "sha256": "ce2b4ef403a9d43b3d56420637bd9d8c6e53663c636daf1be2efe7f1c0d174d9",
+          "live": {
+            "status": "F",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 3,
+              "statusCounts": {
+                "pass": 2,
+                "fail": 1
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "pass",
+              "schema": "pass",
+              "role": "pass",
+              "connection": "pass"
+            },
+            "startedAt": "2026-08-30T13:14:18.558Z",
+            "finishedAt": "2026-08-30T13:14:18.679Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
+        }
+      ],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-K-r1",
+      "workloadOrControl": "X1",
+      "arm": "K",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/X1-K-r1",
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-K-r1/final/runner.json",
+          "sha256": "8609181ef9fcf6c739cf763b677ecbcae4b89f3a4408c4a241e6e93361412604",
+          "live": {
+            "status": "F",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 3,
+              "statusCounts": {
+                "pass": 2,
+                "fail": 1
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "pass",
+              "schema": "pass",
+              "role": "pass",
+              "connection": "pass"
+            },
+            "startedAt": "2026-08-30T13:13:41.792Z",
+            "finishedAt": "2026-08-30T13:13:41.880Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
+        }
+      ],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-P-r1",
+      "workloadOrControl": "X1",
+      "arm": "P",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/X1-P-r1",
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-P-r1/final/runner.json",
+          "sha256": "a20c05db4edea07cea3b1df4080aba7e5d7417bce5d1d2786c0b47c2018a54b0",
+          "live": {
+            "status": "P",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 15,
+              "statusCounts": {
+                "pass": 15
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "pass",
+              "schema": "pass",
+              "role": "pass",
+              "connection": "pass"
+            },
+            "startedAt": "2026-08-30T13:04:44.966Z",
+            "finishedAt": "2026-08-30T13:04:47.080Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
+        }
+      ],
+      "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-S-r1",
+      "workloadOrControl": "X1",
+      "arm": "S",
+      "replicate": 1,
+      "evidenceRoot": "secondary-evidence/X1-S-r1",
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-S-r1/final/runner.json",
+          "sha256": "0d748132939a8a06d7ee5638dece1702d3b11e3d252aab953bb428afde5f3146",
+          "live": {
+            "status": "F",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 9,
+              "statusCounts": {
+                "pass": 6,
+                "fail": 3
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "pass",
+              "schema": "pass",
+              "role": "pass",
+              "connection": "pass"
+            },
+            "startedAt": "2026-08-30T13:02:21.427Z",
+            "finishedAt": "2026-08-30T13:02:21.991Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
         }
       ],
       "note": "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected."
