@@ -1,0 +1,177 @@
+{
+  "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-S-r2-reliable-v013-20260831\\candidate\\dist\\application.js",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-S-r2-reliable-v013-20260831\\candidate",
+  "workloads": [
+    "G1"
+  ],
+  "source": {
+    "root": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-S-r2-reliable-v013-20260831\\candidate",
+    "files": [
+      {
+        "path": "dist/application.js",
+        "kind": "file",
+        "bytes": 4570,
+        "sha256": "9f2bf539dd2c75e4e633311bfd564e66c60790f1dd433967b40529361cfed625"
+      },
+      {
+        "path": "dist/platform/pool.js",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/platform/transaction.js",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/tickets/application/ticket-use-cases.js",
+        "kind": "file",
+        "bytes": 138,
+        "sha256": "4ae25cabc89153df617e8fe68f8b7e68fd52b173ae0b8914a7141549ed60da16"
+      },
+      {
+        "path": "dist/tickets/dto.js",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/tickets/generated/queries_sql.js",
+        "kind": "file",
+        "bytes": 7497,
+        "sha256": "6d3a8f385c8e00398f5dbbe9e89002e2d3c5c3339a2e8663aa2a7aacbfda17cd"
+      },
+      {
+        "path": "dist/tickets/query/ticket-read-model.js",
+        "kind": "file",
+        "bytes": 138,
+        "sha256": "48303b161702398b6489f6aacddf92663860ed3b631b4185827ca0a54e9a94fe"
+      },
+      {
+        "path": "package-lock.json",
+        "kind": "file",
+        "bytes": 7321,
+        "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+      },
+      {
+        "path": "package.json",
+        "kind": "file",
+        "bytes": 190,
+        "sha256": "467ff0587ea0ab0966151b6cd9f5aa2675e4c903d87dd470e20bb37d52e0a8d8"
+      },
+      {
+        "path": "README.md",
+        "kind": "file",
+        "bytes": 455,
+        "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22"
+      },
+      {
+        "path": "sqlc.yaml",
+        "kind": "file",
+        "bytes": 491,
+        "sha256": "7ed821122ef738e4b42aedd23695870551aed18321bd7db9ec099cdc1588e4c3"
+      },
+      {
+        "path": "src/application.ts",
+        "kind": "file",
+        "bytes": 5425,
+        "sha256": "81a966e7d08ccf6c092814bc36fe3d5c3acd1bf1e8cc04131fa39cfdbc933cc7"
+      },
+      {
+        "path": "src/platform/pool.ts",
+        "kind": "file",
+        "bytes": 186,
+        "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+      },
+      {
+        "path": "src/platform/transaction.ts",
+        "kind": "file",
+        "bytes": 200,
+        "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+      },
+      {
+        "path": "src/tickets/application/ticket-use-cases.ts",
+        "kind": "file",
+        "bytes": 138,
+        "sha256": "4ae25cabc89153df617e8fe68f8b7e68fd52b173ae0b8914a7141549ed60da16"
+      },
+      {
+        "path": "src/tickets/dto.ts",
+        "kind": "file",
+        "bytes": 298,
+        "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+      },
+      {
+        "path": "src/tickets/generated/queries_sql.ts",
+        "kind": "file",
+        "bytes": 11260,
+        "sha256": "149c8e0498ad6260cbbb789787ca8fad27869a3a2cb7882aed0bf0e3e2607744"
+      },
+      {
+        "path": "src/tickets/query/ticket-read-model.ts",
+        "kind": "file",
+        "bytes": 138,
+        "sha256": "48303b161702398b6489f6aacddf92663860ed3b631b4185827ca0a54e9a94fe"
+      },
+      {
+        "path": "src/tickets/sql/.gitkeep",
+        "kind": "file",
+        "bytes": 1,
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+      },
+      {
+        "path": "src/tickets/sql/queries.sql",
+        "kind": "file",
+        "bytes": 3039,
+        "sha256": "047a83ac41caf615a7907fa68dc271508c39d559180fbd1c7c9543b7b200fe9e"
+      },
+      {
+        "path": "src/tickets/sql/schema.sql",
+        "kind": "file",
+        "bytes": 459,
+        "sha256": "e84a4c535218f2ade357b38dbb34777f78c5ec5801c1046a121aaac3e5e04473"
+      },
+      {
+        "path": "tests/tickets.integration.test.ts",
+        "kind": "file",
+        "bytes": 143,
+        "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+      },
+      {
+        "path": "tsconfig.json",
+        "kind": "file",
+        "bytes": 262,
+        "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+      }
+    ],
+    "findings": [
+      {
+        "id": "runner-ddl",
+        "path": "src/tickets/sql/schema.sql"
+      }
+    ],
+    "pass": false
+  },
+  "checks": [
+    {
+      "id": "static-inspection",
+      "status": "fail",
+      "detail": [
+        {
+          "id": "runner-ddl",
+          "path": "src/tickets/sql/schema.sql"
+        }
+      ]
+    }
+  ],
+  "events": [],
+  "cleanup": {
+    "status": "not-run"
+  },
+  "startedAt": "2026-08-30T21:51:27.698Z",
+  "status": "F",
+  "finishedAt": "2026-08-30T21:51:27.698Z"
+}
