@@ -1,0 +1,114 @@
+{
+  "harness": "x1-open-composition-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "X1",
+  "arm": "A",
+  "replicate": 1,
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-A-r1\\candidate\\dist\\report-application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-A-r1\\candidate",
+  "checks": [
+    {
+      "id": "static-isolation",
+      "status": "fail",
+      "detail": [
+        {
+          "id": "workspace-reference",
+          "path": "package-lock.json"
+        },
+        {
+          "id": "workspace-reference",
+          "path": "package.json"
+        }
+      ]
+    },
+    {
+      "id": "runner-execution",
+      "status": "fail",
+      "detail": "static isolation failed"
+    },
+    {
+      "id": "source-unchanged",
+      "status": "pass",
+      "detail": "runner must not alter candidate source"
+    }
+  ],
+  "requests": [],
+  "startedAt": "2026-08-30T12:58:21.613Z",
+  "candidateSourceManifestBefore": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 524,
+      "sha256": "4ff4c64cb5bcecdb2cd4e3a430806efeee71e81ac00d276640ab182fa9b92f5f"
+    },
+    {
+      "path": "src/report-application.ts",
+      "bytes": 6205,
+      "sha256": "56432e6646d008d609752b66e64d78e40891019ab77b23fac510ca9a0a34de9c"
+    },
+    {
+      "path": "test/report-application.test.mjs",
+      "bytes": 1160,
+      "sha256": "d6dc31c2fec8dff65ad328746d637501466685ba353f33859a6a88b7794f16c0"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "3cf69bdc71fc8cf38001eb1c29032652d147a8e1d23f7e27ee2a4b1e6c0af90c"
+    }
+  ],
+  "staticInspection": {
+    "pass": false,
+    "findings": [
+      {
+        "id": "workspace-reference",
+        "path": "package-lock.json"
+      },
+      {
+        "id": "workspace-reference",
+        "path": "package.json"
+      }
+    ]
+  },
+  "runnerError": {
+    "name": "Error",
+    "message": "static isolation failed"
+  },
+  "cleanup": {
+    "status": "not-run"
+  },
+  "candidateSourceManifestAfter": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 524,
+      "sha256": "4ff4c64cb5bcecdb2cd4e3a430806efeee71e81ac00d276640ab182fa9b92f5f"
+    },
+    {
+      "path": "src/report-application.ts",
+      "bytes": 6205,
+      "sha256": "56432e6646d008d609752b66e64d78e40891019ab77b23fac510ca9a0a34de9c"
+    },
+    {
+      "path": "test/report-application.test.mjs",
+      "bytes": 1160,
+      "sha256": "d6dc31c2fec8dff65ad328746d637501466685ba353f33859a6a88b7794f16c0"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "3cf69bdc71fc8cf38001eb1c29032652d147a8e1d23f7e27ee2a4b1e6c0af90c"
+    }
+  ],
+  "sourceUnchangedDuringRunner": true,
+  "status": "F",
+  "finishedAt": "2026-08-30T12:58:21.627Z"
+}

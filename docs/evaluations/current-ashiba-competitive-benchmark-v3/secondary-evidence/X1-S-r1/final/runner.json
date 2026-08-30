@@ -1,0 +1,367 @@
+{
+  "harness": "x1-open-composition-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "X1",
+  "arm": "S",
+  "replicate": 1,
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-S-r1\\candidate\\dist\\report-application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-S-r1\\candidate",
+  "checks": [
+    {
+      "id": "static-isolation",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "id": "status-count-execution",
+      "status": "fail",
+      "detail": "column \"t.status\" must appear in the GROUP BY clause or be used in an aggregate function"
+    },
+    {
+      "id": "status-assignee-priority-execution",
+      "status": "fail",
+      "detail": "column \"t.status\" must appear in the GROUP BY clause or be used in an aggregate function"
+    },
+    {
+      "id": "hostile-tag-execution",
+      "status": "fail",
+      "detail": "column \"t.status\" must appear in the GROUP BY clause or be used in an aggregate function"
+    },
+    {
+      "id": "unknown-dimension",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "Unknown or duplicated dimension"
+      }
+    },
+    {
+      "id": "tag-without-join",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "tag requires includeTagJoin"
+      }
+    },
+    {
+      "id": "invalid-status",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "Unknown status"
+      }
+    },
+    {
+      "id": "close-idempotent",
+      "status": "pass",
+      "detail": "close resolved twice"
+    },
+    {
+      "id": "source-unchanged",
+      "status": "pass",
+      "detail": "runner must not alter candidate source"
+    }
+  ],
+  "requests": [
+    {
+      "id": "status-count",
+      "input": {
+        "dimensions": [
+          "status"
+        ],
+        "metric": "count",
+        "includeTagJoin": false
+      },
+      "status": "fail",
+      "error": {
+        "name": "error",
+        "code": "42803",
+        "message": "column \"t.status\" must appear in the GROUP BY clause or be used in an aggregate function"
+      }
+    },
+    {
+      "id": "status-assignee-priority",
+      "input": {
+        "dimensions": [
+          "status",
+          "assignee"
+        ],
+        "metric": "priorityTotal",
+        "includeTagJoin": false,
+        "statuses": [
+          "open",
+          "pending"
+        ]
+      },
+      "status": "fail",
+      "error": {
+        "name": "error",
+        "code": "42803",
+        "message": "column \"t.status\" must appear in the GROUP BY clause or be used in an aggregate function"
+      }
+    },
+    {
+      "id": "hostile-tag",
+      "input": {
+        "dimensions": [
+          "tag",
+          "status"
+        ],
+        "metric": "count",
+        "includeTagJoin": true,
+        "requestedTag": "vip'; DROP TABLE tickets; --"
+      },
+      "status": "fail",
+      "error": {
+        "name": "error",
+        "code": "42803",
+        "message": "column \"t.status\" must appear in the GROUP BY clause or be used in an aggregate function"
+      }
+    }
+  ],
+  "startedAt": "2026-08-30T13:02:21.427Z",
+  "candidateSourceManifestBefore": [
+    {
+      "path": ".tools/sqlc-gen-typescript_0.1.3.wasm",
+      "bytes": 72685305,
+      "sha256": "287df8f6cc06377d67ad5ba02c9e0f00c585509881434d15ea8bd9fc751a9368"
+    },
+    {
+      "path": ".tools/sqlc.exe",
+      "bytes": 57725440,
+      "sha256": "22ce316349ac153a4aacaa3912981f73980a6f84861f4c602ae6e3075ca326e4"
+    },
+    {
+      "path": ".tools/sqlc.zip",
+      "bytes": 15284588,
+      "sha256": "352711fa7dcb05dcdfefca0ad71b2c9a74fd090f8d7fc609419de4cbc725429f"
+    },
+    {
+      "path": "GENERATION.md",
+      "bytes": 342,
+      "sha256": "92c9bda6848984788d5bf818bcfc4486e17c56404d38db48dd02af1f1516d64f"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 426,
+      "sha256": "b4283cb9b63411bbe4f14a403e95be82703e27278b7462ba33a780e65a8fb422"
+    },
+    {
+      "path": "scripts/generate-sqlc.ps1",
+      "bytes": 125,
+      "sha256": "ff8105e530e64e054bf8c5309d158df34543b8f9687817410a47f0869207bf5a"
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 411,
+      "sha256": "c8a6b4eacc34ce53590a3e46d38a35c9f274ad043e9363af7962f07a5132f3a1"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 190,
+      "sha256": "d6bff01a105c4aa6cddf684b252c291f3e3bb7ccac072b7c803c101c085e4579"
+    },
+    {
+      "path": "src/db/queries.sql",
+      "bytes": 1550,
+      "sha256": "f925e4fb089e364dfbac3c986641ea9deea29c503181501f7fd7534f824b43b7"
+    },
+    {
+      "path": "src/db/schema.sql",
+      "bytes": 275,
+      "sha256": "c5d91771d4190a8a43b5410f81eb81cd6b81a4fee3ee0f097c46c3c5d0f7a41b"
+    },
+    {
+      "path": "src/generated/queries_sql.ts",
+      "bytes": 2406,
+      "sha256": "340eec1b75e3dd5fa2a23b6e9fcafc93cb354c88d8b7ab42c5818980d3c11579"
+    },
+    {
+      "path": "src/report-application.test.ts",
+      "bytes": 955,
+      "sha256": "2cfe670359e3af9757e6a1f3549c95db365d62c7140e5d4462e8dfb8cdbccbb5"
+    },
+    {
+      "path": "src/report-application.ts",
+      "bytes": 5364,
+      "sha256": "205bfb4c74a68cc694801ccbb9a0d4ef57357a82b51f443151a87ebaf04affbb"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6"
+    }
+  ],
+  "staticInspection": {
+    "pass": true,
+    "findings": []
+  },
+  "schema": "ashiba_v3_2a0006dd143b1ca2",
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "10000"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "5000"
+      }
+    ],
+    "transferAudit": [],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8002",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  },
+  "cleanup": {
+    "status": "pass",
+    "schema": "pass",
+    "role": "pass",
+    "connection": "pass"
+  },
+  "candidateSourceManifestAfter": [
+    {
+      "path": ".tools/sqlc-gen-typescript_0.1.3.wasm",
+      "bytes": 72685305,
+      "sha256": "287df8f6cc06377d67ad5ba02c9e0f00c585509881434d15ea8bd9fc751a9368"
+    },
+    {
+      "path": ".tools/sqlc.exe",
+      "bytes": 57725440,
+      "sha256": "22ce316349ac153a4aacaa3912981f73980a6f84861f4c602ae6e3075ca326e4"
+    },
+    {
+      "path": ".tools/sqlc.zip",
+      "bytes": 15284588,
+      "sha256": "352711fa7dcb05dcdfefca0ad71b2c9a74fd090f8d7fc609419de4cbc725429f"
+    },
+    {
+      "path": "GENERATION.md",
+      "bytes": 342,
+      "sha256": "92c9bda6848984788d5bf818bcfc4486e17c56404d38db48dd02af1f1516d64f"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 426,
+      "sha256": "b4283cb9b63411bbe4f14a403e95be82703e27278b7462ba33a780e65a8fb422"
+    },
+    {
+      "path": "scripts/generate-sqlc.ps1",
+      "bytes": 125,
+      "sha256": "ff8105e530e64e054bf8c5309d158df34543b8f9687817410a47f0869207bf5a"
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 411,
+      "sha256": "c8a6b4eacc34ce53590a3e46d38a35c9f274ad043e9363af7962f07a5132f3a1"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 190,
+      "sha256": "d6bff01a105c4aa6cddf684b252c291f3e3bb7ccac072b7c803c101c085e4579"
+    },
+    {
+      "path": "src/db/queries.sql",
+      "bytes": 1550,
+      "sha256": "f925e4fb089e364dfbac3c986641ea9deea29c503181501f7fd7534f824b43b7"
+    },
+    {
+      "path": "src/db/schema.sql",
+      "bytes": 275,
+      "sha256": "c5d91771d4190a8a43b5410f81eb81cd6b81a4fee3ee0f097c46c3c5d0f7a41b"
+    },
+    {
+      "path": "src/generated/queries_sql.ts",
+      "bytes": 2406,
+      "sha256": "340eec1b75e3dd5fa2a23b6e9fcafc93cb354c88d8b7ab42c5818980d3c11579"
+    },
+    {
+      "path": "src/report-application.test.ts",
+      "bytes": 955,
+      "sha256": "2cfe670359e3af9757e6a1f3549c95db365d62c7140e5d4462e8dfb8cdbccbb5"
+    },
+    {
+      "path": "src/report-application.ts",
+      "bytes": 5364,
+      "sha256": "205bfb4c74a68cc694801ccbb9a0d4ef57357a82b51f443151a87ebaf04affbb"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6"
+    }
+  ],
+  "sourceUnchangedDuringRunner": true,
+  "status": "F",
+  "finishedAt": "2026-08-30T13:02:21.991Z"
+}
