@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 2,
+  "baseSha": "0fd087fa32eaa25092458a18bebd152538df02b9",
+  "previousHead": "940fff3c44a0f67ccd94030ef2512422dc391415",
+  "evaluationOnly": true,
+  "scopeChanged": false,
+  "goldenPathChanged": false,
+  "productCodeChanged": false,
+  "decision": {
+    "modelGenWorkflow": "REDUCE",
+    "namedParameterPrimitives": "KEEP",
+    "generatedBindingArtifactAsStandardPath": "REMOVE_FROM_PROPOSED_CORE_WORKFLOW",
+    "sourceHashFreshnessAsStandardPath": "REMOVE_FROM_PROPOSED_CORE_WORKFLOW",
+    "modelGenCli": "REDUCE"
+  },
+  "arms": {
+    "currentWorkflow": {
+      "packages": ["@ashiba-ts/cli", "@ashiba-ts/named-parameters"],
+      "committedBindingArtifact": true,
+      "sourceHash": true,
+      "freshness": "model-gen --check failed closed for source-only drift",
+      "strictTypeScript": "pass",
+      "candidateTests": "pass",
+      "postgresOracle": "pass"
+    },
+    "primitiveOnlyStaticArtifact": {
+      "packages": ["@ashiba-ts/named-parameters"],
+      "ashibaCliUsed": false,
+      "committedBindingArtifact": true,
+      "sourceHash": false,
+      "automaticFreshness": false,
+      "strictTypeScript": "pass",
+      "candidateTests": "pass",
+      "postgresOracle": "pass",
+      "note": "The semantic drift row is a controlled static-artifact reconstruction because the original clean room was removed after its initial evidence."
+    },
+    "primitiveOnlyNoArtifact": {
+      "packages": ["@ashiba-ts/named-parameters"],
+      "ashibaCliUsed": false,
+      "committedBindingArtifact": false,
+      "sourceHash": false,
+      "freshnessLifecycle": false,
+      "compileBoundary": "one controlled application initialization cache",
+      "strictTypeScript": "pass",
+      "candidateTests": "pass (1 test)",
+      "postgresOracle": "pass",
+      "initialLiveFailure": "SQLSTATE 42P08 for untyped nullable guards",
+      "repair": "SQL-only explicit text/bigint casts; final oracle pass"
+    }
+  },
+  "driftControls": {
+    "commentOnly": "exact source-identity evidence only; not strongest runtime evidence",
+    "semantic": {
+      "change": "AND status <> 'deleted'",
+      "armA": { "modelGenFreshness": false, "staleArtifactRuntimeReturnsDeleted": true },
+      "armB": { "automaticFreshness": false, "staleStaticRuntimeReturnsDeleted": true },
+      "armC": { "committedArtifact": false, "directCompileRuntimeExcludesDeleted": true }
+    },
+    "parameterShape": {
+      "change": "add :includeDeleted while leaving call values unchanged",
+      "armA": { "modelGenFreshness": false, "staleArtifactBinderKnowsNewParameter": false },
+      "armB": { "automaticFreshness": false, "staleStaticBinderKnowsNewParameter": false },
+      "armC": { "freshDirectCompilerMissingParameter": "ASHIBA_MISSING_PARAMETER" }
+    }
+  },
+  "compileOverhead": {
+    "node": "v22.14.0",
+    "oneRepresentativeQueryMedianWallMs": 0.0147,
+    "referenceEightQuerySetMedianWallMs": 0.0529,
+    "synthetic100QuerySetMedianWallMs": 0.2213,
+    "synthetic1000QuerySetMedianWallMs": 2.2286,
+    "interpretation": "bounded controlled-startup feasibility only, not runtime throughput"
+  },
+  "focusedVerification": {
+    "currentWorkflowOracle": "pass (existing evidence)",
+    "primitiveOnlyOracle": "pass (existing evidence)",
+    "noArtifactOracle": "pass",
+    "semanticAndParameterDriftPostgresHarness": "pass"
+  },
+  "repositoryVerification": {
+    "pnpmTypecheck": "pass",
+    "pnpmBuild": "pass",
+    "pnpmTest": "pass",
+    "pnpmVerify": "pass",
+    "pnpmDocsBuild": "pass",
+    "gitDiffCheck": "pass"
+  },
+  "remoteCI": {
+    "evidenceHead": "3e6a532dedbb99ebea14ce9e17e617bbc999890e",
+    "workflow": "Verify / 33285696040",
+    "verify": "pass",
+    "npmDistributionNode22Npm10": "pass",
+    "npmDistributionNode24Npm11": "pass",
+    "postgresLive": "pass",
+    "postgresTicketQueueReference": "pass",
+    "supportInboxExample": "pass",
+    "supportInboxExampleAutocrlf": "pass"
+  },
+  "orchestration": {
+    "originalLedger": "docs/evaluations/model-gen-durable-ownership/orchestration-metrics.jsonl",
+    "additionalValidationLedger": "docs/evaluations/model-gen-durable-ownership/additional-validation-orchestration-metrics.jsonl",
+    "delegations": 2,
+    "models": ["gpt-5.6-luna", "gpt-5.6-terra"],
+    "lunaRetries": 1,
+    "escalations": 1,
+    "tokenTelemetry": "unavailable",
+    "creditTelemetry": "unavailable"
+  },
+  "temporaryResources": {
+    "postgresContainer": "ashiba-model-gen-arm-c-pg",
+    "candidateCleanRoom": "ashiba-model-gen-arm-c-no-artifact",
+    "status": "removed after final evidence capture"
+  }
+}
