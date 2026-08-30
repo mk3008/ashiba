@@ -25,6 +25,12 @@ durable SD `sd.json` documents. The E1 matcher excludes runner snapshots such
 as `e1.primary-g1.json`. The script records a SHA-256 for each referenced JSON
 input in the compact index.
 
+X1 additionally has an explicit audited H-007 r2 terminal-runner map for all
+six arms. It selects a named corrected runner document and retains the
+selection in `selectedFinalObservation`; it does not derive a terminal outcome
+from a directory layout. Pre-correction r1 documents remain retained but are
+not selected as terminal X1 interpretations.
+
 The source runner outputs and attempt folders remain authoritative. The index
 is intentionally compact: it preserves first-pass slots, every captured live
 result, treatment review, finalization record, durable E1/SD schema summary,
@@ -42,7 +48,9 @@ they do not determine an outcome or causal interpretation.
 
 `results.csv` is a convenience table with one primary row per cell and one
 secondary row per standard runner observation, durable schema document, or
-explicit nonstandard AF runner record. It should be read with
+explicit nonstandard AF runner record. Selected X1 H-007 r2 terminal records
+are additional convenience rows, not replacements for original r1
+observations. It should be read with
 `raw-results.json` and the linked immutable evidence, not as an independent
 benchmark result.
 

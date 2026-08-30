@@ -1,0 +1,28 @@
+{
+  "control": "X1",
+  "arm": "A",
+  "correction": "H-007",
+  "replicate": 2,
+  "candidateSource": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 364,
+      "sha256": "97088dcef2274d49c3b8c76be535adc12dabd314716021ef088a5f900c6c5633"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 181,
+      "sha256": "27b347f21eca252ef0a4ecb87d715b77e93bf651ef2315b3a52ef6f3933af616"
+    },
+    {
+      "path": "src/report.ts",
+      "bytes": 3412,
+      "sha256": "cb0fff7cfcc461c94e82c612d67a46380ae918b84039e2f4897e9edb2b2f01fe"
+    }
+  ]
+}

@@ -10,8 +10,8 @@ product.
 
 **Observed.** The durable result index (schema v2) currently contains 48
 primary cells (four workloads, six arms, two independent replicates), 67
-preserved primary attempts, 42 canonical secondary cells, 29 standard runner
-observations, 22 supplemental nonstandard AF runner observations, and 13
+preserved primary attempts, 48 canonical secondary cells, 32 standard runner
+observations, 23 supplemental nonstandard AF runner observations, and 13
 durable E1/SD schema documents. The primary runner records 37 final live
 passes and 11 final live failures. These descriptive counts are not pooled into
 a winner or a superiority claim. Secondary controls are observation-only and
@@ -25,11 +25,11 @@ successful cells demonstrate that this path can satisfy the frozen bounded
 G1, transaction T1, concurrent-claim T2, and SQL/EXPLAIN Q1 runner contracts
 under the measured conditions.
 
-**Observed.** Every other treatment also has successful primary observations.
-Every arm also has at least one recorded final live failure in one or more
-primary cells. Therefore the current evidence does not support an
-``overall winner'' claim, nor does it support treating a single final failure
-as a product-wide failure.
+**Observed.** Every treatment has successful primary observations. Five arms
+also have at least one recorded final live failure; Drizzle has eight recorded
+primary final-live passes. These are cell counts, not a ranking or a causal
+claim. The current evidence does not support an ``overall winner'' claim, nor
+does it support treating a single final failure as a product-wide failure.
 
 **Inference, deliberately limited.** The primary matrix is consistent with
 the proposition that a small SQL-native treatment is viable for bounded
@@ -39,9 +39,10 @@ team, database, or model setting.
 
 ## Publication status
 
-The primary execution evidence and corrected SD/E1 durable observations are
-preserved and reviewable. AF replicate-two evidence is retained but
-heterogeneous, so it is reported by path rather than made into a normalized
-score. The publication record still requires independent audit, repository
-verification, and remote CI confirmation. See [limitations](./LIMITATIONS.md)
-and the [correction ledger](./EXCLUSION_AND_CORRECTION_LEDGER.md).
+The primary execution evidence, corrected SD/E1 durable observations, and
+completed AF replicate-two path preservation are reviewable. AF is reported
+by path rather than made into a normalized score. X1 H-007 r2 supplies six
+explicit terminal records; r1 remains preserved correction context. The
+publication record still requires independent audit, repository verification,
+and remote CI confirmation. See [limitations](./LIMITATIONS.md) and the
+[correction ledger](./EXCLUSION_AND_CORRECTION_LEDGER.md).

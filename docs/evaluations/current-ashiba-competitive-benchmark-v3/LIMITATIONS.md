@@ -20,12 +20,14 @@
 8. E1 and SD have one durable record per arm, but remain non-aggregate,
    fixture-specific controls. AF replicate two has heterogeneous standard and
    explicitly retained nonstandard evidence paths; it has no normalized
-   cross-cell first-pass/treatment/repair schema. X1 and AF must remain
-   non-aggregate controls; no broad exit, drift, open-ended-composition, or
-   architecture recommendation is justified from these limited observations.
-9. The Prisma treatment review records final `pass` values, but does not
-   adjudicate whether raw-SQL-dominant Prisma candidates are representative of
-   a normal Prisma client/contract workflow. No raw-SQL proportion is scored.
+   cross-cell first-pass/treatment/repair schema. X1 has one corrected
+   terminal record per arm under H-007, but only one non-aggregate replicate.
+   No broad exit, drift, open-ended-composition, or architecture recommendation
+   is justified from these limited observations.
+9. The Prisma treatment review records final `pass` values and has a separate
+   final adjudication: six qualified-inline-contract cells and two
+   emitted-contract-plus-raw-SQL cells. It does not establish a full generated
+   Prisma client/contract lifecycle or score raw-SQL proportion.
 10. Candidate behavior passes do not independently verify production security,
    observability, performance, deployment, migration policy, or long-term
    upgrade compatibility.

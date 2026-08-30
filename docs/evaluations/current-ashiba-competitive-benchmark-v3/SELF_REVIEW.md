@@ -15,7 +15,10 @@
 - SD/E1 durable schema-v2 observations are reported without causal labels.
 - AF replicate-two reliable/nonstandard paths are explicitly retained without
   inventing normalized causal labels.
-- Prisma raw-SQL-dominant treatment fidelity is disclosed as unadjudicated.
+- Prisma raw-SQL-dominant treatment fidelity has a separate final
+  adjudication; it is not represented as a full generated-client lifecycle.
+- X1 H-007 r2 terminal selection is explicit for all six arms; r1 remains
+  preserved correction context rather than receiving inferred final status.
 - Historical Ashiba results are not presented as Current Ashiba results.
 
 ## Remaining review gates

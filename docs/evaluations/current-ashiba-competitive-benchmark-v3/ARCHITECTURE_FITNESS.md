@@ -15,10 +15,11 @@ hash deltas and reuses the primary G1 PostgreSQL oracle read-only.
 
 ## Evidence status
 
-The result index has durable AF-V and AF-L **replicate 1** observations, plus
-heterogeneously preserved AF replicate-two records. The aggregate retains the
-reliable AF paths as `supplementalObservations`, and records exact paths and
-hashes rather than coercing them into primary repair fields. AF-V also
+The result index has durable AF-V and AF-L observations for **replicates 1
+and 2**. Replicate two intentionally contains heterogeneous standard runner
+documents and explicitly retained nonstandard/reliable paths. The aggregate
+retains these as `supplementalObservations`, with exact paths and hashes,
+rather than coercing them into primary first-pass or repair fields. AF-V also
 preserves invalidated/pre-correction runner records in accordance with the
 correction ledger. These controls are observation-only and are not included in
 the primary matrix or an aggregate. Readers must inspect each stored runner

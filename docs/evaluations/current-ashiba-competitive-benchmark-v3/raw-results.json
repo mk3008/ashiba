@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-30T22:11:06.327Z",
+  "generatedAt": null,
   "generator": {
     "path": "fixtures/aggregate-results.mjs",
-    "sha256": "bd5e5dcffa2c65955969491986c5835ece5b0c23c2f6a0522f4dbd3c88043f0e"
+    "sha256": "435f9183c9fc18f6198df2ce896441094779c8098cda2d0dfc690a80b2d76164"
   },
   "inputRoot": ".",
   "interpretationPolicy": {
@@ -20,8 +20,8 @@
   "inventory": {
     "primaryCellCount": 48,
     "primaryAttemptCount": 67,
-    "secondaryCellCount": 42,
-    "secondaryObservationCount": 29,
+    "secondaryCellCount": 48,
+    "secondaryObservationCount": 32,
     "secondaryReliableObservationCount": 11,
     "secondarySupplementalObservationCount": 23,
     "secondaryDurableSchemaCount": 13
@@ -18745,6 +18745,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -18753,7 +18754,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -18814,6 +18815,7 @@
           "sourceKind": "nonstandard-af-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -18822,7 +18824,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -18883,6 +18885,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -18891,7 +18894,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -18991,6 +18994,7 @@
           "sourceKind": "nonstandard-reliable-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -18999,7 +19003,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -19063,6 +19067,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19071,7 +19076,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -19172,6 +19177,7 @@
           "sourceKind": "nonstandard-reliable-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19180,7 +19186,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -19244,6 +19250,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19252,7 +19259,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -19352,6 +19359,7 @@
           "sourceKind": "nonstandard-reliable-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19360,7 +19368,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -19426,6 +19434,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19434,7 +19443,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -19536,6 +19545,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19544,7 +19554,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -19619,6 +19629,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19627,7 +19638,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -20349,6 +20360,7 @@
           "sourceKind": "nonstandard-reliable-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20357,7 +20369,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -20549,6 +20561,7 @@
           "sourceKind": "nonstandard-af-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20557,7 +20570,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -20916,6 +20929,7 @@
           "sourceKind": "nonstandard-af-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20924,7 +20938,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -21030,6 +21044,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -21038,7 +21053,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -21097,6 +21112,7 @@
           "sourceKind": "nonstandard-af-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -21105,7 +21121,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -21212,6 +21228,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -21220,7 +21237,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -21322,6 +21339,7 @@
           "sourceKind": "nonstandard-reliable-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -21330,7 +21348,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -21434,6 +21452,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -21442,7 +21461,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -21544,6 +21563,7 @@
           "sourceKind": "nonstandard-reliable-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -21552,7 +21572,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -21827,6 +21847,7 @@
           "sourceKind": "nonstandard-af-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -21835,7 +21856,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -21906,6 +21927,7 @@
           "sourceKind": "nonstandard-af-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -21914,7 +21936,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22154,6 +22176,7 @@
           "sourceKind": "nonstandard-af-path"
         }
       ],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -22162,7 +22185,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22231,6 +22254,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -22239,7 +22263,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22257,6 +22281,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "e1",
@@ -22305,7 +22330,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22323,6 +22348,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "e1",
@@ -22371,7 +22397,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22389,6 +22415,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "e1",
@@ -22437,7 +22464,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22455,6 +22482,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "e1",
@@ -22503,7 +22531,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22521,6 +22549,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "e1",
@@ -22569,7 +22598,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22587,6 +22616,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "e1",
@@ -22635,7 +22665,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22653,6 +22683,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "sd",
@@ -22730,7 +22761,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 2
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22748,6 +22779,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "sd",
@@ -22808,7 +22840,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22826,6 +22858,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "sd",
@@ -22886,7 +22919,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22904,6 +22937,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "sd",
@@ -22964,7 +22998,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -22982,6 +23016,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "sd",
@@ -23042,7 +23077,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -23060,6 +23095,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [
         {
           "schema": "sd",
@@ -23120,7 +23156,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -23163,6 +23199,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -23171,7 +23208,59 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-A-r2",
+      "workloadOrControl": "X1",
+      "arm": "A",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/X1-A-r2",
+      "evidenceRoots": [
+        "secondary-evidence/X1-A-r2"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
+      "selectedFinalObservation": {
+        "selection": "x1-terminal-repair-map-v1",
+        "evidencePath": "secondary-evidence/X1-A-r2/corrected-h007/runner-evidence/runner-repair1.json",
+        "sha256": "e3172cdf5af60ef67c556e99b9633a9935ed4dda2d3b6bb8f9335ee441ac992e",
+        "missing": false,
+        "live": {
+          "status": "P",
+          "harness": "x1-open-composition-v1",
+          "workloads": null,
+          "checks": {
+            "total": 15,
+            "statusCounts": {
+              "pass": 15
+            }
+          },
+          "source": null,
+          "cleanup": {
+            "status": "pass",
+            "schema": "pass",
+            "role": "pass",
+            "connection": "pass"
+          },
+          "startedAt": "2026-08-30T22:33:39.943Z",
+          "finishedAt": "2026-08-30T22:33:40.371Z"
+        }
+      },
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 1,
+        "finalDocuments": 1,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -23217,6 +23306,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -23225,7 +23315,87 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-D-r2",
+      "workloadOrControl": "X1",
+      "arm": "D",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/X1-D-r2",
+      "evidenceRoots": [
+        "secondary-evidence/X1-D-r2"
+      ],
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-D-r2/corrected-h007/runner-evidence/runner.json",
+          "sha256": "d8ac1b458511b6c3173364e55e83199411b97a451a028ddc5e684867a3e876be",
+          "live": {
+            "status": "F",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 13,
+              "statusCounts": {
+                "pass": 12,
+                "fail": 1
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "pass",
+              "schema": "pass",
+              "role": "pass",
+              "connection": "pass"
+            },
+            "startedAt": "2026-08-30T22:37:18.540Z",
+            "finishedAt": "2026-08-30T22:37:20.104Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
+        }
+      ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
+      "selectedFinalObservation": {
+        "selection": "x1-terminal-repair-map-v1",
+        "evidencePath": "secondary-evidence/X1-D-r2/corrected-h007/runner-evidence/runner-repair1.json",
+        "sha256": "5493e749c0d46c855e95893b051a94f83a10a77795df1ab89e7b429621959839",
+        "missing": false,
+        "live": {
+          "status": "P",
+          "harness": "x1-open-composition-v1",
+          "workloads": null,
+          "checks": {
+            "total": 15,
+            "statusCounts": {
+              "pass": 15
+            }
+          },
+          "source": null,
+          "cleanup": {
+            "status": "pass",
+            "schema": "pass",
+            "role": "pass",
+            "connection": "pass"
+          },
+          "startedAt": "2026-08-30T22:37:49.491Z",
+          "finishedAt": "2026-08-30T22:37:49.916Z"
+        }
+      },
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 2,
+        "finalDocuments": 1,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -23271,6 +23441,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -23279,7 +23450,86 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-G-r2",
+      "workloadOrControl": "X1",
+      "arm": "G",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/X1-G-r2",
+      "evidenceRoots": [
+        "secondary-evidence/X1-G-r2"
+      ],
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-G-r2/corrected-h007/runner-evidence/runner.json",
+          "sha256": "bdd38e8095fd66a437296abe7454e302ebd6fb8b1121e3e7c2543423a8941397",
+          "live": {
+            "status": "P",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 15,
+              "statusCounts": {
+                "pass": 15
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "pass",
+              "schema": "pass",
+              "role": "pass",
+              "connection": "pass"
+            },
+            "startedAt": "2026-08-30T22:30:28.803Z",
+            "finishedAt": "2026-08-30T22:30:29.297Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
+        }
+      ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
+      "selectedFinalObservation": {
+        "selection": "x1-terminal-repair-map-v1",
+        "evidencePath": "secondary-evidence/X1-G-r2/corrected-h007/runner-evidence/runner.json",
+        "sha256": "bdd38e8095fd66a437296abe7454e302ebd6fb8b1121e3e7c2543423a8941397",
+        "missing": false,
+        "live": {
+          "status": "P",
+          "harness": "x1-open-composition-v1",
+          "workloads": null,
+          "checks": {
+            "total": 15,
+            "statusCounts": {
+              "pass": 15
+            }
+          },
+          "source": null,
+          "cleanup": {
+            "status": "pass",
+            "schema": "pass",
+            "role": "pass",
+            "connection": "pass"
+          },
+          "startedAt": "2026-08-30T22:30:28.803Z",
+          "finishedAt": "2026-08-30T22:30:29.297Z"
+        }
+      },
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 1,
+        "finalDocuments": 1,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -23325,6 +23575,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -23333,7 +23584,86 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-K-r2",
+      "workloadOrControl": "X1",
+      "arm": "K",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/X1-K-r2",
+      "evidenceRoots": [
+        "secondary-evidence/X1-K-r2"
+      ],
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/X1-K-r2/corrected-h007/runner-evidence/runner.json",
+          "sha256": "0c60b8bffed4327e92c80e4b3b7e17ab7aafed4cbd1289ccea351cdf88e2e2db",
+          "live": {
+            "status": "P",
+            "harness": "x1-open-composition-v1",
+            "workloads": null,
+            "checks": {
+              "total": 15,
+              "statusCounts": {
+                "pass": 15
+              }
+            },
+            "source": null,
+            "cleanup": {
+              "status": "pass",
+              "schema": "pass",
+              "role": "pass",
+              "connection": "pass"
+            },
+            "startedAt": "2026-08-30T22:39:53.404Z",
+            "finishedAt": "2026-08-30T22:39:55.952Z"
+          },
+          "architectureDelta": null,
+          "deltaComplete": null
+        }
+      ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
+      "selectedFinalObservation": {
+        "selection": "x1-terminal-repair-map-v1",
+        "evidencePath": "secondary-evidence/X1-K-r2/corrected-h007/runner-evidence/runner.json",
+        "sha256": "0c60b8bffed4327e92c80e4b3b7e17ab7aafed4cbd1289ccea351cdf88e2e2db",
+        "missing": false,
+        "live": {
+          "status": "P",
+          "harness": "x1-open-composition-v1",
+          "workloads": null,
+          "checks": {
+            "total": 15,
+            "statusCounts": {
+              "pass": 15
+            }
+          },
+          "source": null,
+          "cleanup": {
+            "status": "pass",
+            "schema": "pass",
+            "role": "pass",
+            "connection": "pass"
+          },
+          "startedAt": "2026-08-30T22:39:53.404Z",
+          "finishedAt": "2026-08-30T22:39:55.952Z"
+        }
+      },
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 1,
+        "finalDocuments": 1,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -23378,6 +23708,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -23386,7 +23717,60 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-P-r2",
+      "workloadOrControl": "X1",
+      "arm": "P",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/X1-P-r2",
+      "evidenceRoots": [
+        "secondary-evidence/X1-P-r2"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
+      "selectedFinalObservation": {
+        "selection": "x1-terminal-repair-map-v1",
+        "evidencePath": "secondary-evidence/X1-P-r2/corrected-h007/runner-evidence/runner-initial.json",
+        "sha256": "c0ef2911e2709689b533d9df59a58b76bb5694cbd8e39631da0cc8efd282b72c",
+        "missing": false,
+        "live": {
+          "status": "F",
+          "harness": "x1-open-composition-v1",
+          "workloads": null,
+          "checks": {
+            "total": 3,
+            "statusCounts": {
+              "pass": 2,
+              "fail": 1
+            }
+          },
+          "source": null,
+          "cleanup": {
+            "status": "pass",
+            "schema": "pass",
+            "role": "pass",
+            "connection": "pass"
+          },
+          "startedAt": "2026-08-30T22:44:11.902Z",
+          "finishedAt": "2026-08-30T22:44:11.995Z"
+        }
+      },
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 1,
+        "finalDocuments": 1,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     },
     {
       "kind": "secondary",
@@ -23432,6 +23816,7 @@
       "reliableObservations": [],
       "supplementalObservationCount": 0,
       "supplementalObservations": [],
+      "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -23440,7 +23825,59 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
+    },
+    {
+      "kind": "secondary",
+      "cell": "X1-S-r2",
+      "workloadOrControl": "X1",
+      "arm": "S",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/X1-S-r2",
+      "evidenceRoots": [
+        "secondary-evidence/X1-S-r2"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
+      "selectedFinalObservation": {
+        "selection": "x1-terminal-repair-map-v1",
+        "evidencePath": "secondary-evidence/X1-S-r2/corrected-h007/runner-evidence/runner-repair1.json",
+        "sha256": "d43a7eefaeece7ec3aa4df3763e080a8f6457548bf134cf2c93cea6839e0baad",
+        "missing": false,
+        "live": {
+          "status": "P",
+          "harness": "x1-open-composition-v1",
+          "workloads": null,
+          "checks": {
+            "total": 15,
+            "statusCounts": {
+              "pass": 15
+            }
+          },
+          "source": null,
+          "cleanup": {
+            "status": "pass",
+            "schema": "pass",
+            "role": "pass",
+            "connection": "pass"
+          },
+          "startedAt": "2026-08-30T22:44:00.443Z",
+          "finishedAt": "2026-08-30T22:44:00.685Z"
+        }
+      },
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 1,
+        "finalDocuments": 1,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name."
     }
   ]
 }

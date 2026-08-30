@@ -1,0 +1,1 @@
+{"name":"benchmark-v3-arm-s-packet","private":true,"type":"module","engines":{"node":"24.18.0"},"scripts":{"generate":"C:\\tmp\\ashiba-benchmark-v3-secondary-h007\\X1-S-r2\\toolchain\\sqlc.exe generate","build":"tsc -p tsconfig.json","typecheck":"tsc -p tsconfig.json --noEmit"},"dependencies":{"pg":"8.23.0"},"devDependencies":{"@types/pg":"8.15.6","typescript":"5.9.3"}}

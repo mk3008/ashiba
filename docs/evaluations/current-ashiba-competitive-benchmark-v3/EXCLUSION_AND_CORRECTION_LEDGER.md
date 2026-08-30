@@ -4,7 +4,7 @@ No scored candidate has started at preregistration.
 
 | ID | Classification | Affected cells | Original evidence | Correction commit | Remeasurement | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| PREG-002 | User-directed preregistration correction | all future P cells; scored cells at correction: 0 | Prisma 7.10.0 listed in initial preregistration | pending amendment-2 commit | none; no scored cell existed | Prisma 8 RC substituted before execution-packet freeze |
+| PREG-002 | User-directed preregistration correction | all future P cells; scored cells at correction: 0 | Prisma 7.10.0 listed in initial preregistration | `496a1f6` (`docs: preregister Prisma 8 RC benchmark arm`) | none; no scored cell existed | completed before execution-packet freeze; Prisma 8 RC substituted |
 
 Entries are append-only. A correction does not overwrite the preceding failed
 or calibration evidence.
@@ -45,7 +45,7 @@ or calibration evidence.
   not a harness, candidate, or result correction.
 - **Correction commit:** `00afb56` (`docs: correct benchmark reproduction
   controls`).
-- **Status:** prepared; the wrapper's observed PASS is retained in
+- **Status:** completed; the wrapper's observed PASS is retained in
   `FROZEN_PACKET_REPRODUCTION.md`.
 
 # H-007 — SD-A packed-artifact isolation false positive
@@ -74,6 +74,27 @@ or calibration evidence.
 - **Status:** corrected rerun passed static isolation and completed; the
   original final failure remains preserved beside `corrected-h007` evidence.
 
+## H-007 extension — X1 all-arm correction replay
+
+- **Observed:** the same static-isolation correction required a fresh X1 run
+  for every arm because the classifier is shared. The pre-correction X1 r1
+  documents remain preserved and are not overwritten.
+- **Correction evidence:**
+  `secondary-evidence/X1-r2-h007-correction-summary.md` and
+  `secondary-evidence/X1-r2-h007-results.json`, with six isolated r2 roots at
+  `secondary-evidence/X1-<arm>-r2/corrected-h007/` and matching candidate
+  snapshots.
+- **Terminal r2 outcomes:** A P after one type-map repair; P F on the missing
+  candidate entrypoint with zero candidate repair and no native-pg fallback; S
+  P after one exact sqlc plugin/config repair; D P after one array-parameter
+  repair; K P initial; G P initial. Static isolation and cleanup pass for all
+  six r2 records.
+- **Disposition:** r2 supersedes r1 only for terminal X1 interpretation. This
+  is a non-aggregate correction replay; it does not alter primary results or
+  create a cross-arm ranking.
+- **Status:** completed. The aggregate's explicit X1 selection map points only
+  at the six r2 terminal runner documents.
+
 # EXCL-001 — AF-L r2 evidence-preservation setup attempts
 
 - **Observed:** 2026-08-31 before any AF-L r2 runner oracle result.
@@ -86,10 +107,14 @@ or calibration evidence.
   verifier or preserved attempt evidence. No candidate result is retained or
   interpreted.
 - **Scope:** no primary, AF-V, runner, fixture, or product evidence changed.
-- **Disposition:** both setup attempts are excluded. Each affected cell must
-  be freshly materialized and executed under the frozen packet with immutable
-  per-attempt snapshots before it can enter AF r2 observations.
-- **Status:** AF-L-A-r2 fresh rerun pending; AF-L-D-r2 fresh rerun pending.
+- **Disposition:** both setup attempts remain excluded. Each affected cell was
+  then freshly materialized and executed under the frozen packet with immutable
+  per-attempt snapshots; those later runs are separate evidence.
+- **Completion evidence:** AF-L-A-r2 reliable rerun is `0e72b59` (`docs:
+  preserve reliable AF-L A replicate two evidence`); AF-L-D-r2 reliable rerun
+  is `587a4cd` (`docs: preserve AF-L Drizzle replicate two evidence`).
+- **Status:** completed as an exclusion disposition. The excluded setup paths
+  are not pooled with either reliable rerun.
 
 # H-004 — E1 forbidden-marker packet omission
 
@@ -110,8 +135,11 @@ or calibration evidence.
 - **Required remeasure:** discard those materializations as unscored setup and
   freshly materialize every E1 cell after the correction commit.
 - **Correction commit:** `85592fd` (`docs: freeze E1 treatment removal markers`).
-- **Status:** committed; all E1 cells must be freshly materialized before
-  candidate work resumes.
+- **Completion evidence:** `2dc56c2` (`docs: preserve corrected E1 removal
+  evidence`) preserves freshly materialized post-correction records for all
+  six arms.
+- **Status:** completed as a packet correction. The earlier materializations
+  remain excluded; the six corrected E1 records are separately retained.
 
 # H-005 — E1 runtime-install precondition omission
 
@@ -133,8 +161,11 @@ or calibration evidence.
   materialize every E1 arm under the completed packet, then execute the frozen
   pre-run installation before candidate generation and runner import.
 - **Correction commit:** `d91c2bd` (`docs: freeze E1 runtime installation step`).
-- **Status:** committed; all E1 cells must be freshly materialized under the
-  completed packet.
+- **Completion evidence:** `2dc56c2` (`docs: preserve corrected E1 removal
+  evidence`) records the completed packet's required pre-run installation and
+  the six runner outcomes.
+- **Status:** completed as an environment-precondition correction. The
+  earlier setup failure remains excluded.
 
 # H-003 — AF baseline TypeScript configuration correction
 
@@ -158,8 +189,10 @@ or calibration evidence.
   attempts remain preserved and are not pooled with corrected observations.
 - **Correction commit:** `f7e7b28` (`docs: correct AF baseline TypeScript
   fixture`).
-- **Status:** committed. Corrected AF-V cells may now be newly materialized;
-  only their post-correction observations may be interpreted.
+- **Completion evidence:** `757a07b` (`docs: preserve corrected AF-V control
+  evidence`) retains newly materialized post-correction AF-V observations.
+- **Status:** completed as a fixture correction. Only post-correction AF-V
+  observations may be interpreted; the original attempts remain preserved.
 # H-001 — Pre-scoring reference-control serialization defect
 
 - **Observed:** 2026-08-30, before every scored cell.

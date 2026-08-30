@@ -8,6 +8,7 @@
 | Field | Meaning |
 | --- | --- |
 | `schemaVersion` | Compact-index schema version (`2` adds durable E1/SD evidence and per-cell source counts). |
+| `generatedAt` | Always `null`: the extractor deliberately omits a wall-clock value so an identical evidence tree produces byte-identical output. |
 | `generator` | Relative generator path and SHA-256. |
 | `interpretationPolicy` | Guardrails that prohibit implicit scoring. |
 | `limitations` | Explicit non-measurements and evidence boundaries. |
@@ -50,6 +51,11 @@ documents plus E1 documents that record a nested `primaryG1` live result.
 `treatmentDocuments` counts recorded E1 removal fields and SD documents with
 recorded mutation observations. `firstPassDocuments` remains zero unless a
 future secondary schema supplies a first-pass document.
+
+For X1 only, `selectedFinalObservation` is a separately documented,
+audited mapping to a terminal H-007 r2 runner document. It is not selected by
+directory-name inference. The pre-correction r1 documents remain in the
+evidence tree but are not selected as terminal interpretations.
 
 ## Nonstandard AF paths
 

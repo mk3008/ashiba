@@ -15,6 +15,20 @@ const PRIMARY_CELL = /^(G1|T1|T2|Q1)-(A|P|S|D|K|G)-r(\d+)$/;
 const SECONDARY_CELL = /^(AF-V|AF-L|X1|SD|E1)-(A|P|S|D|K|G)-r(\d+)$/;
 const SECONDARY_RELIABLE_ROOT = /^(AF-V|AF-L|X1|SD|E1)-(A|P|S|D|K|G)-r(\d+)-reliable(?:-[a-z0-9]+)*$/i;
 
+// H-007 reran every X1 arm under the corrected static-isolation rule. These
+// entries are an explicit, audited selection of the terminal runner output in
+// that r2 correction set. The original r1 paths remain retained observations,
+// but are not selected as final X1 outcomes. Do not infer a selection from a
+// filename for any other secondary control.
+const X1_SELECTED_FINAL_RUNNERS = new Map([
+  ["X1-A-r2", "secondary-evidence/X1-A-r2/corrected-h007/runner-evidence/runner-repair1.json"],
+  ["X1-P-r2", "secondary-evidence/X1-P-r2/corrected-h007/runner-evidence/runner-initial.json"],
+  ["X1-S-r2", "secondary-evidence/X1-S-r2/corrected-h007/runner-evidence/runner-repair1.json"],
+  ["X1-D-r2", "secondary-evidence/X1-D-r2/corrected-h007/runner-evidence/runner-repair1.json"],
+  ["X1-K-r2", "secondary-evidence/X1-K-r2/corrected-h007/runner-evidence/runner.json"],
+  ["X1-G-r2", "secondary-evidence/X1-G-r2/corrected-h007/runner-evidence/runner.json"],
+]);
+
 function usage(message) {
   console.error(`Usage: node fixtures/aggregate-results.mjs --root <benchmark-dir> [--json <path>] [--csv <path>]`);
   if (message) console.error(`Error: ${message}`);
@@ -262,13 +276,20 @@ function durableSchemaRecords(root, cellRoot) {
   ];
 }
 
-function secondaryEvidenceCounts(observations, durableSchemas) {
+function secondaryEvidenceCounts(observations, durableSchemas, selectedFinalObservation) {
   const e1 = durableSchemas.filter((document) => document.schema === "e1");
   const sd = durableSchemas.filter((document) => document.schema === "sd");
+  const selectedIsAdditional =
+    selectedFinalObservation != null &&
+    !selectedFinalObservation.missing &&
+    !observations.some((observation) => observation.evidencePath === selectedFinalObservation.evidencePath);
   return {
     firstPassDocuments: 0,
-    liveDocuments: observations.length + e1.filter((document) => document.summary?.primaryG1 != null).length,
-    finalDocuments: durableSchemas.length,
+    liveDocuments:
+      observations.length +
+      e1.filter((document) => document.summary?.primaryG1 != null).length +
+      (selectedIsAdditional ? 1 : 0),
+    finalDocuments: durableSchemas.length + (selectedFinalObservation != null && !selectedFinalObservation.missing ? 1 : 0),
     treatmentDocuments:
       e1.filter((document) => document.summary?.treatmentRemoval != null).length +
       sd.filter((document) => document.summary?.mutationCount > 0).length,
@@ -311,6 +332,28 @@ function walkAfRunnerDocuments(directory) {
   return results.sort((left, right) => left.localeCompare(right));
 }
 
+function selectedSecondaryFinalObservation(root, cell) {
+  const evidencePath = X1_SELECTED_FINAL_RUNNERS.get(cell);
+  if (!evidencePath) return null;
+  const path = join(root, evidencePath);
+  if (!existsSync(path)) {
+    return {
+      selection: "x1-terminal-repair-map-v1",
+      evidencePath,
+      missing: true,
+      live: null,
+    };
+  }
+  const document = readJson(path);
+  return {
+    selection: "x1-terminal-repair-map-v1",
+    evidencePath,
+    sha256: hash(path),
+    missing: false,
+    live: liveSummary(document),
+  };
+}
+
 function secondaryRecords(root) {
   const evidenceRoot = join(root, "secondary-evidence");
   const grouped = new Map();
@@ -338,6 +381,7 @@ function secondaryRecords(root) {
         };
       });
       const durableSchemas = durableSchemaRecords(root, cellRoot);
+      const selectedFinalObservation = selectedSecondaryFinalObservation(root, cell);
       const exactNonstandardObservations = exactRoots.flatMap((exactRoot) =>
         walkAfRunnerDocuments(exactRoot).map((path) => {
           const document = readJson(path);
@@ -381,9 +425,10 @@ function secondaryRecords(root) {
         reliableObservations,
         supplementalObservationCount: supplementalObservations.length,
         supplementalObservations,
+        selectedFinalObservation,
         durableSchemas,
-        evidenceCounts: secondaryEvidenceCounts(observations, durableSchemas),
-        note: "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names.",
+        evidenceCounts: secondaryEvidenceCounts(observations, durableSchemas, selectedFinalObservation),
+        note: "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. The X1 H-007 r2 terminal map is an audited file selection; it does not infer a causal category or product property from a path name.",
       };
     })
     .filter(Boolean)
@@ -453,6 +498,9 @@ function csvRows(primary, secondary) {
       ...record.observations.map((observation, index) => ({ observation, index, durableSchema: null, reliable: null })),
       ...record.durableSchemas.map((durableSchema) => ({ observation: null, index: null, durableSchema, reliable: null })),
       ...record.supplementalObservations.map((reliable, index) => ({ observation: null, index, durableSchema: null, reliable })),
+      ...(record.selectedFinalObservation
+        ? [{ observation: null, index: "selected-final", durableSchema: null, reliable: record.selectedFinalObservation }]
+        : []),
     ];
     if (rowsForCell.length === 0) rowsForCell.push({ observation: null, index: null, durableSchema: null, reliable: null });
     rowsForCell.forEach(({ observation, index, durableSchema, reliable }) => {
@@ -494,7 +542,10 @@ const primary = primaryRecords(root);
 const secondary = secondaryRecords(root);
 const output = {
   schemaVersion: 2,
-  generatedAt: new Date().toISOString(),
+  // A wall-clock timestamp would mutate otherwise identical durable output on
+  // every rebuild. Source paths and SHA-256 values are the reproducibility
+  // boundary, so absence is deliberate rather than an unavailable metric.
+  generatedAt: null,
   generator: {
     path: relative(root, resolve(import.meta.dirname, "aggregate-results.mjs")).replaceAll("\\", "/"),
     sha256: hash(resolve(import.meta.dirname, "aggregate-results.mjs")),

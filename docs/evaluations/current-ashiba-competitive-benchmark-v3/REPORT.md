@@ -83,8 +83,9 @@ application framework.
 ### B. Where Current Ashiba clearly loses
 
 **Not established by this record.** The current matrix contains final Ashiba
-failures and successful observations for every comparison arm, but it is not
-designed or powered to establish a universal loss or superiority result. The
+failures and successful observations for every comparison arm, while Drizzle
+has eight recorded primary final-live passes. It is not designed or powered
+to establish a universal loss or superiority result. The
 benchmark also does not provide a completed migration-ecosystem or
 open-ended-composition comparison from which to claim that Ashiba matches
 integrated schema, migration, or report-builder workflows.
@@ -104,9 +105,10 @@ documents, but those controls remain non-aggregate and fixture-specific.
 The dedicated architecture controls begin with frozen VSA and layered
 baselines. They measure imposed movement, centralization, generated
 directories, configuration, and native-pool/test reuse; they do not score a
-preferred architecture. AF replicate 1 has durable observations and AF
-replicate two has explicitly retained, heterogeneous standard/nonstandard
-paths; neither supports an arm-level architecture conclusion. See
+preferred architecture. AF replicates 1 and 2 have durable observations. The
+replicate-two records deliberately retain heterogeneous standard and
+nonstandard paths, so neither replicate set supports an arm-level architecture
+conclusion. See
 [ARCHITECTURE_FITNESS.md](./ARCHITECTURE_FITNESS.md).
 
 Safety authority is distributed. The runner, PostgreSQL, candidate logic,
@@ -118,7 +120,16 @@ superior to a live PostgreSQL detection. See
 Q1 is an SQL/DB-centric task, not a general ORM ranking. Its source trace and
 EXPLAIN requirements are described in [DEBUGGABILITY.md](./DEBUGGABILITY.md).
 The open-ended X1 control is explicitly separate from the bounded primary
-matrix; see [DYNAMIC_COMPOSITION.md](./DYNAMIC_COMPOSITION.md).
+matrix. H-007 r2 supplies six audited terminal records; its pre-correction r1
+records remain preserved but are not used as final X1 interpretations. See
+[DYNAMIC_COMPOSITION.md](./DYNAMIC_COMPOSITION.md).
+
+**Observed secondary controls.** E1 preserves one passing, bounded native-pg
+removal observation for every arm; it does not normalize coupling or repair
+cost. SD preserves source-unchanged schema mutations, including the retained
+SD-A static-isolation false positive and its corrected H-007 rerun. Detection
+stage is fixture-specific rather than a quality order. These controls do not
+alter primary live status or treatment review.
 
 ## Adoption envelope
 
@@ -134,12 +145,17 @@ therefore marks incomplete scenarios as `INSUFFICIENT-EVIDENCE`; see
 ## Treatment-fidelity caveat
 
 **Observed.** The preserved final treatment review records `pass` for all
-eight primary Prisma cells. Several notes describe a Prisma 8 RC raw-SQL or
-raw-plan main path. **Unadjudicated.** The review does not normalize raw-SQL
-proportion or decide whether each raw-SQL-dominant candidate represents a
-normal Prisma client/contract workflow. A recorded fidelity pass means only
-what the frozen review recorded; it is not evidence that an ordinary
-Prisma-client comparison was performed.
+eight primary Prisma cells. The independent
+[Prisma treatment adjudication](./PRISMA_TREATMENT_ADJUDICATION.md) supplies
+three separate fields: live behavior, frozen treatment review, and final
+Prisma workflow interpretation. Six cells are
+`qualified-inline-contract`; two are `emitted-contract-plus-raw-SQL`; none is
+`native-pg-bypass`. All are raw-SQL-dominant through the Prisma runtime API.
+
+**Inference boundary.** A frozen fidelity `pass` therefore establishes the
+specified Prisma runtime/boundary use, not the full Prisma 8 schema/contract
+authoring and generated-client lifecycle. The report does not represent this
+as an ordinary generated-client comparison or normalize raw-SQL proportion.
 
 ## Reproduction and limits
 

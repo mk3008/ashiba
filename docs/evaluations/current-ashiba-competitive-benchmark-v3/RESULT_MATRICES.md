@@ -76,6 +76,22 @@ interpretation is in [PRISMA_TREATMENT_ADJUDICATION.md](./PRISMA_TREATMENT_ADJUD
 emitted-contract-plus-raw-SQL. It must not be read as a full generated-client
 workflow claim.
 
+## Prisma three-field outcome summary
+
+| Cell | Live behavior | Frozen treatment review | Final Prisma workflow interpretation |
+| --- | --- | --- | --- |
+| G1-P-r1 | P | pass | qualified-inline-contract |
+| G1-P-r2 | F | pass | qualified-inline-contract |
+| T1-P-r1 | F | pass | qualified-inline-contract |
+| T1-P-r2 | P | pass | emitted-contract-plus-raw-SQL |
+| T2-P-r1 | P | pass | qualified-inline-contract |
+| T2-P-r2 | P | pass | emitted-contract-plus-raw-SQL |
+| Q1-P-r1 | P | pass | qualified-inline-contract |
+| Q1-P-r2 | P | pass | qualified-inline-contract |
+
+This table transcribes the separate final adjudication; it does not alter the
+historical live result, first-pass slots, or retained attempt count.
+
 ## Secondary control record coverage
 
 | Control | First-pass field | Final/live field | Treatment-fidelity field | Attempt/repair field | Interpretation boundary |
@@ -91,3 +107,19 @@ For exact secondary paths, SHA-256 references and every raw observation are in
 aggregator records 13 nonstandard AF runner observations under
 `supplementalObservations`; those paths are not silently discarded or renamed
 into normalized primary repairs.
+
+## X1 H-007 r2 terminal selection record
+
+| Cell | Selected terminal runner | Recorded final/live status | Boundary |
+| --- | --- | --- | --- |
+| X1-A-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | one corrected, non-aggregate replicate |
+| X1-P-r2 | `corrected-h007/runner-evidence/runner-initial.json` | F | missing candidate entrypoint; no candidate repair or native-pg fallback |
+| X1-S-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | one corrected, non-aggregate replicate |
+| X1-D-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | one corrected, non-aggregate replicate |
+| X1-K-r2 | `corrected-h007/runner-evidence/runner.json` | P | one corrected, non-aggregate replicate |
+| X1-G-r2 | `corrected-h007/runner-evidence/runner.json` | P | one corrected, non-aggregate replicate |
+
+The selected file mapping is explicit in the aggregate script. It supersedes
+r1 only for terminal X1 interpretation; r1 files remain retained correction
+context. It is not a directory-name heuristic and does not establish
+report-builder suitability.
