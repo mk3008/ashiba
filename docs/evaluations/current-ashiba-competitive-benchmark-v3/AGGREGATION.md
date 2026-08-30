@@ -19,24 +19,32 @@ copy instead, pass `--json <path>` and `--csv <path>`.
 
 Primary inputs are each cell's `evidence/<cell>/runner.json` plus every
 immutable `evidence/<cell>/attempts/<attempt-id>/` record. Secondary inputs
-are every `secondary-evidence/<cell>/**/runner.json` observation. The script
-records a SHA-256 for each referenced JSON input in the compact index.
+are every `secondary-evidence/<cell>/**/runner.json` observation, durable E1
+documents matching `e1*.json` (such as `e1.json` and `e1-repair1.json`), and
+durable SD `sd.json` documents. The E1 matcher excludes runner snapshots such
+as `e1.primary-g1.json`. The script records a SHA-256 for each referenced JSON
+input in the compact index.
 
 The source runner outputs and attempt folders remain authoritative. The index
 is intentionally compact: it preserves first-pass slots, every captured live
-result, treatment review, finalization record, and evidence path without
-copying large event streams a second time.
+result, treatment review, finalization record, durable E1/SD schema summary,
+and evidence path without copying large event streams a second time. Every
+cell also emits `evidenceCounts` for first-pass, live, final, treatment, and
+attempt source records; these are inventories rather than verdicts.
 
 ## Interpretation boundary
 
 The generated files do **not** compute an aggregate score, ranking, winner,
 tool-quality conclusion, or causal interpretation. They leave absent fields as
-absent/null. In particular, an additional recorded attempt is not labelled a
-repair category unless a source evidence schema explicitly supplies one.
+absent/null. In particular, an additional recorded attempt is not assigned a
+causal category. File and directory names are retained as evidence paths only;
+they do not determine an outcome or causal interpretation.
 
 `results.csv` is a convenience table with one primary row per cell and one
-secondary row per runner observation. It should be read with `raw-results.json`
-and the linked immutable evidence, not as an independent benchmark result.
+secondary row per runner observation; a secondary cell without a runner row
+emits one row per durable schema document. It should be read with
+`raw-results.json` and the linked immutable evidence, not as an independent
+benchmark result.
 
 See [RAW_RESULTS_SCHEMA.md](./RAW_RESULTS_SCHEMA.md) for fields and current
 coverage limits.

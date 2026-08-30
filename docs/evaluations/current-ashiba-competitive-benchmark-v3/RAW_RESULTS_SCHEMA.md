@@ -7,7 +7,7 @@
 
 | Field | Meaning |
 | --- | --- |
-| `schemaVersion` | Compact-index schema version. |
+| `schemaVersion` | Compact-index schema version (`2` adds durable E1/SD evidence and per-cell source counts). |
 | `generator` | Relative generator path and SHA-256. |
 | `interpretationPolicy` | Guardrails that prohibit implicit scoring. |
 | `limitations` | Explicit non-measurements and evidence boundaries. |
@@ -18,8 +18,10 @@
 ## Primary record
 
 Each primary record preserves the cell identity, the `runner.json` final live
-summary and link, every chronological attempt, and the first/final attempt
-aliases. An attempt retains, where present:
+summary and link, every chronological attempt, the first/final attempt aliases,
+and `evidenceCounts`. The count fields are source-record counts, not scores:
+`firstPassDocuments`, `liveDocuments`, `finalDocuments`,
+`treatmentDocuments`, and `attemptRecords`. An attempt retains, where present:
 
 * the attempt identity and cleanup record;
 * `first-pass.json` slots exactly as recorded;
@@ -28,21 +30,30 @@ aliases. An attempt retains, where present:
 * `finalization.json`.
 
 `additionalAttemptCount` is a count of records after the first attempt. It is
-not a repair classification. The current evidence controller does not provide
-a normalized repair taxonomy, so `repair.classification` remains `null` rather
-than being inferred from file names or chronology.
+not assigned a causal category.
 
 ## Secondary record
 
-Secondary controls may retain an initial and a corrected observation. The
-index preserves every `runner.json` beneath the cell as an `observations`
-entry. It deliberately does not choose a final observation from a directory
-name such as `corrected`; the protocol/report must make that interpretation
-with the underlying correction evidence.
+The index preserves every `runner.json` beneath the cell as an `observations`
+entry. It also preserves durable secondary schemas in `durableSchemas`:
+
+* `E1` cells discover `e1*.json` documents such as `e1.json` and
+  `e1-repair1.json`, excluding runner snapshots such as `e1.primary-g1.json`.
+* `SD` cells discover `sd.json` documents and retain the recorded static
+  inspection and mutation-observation summaries.
+
+Each secondary cell exposes the same `evidenceCounts` fields as a source
+inventory. A durable E1/SD document counts as one `attemptRecords` and one
+`finalDocuments` because it is a standalone terminal evidence document; this
+does not assign a cause or category to its name. `liveDocuments` counts runner
+documents plus E1 documents that record a nested `primaryG1` live result.
+`treatmentDocuments` counts recorded E1 removal fields and SD documents with
+recorded mutation observations. `firstPassDocuments` remains zero unless a
+future secondary schema supplies a first-pass document.
 
 ## Missing telemetry and non-inference
 
-This index does not estimate token use, credits, time, repair cause, treatment
+This index does not estimate token use, credits, time, causal category, treatment
 quality, or tool quality. When those values are absent from immutable evidence,
 they remain absent/null. The orchestration ledger is the authority for model,
 retry, escalation, and any runtime-reported usage; it is not silently joined

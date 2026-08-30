@@ -3,7 +3,7 @@
  * Rebuild the benchmark's compact result index from immutable evidence.
  *
  * This is deliberately an extractor, not a scorer.  It neither runs a
- * candidate nor interprets a missing field as a pass, failure, repair, or
+ * candidate nor interprets a missing field as a pass, failure, causal category, or
  * tool property.  The full runner and attempt documents remain authoritative
  * at the paths emitted in the index.
  */
@@ -111,9 +111,7 @@ function attemptRecord(root, attemptDirectory, ordinal) {
   const runnerCapture = maybeJson(runnerPath);
   const liveDocument = runnerCapture?.value ?? null;
 
-  // An attempt after ordinal zero is recorded as an additional attempt.  The
-  // evidence format does not consistently label an attempt as a repair, so
-  // this extractor intentionally does not classify it as one.
+  // An attempt after ordinal zero is recorded only as an additional attempt.
   return {
     ordinal,
     additionalAttempt: ordinal > 0,
@@ -130,17 +128,23 @@ function attemptRecord(root, attemptDirectory, ordinal) {
     live: liveSummary(liveDocument),
     treatment: maybeJson(treatmentPath),
     finalization: maybeJson(finalizationPath),
-    repair: {
-      classification: null,
-      classificationSource: null,
-      note: "The primary evidence schema does not provide a normalized repair classification; additionalAttempt is not interpreted as a repair category.",
-    },
     sources: {
       firstPass: fileReference(root, firstPassPath),
       runner: fileReference(root, runnerPath),
       treatment: fileReference(root, treatmentPath),
       finalization: fileReference(root, finalizationPath),
     },
+  };
+}
+
+function primaryEvidenceCounts(record) {
+  return {
+    firstPassDocuments: record.attempts.filter((attempt) => attempt.firstPass != null).length,
+    liveDocuments:
+      record.attempts.filter((attempt) => attempt.live != null).length + (record.finalLive != null ? 1 : 0),
+    finalDocuments: record.finalLive != null ? 1 : 0,
+    treatmentDocuments: record.attempts.filter((attempt) => attempt.treatment != null).length,
+    attemptRecords: record.attempts.length,
   };
 }
 
@@ -163,7 +167,7 @@ function primaryRecords(root) {
       );
       const finalRunnerPath = join(cellRoot, "runner.json");
       const finalRunner = maybeJson(finalRunnerPath);
-      return {
+      const record = {
         kind: "primary",
         cell,
         ...metadata,
@@ -176,9 +180,99 @@ function primaryRecords(root) {
         finalLiveSource: fileReference(root, finalRunnerPath),
         attempts,
       };
+      return { ...record, evidenceCounts: primaryEvidenceCounts(record) };
     })
     .filter(Boolean)
     .sort((left, right) => left.cell.localeCompare(right.cell));
+}
+
+function walkNamedDocuments(directory, matcher) {
+  const results = [];
+  function walk(current) {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const path = join(current, entry.name);
+      if (entry.isDirectory()) {
+        walk(path);
+      } else if (entry.isFile() && matcher.test(entry.name)) {
+        results.push(path);
+      }
+    }
+  }
+  if (existsSync(directory)) walk(directory);
+  return results.sort((left, right) => left.localeCompare(right));
+}
+
+function e1Summary(document) {
+  if (!document || typeof document !== "object") return null;
+  return {
+    status: resultStatus(document),
+    harness: typeof document.harness === "string" ? document.harness : null,
+    treatmentRemoval: typeof document.treatmentRemoval === "string" ? document.treatmentRemoval : null,
+    primaryG1: liveSummary(document.primaryG1),
+    sourceUnchangedDuringRunner:
+      typeof document.sourceUnchangedDuringRunner === "boolean" ? document.sourceUnchangedDuringRunner : null,
+    startedAt: typeof document.startedAt === "string" ? document.startedAt : null,
+    finishedAt: typeof document.finishedAt === "string" ? document.finishedAt : null,
+  };
+}
+
+function sdSummary(document) {
+  if (!document || typeof document !== "object") return null;
+  const mutations = Array.isArray(document.mutations) ? document.mutations : [];
+  return {
+    status: resultStatus(document),
+    harness: typeof document.harness === "string" ? document.harness : null,
+    staticInspection: document.staticInspection
+      ? {
+          pass: typeof document.staticInspection.pass === "boolean" ? document.staticInspection.pass : null,
+          findingCount: Array.isArray(document.staticInspection.findings)
+            ? document.staticInspection.findings.length
+            : null,
+        }
+      : null,
+    mutationCount: mutations.length,
+    mutationObservations: mutations.map((mutation) => ({
+      mutation: typeof mutation?.mutation === "string" ? mutation.mutation : null,
+      firstDetectionStage: typeof mutation?.firstDetectionStage === "string" ? mutation.firstDetectionStage : null,
+      observationCount: Array.isArray(mutation?.observations) ? mutation.observations.length : 0,
+      cleanup: mutation?.cleanup ?? null,
+    })),
+    startedAt: typeof document.startedAt === "string" ? document.startedAt : null,
+    finishedAt: typeof document.finishedAt === "string" ? document.finishedAt : null,
+  };
+}
+
+function durableSchemaRecords(root, cellRoot) {
+  const e1Paths = walkNamedDocuments(cellRoot, /^e1(?:-[a-z0-9]+)*\.json$/i);
+  const sdPaths = walkNamedDocuments(cellRoot, /^sd\.json$/i);
+  return [
+    ...e1Paths.map((path) => ({
+      schema: "e1",
+      evidencePath: relative(root, path).replaceAll("\\", "/"),
+      sha256: hash(path),
+      summary: e1Summary(readJson(path)),
+    })),
+    ...sdPaths.map((path) => ({
+      schema: "sd",
+      evidencePath: relative(root, path).replaceAll("\\", "/"),
+      sha256: hash(path),
+      summary: sdSummary(readJson(path)),
+    })),
+  ];
+}
+
+function secondaryEvidenceCounts(observations, durableSchemas) {
+  const e1 = durableSchemas.filter((document) => document.schema === "e1");
+  const sd = durableSchemas.filter((document) => document.schema === "sd");
+  return {
+    firstPassDocuments: 0,
+    liveDocuments: observations.length + e1.filter((document) => document.summary?.primaryG1 != null).length,
+    finalDocuments: durableSchemas.length,
+    treatmentDocuments:
+      e1.filter((document) => document.summary?.treatmentRemoval != null).length +
+      sd.filter((document) => document.summary?.mutationCount > 0).length,
+    attemptRecords: durableSchemas.length,
+  };
 }
 
 function walkRunnerDocuments(root, directory) {
@@ -214,6 +308,7 @@ function secondaryRecords(root) {
           deltaComplete: typeof document?.deltaComplete === "boolean" ? document.deltaComplete : null,
         };
       });
+      const durableSchemas = durableSchemaRecords(root, cellRoot);
       return {
         kind: "secondary",
         cell,
@@ -221,7 +316,9 @@ function secondaryRecords(root) {
         evidenceRoot: relative(root, cellRoot).replaceAll("\\", "/"),
         observationCount: observations.length,
         observations,
-        note: "Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.",
+        durableSchemas,
+        evidenceCounts: secondaryEvidenceCounts(observations, durableSchemas),
+        note: "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names.",
       };
     })
     .filter(Boolean)
@@ -243,6 +340,10 @@ function csvRows(primary, secondary) {
     "evidence_path",
     "attempt_count",
     "additional_attempt_count",
+    "first_pass_document_count",
+    "live_document_count",
+    "final_document_count",
+    "treatment_document_count",
     "first_build_status",
     "first_typecheck_status",
     "first_test_status",
@@ -251,6 +352,7 @@ function csvRows(primary, secondary) {
     "final_treatment_value",
     "final_cleanup_status",
     "observation_index",
+    "durable_schema",
     "note",
   ];
   const rows = [header];
@@ -265,6 +367,10 @@ function csvRows(primary, secondary) {
       record.finalLiveSource?.path ?? record.evidenceRoot,
       record.attemptCount,
       record.additionalAttemptCount,
+      record.evidenceCounts.firstPassDocuments,
+      record.evidenceCounts.liveDocuments,
+      record.evidenceCounts.finalDocuments,
+      record.evidenceCounts.treatmentDocuments,
       slots.build?.status ?? null,
       slots.typecheck?.status ?? null,
       slots.test?.status ?? null,
@@ -273,28 +379,38 @@ function csvRows(primary, secondary) {
       record.finalAttempt?.treatment?.value ?? null,
       record.finalLive?.cleanup?.status ?? null,
       null,
+      null,
       "No aggregate score or winner is computed.",
     ]);
   }
   for (const record of secondary) {
-    record.observations.forEach((observation, index) => {
+    const rowsForCell =
+      record.observations.length > 0
+        ? record.observations.map((observation, index) => ({ observation, index, durableSchema: null }))
+        : record.durableSchemas.map((durableSchema) => ({ observation: null, index: null, durableSchema }));
+    rowsForCell.forEach(({ observation, index, durableSchema }) => {
       rows.push([
         record.kind,
         record.cell,
         record.workloadOrControl,
         record.arm,
         record.replicate,
-        observation.evidencePath,
+        observation?.evidencePath ?? durableSchema?.evidencePath ?? record.evidenceRoot,
+        null,
+        null,
+        record.evidenceCounts.firstPassDocuments,
+        record.evidenceCounts.liveDocuments,
+        record.evidenceCounts.finalDocuments,
+        record.evidenceCounts.treatmentDocuments,
         null,
         null,
         null,
         null,
+        observation?.live?.status ?? durableSchema?.summary?.status ?? null,
         null,
-        null,
-        observation.live?.status ?? null,
-        null,
-        observation.live?.cleanup?.status ?? null,
+        observation?.live?.cleanup?.status ?? null,
         index,
+        durableSchema?.schema ?? null,
         record.note,
       ]);
     });
@@ -310,7 +426,7 @@ const csvOutput = resolve(args.csv ?? join(root, "results.csv"));
 const primary = primaryRecords(root);
 const secondary = secondaryRecords(root);
 const output = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   generatedAt: new Date().toISOString(),
   generator: {
     path: relative(root, resolve(import.meta.dirname, "aggregate-results.mjs")).replaceAll("\\", "/"),
@@ -321,9 +437,9 @@ const output = {
   inputRoot: ".",
   interpretationPolicy: {
     noAggregateWinnerOrRanking: true,
-    missingFieldPolicy: "Missing or undocumented fields remain null/absent and are not interpreted as a pass, failure, repair, or tool-quality signal.",
-    attemptPolicy: "Each preserved primary attempt is listed in chronological directory order. An attempt after the first is recorded as an additional attempt; repair taxonomy is left null unless a source schema supplies it.",
-    secondaryPolicy: "Each secondary runner document is an observation. Directory names do not establish a final result.",
+    missingFieldPolicy: "Missing or undocumented fields remain null/absent and are not interpreted as a pass, failure, causal category, or tool-quality signal.",
+    attemptPolicy: "Each preserved primary attempt is listed in chronological directory order. An attempt after the first is recorded only as an additional attempt.",
+    secondaryPolicy: "Each secondary runner document and durable E1/SD schema document is retained as recorded evidence. Directory and file names do not establish a causal category.",
   },
   limitations: [
     "Token and credit telemetry are not synthesized by this extractor. They remain unavailable unless recorded in source evidence or the orchestration ledger.",
@@ -335,6 +451,7 @@ const output = {
     primaryAttemptCount: primary.reduce((sum, record) => sum + record.attemptCount, 0),
     secondaryCellCount: secondary.length,
     secondaryObservationCount: secondary.reduce((sum, record) => sum + record.observationCount, 0),
+    secondaryDurableSchemaCount: secondary.reduce((sum, record) => sum + record.durableSchemas.length, 0),
   },
   primary,
   secondary,
