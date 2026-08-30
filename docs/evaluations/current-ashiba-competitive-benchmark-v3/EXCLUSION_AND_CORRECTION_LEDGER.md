@@ -31,6 +31,27 @@ or calibration evidence.
 - **Status:** committed; all E1 cells must be freshly materialized before
   candidate work resumes.
 
+# H-005 — E1 runtime-install precondition omission
+
+- **Observed:** 2026-08-30, on the first post-H-004 E1-A runner invocation.
+- **Original evidence:** the runner output is preserved as excluded setup
+  evidence. It failed at import because materialization intentionally excludes
+  `node_modules` and the candidate had no installed `pg` runtime.
+- **Cause:** E1 packet/reproduction material specified source copying but did
+  not freeze the runner-owned lockfile installation needed before the runner
+  imports the exit candidate.
+- **Correction:** freeze `PRE_RUN_ENVIRONMENT.md`; before every E1 runner
+  invocation, the runner owner executes Node 24 `npm ci --ignore-scripts` with
+  a cell-local npm cache. This is environment preparation, not a candidate
+  repair, and does not alter the source snapshot manifest.
+- **Affected controls:** E1-A-r1 post-H-004 initial runner result and all
+  post-H-004 materializations prepared under the incomplete packet. No primary
+  cell is affected.
+- **Required remeasure:** preserve H-004/H-005 setup evidence, freshly
+  materialize every E1 arm under the completed packet, then execute the frozen
+  pre-run installation before candidate generation and runner import.
+- **Status:** pending correction commit.
+
 # H-003 — AF baseline TypeScript configuration correction
 
 - **Observed:** 2026-08-30, after AF-V initial attempts had been materialized
