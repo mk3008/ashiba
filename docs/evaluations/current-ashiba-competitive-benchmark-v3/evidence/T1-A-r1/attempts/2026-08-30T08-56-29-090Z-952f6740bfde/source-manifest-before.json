@@ -1,0 +1,40 @@
+{
+  "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-A-r1\\candidate",
+  "fileCount": 4,
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 4139,
+    "sha256": "ec3794acafed2f3a6d1cb3a6f606689dc2fcf57c51f47c91679b9f251878faae"
+  },
+  "files": [
+    {
+      "path": "dist/application.js",
+      "bytes": 4139,
+      "sha256": "ec3794acafed2f3a6d1cb3a6f606689dc2fcf57c51f47c91679b9f251878faae",
+      "lockfile": false,
+      "excludedFromSnapshot": false,
+      "includedBecause": "declared-entrypoint"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3",
+      "lockfile": true,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package.json",
+      "bytes": 277,
+      "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 4462,
+      "sha256": "06d7897f9d4051b1c15d813a5bce908c3e578cf90ca5665a6c2ce9bdaedd2fa7",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    }
+  ]
+}

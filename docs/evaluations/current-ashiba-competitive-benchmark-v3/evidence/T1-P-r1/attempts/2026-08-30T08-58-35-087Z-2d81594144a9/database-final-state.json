@@ -1,0 +1,241 @@
+{
+  "status": "captured",
+  "source": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-P-r1\\evidence\\runner.json.pre-cleanup.json",
+  "sourceSha256": "c8f91fd3716ab48eb63273a83a415a5acd8d0ae1f8cd1db2c56f7894077a74c2",
+  "value": {
+    "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+    "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-P-r1\\candidate\\dist\\application.js",
+    "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-P-r1\\candidate",
+    "workloads": [
+      "T1"
+    ],
+    "source": {
+      "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-P-r1\\candidate",
+      "files": [
+        {
+          "path": "dist/application.js",
+          "kind": "file",
+          "bytes": 3400,
+          "sha256": "8bb30970b7e2b74a0858dd69f7d957bbe325ee17aa1a1a6af46c5a984151671b"
+        },
+        {
+          "path": "package-lock.json",
+          "kind": "file",
+          "bytes": 284626,
+          "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+        },
+        {
+          "path": "package.json",
+          "kind": "file",
+          "bytes": 235,
+          "sha256": "6765ef348397969d46f26bea2cc2fefa9d6003203b7aba6ccfbf53649368f0b0"
+        },
+        {
+          "path": "src/application.ts",
+          "kind": "file",
+          "bytes": 3950,
+          "sha256": "134fa0b1afc5116c117fcd4d6124615df08da4b4b3e82e9455318c22d260ffe1"
+        }
+      ],
+      "findings": [],
+      "pass": true
+    },
+    "checks": [
+      {
+        "id": "T1-success",
+        "status": "fail",
+        "detail": "debit, credit, and audit commit together"
+      },
+      {
+        "id": "T1-insufficient-rollback",
+        "status": "pass",
+        "detail": "insufficient funds do not mutate state"
+      },
+      {
+        "id": "T1-trigger-rollback",
+        "status": "pass",
+        "detail": "runner-owned post-debit trigger rolls back transfer"
+      },
+      {
+        "id": "T1-close",
+        "status": "pass",
+        "detail": "close resolves with no value"
+      },
+      {
+        "id": "T1-close-idempotent",
+        "status": "pass",
+        "detail": "close is idempotent"
+      },
+      {
+        "id": "T1-closed-rejection",
+        "status": "pass",
+        "detail": "transfer rejects after close"
+      }
+    ],
+    "events": [
+      {
+        "operation": "transfer",
+        "input": {
+          "fromAccountId": "7001",
+          "toAccountId": "7002",
+          "amountCents": "1250",
+          "note": "runner control"
+        },
+        "startedAt": "2026-08-30T08:58:47.224Z",
+        "status": "rejected",
+        "error": {
+          "name": "RuntimeError",
+          "code": "RUNTIME.RAW_ROW_COLUMN_MISSING",
+          "message": "Raw statement result has no column \"accountId\", which its row spec declares"
+        },
+        "durationMs": 22
+      },
+      {
+        "operation": "transfer",
+        "input": {
+          "fromAccountId": "7002",
+          "toAccountId": "7001",
+          "amountCents": "999999",
+          "note": "insufficient"
+        },
+        "startedAt": "2026-08-30T08:58:47.258Z",
+        "status": "rejected",
+        "error": {
+          "name": "ApplicationError",
+          "code": "INSUFFICIENT_FUNDS",
+          "message": "insufficient funds"
+        },
+        "durationMs": 2
+      },
+      {
+        "operation": "transfer",
+        "input": {
+          "fromAccountId": "7001",
+          "toAccountId": "7002",
+          "amountCents": "100",
+          "note": "db-trigger failure"
+        },
+        "startedAt": "2026-08-30T08:58:47.279Z",
+        "status": "rejected",
+        "error": {
+          "name": "RuntimeError",
+          "code": "RUNTIME.RAW_ROW_COLUMN_MISSING",
+          "message": "Raw statement result has no column \"accountId\", which its row spec declares"
+        },
+        "durationMs": 2
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T08:58:47.299Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T08:58:47.299Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "transfer",
+        "input": {},
+        "startedAt": "2026-08-30T08:58:47.299Z",
+        "status": "rejected",
+        "error": {
+          "name": "ApplicationError",
+          "code": "APPLICATION_CLOSED",
+          "message": "application is closed"
+        },
+        "durationMs": 0
+      }
+    ],
+    "cleanup": {
+      "status": "pending",
+      "recordedBeforeCleanup": true
+    },
+    "startedAt": "2026-08-30T08:58:45.369Z",
+    "schema": "ashiba_v3_0186d8079bd0c15f",
+    "candidateRole": "ashiba_v3_candidate_35da68157185dac8",
+    "finalDatabaseState": {
+      "tickets": [
+        {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "102",
+          "title": "Export is slow",
+          "status": "pending",
+          "assignee": "bob",
+          "priority": 3,
+          "metadata": {
+            "channel": "web"
+          }
+        },
+        {
+          "id": "103",
+          "title": "Password reset",
+          "status": "open",
+          "assignee": null,
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "104",
+          "title": "Close account",
+          "status": "closed",
+          "assignee": "alice",
+          "priority": 1,
+          "metadata": {
+            "channel": "web"
+          }
+        }
+      ],
+      "ticketAudit": [],
+      "accounts": [
+        {
+          "account_id": "7001",
+          "balance_cents": "10000"
+        },
+        {
+          "account_id": "7002",
+          "balance_cents": "5000"
+        }
+      ],
+      "transferAudit": [],
+      "workItems": [
+        {
+          "id": "8001",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8002",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8003",
+          "state": "queued",
+          "claimed_by": null
+        }
+      ]
+    },
+    "status": "F",
+    "preCleanupRecord": {
+      "status": "written",
+      "path": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-P-r1\\evidence\\runner.json.pre-cleanup.json",
+      "writtenAt": "2026-08-30T08:58:47.310Z"
+    }
+  }
+}

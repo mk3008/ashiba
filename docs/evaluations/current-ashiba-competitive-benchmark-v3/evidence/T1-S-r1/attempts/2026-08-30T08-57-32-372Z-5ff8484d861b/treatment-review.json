@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "fail",
+  "note": "Live behavior passed, but no actual sqlc generator/plugin execution or provenance is present; manually maintained generated-looking query code does not satisfy sqlc treatment fidelity.",
+  "decidedAt": "2026-08-30T08:57:50.505Z",
+  "decidedBy": "coordinator-required"
+}

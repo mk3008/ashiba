@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Ashiba compile/bind and native pg main path; repaired statement-local binding preserves transaction behavior.",
+  "decidedAt": "2026-08-30T08:58:26.122Z",
+  "decidedBy": "coordinator-required"
+}

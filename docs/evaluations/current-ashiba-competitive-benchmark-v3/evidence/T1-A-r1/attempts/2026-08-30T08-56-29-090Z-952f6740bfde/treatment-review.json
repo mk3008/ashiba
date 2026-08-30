@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Ashiba compile/bind + native pg main path; initial live attempt failed because values intended for later statements were bound to a statement that did not reference them.",
+  "decidedAt": "2026-08-30T08:56:50.390Z",
+  "decidedBy": "coordinator-required"
+}

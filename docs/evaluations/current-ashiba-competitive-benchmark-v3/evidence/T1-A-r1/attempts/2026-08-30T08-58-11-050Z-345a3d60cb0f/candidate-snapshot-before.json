@@ -1,0 +1,35 @@
+{
+  "root": "candidate-source-before-cleanup",
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 4322,
+    "sha256": "39ef414204f21eeb1b02ab4db926f9093087570cb9a41c18b7ea66fa7afc4dcf"
+  },
+  "copied": [
+    {
+      "path": "dist/application.js",
+      "sourceSha256": "39ef414204f21eeb1b02ab4db926f9093087570cb9a41c18b7ea66fa7afc4dcf",
+      "snapshotSha256": "39ef414204f21eeb1b02ab4db926f9093087570cb9a41c18b7ea66fa7afc4dcf",
+      "redacted": false
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3",
+      "snapshotSha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3",
+      "redacted": false
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51",
+      "snapshotSha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51",
+      "redacted": false
+    },
+    {
+      "path": "src/application.ts",
+      "sourceSha256": "4b5830b16a47133ff2488d5c08257befa58635dd2f81c3ed2f5f129c0c10a5a9",
+      "snapshotSha256": "4b5830b16a47133ff2488d5c08257befa58635dd2f81c3ed2f5f129c0c10a5a9",
+      "redacted": false
+    }
+  ],
+  "excluded": []
+}
