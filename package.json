@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.19.0",
   "scripts": {
     "build": "pnpm -r --filter \"!@ashiba-ts/transfer-dogfood\" --filter \"!@ashiba-ts/ddl-docs-cli\" run --if-present build",
-    "typecheck": "pnpm -r --filter \"!@ashiba-ts/transfer-dogfood\" --filter \"!@ashiba-ts/ddl-docs-cli\" run --if-present typecheck",
+    "typecheck": "pnpm --filter @ashiba-ts/named-parameters build && pnpm -r --filter \"!@ashiba-ts/named-parameters\" --filter \"!@ashiba-ts/transfer-dogfood\" --filter \"!@ashiba-ts/ddl-docs-cli\" run --if-present typecheck",
     "docs:transfer": "pnpm --filter @ashiba-ts/ddl-docs-cli build && node scripts/generate-transfer-docs.mjs",
     "docs:build": "node scripts/clear-generated-transfer-docs.mjs && vitepress build docs",
     "docs:dev": "node scripts/clear-generated-transfer-docs.mjs && vitepress dev docs --host 127.0.0.1",
