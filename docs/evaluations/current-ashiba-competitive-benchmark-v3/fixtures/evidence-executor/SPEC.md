@@ -31,7 +31,8 @@ The controller hashes the packet and prompt; records redacted stdout/stderr;
 stores first-pass command slots; writes pre/post manifests; and snapshots the
 candidate source before execution and before cleanup. The declared entrypoint is
 always hashed and copied into the snapshot, including when it is under normally
-excluded `dist` or `build` directories. `.env*`, `.npmrc`, and `.pgpass` are excluded
+excluded `dist` or `build` directories. Both entrypoint snapshot copies are
+also included by SHA-256 in the finalized evidence manifest. `.env*`, `.npmrc`, and `.pgpass` are excluded
 from source snapshots and listed by hash only. Text logs/snapshots redact
 connection passwords and common secret values. Declared commands are trusted
 coordinator input and run through the host shell in the candidate directory.
@@ -80,6 +81,7 @@ node attempt-evidence-executor.mjs self-test
 The self-test creates and removes a temporary fixture, places its entrypoint in
 `dist/`, proves that missing finalization attachments do not create `FINALIZED`,
 and executes a child command while the controller has an admin `DATABASE_URL`.
-The child records that the variable is absent. It then finalizes as
+The child records that the variable is absent and the final manifest must list
+both `dist/` entrypoint snapshots. It then finalizes as
 `not-applicable`, never invokes the benchmark runner, and creates no scored
 result.

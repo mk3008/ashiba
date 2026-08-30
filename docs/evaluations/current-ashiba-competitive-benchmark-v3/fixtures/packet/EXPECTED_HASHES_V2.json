@@ -14,6 +14,7 @@
     "benchmark/PREREGISTRATION_AMENDMENT_4.md",
     "benchmark/PREREGISTRATION_AMENDMENT_5.md",
     "benchmark/PREREGISTRATION_AMENDMENT_6.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_7.md",
     "benchmark/WORKLOADS.md",
     "fixtures/packet/packet-hash.mjs"
   ],
@@ -79,6 +80,11 @@
       "bytes": 1621
     },
     {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_7.md",
+      "sha256": "9de1d60c43b5cc34a5505310f15c330b5100df971844718b67adfd882c2901d4",
+      "bytes": 966
+    },
+    {
       "path": "benchmark/WORKLOADS.md",
       "sha256": "cf8ed1ef417762133cd0fb0c699d5e1f995456ecabd338b81588cd2493b277ed",
       "bytes": 1841
@@ -115,13 +121,13 @@
     },
     {
       "path": "fixtures/evidence-executor/SPEC.md",
-      "sha256": "af40d63c1ad6dbf0d3761e3f65e9e40670d61f321369915a21f14e22b8c5c0ef",
-      "bytes": 4063
+      "sha256": "8bc01af6fc494cd43bff6c7c69da18783b4c028d7fc2282fbe5b4d98a9e1002e",
+      "bytes": 4227
     },
     {
       "path": "fixtures/evidence-executor/attempt-evidence-executor.mjs",
-      "sha256": "b123556c0f3bd9c3af16c385e0d3c0f0017c185a57d486da1bdd1d1ad4e87ae0",
-      "bytes": 21520
+      "sha256": "ff9a2d4071438bc3697a576bf21cc94eac1e02f11bb91c4c586376a53f74c357",
+      "bytes": 22258
     },
     {
       "path": "fixtures/fixture.mjs",
@@ -270,8 +276,8 @@
     },
     {
       "path": "fixtures/packet/packet-hash.mjs",
-      "sha256": "33c177fb237dd62278ae4a703fd35408d0e8ee43d19e1f2541983400b325de0a",
-      "bytes": 7826
+      "sha256": "71c010e8e060f012981b3ddc12c6c6d4c76343bf7af198e36ee08de607e6ed88",
+      "bytes": 7872
     },
     {
       "path": "fixtures/prompts/A.md",

@@ -73,6 +73,13 @@ async function files(root, relative = '') {
     if (entry.isDirectory()) result.push(...await files(root, child)); else if (entry.isFile()) result.push(child);
   } return result;
 }
+async function evidenceFiles(root, relative = '') {
+  const result = [];
+  for (const entry of (await fs.readdir(path.join(root, relative), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+    const child = path.join(relative, entry.name);
+    if (entry.isDirectory()) result.push(...await evidenceFiles(root, child)); else if (entry.isFile()) result.push(child);
+  } return result;
+}
 async function manifest(root, entrypoint) {
   const entries = [];
   for (const relative of await files(root)) { const absolute = path.join(root, relative); const info = await fs.stat(absolute); entries.push({ path: display(relative), bytes: info.size, sha256: await hash(absolute), lockfile: LOCKS.has(path.basename(relative)), excludedFromSnapshot: sensitive(relative) }); }
@@ -130,7 +137,7 @@ async function run(args) {
   await json(path.join(attempt.attemptDir, 'candidate-snapshot-after.json'), await snapshot(attempt.candidateRoot, path.join(attempt.attemptDir, 'candidate-source-before-cleanup'), attempt.entrypoint)); await json(path.join(attempt.attemptDir, 'source-manifest-after.json'), await manifest(attempt.candidateRoot, attempt.entrypoint));
   console.log(JSON.stringify({ attemptDir: attempt.attemptDir, attemptId: attempt.attemptId, dryRun: Boolean(args.dryRun), finalized: false }, null, 2));
 }
-async function evidenceManifest(attemptDir) { const entries = []; for (const relative of await files(attemptDir)) { if (relative === 'evidence-manifest.json') continue; const absolute = path.join(attemptDir, relative); const info = await fs.stat(absolute); entries.push({ path: display(relative), bytes: info.size, sha256: await hash(absolute) }); } return { algorithm: 'sha256', createdAt: new Date().toISOString(), files: entries }; }
+async function evidenceManifest(attemptDir) { const entries = []; for (const relative of await evidenceFiles(attemptDir)) { if (relative === 'evidence-manifest.json') continue; const absolute = path.join(attemptDir, relative); const info = await fs.stat(absolute); entries.push({ path: display(relative), bytes: info.size, sha256: await hash(absolute) }); } return { algorithm: 'sha256', createdAt: new Date().toISOString(), files: entries }; }
 async function requiredAttachment(option, input) {
   if (!input) throw new Error(`finalize requires --${option}`);
   const file = path.resolve(input); const info = await fs.stat(file);
@@ -172,7 +179,8 @@ async function selfTest() {
     await finalize({ 'attempt-dir': attempt.attemptDir, 'treatment-fidelity': 'not-applicable', 'treatment-note': 'controller self-test; not a benchmark attempt', 'runner-json': runnerJson, 'db-summary': databaseSummary });
     const final = JSON.parse(await fs.readFile(path.join(attempt.attemptDir, 'evidence-manifest.json'), 'utf8'));
     const childLog = await fs.readFile(path.join(attempt.attemptDir, item.stdout), 'utf8');
-    if (item.status !== 'pass' || !missingAttachmentsRejected || finalizedAfterRejectedAttachments || childLog.trim() !== 'runner-admin-env-absent' || !declaredEntrypointSnapshotted || !declaredEntrypointHashed || !final.files.some((file) => file.path === 'self-test-observations.json')) throw new Error('self-test assertion failed');
+    const entrypointSnapshotsInFinalManifest = ['candidate-source-before-execution/dist/application.mjs', 'candidate-source-before-cleanup/dist/application.mjs'].every((snapshotPath) => final.files.some((file) => file.path === snapshotPath && /^[a-f0-9]{64}$/.test(file.sha256)));
+    if (item.status !== 'pass' || !missingAttachmentsRejected || finalizedAfterRejectedAttachments || childLog.trim() !== 'runner-admin-env-absent' || !declaredEntrypointSnapshotted || !declaredEntrypointHashed || !entrypointSnapshotsInFinalManifest || !final.files.some((file) => file.path === 'self-test-observations.json')) throw new Error('self-test assertion failed');
     console.log(JSON.stringify({ status: 'pass', scoring: 'none', missingAttachments: 'rejected', candidateDatabaseUrl: 'absent', declaredEntrypoint: 'snapshotted' }, null, 2));
   } finally { if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL; else process.env.DATABASE_URL = previousDatabaseUrl; await fs.rm(root, { recursive: true, force: true }); }
 }
