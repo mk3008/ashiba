@@ -1,3 +1,2 @@
 node_modules/
-src/tickets/generated/*.mjs
-src/tickets/generated/*.ts
+dist/

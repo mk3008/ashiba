@@ -33,10 +33,12 @@ not become a required Golden Path gate.
 - Node support is Node 22 and 24 LTS, with Node 24 recommended. Public package
   engines now express that policy.
 - The minimal, VSA, and layered references are independently reviewable and
-  carry exact prompt/provenance material.
-- Fresh-agent VSA and layered clean rooms passed a runner-owned PostgreSQL
-  oracle, not their own test claims alone. The oracle covers filters, reviewed
-  sort, pagination, get, committed assignment, and injected-audit rollback.
+  carry concise-consumer-prompt and harness provenance material.
+- The new strict-TypeScript fresh-agent VSA rerun passed generation freshness,
+  typechecking, candidate tests, and a runner-owned PostgreSQL oracle. The
+  existing layered clean-room evidence remains unchanged. The VSA oracle covers
+  filters, all reviewed sort pairs, pagination, get, hostile-value binding,
+  missing/unused rejection, committed assignment, and injected-audit rollback.
 - The npm tarball proof uses only packed public packages and normal npm install.
 
 ## Concern and follow-up

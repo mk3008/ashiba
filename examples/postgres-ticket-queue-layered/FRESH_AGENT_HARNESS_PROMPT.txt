@@ -1,0 +1,21 @@
+Evaluation-only harness instructions. These are not the layered consumer
+prompt. The concise consumer prompt is [ORIGINAL_PROMPT.md](./ORIGINAL_PROMPT.md).
+
+Credit-aware fresh-agent clean-room lane. Goal: Build a runnable minimal
+LAYERED PostgreSQL ticket app in a clean directory using only packed Ashiba
+tarballs and this packet. Do not inspect Ashiba repository source, examples, or
+evaluations. Use normal npm registry dependencies and a local npm cache if
+needed. Implement canonical `.sql`, model-gen binding metadata,
+`bindNamedParameters`, native `pg`, finite source-controlled sort, list optional
+filter/paging/get/assign+audit transaction/rollback test. Layered placement:
+SQL/generated access layer; application service/use case owns mapping and
+transaction; native pool adapter is application-owned. The frozen DDL is
+`tickets(id bigserial PK, subject text, status text, assignee_id bigint nullable,
+created_at timestamptz)` and `ticket_events(id bigserial, ticket_id bigint, kind
+text, created_at timestamptz)`. Acceptance: list optional status/assignee
+filters, joined audit count/multiple columns, limit/offset; get; assign with
+audit and rollback; sort createdAt/subject asc|desc with stable id; hostile input
+bound rather than interpolated; binder missing/unused rejection. Tarballs only
+for Ashiba; no workspace/file deps, ORM, migration/scaffold, or Safe Sort
+runtime. The runner owns verification and cleanup; return only a concise result
+summary. Do not edit repository/shared files or revert other work.

@@ -7,11 +7,11 @@
   },
   "architectureReferences": {
     "minimal": "pass-existing",
-    "vsa": "pass-runner-oracle",
+    "vsa": "pass-strict-typescript-runner-oracle",
     "layered": "pass-runner-oracle"
   },
   "cleanRoom": {
-    "vsa": "pass-after-two-runner-detected-repairs",
+    "vsa": "pass-strict-typescript-fresh-rerun-no-repair",
     "layered": "pass-after-nullable-guard-repair"
   },
   "invariants": {
@@ -21,7 +21,7 @@
   },
   "runnerOwnedOracle": {
     "postgres": "pass",
-    "coverage": ["filters", "finite sort", "pagination", "get", "assign", "injected audit rollback"],
+    "coverage": ["status filter", "assignee filter", "all finite sort pairs", "pagination", "get", "hostile binding", "missing/unused rejection", "assign", "database-injected audit rollback"],
     "candidateTestsUsedAsAuthority": false
   },
   "verification": {
@@ -45,5 +45,14 @@
     "supportInbox": "pass",
     "supportInboxAutocrlf": "pass"
   },
-  "temporaryResources": "postgres oracle container removed"
+  "vsaTypeScriptRerun": {
+    "consumerPrompt": "pass-separated-from-harness",
+    "applicationSource": "pass-strict-ts",
+    "generatedFreshness": "pass",
+    "candidateTests": "pass-3",
+    "runnerOwnedPostgresOracle": "pass",
+    "repairRetryEscalation": "none",
+    "cleanRoom": "removed-after-evidence-capture"
+  },
+  "temporaryResources": "postgres oracle container removed; VSA clean-room removed after evidence capture"
 }

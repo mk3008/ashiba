@@ -1,4 +1,4 @@
-# Original concise consumer prompt
+# Consumer prompt
 
 Build a TypeScript PostgreSQL ticket application using Vertical Slice
 Architecture.

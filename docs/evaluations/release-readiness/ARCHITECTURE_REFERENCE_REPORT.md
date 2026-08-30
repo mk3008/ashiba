@@ -9,11 +9,12 @@ Ashiba architecture:
 | Vertical slice | `examples/postgres-ticket-queue-vsa` | SQL, metadata, mapping, and native `pg` stay feature-local. |
 | Layered | `examples/postgres-ticket-queue-layered` | SQL access and pool adapter are separated from an application service. |
 
-VSA and layered references originated as independent clean-room candidate
-outputs from the same frozen DDL/business acceptance and an AGENTS.md sample.
-The repository copies use workspace dependencies solely for repository CI;
-the clean-room evidence used packed public tarballs. Their provenance files and
-exact prompts are committed alongside the references.
+The VSA TypeScript rerun and the layered reference originated as independent
+clean-room candidate outputs from the same frozen DDL/business acceptance and
+an AGENTS.md sample. The repository copies use workspace dependencies solely
+for repository CI; the clean-room evidence used packed public tarballs. Their
+provenance files distinguish the concise consumer prompt from evaluation-only
+harness instructions.
 
 Both shapes use optional filters, a finite reviewed sort set, pagination, get,
 and assign-plus-audit transaction semantics. Finite sort policy belongs to the

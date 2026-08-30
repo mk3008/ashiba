@@ -1,0 +1,25 @@
+Evaluation-only harness instructions. These are not consumer guidance.
+
+Work only in the clean-room directory supplied by the runner. Do not inspect
+the Ashiba repository, existing examples, evaluations, other candidates, or
+previous output. Use only the packed Ashiba tarballs in `tarballs/`, normal npm
+registry dependencies, and the frozen files in `input/`.
+
+Create a runnable Vertical Slice TypeScript application. Application and query
+source must be `.ts`; generated binding artifacts must be `.ts`; tests should
+be `.ts`; and `tsconfig.json` must use `strict: true`. `allowJs: true` with
+`checkJs: false` or an application implemented only in `.mjs` is not allowed.
+A small Node-native generation script may use `.mjs` only when it is not
+application logic.
+
+Install from the tarballs with npm. Keep canonical SQL, generated bindings,
+query integration, and application code feature-local in a ticket slice. Use
+`bindNamedParameters` and execute its `{ sql, values }` result with native
+`pg`. Implement the full frozen acceptance. Provide scripts for generation,
+generated-artifact freshness, strict typechecking, and tests. Do not add an
+ORM, migration framework, generic query builder, Safe Sort runtime, or Ashiba
+runtime abstraction.
+
+The runner owns final verification and PostgreSQL behavior checks. Do not edit
+or rely on files outside the supplied clean room. Return the output path,
+commands run and their results, a short file summary, and unresolved issues.

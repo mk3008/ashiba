@@ -3,12 +3,11 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "allowJs": true,
-    "checkJs": false,
-    "noEmit": true,
-    "skipLibCheck": true,
     "strict": true,
-    "allowSyntheticDefaultImports": true
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*.mjs", "scripts/**/*.mjs", "test/**/*.mjs"]
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
 }

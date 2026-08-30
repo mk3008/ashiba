@@ -2,7 +2,7 @@ create table if not exists tickets (
   id bigserial primary key,
   subject text not null,
   status text not null,
-  assignee_id bigint, -- nullable by omission of NOT NULL (ticket shape: assignee_id bigint nullable)
+  assignee_id bigint,
   created_at timestamptz not null default now()
 );
 
