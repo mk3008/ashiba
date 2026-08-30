@@ -26,6 +26,7 @@ const PROTOCOL_INPUTS = Object.freeze([
   'benchmark/PREREGISTRATION_AMENDMENT_6.md',
   'benchmark/PREREGISTRATION_AMENDMENT_7.md',
   'benchmark/PREREGISTRATION_AMENDMENT_8.md',
+  'benchmark/PREREGISTRATION_AMENDMENT_9.md',
   'benchmark/WORKLOADS.md',
   'fixtures/packet/packet-hash.mjs',
 ]);

@@ -15,7 +15,7 @@ function parseArgs(args) {
     const index = args.indexOf(name);
     return index < 0 ? undefined : args[index + 1];
   };
-  return { cell: value('--cell'), destination: value('--destination'), npm: value('--npm'), install: args.includes('--install') };
+  return { cell: value('--cell'), destination: value('--destination'), npm: value('--npm'), cache: value('--cache'), install: args.includes('--install') };
 }
 
 function validateCell(cell) {
@@ -24,12 +24,12 @@ function validateCell(cell) {
   return { workload: match[1], arm: match[2], replicate: Number(match[3]) };
 }
 
-function run(command, args, cwd) {
+function run(command, args, cwd, cache) {
   return new Promise((resolveRun, reject) => {
     const npmCli = process.platform === 'win32' && /\.cmd$/i.test(command)
       ? join(dirname(command), 'node_modules', 'npm', 'bin', 'npm-cli.js')
       : null;
-    const child = spawn(npmCli ? process.execPath : command, npmCli ? [npmCli, ...args] : args, { cwd, shell: false, stdio: 'inherit', env: { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, ComSpec: process.env.ComSpec, TEMP: process.env.TEMP, TMP: process.env.TMP, npm_config_cache: process.env.npm_config_cache } });
+    const child = spawn(npmCli ? process.execPath : command, npmCli ? [npmCli, ...args] : args, { cwd, shell: false, stdio: 'inherit', env: { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, ComSpec: process.env.ComSpec, TEMP: process.env.TEMP, TMP: process.env.TMP, npm_config_cache: cache } });
     child.once('error', reject);
     child.once('exit', (code, signal) => code === 0 ? resolveRun() : reject(new Error(`${command} ${args.join(' ')} exited ${code ?? signal}`)));
   });
@@ -38,8 +38,12 @@ function run(command, args, cwd) {
 async function copyPacket({ destination, arm, workload, cell }) {
   const packetRoot = join(destination, 'packet');
   const candidateRoot = join(destination, 'candidate');
+  const evidenceRoot = join(destination, 'evidence');
+  const npmCache = join(destination, 'npm-cache');
   await rm(destination, { recursive: true, force: true });
   await mkdir(candidateRoot, { recursive: true });
+  await mkdir(evidenceRoot, { recursive: true });
+  await mkdir(npmCache, { recursive: true });
 
   // The candidate sees a copy, never a workspace link. Arm A keeps the exact
   // frozen relative file: reference by placing the supplied tarball in the
@@ -71,21 +75,21 @@ async function copyPacket({ destination, arm, workload, cell }) {
     [join(FIXTURES, 'packet', 'OFFICIAL_SOURCES.md'), 'OFFICIAL_SOURCES.md'],
   ]) await cp(from, join(packetRoot, to));
   await writeFile(join(packetRoot, 'CELL.json'), `${JSON.stringify({ cell, arm, workload, replicate: Number(CELL.exec(cell)[3]), protocol: 'v2' }, null, 2)}\n`);
-  return candidateRoot;
+  return { candidateRoot, packetRoot, evidenceRoot, npmCache };
 }
 
 export async function materializeCell(options) {
-  const { cell, destination, npm, install } = options;
+  const { cell, destination, npm, cache, install } = options;
   const parsed = validateCell(cell);
   if (!destination) throw new Error('--destination is required and must be outside the Ashiba worktree');
   const absolute = resolve(destination);
   if (absolute.startsWith(resolve(EVALUATION))) throw new Error('candidate destination must be outside the Ashiba evaluation/worktree');
-  const candidateRoot = await copyPacket({ destination: absolute, ...parsed, cell });
+  const materialized = await copyPacket({ destination: absolute, ...parsed, cell });
   if (install) {
     if (!npm) throw new Error('--npm is required with --install');
-    await run(npm, ['ci', '--ignore-scripts'], candidateRoot);
+    await run(npm, ['ci', '--ignore-scripts'], materialized.candidateRoot, cache ?? materialized.npmCache);
   }
-  return { cell, candidateRoot, packetRoot: join(absolute, 'packet'), installed: Boolean(install) };
+  return { cell, ...materialized, installed: Boolean(install) };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
