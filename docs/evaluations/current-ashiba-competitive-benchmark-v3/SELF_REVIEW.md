@@ -37,13 +37,15 @@ dispatch-unverified wording, and the observed/inference boundary. The audit
 does not replace repository verification, remote CI, or the orchestration
 ledger finish.
 
-## Remaining review gates
+## Completed final gates
 
-- Run repository verification and final remote CI confirmation.
+- Repository verification passed: `pnpm typecheck`, `pnpm build`, `pnpm test`,
+  `pnpm verify`, `pnpm docs:build`, and `git diff --check`.
+- Final-head PR CI passed: `verify`, Node 22/npm 10 distribution, Node 24/npm
+  11 distribution, and the Ticket Queue PostgreSQL reference.
+- The append-only orchestration ledger is finished. Historical per-session
+  telemetry remains unavailable and is not reconstructed.
 
-- Finish the append-only orchestration ledger with only the data that was
-  actually captured; historical per-session telemetry remains unavailable.
-
-Status: **partial pending repository verification, remote CI, and ledger
-finish**. This self-review records both required review cycles; it does not
-convert unavailable historical telemetry into measured data.
+Status: **done for human review**. This self-review records both required
+review cycles; it does not convert unavailable historical telemetry into
+measured data.
