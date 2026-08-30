@@ -1,0 +1,42 @@
+{
+  "cell": "AF-V-P-r2",
+  "attempt": "repair2",
+  "candidateRepairIndex": 2,
+  "outcome": "F",
+  "finalUnderRepairCap": true,
+  "failureClassification": "tool/API misuse",
+  "observedFailure": {
+    "stage": "runner-owned G1 oracle",
+    "summary": "The generated Prisma client did not expose db.sql.tickets.columns under the authored contract's resolved accessor shape; the candidate fails before a G1 operation."
+  },
+  "checks": {
+    "contractEmit": "P",
+    "typecheck": "P",
+    "build": "P",
+    "candidateTests": "F",
+    "staticIsolation": "P",
+    "runnerOracle": "F",
+    "architectureDelta": "P",
+    "cleanup": "P"
+  },
+  "evidence": {
+    "initialContractEmitLogSha256": "be74223dcf87ee3f09dc83781d3a1fdeb349f3848a2078668ed446b00029f5c7",
+    "initialBuildLogSha256": "323869565c262e85d1d58439d4d4939dabebaea694c20d63eaaeb90d0ef161d0",
+    "initialCandidateTestsLogSha256": "cc5c9788029abdb894c4a48c5b3e0ff096119423659f3071f94bdc73da3c1446",
+    "repair1ContractEmitLogSha256": "87f28110d992cb0e3c66b8099e6a32f341212181df205daf9babe0fb9cfd8f09",
+    "repair2ContractEmitLogSha256": "0449a23bbfbe12ab6ffc7f3f569db9774235b5e5073905efcaca5b42e2412cd3",
+    "repair2CandidateTestsLogSha256": "b2f96e08e73bc569be629b8a16112a6a4a8d1f4364870f5c58245209dfdc5cac",
+    "repair2RunnerJsonSha256": "9d023aac65786877b67e4007572e46b474616c07ae96ff9f54e3fd602af62b5c",
+    "repair2RunnerLogSha256": "cd701d4fb48559e4ca90631d8892d53e4f04ad1fc83d5215213fed0a4f7d8052",
+    "primaryG1JsonSha256": "bc986443e19c48acc2f0cf92aa809171d247ab8a338ff38a09356fa1118194af",
+    "primaryG1PreCleanupJsonSha256": "870adedc52425754aa469d3a4d12f645c983974e3222169079415d7a71f005df"
+  },
+  "runner": {
+    "baselineIntegrity": "pass",
+    "sourceUnchangedDuringRunner": true,
+    "cleanup": "pass",
+    "primaryG1Status": "F",
+    "runnerError": "Cannot read properties of undefined (reading 'columns')"
+  },
+  "repairEligibility": "none; initial plus repairs 1 and 2 exhausted"
+}

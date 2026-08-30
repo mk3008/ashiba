@@ -1,0 +1,40 @@
+{
+  "cell": "AF-V-P-r2",
+  "protocol": "secondary-controls-v1",
+  "architectureHarness": "af-controls-v1",
+  "arm": "P",
+  "control": "AF-V",
+  "replicate": 2,
+  "materializedAt": "2026-08-30T21:30:25.000Z",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-P-r2-reliable-20260831\\candidate",
+  "node": "24.18.0",
+  "npm": "11.x bundled with Node 24",
+  "install": "npm ci --ignore-scripts",
+  "candidateSourceExcludes": ["node_modules", "dist", "coverage"],
+  "candidateFiles": [
+    { "path": "package-lock.json", "bytes": 284626, "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c" },
+    { "path": "package.json", "bytes": 235, "sha256": "6765ef348397969d46f26bea2cc2fefa9d6003203b7aba6ccfbf53649368f0b0" },
+    { "path": "README.md", "bytes": 455, "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22" },
+    { "path": "src/application.ts", "bytes": 265, "sha256": "bd95fd31c0b0b5da95b289d84129c942d073f84319838ec0866cd7b9f5b4f46c" },
+    { "path": "src/platform/pool.ts", "bytes": 186, "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a" },
+    { "path": "src/platform/transaction.ts", "bytes": 200, "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34" },
+    { "path": "src/tickets/application/ticket-use-cases.ts", "bytes": 138, "sha256": "4ae25cabc89153df617e8fe68f8b7e68fd52b173ae0b8914a7141549ed60da16" },
+    { "path": "src/tickets/dto.ts", "bytes": 298, "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64" },
+    { "path": "src/tickets/query/ticket-read-model.ts", "bytes": 138, "sha256": "48303b161702398b6489f6aacddf92663860ed3b631b4185827ca0a54e9a94fe" },
+    { "path": "src/tickets/sql/.gitkeep", "bytes": 1, "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b" },
+    { "path": "tests/tickets.integration.test.ts", "bytes": 143, "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db" },
+    { "path": "tsconfig.json", "bytes": 262, "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085" }
+  ],
+  "packetFiles": [
+    { "path": "ARCHITECTURE_ASSIGNMENT.md", "sha256": "9c75089682980759ec300ae85c53d31187bf2eaac2ea6c10ee6bed293f841c21" },
+    { "path": "ARM_ASSIGNMENT.md", "sha256": "c696f9cde198e73a974f51c5e1254e7952081f6d181534a8b1d3649eeb0bf3e6" },
+    { "path": "CELL.json", "sha256": "e62a669b5f8e229460049c1b4199554f07ab55a09c32322e794cd7d5b404b87b" },
+    { "path": "COMMON_API.md", "sha256": "6ade3d709f9a091e44d2ffcdb151491b5c5d1bc79c9f0c210566907b3b1b7128" },
+    { "path": "COMMON_ASSIGNMENT.md", "sha256": "5cc995f358d664a69dae1ff30f369a8ba2d70becf24caa3fac61a4a11cba2af6" },
+    { "path": "G1_ASSIGNMENT.md", "sha256": "d92eb126ea1e755f5d36ba3246d893b777ca45f691029a876cc2d237d4d5c49c" },
+    { "path": "OFFICIAL_SOURCES.md", "sha256": "6cb1007848457b458928b90c362730ac66f807a00279d16cb0bba757b10cd690" },
+    { "path": "official-doc-snapshots-v1.zip", "sha256": "8b86cf5abc883f57975b78fa06e3bd3d614486449e1e8b395bad1700695b8c57" },
+    { "path": "schema.sql", "sha256": "b0640163e0074fd25f6c0e3ea94d9f775c6d5ce3b069daecd7cd107fa532defc" },
+    { "path": "seed.sql", "sha256": "a4b8536cb314738010219d66324022b0626770ae60f1310abfb7225ec3165c19" }
+  ]
+}

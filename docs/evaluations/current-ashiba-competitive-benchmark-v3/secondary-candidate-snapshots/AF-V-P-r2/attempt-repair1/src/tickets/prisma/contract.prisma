@@ -1,0 +1,17 @@
+enum TicketStatus {
+  open
+  pending
+  closed
+}
+
+model Ticket {
+  id        BigInt       @id @default(autoincrement())
+  title     String
+  status    TicketStatus
+  assignee  String?
+  priority  Int
+  createdAt DateTime     @map("created_at")
+  metadata  Json
+
+  @@map("tickets")
+}
