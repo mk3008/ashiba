@@ -1,0 +1,1 @@
+{"name":"benchmark-v3-arm-p-packet","private":true,"type":"module","engines":{"node":"24.18.0"},"scripts":{"typecheck":"tsc --noEmit","test":"npm run typecheck","build":"tsc -p tsconfig.json","prisma:emit":"prisma contract emit"},"dependencies":{"@prisma/orm-postgres":"8.0.0-rc.8"},"devDependencies":{"@types/pg":"8.15.6","prisma":"8.0.0-rc.12","typescript":"5.9.3"}}

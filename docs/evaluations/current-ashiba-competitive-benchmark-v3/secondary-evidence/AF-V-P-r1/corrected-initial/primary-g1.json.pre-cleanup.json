@@ -1,0 +1,644 @@
+{
+  "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-P-r1-corrected\\candidate\\dist\\application.js",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-P-r1-corrected\\candidate",
+  "workloads": [
+    "G1"
+  ],
+  "source": {
+    "root": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-P-r1-corrected\\candidate",
+    "files": [
+      {
+        "path": "dist/application.js",
+        "kind": "file",
+        "bytes": 378,
+        "sha256": "cbdf0440289e0a615a291490cc40f132a008459cdf643085a4208039edd33ad1"
+      },
+      {
+        "path": "dist/platform/pool.js",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/platform/transaction.js",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/prisma/contract.json",
+        "kind": "file",
+        "bytes": 7522,
+        "sha256": "0f4ea526ee99d279cad7c4021336f3b539905920a70a81a6869c573ec014885d"
+      },
+      {
+        "path": "dist/tickets/application/ticket-use-cases.js",
+        "kind": "file",
+        "bytes": 7018,
+        "sha256": "6222423aa4202238a4c41e44698256a6f68f12a908555ff696983c642cc32070"
+      },
+      {
+        "path": "dist/tickets/dto.js",
+        "kind": "file",
+        "bytes": 199,
+        "sha256": "719b6dd4d401eb8ce12cf52aabd902925f9ca43768e0e9321c21e3d51bd89708"
+      },
+      {
+        "path": "dist/tickets/query/ticket-read-model.js",
+        "kind": "file",
+        "bytes": 847,
+        "sha256": "decd768f6a2f966ecd633e614ab33ab9f8cec0f667ad877bf41c5d82150fbf29"
+      },
+      {
+        "path": "package-lock.json",
+        "kind": "file",
+        "bytes": 284626,
+        "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+      },
+      {
+        "path": "package.json",
+        "kind": "file",
+        "bytes": 369,
+        "sha256": "0c7bb71f447b9978decb035fa72d0dbd60f5f0709417e42ba01c339b658c617a"
+      },
+      {
+        "path": "prisma.config.ts",
+        "kind": "file",
+        "bytes": 235,
+        "sha256": "aa1269309b839796b432e825c978f6afd425aa81c8a687e16b165bd9a080591a"
+      },
+      {
+        "path": "README.md",
+        "kind": "file",
+        "bytes": 455,
+        "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22"
+      },
+      {
+        "path": "src/application.ts",
+        "kind": "file",
+        "bytes": 1333,
+        "sha256": "4ed54ce4f7f898c2ea65a79bf16d2f211ef276ef07a80f1e7ab0911855d07b8f"
+      },
+      {
+        "path": "src/platform/pool.ts",
+        "kind": "file",
+        "bytes": 186,
+        "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+      },
+      {
+        "path": "src/platform/transaction.ts",
+        "kind": "file",
+        "bytes": 200,
+        "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+      },
+      {
+        "path": "src/prisma/contract.d.ts",
+        "kind": "file",
+        "bytes": 20299,
+        "sha256": "6d93f28e7ce86e3a5612fd7b51f5152cb51dd1bf8c99049a34b99a4357741cc8"
+      },
+      {
+        "path": "src/prisma/contract.json",
+        "kind": "file",
+        "bytes": 5137,
+        "sha256": "1061591fc40e7dce4c4514a2576a5fb5476072bc3244421cea989b11fa655276"
+      },
+      {
+        "path": "src/prisma/contract.prisma",
+        "kind": "file",
+        "bytes": 437,
+        "sha256": "ea303bcb74e156e36263f4684335fd8d1fe023f835366bcdce1fd99313b7c5a0"
+      },
+      {
+        "path": "src/tickets/application/ticket-use-cases.ts",
+        "kind": "file",
+        "bytes": 7847,
+        "sha256": "6cff786c98119a2d87d49516afe9b339154a6e1273c2a9372394cdc5597e9f51"
+      },
+      {
+        "path": "src/tickets/dto.ts",
+        "kind": "file",
+        "bytes": 576,
+        "sha256": "c8d0c095b77ade478f1f19caf72e79d6e4f5a299eea9b45b758fc5c9679f5714"
+      },
+      {
+        "path": "src/tickets/query/ticket-read-model.ts",
+        "kind": "file",
+        "bytes": 1227,
+        "sha256": "9b5c832b73edd3c7b4d46e2acc639f8b9785191ce67d9500e0b1478cac415ea5"
+      },
+      {
+        "path": "src/tickets/sql/.gitkeep",
+        "kind": "file",
+        "bytes": 1,
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+      },
+      {
+        "path": "tests/tickets.integration.test.ts",
+        "kind": "file",
+        "bytes": 143,
+        "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+      },
+      {
+        "path": "tsconfig.json",
+        "kind": "file",
+        "bytes": 262,
+        "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+      }
+    ],
+    "findings": [],
+    "pass": true
+  },
+  "checks": [
+    {
+      "id": "G1-list-order",
+      "status": "fail",
+      "detail": "priority desc then stable id asc"
+    },
+    {
+      "id": "G1-sort-id-asc",
+      "status": "fail",
+      "detail": "id asc uses the required stable ordering"
+    },
+    {
+      "id": "G1-sort-id-desc",
+      "status": "fail",
+      "detail": "id desc uses the required stable ordering"
+    },
+    {
+      "id": "G1-sort-priority-asc",
+      "status": "fail",
+      "detail": "priority asc uses the required stable ordering"
+    },
+    {
+      "id": "G1-sort-priority-desc",
+      "status": "fail",
+      "detail": "priority desc uses the required stable ordering"
+    },
+    {
+      "id": "G1-sort-createdAt-asc",
+      "status": "fail",
+      "detail": "createdAt asc uses the required stable ordering"
+    },
+    {
+      "id": "G1-sort-createdAt-desc",
+      "status": "fail",
+      "detail": "createdAt desc uses the required stable ordering"
+    },
+    {
+      "id": "G1-pagination-offset-limit",
+      "status": "fail",
+      "detail": "offset and limit apply after the stable ordering"
+    },
+    {
+      "id": "G1-filter-null-assignee",
+      "status": "fail",
+      "detail": "null assignee filter"
+    },
+    {
+      "id": "G1-invalid-sort",
+      "status": "pass",
+      "detail": "unreviewed sort rejects"
+    },
+    {
+      "id": "G1-invalid-pagination",
+      "status": "pass",
+      "detail": "invalid pagination rejects"
+    },
+    {
+      "id": "G1-missing-get-id",
+      "status": "pass",
+      "detail": "missing get identifier rejects"
+    },
+    {
+      "id": "G1-get",
+      "status": "fail",
+      "detail": "existing ticket is returned"
+    },
+    {
+      "id": "G1-get-null",
+      "status": "fail",
+      "detail": "missing ticket returns null"
+    },
+    {
+      "id": "G1-hostile-value",
+      "status": "fail",
+      "detail": "hostile text remains a value"
+    },
+    {
+      "id": "G1-assign",
+      "status": "fail",
+      "detail": "assignment commits"
+    },
+    {
+      "id": "G1-assign-trigger-rollback",
+      "status": "pass",
+      "detail": "runner-owned post-audit trigger rolls back assignment"
+    },
+    {
+      "id": "G1-close",
+      "status": "pass",
+      "detail": "close resolves with no value"
+    },
+    {
+      "id": "G1-close-idempotent",
+      "status": "pass",
+      "detail": "close is idempotent"
+    },
+    {
+      "id": "G1-closed-rejection",
+      "status": "pass",
+      "detail": "list rejects after close"
+    }
+  ],
+  "events": [
+    {
+      "operation": "list",
+      "input": {
+        "sort": "priority",
+        "direction": "desc",
+        "offset": 0,
+        "limit": 10
+      },
+      "startedAt": "2026-08-30T12:00:21.319Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 3
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "id",
+        "direction": "asc",
+        "offset": 0,
+        "limit": 10
+      },
+      "startedAt": "2026-08-30T12:00:21.322Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "id",
+        "direction": "desc",
+        "offset": 0,
+        "limit": 10
+      },
+      "startedAt": "2026-08-30T12:00:21.322Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 1
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "priority",
+        "direction": "asc",
+        "offset": 0,
+        "limit": 10
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "priority",
+        "direction": "desc",
+        "offset": 0,
+        "limit": 10
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "createdAt",
+        "direction": "asc",
+        "offset": 0,
+        "limit": 10
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "createdAt",
+        "direction": "desc",
+        "offset": 0,
+        "limit": 10
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "id",
+        "direction": "asc",
+        "offset": 1,
+        "limit": 2
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {
+        "status": "open",
+        "assignee": null,
+        "sort": "id",
+        "direction": "asc",
+        "offset": 0,
+        "limit": 10
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "title",
+        "limit": 10,
+        "offset": 0
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "TicketApplicationError",
+        "code": "VALIDATION",
+        "message": "Invalid sort"
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {
+        "sort": "id",
+        "offset": 0,
+        "limit": 0
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "TicketApplicationError",
+        "code": "VALIDATION",
+        "message": "Invalid limit"
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "get",
+      "input": {},
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "TicketApplicationError",
+        "code": "VALIDATION",
+        "message": "id must be a positive base-10 integer string"
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "get",
+      "input": {
+        "id": "101"
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "get",
+      "input": {
+        "id": "999"
+      },
+      "startedAt": "2026-08-30T12:00:21.323Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.CODEC_DESCRIPTOR_MISSING",
+        "message": "No codec descriptor registered for codecId 'pg/timestamptz@1'."
+      },
+      "durationMs": 1
+    },
+    {
+      "operation": "create",
+      "input": {
+        "title": "O'Reilly; $1 /* hostile value */",
+        "status": "open",
+        "assignee": null,
+        "priority": 2,
+        "metadata": {
+          "marker": "O'Reilly; $1 /* hostile value */"
+        }
+      },
+      "startedAt": "2026-08-30T12:00:21.324Z",
+      "status": "rejected",
+      "error": {
+        "name": "RuntimeError",
+        "code": "RUNTIME.RAW_SQL_UNSUPPORTED_INTERPOLATION",
+        "message": "unsupported JS value type for raw-SQL interpolation: wrap this value in `param(...)` with an explicit codec"
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "assign",
+      "input": {
+        "id": "103",
+        "assignee": "carol"
+      },
+      "startedAt": "2026-08-30T12:00:21.324Z",
+      "status": "rejected",
+      "error": {
+        "name": "SqlQueryError",
+        "message": "invalid input syntax for type bigint: \"carol\""
+      },
+      "durationMs": 16
+    },
+    {
+      "operation": "assign",
+      "input": {
+        "id": "102",
+        "assignee": "injected-worker"
+      },
+      "startedAt": "2026-08-30T12:00:21.363Z",
+      "status": "rejected",
+      "error": {
+        "name": "SqlQueryError",
+        "message": "invalid input syntax for type bigint: \"injected-worker\""
+      },
+      "durationMs": 1
+    },
+    {
+      "operation": "close",
+      "input": {},
+      "startedAt": "2026-08-30T12:00:21.384Z",
+      "status": "resolved",
+      "durationMs": 0
+    },
+    {
+      "operation": "close",
+      "input": {},
+      "startedAt": "2026-08-30T12:00:21.384Z",
+      "status": "resolved",
+      "durationMs": 0
+    },
+    {
+      "operation": "list",
+      "input": {},
+      "startedAt": "2026-08-30T12:00:21.384Z",
+      "status": "rejected",
+      "error": {
+        "name": "TicketApplicationError",
+        "code": "APPLICATION_CLOSED",
+        "message": "Application is closed"
+      },
+      "durationMs": 0
+    }
+  ],
+  "cleanup": {
+    "status": "pending",
+    "recordedBeforeCleanup": true
+  },
+  "startedAt": "2026-08-30T12:00:18.829Z",
+  "schema": "ashiba_v3_89f8aa2989db3409",
+  "candidateRole": "ashiba_v3_candidate_6e76a22a8a230876",
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "10000"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "5000"
+      }
+    ],
+    "transferAudit": [],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8002",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  },
+  "status": "F",
+  "preCleanupRecord": {
+    "status": "written",
+    "path": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-P-r1-corrected\\evidence\\primary-g1.json.pre-cleanup.json",
+    "writtenAt": "2026-08-30T12:00:21.396Z"
+  }
+}
