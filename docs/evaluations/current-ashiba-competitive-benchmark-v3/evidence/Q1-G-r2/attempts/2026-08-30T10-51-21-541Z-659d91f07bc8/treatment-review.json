@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Plain native pg candidate path; final permitted repair did not satisfy frozen Q1 source/execution and EXPLAIN evidence contract. Parent rebuilt removed dist from lockfile before final executor attempt; recorded as candidate output packaging incident, not logic repair.",
+  "decidedAt": "2026-08-30T10:51:38.364Z",
+  "decidedBy": "coordinator-required"
+}

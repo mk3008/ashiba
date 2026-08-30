@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "fail",
+  "note": "Initial sqlc candidate included candidate-owned schema DDL, forbidden by frozen static inspection.",
+  "decidedAt": "2026-08-30T10:39:27.745Z",
+  "decidedBy": "coordinator-required"
+}

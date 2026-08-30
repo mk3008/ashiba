@@ -1,0 +1,53 @@
+{
+  "root": "candidate-source-before-cleanup",
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 3675,
+    "sha256": "f3dfb05373198972fff5c40b321ea6d95009c26162f282de7f45bb2dc16ac77b"
+  },
+  "copied": [
+    {
+      "path": "dist/application.js",
+      "sourceSha256": "f3dfb05373198972fff5c40b321ea6d95009c26162f282de7f45bb2dc16ac77b",
+      "snapshotSha256": "f3dfb05373198972fff5c40b321ea6d95009c26162f282de7f45bb2dc16ac77b",
+      "redacted": false
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c",
+      "snapshotSha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c",
+      "redacted": false
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "49cfefa07edafb22fa80e69ceb73c02b10211be11441fe89cbcb5650524ebfe0",
+      "snapshotSha256": "49cfefa07edafb22fa80e69ceb73c02b10211be11441fe89cbcb5650524ebfe0",
+      "redacted": false
+    },
+    {
+      "path": "src/application.test.ts",
+      "sourceSha256": "f3c0e774431483135c042d46255bae5d7bd0815aecfac75449c6ab4016f7ba09",
+      "snapshotSha256": "f3c0e774431483135c042d46255bae5d7bd0815aecfac75449c6ab4016f7ba09",
+      "redacted": false
+    },
+    {
+      "path": "src/application.ts",
+      "sourceSha256": "6f178a83542d783d9d06695294ca39860d8841d0ec8144d2de28446d4e46b1b5",
+      "snapshotSha256": "6f178a83542d783d9d06695294ca39860d8841d0ec8144d2de28446d4e46b1b5",
+      "redacted": false
+    },
+    {
+      "path": "tsconfig.json",
+      "sourceSha256": "cfc48a133485be6684cf54a9479eb94d42ede5a767c0eea1bff01ea89180ec68",
+      "snapshotSha256": "cfc48a133485be6684cf54a9479eb94d42ede5a767c0eea1bff01ea89180ec68",
+      "redacted": false
+    },
+    {
+      "path": "VALIDATION.md",
+      "sourceSha256": "25a13768d2c9a7fd5ed842db84ea075355e80af6d6e7362c64206961723ca205",
+      "snapshotSha256": "25a13768d2c9a7fd5ed842db84ea075355e80af6d6e7362c64206961723ca205",
+      "redacted": false
+    }
+  ],
+  "excluded": []
+}

@@ -1,0 +1,65 @@
+{
+  "root": "candidate-source-before-cleanup",
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 2045,
+    "sha256": "922bb6c5526dc44f89d4474c6f8703fd3dcea30105a6f350685aaaf3a2d5aba6"
+  },
+  "copied": [
+    {
+      "path": "dist/application.js",
+      "sourceSha256": "922bb6c5526dc44f89d4474c6f8703fd3dcea30105a6f350685aaaf3a2d5aba6",
+      "snapshotSha256": "922bb6c5526dc44f89d4474c6f8703fd3dcea30105a6f350685aaaf3a2d5aba6",
+      "redacted": false
+    },
+    {
+      "path": "GENERATION.md",
+      "sourceSha256": "56fd57bdee17f53dd142a0983892b8e472b47e110f5f0d0e4c5c5aa41896e2db",
+      "snapshotSha256": "56fd57bdee17f53dd142a0983892b8e472b47e110f5f0d0e4c5c5aa41896e2db",
+      "redacted": false
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "snapshotSha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "redacted": false
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "c2bd1c8d548d9c3782fd2fe91c5ef646ee6cd29892a315922e2d7ad93970474d",
+      "snapshotSha256": "c2bd1c8d548d9c3782fd2fe91c5ef646ee6cd29892a315922e2d7ad93970474d",
+      "redacted": false
+    },
+    {
+      "path": "sqlc.yaml",
+      "sourceSha256": "db46b3f7dc6ef5f2b341369f29938b2914f3e132e854d3432d53dbef20b99d41",
+      "snapshotSha256": "db46b3f7dc6ef5f2b341369f29938b2914f3e132e854d3432d53dbef20b99d41",
+      "redacted": false
+    },
+    {
+      "path": "sqlc/query.sql",
+      "sourceSha256": "ea8287aad0c653f01f87b1317ed5a02976a49fb8ae261056a1ac0569ea6674f3",
+      "snapshotSha256": "ea8287aad0c653f01f87b1317ed5a02976a49fb8ae261056a1ac0569ea6674f3",
+      "redacted": false
+    },
+    {
+      "path": "src/application.ts",
+      "sourceSha256": "faa5c19ad91866b45675ddfbd2b43017f0ec886cf012c88580f2782216d010a4",
+      "snapshotSha256": "faa5c19ad91866b45675ddfbd2b43017f0ec886cf012c88580f2782216d010a4",
+      "redacted": false
+    },
+    {
+      "path": "src/generated/query_sql.ts",
+      "sourceSha256": "c11508c1e23c3eba9ab95cc4614063ef7a492ccf6b547f308a1fd7c474789d3f",
+      "snapshotSha256": "c11508c1e23c3eba9ab95cc4614063ef7a492ccf6b547f308a1fd7c474789d3f",
+      "redacted": false
+    },
+    {
+      "path": "tsconfig.json",
+      "sourceSha256": "ebefcb04588a4adc687ded1d2e70b2e960742c5bdd397b62d496770b41d72b69",
+      "snapshotSha256": "ebefcb04588a4adc687ded1d2e70b2e960742c5bdd397b62d496770b41d72b69",
+      "redacted": false
+    }
+  ],
+  "excluded": []
+}

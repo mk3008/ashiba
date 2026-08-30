@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Kysely query/sql API is candidate main data-access path; no direct native pg replacement.",
+  "decidedAt": "2026-08-30T10:47:37.106Z",
+  "decidedBy": "coordinator-required"
+}

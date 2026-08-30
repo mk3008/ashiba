@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Plain native pg candidate path; repair 1 did not satisfy frozen Q1 source/execution and EXPLAIN evidence contract.",
+  "decidedAt": "2026-08-30T10:48:18.352Z",
+  "decidedBy": "coordinator-required"
+}
