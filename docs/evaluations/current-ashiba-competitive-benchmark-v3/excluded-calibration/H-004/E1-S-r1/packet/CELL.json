@@ -1,0 +1,8 @@
+{
+  "cell": "E1-S-r1",
+  "control": "E1",
+  "arm": "S",
+  "replicate": 1,
+  "protocol": "secondary-controls-v1",
+  "baselineManifest": "../baseline-manifest.json"
+}
