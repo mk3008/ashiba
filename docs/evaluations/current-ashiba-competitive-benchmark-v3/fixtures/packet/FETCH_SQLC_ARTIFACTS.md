@@ -11,8 +11,9 @@ node fixtures/packet/fetch-sqlc-artifacts.mjs --out C:\tmp\ashiba-v3-sqlc
 
 The command is fail-closed: an existing file with a different digest, a
 download failure, or a digest mismatch exits nonzero and leaves no `.partial`
-file. The output directory is outside the repository and must be removed after
-the run. The expected digests are also recorded in `PACKET_MANIFEST.md`.
+file. It prints a verified result only after the complete file has been hashed.
+The output directory is outside the repository and must be removed after the
+run. The expected digests are also recorded in `PACKET_MANIFEST.md`.
 
 This fetch helper is part of the packet tooling, not a scored candidate and not
 a product dependency. The source URL and retrieval metadata are frozen in the

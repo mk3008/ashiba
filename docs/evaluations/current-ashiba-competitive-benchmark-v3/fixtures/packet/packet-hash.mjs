@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
-import { dirname, join, relative } from 'node:path';
+import { dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const packetRoot = dirname(fileURLToPath(import.meta.url));
@@ -35,6 +35,12 @@ async function readExpected() {
   const paths = manifest.files.map((entry) => entry.path);
   if (new Set(paths).size !== paths.length || paths.some((path) => path !== path.replaceAll('\\', '/'))) {
     throw new Error('expected hash manifest contains duplicate or non-canonical paths');
+  }
+  if (paths.some((path) => isAbsolute(path) || path.split('/').includes('..') || path.endsWith('/'))) {
+    throw new Error('expected hash manifest contains an unsafe path');
+  }
+  if (manifest.files.some((entry) => !/^[a-f0-9]{64}$/.test(entry.sha256) || !Number.isInteger(entry.bytes) || entry.bytes < 0)) {
+    throw new Error('expected hash manifest contains an invalid digest or byte count');
   }
   if ([...paths].sort().join('\n') !== paths.join('\n')) {
     throw new Error('expected hash manifest paths must be sorted');
