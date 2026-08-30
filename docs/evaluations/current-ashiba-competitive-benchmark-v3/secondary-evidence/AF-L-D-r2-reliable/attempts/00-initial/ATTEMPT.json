@@ -1,0 +1,21 @@
+{
+  "cell": "AF-L-D-r2",
+  "attempt": "initial",
+  "candidateRepairIndex": 0,
+  "candidateSourceSnapshot": "candidate-after-initial",
+  "typecheck": {
+    "status": "fail",
+    "log": "logs/typecheck.log",
+    "failureClass": "candidate/type-system",
+    "summary": "Initial Drizzle schema declarations used string ids where the frozen Drizzle version typed bigint columns as number|bigint and did not mark identity columns generated."
+  },
+  "environmentObservation": {
+    "status": "preserved-not-scored",
+    "log": "logs/typecheck-wrong-cwd.log",
+    "summary": "The first launch inherited the repository CWD rather than the candidate CWD and loaded the repository tsconfig. It did not modify candidate source and did not consume a candidate repair."
+  },
+  "preservation": {
+    "sourceSnapshotBeforeRepair": true,
+    "logsCopiedBeforeRepair": true
+  }
+}
