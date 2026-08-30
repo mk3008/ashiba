@@ -27,7 +27,9 @@ or calibration evidence.
   runner output and no primary cell is affected.
 - **Required remeasure:** discard those materializations as unscored setup and
   freshly materialize every E1 cell after the correction commit.
-- **Status:** pending correction commit.
+- **Correction commit:** `85592fd` (`docs: freeze E1 treatment removal markers`).
+- **Status:** committed; all E1 cells must be freshly materialized before
+  candidate work resumes.
 
 # H-003 — AF baseline TypeScript configuration correction
 
