@@ -19,6 +19,13 @@ visible canonical SQL
 
 Applications choose how SQL is supplied and may compile/cache it at module initialization, startup, or build integration. That choice is not an Ashiba framework.
 
+## Repository metadata follow-up
+
+This implementation does not mutate GitHub repository metadata. The recommended
+repository description for a human-maintained metadata update is: `SQL-first
+TypeScript tooling for safe application development with visible SQL and
+deterministic named-parameter binding.`
+
 ## Removed product surface
 
 - `@ashiba-ts/cli`, its bin, all command registration, and all command-specific helpers/tests.

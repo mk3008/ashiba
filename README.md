@@ -1,14 +1,18 @@
 # Ashiba
 
-Show me the SQL. Ashiba keeps the binding boundary boring and explicit.
+![Ashiba: Show me the SQL. Ashiba handles the boring parts.](docs/public/brand/ashiba-readme-hero.png)
 
-Ashiba is a small named-parameter primitive for applications that keep their
-canonical SQL visible. It is not an ORM, query builder, architecture
-framework, migration tool, or test runner. The application owns SQL files,
-driver lifecycle, transactions, result mapping, logging, migrations, and
-business tests.
+Show me the SQL. Ashiba handles the boring parts.
 
-## Builder Mapper path
+Ashiba makes raw SQL practical for safe application development. SQL stays
+visible and reviewable, and values stay separate from SQL syntax. Ashiba owns
+only the small deterministic mechanisms that are better proven mechanically
+than reconstructed by every application. It is not an ORM, query builder,
+architecture framework, migration tool, or test runner. The application owns
+SQL files, driver lifecycle, transactions, result mapping, logging, migrations,
+and business tests.
+
+## Current mechanical core
 
 ```text
 visible canonical SQL

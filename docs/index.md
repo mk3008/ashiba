@@ -30,7 +30,7 @@ features:
 ## Optional verification
 
 Applications may add their own database, schema, and query verification using
-native tooling and tests. These are outside the Builder Mapper core.
+native tooling and tests. These are outside Ashiba's current mechanical core.
 
 ## Evidence archive
 

@@ -6,9 +6,10 @@ instructions.
 
 ## Product boundary
 
-Ashiba is a Builder Mapper primitive, not an ORM, query builder, architecture
-framework, migration tool, or test runner. The current product is the
-driver-neutral `@ashiba-ts/named-parameters` package:
+Ashiba makes raw, visible SQL practical for safe application development. It
+is not an ORM, query builder, architecture framework, migration tool, or test
+runner. Its current Ashiba-owned mechanical core is the driver-neutral
+`@ashiba-ts/named-parameters` package:
 
 ```text
 visible canonical SQL
@@ -27,7 +28,7 @@ selected from a closed, reviewed, source-controlled literal set.
 
 | ID | Display name | Status | Notes |
 |---|---|---|---|
-| `ashiba` | Ashiba | current | A small SQL-first Builder Mapper primitive. PostgreSQL is the primary runtime evidence path; MySQL and SQL Server remain supported secondary rendering targets. |
+| `ashiba` | Ashiba | current | SQL-first support for safe application development. PostgreSQL is the primary runtime evidence path; MySQL and SQL Server remain supported secondary rendering targets. |
 | `visible-sql` | Visible SQL | current | Canonical SQL remains readable, reviewable, editable, and searchable. |
 | `named-parameter-binding` | Named Parameter Binding | current | Named parameters lower deterministically to the selected driver's placeholders while values remain separate from SQL text. |
 | `parameter-contract-check` | Parameter Contract Check | current | The binder rejects missing and unused parameter names before execution. |

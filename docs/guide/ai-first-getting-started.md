@@ -1,6 +1,8 @@
 # Get started with Ashiba and an AI coding agent
 
-Use Ashiba after your tables and DDL design are already decided. It is not an
+Use Ashiba after your tables and DDL design are already decided. Ashiba makes
+raw, visible SQL practical for safe application development; its current
+mechanical core compiles and binds meaningful named parameters. It is not an
 ORM or an application architecture framework: you keep visible SQL, call your
 native driver, and own pooling, transactions, logging, mapping, migrations, and
 business tests.

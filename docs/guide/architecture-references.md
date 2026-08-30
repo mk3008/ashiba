@@ -1,7 +1,7 @@
 # Architecture references
 
-Ashiba has no required application architecture. The same Builder Mapper core
-fits a small direct module, vertical slices, and layers:
+Ashiba has no required application architecture. Its named-parameter
+mechanical core fits a small direct module, vertical slices, and layers:
 
 | Reference | SQL and binding cache | Native driver and transaction | Mapping and tests |
 | --- | --- | --- | --- |
