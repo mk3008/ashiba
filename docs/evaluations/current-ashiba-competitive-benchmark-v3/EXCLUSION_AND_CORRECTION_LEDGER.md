@@ -8,6 +8,29 @@ No scored candidate has started at preregistration.
 
 Entries are append-only. A correction does not overwrite the preceding failed
 or calibration evidence.
+
+# H-003 — AF baseline TypeScript configuration correction
+
+- **Observed:** 2026-08-30, after AF-V initial attempts had been materialized
+  and before the AF-L candidates were allowed to run a runner-owned oracle.
+- **Original evidence:** `secondary-evidence/*/initial/` preserves every
+  materialized AF-V initial attempt. The candidate skeletons did not all start
+  with a shared `tsconfig.json`; candidates that added one did so as a
+  treatment-independent packaging repair.
+- **Cause:** the AF fixture initially omitted the TypeScript configuration
+  required for the frozen strict-TypeScript brownfield baseline. This made a
+  baseline prerequisite candidate-owned instead of runner-owned.
+- **Correction:** add the identical strict `tsconfig.json` to both frozen
+  architecture baselines and include it in their trusted manifests. The public
+  API, G1 behavior, treatment policy, assignment, and oracle are unchanged.
+- **Affected scored cells:** AF-V A/P/S/D/K/G r1 initial materializations.
+  AF-L A/P r1 work was interrupted before any runner result and is excluded as
+  unscored setup. No primary benchmark cell is affected.
+- **Required remeasure:** all six AF-V r1 cells must use newly materialized,
+  isolated candidate directories under the corrected baseline. Original
+  attempts remain preserved and are not pooled with corrected observations.
+- **Status:** correction commit pending; no further AF runner result may be
+  treated as scored until this entry is committed.
 # H-001 — Pre-scoring reference-control serialization defect
 
 - **Observed:** 2026-08-30, before every scored cell.

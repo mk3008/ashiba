@@ -10,6 +10,7 @@
     { "path": "src/platform/pool.ts", "bytes": 186, "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a" },
     { "path": "src/platform/transaction.ts", "bytes": 200, "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34" },
     { "path": "src/presentation/ticket-controller.ts", "bytes": 137, "sha256": "90692bc33b9d6c3cdc7b9ae624015d5ad704f3105e9a2328dbc86a97a6296331" },
-    { "path": "tests/tickets.integration.test.ts", "bytes": 143, "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db" }
+    { "path": "tests/tickets.integration.test.ts", "bytes": 143, "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db" },
+    { "path": "tsconfig.json", "bytes": 262, "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085" }
   ]
 }

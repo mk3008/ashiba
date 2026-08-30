@@ -49,4 +49,6 @@ editable candidate inputs.
 
 Changing this packet after the first scored AF cell requires the secondary
 correction policy: preserve original evidence, commit a correction and rerun
-all affected AF cells. No scored AF cell has been started by this packet.
+all affected AF cells. H-003 is the first such correction: AF-V r1 initial
+materializations are preserved as pre-correction evidence and must be rerun
+from a newly materialized, isolated corrected baseline before interpretation.
