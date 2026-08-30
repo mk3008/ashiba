@@ -12,6 +12,7 @@
     "benchmark/PREREGISTRATION_AMENDMENT_2.md",
     "benchmark/PREREGISTRATION_AMENDMENT_3.md",
     "benchmark/PREREGISTRATION_AMENDMENT_4.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_5.md",
     "benchmark/WORKLOADS.md",
     "fixtures/packet/packet-hash.mjs"
   ],
@@ -65,6 +66,11 @@
       "path": "benchmark/PREREGISTRATION_AMENDMENT_4.md",
       "sha256": "b0967dfdfec2e1677161b5a5d8ffb336066bae085667bf16fc28f94b0c3c02f1",
       "bytes": 2096
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_5.md",
+      "sha256": "325478c0688c12497faa7cd6337ab3db2e53a6bb36264bf92e4198f236598ae5",
+      "bytes": 1235
     },
     {
       "path": "benchmark/WORKLOADS.md",
@@ -253,8 +259,8 @@
     },
     {
       "path": "fixtures/packet/packet-hash.mjs",
-      "sha256": "22a97f864b6e7e5cf1a6294ae0a277cfc1f6069b5d9a46bdb249726e9cd30f73",
-      "bytes": 7656
+      "sha256": "1026da3ce02566e8eb491827680f391ef7a860233deb0d1ef4a4b4df69686c51",
+      "bytes": 7702
     },
     {
       "path": "fixtures/prompts/A.md",
