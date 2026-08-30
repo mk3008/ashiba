@@ -53,6 +53,23 @@ or calibration evidence.
 - **Status:** corrected rerun passed static isolation and completed; the
   original final failure remains preserved beside `corrected-h007` evidence.
 
+# EXCL-001 — AF-L r2 evidence-preservation setup attempts
+
+- **Observed:** 2026-08-31 before any AF-L r2 runner oracle result.
+- **AF-L-A-r2:** an initial candidate typecheck failure was repaired before the
+  required initial source/log snapshot was preserved. The available final
+  source is retained under
+  `secondary-evidence/AF-L-A-r2/excluded-evidence-preservation-incident/`,
+  but it is not a scored attempt.
+- **AF-L-D-r2:** a setup worker deleted candidate source files before it ran a
+  verifier or preserved attempt evidence. No candidate result is retained or
+  interpreted.
+- **Scope:** no primary, AF-V, runner, fixture, or product evidence changed.
+- **Disposition:** both setup attempts are excluded. Each affected cell must
+  be freshly materialized and executed under the frozen packet with immutable
+  per-attempt snapshots before it can enter AF r2 observations.
+- **Status:** AF-L-A-r2 fresh rerun pending; AF-L-D-r2 fresh rerun pending.
+
 # H-004 — E1 forbidden-marker packet omission
 
 - **Observed:** 2026-08-30, after E1 candidate directories were materialized
