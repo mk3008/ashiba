@@ -21,3 +21,17 @@ or calibration evidence.
   assertions, and treatment policy are unchanged.
 - **Affected scored cells:** none. Scored cells at correction: 0.
 - **Required remeasure:** the reference control and negative controls only.
+
+# H-002 — Pre-scoring oracle warning cleanup
+
+- **Observed:** 2026-08-30, before every scored cell.
+- **Original evidence:** reference-control execution emitted node-postgres's
+  deprecation warning for concurrent `client.query()` calls in the runner's
+  read-only final-state collector.
+- **Cause:** `databaseState()` submitted independent state reads concurrently
+  on one PostgreSQL `Client`.
+- **Correction:** issue those runner-owned reads serially.
+- **Scope:** diagnostic output and oracle query scheduling only; no public API,
+  candidate workload, expected result, or treatment policy changed.
+- **Affected scored cells:** none. Scored cells at correction: 0.
+- **Required remeasure:** reference and negative controls under Node 24.18.0.

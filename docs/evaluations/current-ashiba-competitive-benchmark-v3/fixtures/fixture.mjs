@@ -66,13 +66,13 @@ export async function withClient(databaseUrl, callback) {
 export async function databaseState(databaseUrl, schema) {
   const s = quoteSchema(schema);
   return withClient(databaseUrl, async (client) => {
-    const [tickets, ticketAudit, accounts, transferAudit, workItems] = await Promise.all([
-      client.query(`SELECT id::text AS id, title, status::text AS status, assignee, priority, metadata FROM ${s}.tickets ORDER BY id`),
-      client.query(`SELECT ticket_id::text AS ticket_id, action, detail FROM ${s}.ticket_audit ORDER BY audit_id`),
-      client.query(`SELECT account_id::text AS account_id, balance_cents::text AS balance_cents FROM ${s}.accounts ORDER BY account_id`),
-      client.query(`SELECT from_account_id::text AS from_account_id, to_account_id::text AS to_account_id, amount_cents::text AS amount_cents, note FROM ${s}.transfer_audit ORDER BY audit_id`),
-      client.query(`SELECT id::text AS id, state, claimed_by FROM ${s}.work_items ORDER BY id`),
-    ]);
+    // PostgreSQL clients process a single query at a time. Keep oracle reads
+    // serial so successful reference controls do not emit a pg deprecation.
+    const tickets = await client.query(`SELECT id::text AS id, title, status::text AS status, assignee, priority, metadata FROM ${s}.tickets ORDER BY id`);
+    const ticketAudit = await client.query(`SELECT ticket_id::text AS ticket_id, action, detail FROM ${s}.ticket_audit ORDER BY audit_id`);
+    const accounts = await client.query(`SELECT account_id::text AS account_id, balance_cents::text AS balance_cents FROM ${s}.accounts ORDER BY account_id`);
+    const transferAudit = await client.query(`SELECT from_account_id::text AS from_account_id, to_account_id::text AS to_account_id, amount_cents::text AS amount_cents, note FROM ${s}.transfer_audit ORDER BY audit_id`);
+    const workItems = await client.query(`SELECT id::text AS id, state, claimed_by FROM ${s}.work_items ORDER BY id`);
     return {
       tickets: tickets.rows,
       ticketAudit: ticketAudit.rows,
