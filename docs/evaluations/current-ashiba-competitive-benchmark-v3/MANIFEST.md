@@ -7,8 +7,8 @@ below are observations from the linked first-party sources on 2026-08-30.
 | Arm | Frozen version | Status | Official evidence | Normal workflow and prerequisites |
 | --- | --- | --- | --- | --- |
 | A | `@ashiba-ts/named-parameters` 0.1.0, packed from baseline `80779fbb383de968d00d21d5bf09f765fe536975` | current package | [package source](../../../packages/named-parameters/package.json) | Node 22/24; visible SQL → compiler → binder → native driver |
-| P | `prisma` / `@prisma/client` 7.10.0 | GA stable | [Prisma 7 getting started](https://docs.prisma.io/docs/getting-started), [Prisma system requirements](https://docs.prisma.io/docs/orm/reference/system-requirements) | schema/contract, Prisma client, and normal generation/configuration as required by the package |
-| P context | Prisma 8.0.0-rc.12 | current/recommended prerelease; not a stable-arm substitution | [Prisma ORM overview](https://docs.prisma.io/docs/orm), [Prisma PostgreSQL quickstart](https://docs.prisma.io/docs/prisma-orm/quickstart/postgresql) | requires Node 24+ and introduces a contract workflow; recorded because official pages use mixed current/GA wording |
+| P | `prisma` 8.0.0-rc.12 + `@prisma/orm-postgres` | Prisma 8 Release Candidate / current-generation workflow; not GA/stable | [Prisma 8 PostgreSQL quickstart](https://docs.prisma.io/docs/prisma-orm/quickstart/postgresql), [registry metadata](https://registry.npmjs.org/prisma/8.0.0-rc.12) | `prisma.config.ts`, PSL/TypeScript contract, contract emit, contract artifacts/types, Prisma 8 PostgreSQL runtime; exact packet freeze required before scoring |
+| P context | Prisma 7.10.0 | fully supported historical predecessor; not scored | [Prisma 7 getting started](https://docs.prisma.io/docs/getting-started) | retained only to distinguish the scored current-generation RC workflow |
 | S | sqlc 1.31.1 + `sqlc-gen-typescript` 0.1.3 | core stable; TS plugin early access | [sqlc releases](https://github.com/sqlc-dev/sqlc/releases), [sqlc TypeScript plugin](https://github.com/sqlc-dev/sqlc-gen-typescript), [generate](https://docs.sqlc.dev/en/stable/howto/generate.html) | sqlc binary, `sqlc.yaml`, schema/query inputs, generated TypeScript plus a PostgreSQL driver |
 | D | `drizzle-orm` 0.45.2 + `drizzle-kit` 0.31.10 | stable line | [Drizzle releases](https://github.com/drizzle-team/drizzle-orm/releases), [node-postgres setup](https://orm.drizzle.team/docs/get-started-postgresql) | `drizzle-orm`, `pg`, schema/config only where normal path requires them; RC line is excluded |
 | K | `kysely` 0.29.5 | package stable resolution | [Kysely](https://www.kysely.dev/), [Postgres dialect](https://kysely-org.github.io/kysely-apidoc/classes/PostgresDialect.html) | Kysely + `pg` and `PostgresDialect` |
@@ -18,12 +18,12 @@ below are observations from the linked first-party sources on 2026-08-30.
 
 ## Version-resolution notes
 
-`npm view` at preregistration resolved Prisma CLI 8.0.0-rc.12, Prisma client
-7.10.0, Drizzle ORM 0.45.2, Drizzle Kit 0.31.10, Kysely 0.29.5, and `pg`
-8.23.0. sqlc and its TypeScript generator are distributed outside npm. The
-Prisma version/status inconsistency is a recorded limitation, not a claim that
-the RC is GA. Drizzle's official current quickstart references an RC, so the
-benchmark explicitly pins the stable line rather than mixing release channels.
+The Prisma scored arm was corrected before any scored cell by
+`PREREGISTRATION_AMENDMENT_2.md`. Registry metadata fixed `prisma` to
+8.0.0-rc.12, published 2026-08-26T14:06:49.655Z, with integrity
+`sha512-a+o+2lMsUeBl2Fm+DduUrXuHcU7DaI6EO3YmEDa4kVyS2LYVj9hSwl1tcpx4It/fMYq7mQiGaibVL+rIYFjAvQ==`.
+The RC status is context, not a score penalty. Drizzle's official current
+quickstart references an RC, so the benchmark separately pins the stable line.
 
 ## Ashiba distribution artifact
 
