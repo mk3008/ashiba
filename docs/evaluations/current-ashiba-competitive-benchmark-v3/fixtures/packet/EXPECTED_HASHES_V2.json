@@ -3,8 +3,8 @@
   "files": [
     {
       "path": "COMMON_API.md",
-      "sha256": "10301cae8083d0c48e2b699daee7207e55266c68c1caee2859d981a5534b5b02",
-      "bytes": 5578
+      "sha256": "6ade3d709f9a091e44d2ffcdb151491b5c5d1bc79c9f0c210566907b3b1b7128",
+      "bytes": 5781
     },
     {
       "path": "NEGATIVE_CONTROLS.md",
@@ -13,8 +13,8 @@
     },
     {
       "path": "REPRODUCE.md",
-      "sha256": "ae78622ff327e2be7df38c4ea2f2682dcc77351d27b7f447c1b2abf8f081e66f",
-      "bytes": 2653
+      "sha256": "42567482dd7f69a42c5a74cb76139fd33f268a79f44aa28103f7024426a5b116",
+      "bytes": 3092
     },
     {
       "path": "api-contract.mjs",
@@ -28,18 +28,18 @@
     },
     {
       "path": "evidence-executor/REPORT.md",
-      "sha256": "dcaa979417408883afac95d7b93ce601a319d1e39d83d1ab299bf99beed63244",
-      "bytes": 942
+      "sha256": "621bd365c174079349d6b78ee4415053e2e697dd0764b1b79c98966bf77bbbbf",
+      "bytes": 917
     },
     {
       "path": "evidence-executor/SPEC.md",
-      "sha256": "2514d454f6be0d1b633a2f414218c2c44d5223dc5d0431b37b98f78f3f15f2ac",
-      "bytes": 1748
+      "sha256": "6cdf552049ebf5f27a49ef3ba58541174acb13267ad697e2a5fad51ff4f2333d",
+      "bytes": 2887
     },
     {
       "path": "evidence-executor/attempt-evidence-executor.mjs",
-      "sha256": "3cbaba781b4c38846aa6af65f8566d36a05aad1cb38d837e37188d1336c00b90",
-      "bytes": 7811
+      "sha256": "8f84546a049f83a29129a259f451dfb9a6c00ecaba716cccc0c7ba11e308ef31",
+      "bytes": 15264
     },
     {
       "path": "fixture.mjs",
@@ -173,8 +173,8 @@
     },
     {
       "path": "prompts/A.md",
-      "sha256": "72d5c873016373810b6ef3df3d3d70a02bce21bf0c595e89f6653ce82f3ad8c9",
-      "bytes": 323
+      "sha256": "a261f7dbf1e8f5c248bdb1030e9f250faace4208ee597c4b891e4a603023d8ae",
+      "bytes": 322
     },
     {
       "path": "prompts/COMMON_ASSIGNMENT.md",
@@ -183,18 +183,18 @@
     },
     {
       "path": "prompts/D.md",
-      "sha256": "477d84b2679e846a504bea4e98f467fda56a8b5dbb3688f32e8e971bf0fcfb31",
-      "bytes": 246
+      "sha256": "bbcc3ae9a75d47e00c05e008017c155736a22c63ee1fa960a61071460687934a",
+      "bytes": 245
     },
     {
       "path": "prompts/G.md",
-      "sha256": "81b2667ca12d561cb9f0a2204c2a1550cd975e5271e2032a83b49cf10268daf4",
-      "bytes": 212
+      "sha256": "8abfb4a2bbd934ab31bf93cd194ec014b9076089cf13dd3122e3145472518a15",
+      "bytes": 211
     },
     {
       "path": "prompts/K.md",
-      "sha256": "0b8f762a97bffe01aa999338f68acfeac351711ec51326dd73e4a48e7f31cf61",
-      "bytes": 209
+      "sha256": "1708ed590330755c4d4e4b5c5f1bf1e356866e0856aaf839cb4e4a640b0f80b3",
+      "bytes": 208
     },
     {
       "path": "prompts/P.md",
@@ -203,8 +203,8 @@
     },
     {
       "path": "prompts/S.md",
-      "sha256": "4a767d5c92b22d4b3f590155ebb902100b5584dd2085d52111efc1c159e27568",
-      "bytes": 249
+      "sha256": "b69b1458c5910f598bc9fd87aae5d088b4034e32c4eec0e77511fe79e11c6fa6",
+      "bytes": 248
     },
     {
       "path": "prompts/workloads/G1.md",
@@ -238,8 +238,8 @@
     },
     {
       "path": "runner.mjs",
-      "sha256": "fd4bfa418ffa2d6decc502e812df1ea12ec588e2b3c884d047d084a4d2df78e1",
-      "bytes": 18655
+      "sha256": "91b1406e42198a0f966d065ade5ff5a4a9bda13c3a4754789beb52e62c890481",
+      "bytes": 24965
     },
     {
       "path": "schema.sql",

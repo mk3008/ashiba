@@ -91,10 +91,12 @@ may enable or predict that injection.
 For Q1, candidates own execution of the supplied PostgreSQL task query and
 their own `EXPLAIN (FORMAT JSON)` call. `investigate` and `explain` receive the
 same data parameters (`requestedTag`, `tier`), not evaluator SQL. Each result
-must identify the candidate-owned executed SQL and bound parameter values.
-The runner independently computes the expected rows from its frozen oracle and
-records plan evidence returned by `explain`; it does not execute candidate SQL
-as the plan oracle.
+must identify the candidate-owned source SQL, executed SQL, and bound parameter
+values. The runner requires the normalized source and executed SQL to match
+between `investigate` and `explain`, then requires `explain.plan` to have the
+top-level PostgreSQL `FORMAT JSON` shape (`[{ Plan: { "Node Type", "Plan Rows",
+... } }]`). The runner independently computes the expected rows from its
+frozen oracle; it does not execute candidate SQL as the plan oracle.
 
 `close()` is required, resolves with no value, and is idempotent. The
 workload-relevant non-close operation after a successful close rejects with

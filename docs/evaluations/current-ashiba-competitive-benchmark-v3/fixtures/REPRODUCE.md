@@ -47,8 +47,15 @@ transpile TypeScript, modify candidate source, inject failure flags, or use
 candidate tests/SQL/stdout as an oracle.
 
 ```powershell
-node runner.mjs --candidate C:\candidate\dist\application.js --source-root C:\candidate\src --workload G1,T1,T2,Q1 --output C:\evidence\run.json
+node runner.mjs --candidate C:\candidate\dist\application.js --source-root C:\candidate --workload G1,T1,T2,Q1 --output C:\evidence\run.json
 ```
+
+`--source-root` is the candidate package root, not its `src` directory. The
+runner first finds the nearest `package.json` ancestor of the built entrypoint
+and scans that complete package root. It hashes and scans source, tests,
+configuration, package manifests, lockfiles, and generated textual state;
+it excludes `node_modules`, `.git`, `.pnpm`, and binary files. Any symlink or
+workspace/file/link dependency reference is a static failure.
 
 Do not use the static control or reference-control result as a scored cell. A
 live run requires the PostgreSQL prerequisite above; no candidate run is valid
