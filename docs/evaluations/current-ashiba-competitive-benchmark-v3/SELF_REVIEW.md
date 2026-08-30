@@ -28,15 +28,22 @@
 - Historical per-cell Fresh-Agent dispatch, retry, escalation, and telemetry
   gaps are disclosed rather than inferred from candidate attempt records.
 
+## Independent publication audit
+
+The final independent Sol audit approved the publication evidence after
+confirming the first-oracle derivation, the X1 terminal-only/excluded-r3
+boundary, deterministic aggregation, the profile-required versus
+dispatch-unverified wording, and the observed/inference boundary. The audit
+does not replace repository verification, remote CI, or the orchestration
+ledger finish.
+
 ## Remaining review gates
 
-- Independently review all required secondary controls, including the
-  heterogeneous AF replicate-two preservation paths.
-- Regenerate the raw index and these reports from finalized evidence.
-- Perform the required independent publication-quality audit, including
-  workload fairness, treatment fidelity, reproduction completeness, and
-  preferred-outcome wording.
 - Run repository verification and final remote CI confirmation.
 
-Status: **partial after factual aggregation review**. This self-review is a
-transparency check, not the final independent audit.
+- Finish the append-only orchestration ledger with only the data that was
+  actually captured; historical per-session telemetry remains unavailable.
+
+Status: **partial pending repository verification, remote CI, and ledger
+finish**. This self-review records both required review cycles; it does not
+convert unavailable historical telemetry into measured data.
