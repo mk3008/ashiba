@@ -9,7 +9,13 @@ common fixture/prompt hashes below. A package-lock produced from each arm's
 declared direct pins is the transitive-resolution authority.
 
 `EXPECTED_HASHES_V2.json` is the expected-hash authority for the frozen local
-inputs, documentation archive, and every arm/fixture package lock. Run
+inputs, documentation archive, and every arm/fixture package lock. The verifier
+also requires a canonical, verifier-source-declared list of the binding
+preregistration/amendment, profile, workload, treatment, evaluator, manifest,
+and correction-ledger inputs. The verifier source itself is included in the
+hash manifest. `EXPECTED_HASHES_V2.json` is deliberately not self-hashed:
+recursive self-hashing has no stable representation; its integrity boundary is
+the committing freeze SHA plus the verifier's required input list. Run
 `node packet-hash.mjs` from this directory before dispatching a scored cell;
 the command exits nonzero for a missing, changed, duplicate, or unlisted lock
 or frozen input. The packet verifier and fetch helper are evaluation tooling,
