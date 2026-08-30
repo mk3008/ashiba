@@ -75,7 +75,7 @@ optional command was removed.
 ## Documentation and migration
 
 Current docs no longer promote the removed SQL format command. The concise
-[Optional CLI Analysis Migration](../../guide/optional-cli-analysis-migration.md)
+The removed-command migration material is historical evidence; current guidance is in release-readiness docs.
 guide directs formatting, advisory review, outline/graph inspection, and
 slicing to application-owned editor, general tooling, AI, AST tooling, or
 native-database workflows. It identifies query uses and narrow DDL-backed lint

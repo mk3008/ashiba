@@ -22,5 +22,4 @@ ashiba describe command --format json
 ```
 
 The CLI does not scaffold feature architecture or generate DTOs, mappers, or
-mapper tests. For migration from those removed surfaces, see the repository
-[scaffold migration note](../../docs/guide/scaffold-migration.md).
+mapper tests. Application architecture remains application-owned.

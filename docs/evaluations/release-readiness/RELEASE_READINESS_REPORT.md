@@ -1,0 +1,59 @@
+# Ashiba release readiness / AI-first adoption finalization
+
+## Decision
+
+**READY.** The Node 22/npm 10 and Node 24/npm 11 npm-distribution matrix,
+full verification, PostgreSQL live, Ticket Queue, Support Inbox, and CRLF CI
+jobs all passed on run `33279721842`. The local Node 22/npm 10 proof and the
+independent application oracles also pass. Node 24/npm 11 remains CI evidence
+because this workstation has no Node 24 runtime.
+
+## Current boundary
+
+Ashiba is a Builder Mapper core, not an ORM, architecture framework, migration
+platform, driver runtime, or agent runtime:
+
+```
+canonical raw SQL
+→ deterministic binding metadata / freshness
+→ bindNamedParameters
+→ application-owned finite reviewed SQL composition
+→ native driver
+→ application/live tests
+```
+
+The application owns pools, transactions, rollback, logging, mapping,
+migrations, schema pull, deployment, and business policy. Optional proofs do
+not become a required Golden Path gate.
+
+## Evidence summary
+
+- Current docs and Scope were cleared of removed current surfaces; historical
+  evaluations remain archive evidence.
+- Node support is Node 22 and 24 LTS, with Node 24 recommended. Public package
+  engines now express that policy.
+- The minimal, VSA, and layered references are independently reviewable and
+  carry concise-consumer-prompt and harness provenance material.
+- The new strict-TypeScript fresh-agent VSA rerun passed generation freshness,
+  typechecking, candidate tests, and a runner-owned PostgreSQL oracle. The
+  existing layered clean-room evidence remains unchanged. The VSA oracle covers
+  filters, all reviewed sort pairs, pagination, get, hostile-value binding,
+  missing/unused rejection, committed assignment, and injected-audit rollback.
+- The npm tarball proof uses only packed public packages and normal npm install.
+
+## Concern and follow-up
+
+The publish-shaped tarball proof must materialize pnpm's workspace-protocol
+rewrite. It verifies the released manifest shape, but it is not a hosted
+registry installation. CI is the compatibility authority for Node 22 and 24.
+No runtime abstraction or product capability is proposed as a remedy.
+
+## Invariants
+
+Scope: unchanged. Golden Path: unchanged. DBMS positioning: unchanged.
+Product runtime behavior: unchanged except that successful CLI `model-gen`
+output is concise and stale artifacts are actionable.
+
+See [raw results](raw-results.json), [support matrix](SUPPORT_MATRIX.md),
+[clean-room evidence](CLEAN_ROOM_DOGFOODING.md), and
+[architecture references](ARCHITECTURE_REFERENCE_REPORT.md).

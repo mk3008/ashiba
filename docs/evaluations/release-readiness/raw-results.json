@@ -1,0 +1,58 @@
+{
+  "startingSha": "bae5330631f863f4f8e63b8145c180b707a2ba71",
+  "decision": "READY",
+  "support": {
+    "node22Npm10": "pass-local",
+    "node24Npm11": "pass-ci"
+  },
+  "architectureReferences": {
+    "minimal": "pass-existing",
+    "vsa": "pass-strict-typescript-runner-oracle",
+    "layered": "pass-runner-oracle"
+  },
+  "cleanRoom": {
+    "vsa": "pass-strict-typescript-fresh-rerun-no-repair",
+    "layered": "pass-after-nullable-guard-repair"
+  },
+  "invariants": {
+    "scopeChanged": false,
+    "goldenPathChanged": false,
+    "productRuntimeArchitectureChanged": false
+  },
+  "runnerOwnedOracle": {
+    "postgres": "pass",
+    "coverage": ["status filter", "assignee filter", "all finite sort pairs", "pagination", "get", "hostile binding", "missing/unused rejection", "assign", "database-injected audit rollback"],
+    "candidateTestsUsedAsAuthority": false
+  },
+  "verification": {
+    "typecheck": "pass",
+    "build": "pass",
+    "test": "pass",
+    "verify": "pass",
+    "docsBuild": "pass",
+    "diffCheck": "pass",
+    "npmDistributionLocal": "pass-node22-npm10",
+    "commandCatalogStaleScan": "clean",
+    "currentDocsStaleScan": "clean"
+  },
+  "remoteCi": {
+    "run": "33279721842",
+    "verify": "pass",
+    "npmDistributionNode22Npm10": "pass",
+    "npmDistributionNode24Npm11": "pass",
+    "postgresLive": "pass",
+    "ticketQueueReference": "pass",
+    "supportInbox": "pass",
+    "supportInboxAutocrlf": "pass"
+  },
+  "vsaTypeScriptRerun": {
+    "consumerPrompt": "pass-separated-from-harness",
+    "applicationSource": "pass-strict-ts",
+    "generatedFreshness": "pass",
+    "candidateTests": "pass-3",
+    "runnerOwnedPostgresOracle": "pass",
+    "repairRetryEscalation": "none",
+    "cleanRoom": "removed-after-evidence-capture"
+  },
+  "temporaryResources": "postgres oracle container removed; VSA clean-room removed after evidence capture"
+}

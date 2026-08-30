@@ -1,0 +1,13 @@
+Evaluation-only harness instructions. These are not consumer guidance.
+
+The fresh agent received only packed Ashiba tarballs, normal npm dependencies,
+the frozen DDL/business acceptance, `AGENTS.md`, and the concise consumer prompt.
+It was prohibited from inspecting Ashiba source, existing examples, evaluations,
+other candidates, and previous output. The runner independently owns final
+PostgreSQL verification and cleanup.
+
+The candidate had to implement an actual strict TypeScript Vertical Slice
+application: application and query source are `.ts`, generated bindings are
+`.ts`, and `tsc --noEmit` checks them. The trial prohibited the
+`allowJs: true` / `checkJs: false` bypass and an application implemented only
+in `.mjs`. A small Node-native generation script was allowed to be `.mjs`.

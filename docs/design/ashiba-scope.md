@@ -78,50 +78,36 @@ replace application tests. Not every valid feature must be mechanically provable
   commit/rollback, retry and idempotency policy, logging, telemetry, type
   parsing, streams/cursors, business ordering, optional-filter semantics, DTO
   and domain architecture, and migration application policy.
-- Native database drivers are the baseline runtime execution owner. Ashiba may
-  provide deterministic preparation and optional adapters that delegate
-  execution to an application-supplied native driver. Ashiba does not acquire
-  connections, manage pools or transactions, or own application execution
-  policy.
-- Ashiba-specific execution adapters are optional compatibility or convenience
-  surfaces, not required application architecture. They do not replace the
-  native driver or own application execution policy.
+- Native database drivers are the runtime execution owner. Ashiba does not
+  acquire connections, manage pools or transactions, or own application
+  execution policy.
 - Canonical SQL being file-backed does not require runtime filesystem access.
   Applications/build tooling own loading, bundling, embedding, or otherwise
   supplying SQL text; development-time Ashiba tooling may use filesystem access.
-- Ashiba-provided runtime examples and scaffolds prefer supplied SQL text
-  without runtime filesystem access unless the example explicitly targets a
-  Node/filesystem-specific environment. This does not restrict an application's
-  own runtime loading choice.
+- Ashiba examples use supplied SQL text without making runtime filesystem
+  access a product requirement. This does not restrict an application's own
+  runtime loading choice.
 - Valid ordinary SQL execution is not unnecessarily blocked when Ashiba cannot
   analyze it. A proof-required Ashiba transformation fails closed when its
   local evidence is stale, absent, or inconsistent.
 
 ## Current decisions
 
-- Deterministic named-parameter lowering is the fallback responsibility when
-  native driver support is insufficient; a runtime lexer is not the standard
-  path.
-- Optional input meanings (`omitted`, explicit `NULL`, value) are application
-  requirements. Runtime does not add predicates. Precomputed predicate
-  subtraction is a performance optimization: default off, query opt-in, and an
-  execution-level off escape hatch.
-- Reviewed ordering expressions, including CASE and multi-key composition, are
-  application-owned. Runtime may select bounded key/direction/sequence input
-  and mechanically place those expressions; it never accepts raw SQL ordering.
-- Verification enforces mechanical facts it can establish, such as source
-  identity, stale metadata, local range/context consistency, and binding
-  metadata. Business semantics, transaction adequacy, domain policy, and test
-  adequacy remain application/live-test authority.
-
-## Experimental / productization pending
-
-AI-derived per-query optional ranges and sort placement coordinates have
-evaluation support only. Their generator is not prescribed: the trust boundary
-is a versioned artifact contract, small deterministic verifier, and
-application/live tests. Build-time AI is rejected for reproducible builds.
-Productizing these artifacts, a CLI generator, or a broader runtime contract
-requires separate evidence and an explicit scope decision.
+- Deterministic named-parameter lowering, binding metadata, source freshness,
+  and missing/unused rejection are Ashiba core. A runtime lexer is not the
+  standard path.
+- Optional filters, sort policy, and every dynamic SQL expression are
+  application-owned. Dynamic SQL syntax may come only from a closed,
+  source-controlled, reviewed literal set; arbitrary external text never
+  becomes SQL syntax.
+- Optional deterministic proof (for example, PostgreSQL contracts, query uses,
+  DDL-backed lint, and SQL-resource comparison) is explicit rather than an
+  application runtime architecture.
+- Migration authoring and application, schema pull, deployment/CI setup,
+  pooling, transactions, logging, telemetry, result mapping, and business
+  semantics are application or external-tool responsibilities.
+- Verification enforces mechanical facts it can establish. Application/live
+  tests remain authority for behavior, transaction adequacy, and domain policy.
 
 ## Explicit non-scope
 

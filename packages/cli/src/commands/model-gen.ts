@@ -112,6 +112,10 @@ export function registerModelGenCommand(program: Command): void {
       if (options.check === true && result.fresh !== true) process.exitCode = 1;
       process.stdout.write(options.format === 'json'
         ? `${JSON.stringify(result, null, 2)}\n`
+        : options.check === true
+          ? result.fresh === true
+            ? `Binding metadata is fresh: ${result.out}\n`
+            : `Binding metadata is stale or missing: ${result.out}. Regenerate with: ashiba model-gen ${result.sqlFile} --out ${result.out}\n`
         : result.out && !result.dryRun
           ? `Generated binding metadata: ${result.out}\n`
           : result.contents);
