@@ -1,6 +1,6 @@
 import { bindNamedParameters } from '@ashiba-ts/named-parameters';
 import type { Pool } from 'pg';
-import { queries } from './generated/queries.js';
+import { queries } from './queries.js';
 import type { AssignParams, AuditParams, GetParams, ListParams, Ticket } from './types.js';
 
 const order = {

@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { bindNamedParameters } from '@ashiba-ts/named-parameters';
-import { queries } from '../src/generated/queries.js';
+import { queries } from '../src/queries.js';
 import { assignTicket, getTicket, listTickets, ticketOrderBy } from '../src/tickets.js';
 import type { Ticket } from '../src/types.js';
 import { setupTicketQueueDatabase } from '../scripts/setup-database.mjs';

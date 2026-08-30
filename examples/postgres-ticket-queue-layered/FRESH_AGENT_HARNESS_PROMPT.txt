@@ -1,5 +1,8 @@
-Evaluation-only harness instructions. These are not the layered consumer
+Historical evaluation-only harness instructions. These are not the layered consumer
 prompt. The concise consumer prompt is [ORIGINAL_PROMPT.md](./ORIGINAL_PROMPT.md).
+
+This immutable record predates the direct-compile core reduction and is not
+current Ashiba guidance.
 
 Credit-aware fresh-agent clean-room lane. Goal: Build a runnable minimal
 LAYERED PostgreSQL ticket app in a clean directory using only packed Ashiba

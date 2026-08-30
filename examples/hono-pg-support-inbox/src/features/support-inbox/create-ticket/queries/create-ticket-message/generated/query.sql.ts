@@ -1,2 +1,0 @@
-// Application SQL snapshot. The canonical SQL file remains the source of truth.
-export const querySql = "insert into public.ticket_messages(\n    ticket_id\n    , sender_name\n    , sender_role\n    , body\n    , created_at\n)\nvalues\n    (:ticket_id, :sender_name, :sender_role, :body, :created_at)\nreturning\n    message_id\n    , ticket_id\n    , sender_name\n    , sender_role\n    , body\n    , created_at;\n" as const;

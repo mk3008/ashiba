@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-30T03:26:22.281Z",
+  "run_count": 1,
+  "finished_run_count": 1,
+  "luna_attempts": 6,
+  "luna_successes": 6,
+  "luna_success_rate": 1,
+  "luna_run_count": 1,
+  "luna_resolved_run_count": 1,
+  "luna_task_success_rate": 1,
+  "escalation_run_count": 0,
+  "escalation_rate": 0,
+  "failure_reasons": {},
+  "escalation_reasons": {},
+  "escalation_targets": {},
+  "retry_count": 0,
+  "final_task_successes": 1,
+  "final_task_success_rate": 1,
+  "total_tokens": null,
+  "known_total_tokens": 0,
+  "unknown_token_attempts": 6,
+  "total_credit_consumption": null,
+  "known_credit_consumption": 0,
+  "unknown_credit_attempts": 6,
+  "credit_sources": {
+    "actual": 0,
+    "estimated": 0,
+    "unavailable": 6
+  },
+  "total_wall_time_seconds": 1564.264,
+  "known_wall_time_seconds": 1564.264,
+  "unknown_wall_time_runs": 0,
+  "model_breakdown": {
+    "gpt-5.6-luna": {
+      "attempts": 6,
+      "successes": 6,
+      "known_tokens": 0,
+      "known_credits": 0,
+      "wall_time_seconds": 70337.826
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { bindNamedParameters, NamedParameterError } from '@ashiba-ts/named-parameters';
-import { bindingMetadata as listMetadata } from '../src/generated/listTickets.js';
+import { queryBindings } from '../src/access/queryBindings.js';
 import { TicketService } from '../src/application/ticketService.js';
 import { SqlTicketAccess, type AssignRow, type TicketAccess, type TicketRow } from '../src/access/ticketAccess.js';
 import type { QueryExecutor, QueryResult, TransactionClient, TransactionPool } from '../src/access/pgTypes.js';
@@ -51,7 +51,7 @@ test('get access binds the id and returns the joined audit projection', async ()
 });
 
 test('binder rejects missing and unused names', () => {
-  const statement = listMetadata.bindings.postgres;
+  const statement = queryBindings.list;
   assert.throws(() => bindNamedParameters(statement, { status: 'open' }), (error: unknown) =>
     error instanceof NamedParameterError && error.code === 'ASHIBA_MISSING_PARAMETER');
   assert.throws(() => bindNamedParameters(statement, {

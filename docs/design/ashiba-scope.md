@@ -6,10 +6,24 @@ title: Ashiba Scope
 
 This document is the normative source of truth for Ashiba product scope.
 
-Ashiba is a SQL-first development and verification product for TypeScript
-applications. It keeps complete SQL visible and reviewable while supplying
-narrow, evidence-backed preparation and verification where that adds value.
-It is not an ORM, generic query builder, or application architecture framework.
+## Product purpose
+
+Ashiba enables safe application development with raw, visible SQL. It is not
+an ORM, generic query builder, CLI toolchain, or application architecture
+framework.
+
+## Safety philosophy
+
+Keep SQL reviewable, keep values separate from SQL syntax, use reviewed finite
+SQL syntax for bounded dynamic choices, hand execution to the native driver,
+and prove behavior with application and live tests.
+
+## Current Ashiba-owned mechanical core
+
+The current mechanical core is deterministic named-parameter compilation and
+binding. This implementation boundary is sometimes described as a Builder
+Mapper path; it is not the definition of Ashiba's whole product purpose or a
+requirement that Ashiba own a framework-equivalent application architecture.
 
 ## Maturity labels
 
@@ -93,16 +107,18 @@ replace application tests. Not every valid feature must be mechanically provable
 
 ## Current decisions
 
-- Deterministic named-parameter lowering, binding metadata, source freshness,
-  and missing/unused rejection are Ashiba core. A runtime lexer is not the
-  standard path.
+- Deterministic named-parameter compilation, native-driver placeholder
+  lowering, and missing/unused rejection are Ashiba core. A runtime lexer is
+  not the standard path. Applications may compile and cache prepared queries
+  at a controlled initialization or build point; generated binding modules and
+  freshness workflows are not Ashiba product requirements.
 - Optional filters, sort policy, and every dynamic SQL expression are
   application-owned. Dynamic SQL syntax may come only from a closed,
   source-controlled, reviewed literal set; arbitrary external text never
   becomes SQL syntax.
-- Optional deterministic proof (for example, PostgreSQL contracts, query uses,
-  DDL-backed lint, and SQL-resource comparison) is explicit rather than an
-  application runtime architecture.
+- Schema, query, and database verification may be supplied by application-owned
+  tests or external tools. Such optional proof is outside the current
+  mechanical core and does not add an Ashiba CLI or runtime architecture.
 - Migration authoring and application, schema pull, deployment/CI setup,
   pooling, transactions, logging, telemetry, result mapping, and business
   semantics are application or external-tool responsibilities.

@@ -1,4 +1,8 @@
-# Original concise consumer prompt
+# Historical concise consumer prompt
+
+This is immutable provenance from the earlier clean-room trial. The current
+reference now uses direct application-controlled compilation/cache; do not use
+this historical wording as current Ashiba guidance.
 
 Build a TypeScript PostgreSQL ticket application using Vertical Slice
 Architecture.

@@ -11,14 +11,11 @@ hero:
     - theme: brand
       text: Get started with AI
       link: /guide/ai-first-getting-started
-    - theme: alt
-      text: CLI reference
-      link: /generated/api/commands
 features:
   - title: SQL stays yours
     details: Canonical SQL stays visible, reviewable, and owned by the application.
   - title: Deterministic binding
-    details: Generate freshness-checked metadata, reject missing or unused values, then call the native driver.
+    details: Compile named parameters, reject missing or unused values, then call the native driver.
   - title: No architecture framework
     details: Use vertical slices, layers, or another application shape. Pools, transactions, logging, mapping, and migrations stay yours.
 ---
@@ -32,9 +29,8 @@ features:
 
 ## Optional verification
 
-- [PostgreSQL-derived query contracts](./guide/postgres-contract.md)
-- [SQL resources and schema compatibility](./guide/sql-resource-compatibility.md)
-- [Current command API](./generated/api/commands.md)
+Applications may add their own database, schema, and query verification using
+native tooling and tests. These are outside Ashiba's current mechanical core.
 
 ## Evidence archive
 
