@@ -1,0 +1,69 @@
+kind,cell,workload_or_control,arm,replicate,evidence_path,attempt_count,additional_attempt_count,first_build_status,first_typecheck_status,first_test_status,first_runner_status,final_live_status,final_treatment_value,final_cleanup_status,observation_index,note
+primary,G1-A-r1,G1,A,1,evidence/G1-A-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,G1-A-r2,G1,A,2,evidence/G1-A-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,G1-D-r1,G1,D,1,evidence/G1-D-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,G1-D-r2,G1,D,2,evidence/G1-D-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,G1-G-r1,G1,G,1,evidence/G1-G-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,G1-G-r2,G1,G,2,evidence/G1-G-r2/runner.json,1,0,fail,fail,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,G1-K-r1,G1,K,1,evidence/G1-K-r1/runner.json,2,1,pass,pass,pass,not-declared,F,pass,pass,,No aggregate score or winner is computed.
+primary,G1-K-r2,G1,K,2,evidence/G1-K-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,G1-P-r1,G1,P,1,evidence/G1-P-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,G1-P-r2,G1,P,2,evidence/G1-P-r2/runner.json,2,1,pass,pass,pass,not-declared,F,pass,pass,,No aggregate score or winner is computed.
+primary,G1-S-r1,G1,S,1,evidence/G1-S-r1/runner.json,2,1,pass,pass,pass,not-declared,F,pass,not-run,,No aggregate score or winner is computed.
+primary,G1-S-r2,G1,S,2,evidence/G1-S-r2/runner.json,2,1,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-A-r1,Q1,A,1,evidence/Q1-A-r1/runner.json,3,2,pass,pass,pass,not-declared,F,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-A-r2,Q1,A,2,evidence/Q1-A-r2/runner.json,3,2,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-D-r1,Q1,D,1,evidence/Q1-D-r1/runner.json,1,0,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-D-r2,Q1,D,2,evidence/Q1-D-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-G-r1,Q1,G,1,evidence/Q1-G-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-G-r2,Q1,G,2,evidence/Q1-G-r2/runner.json,3,2,pass,pass,pass,not-declared,F,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-K-r1,Q1,K,1,evidence/Q1-K-r1/runner.json,2,1,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-K-r2,Q1,K,2,evidence/Q1-K-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-P-r1,Q1,P,1,evidence/Q1-P-r1/runner.json,1,0,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-P-r2,Q1,P,2,evidence/Q1-P-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-S-r1,Q1,S,1,evidence/Q1-S-r1/runner.json,3,2,pass,pass,fail,not-declared,F,pass,pass,,No aggregate score or winner is computed.
+primary,Q1-S-r2,Q1,S,2,evidence/Q1-S-r2/runner.json,2,1,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-A-r1,T1,A,1,evidence/T1-A-r1/runner.json,2,1,pass,fail,pass,not-declared,F,pass,pass,,No aggregate score or winner is computed.
+primary,T1-A-r2,T1,A,2,evidence/T1-A-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-D-r1,T1,D,1,evidence/T1-D-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-D-r2,T1,D,2,evidence/T1-D-r2/runner.json,1,0,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-G-r1,T1,G,1,evidence/T1-G-r1/runner.json,1,0,pass,fail,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-G-r2,T1,G,2,evidence/T1-G-r2/runner.json,1,0,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-K-r1,T1,K,1,evidence/T1-K-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-K-r2,T1,K,2,evidence/T1-K-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-P-r1,T1,P,1,evidence/T1-P-r1/runner.json,2,1,pass,fail,pass,not-declared,F,pass,pass,,No aggregate score or winner is computed.
+primary,T1-P-r2,T1,P,2,evidence/T1-P-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T1-S-r1,T1,S,1,evidence/T1-S-r1/runner.json,1,0,pass,pass,pass,not-declared,P,fail,pass,,No aggregate score or winner is computed.
+primary,T1-S-r2,T1,S,2,evidence/T1-S-r2/runner.json,2,1,pass,pass,fail,not-declared,F,pass,not-run,,No aggregate score or winner is computed.
+primary,T2-A-r1,T2,A,1,evidence/T2-A-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-A-r2,T2,A,2,evidence/T2-A-r2/runner.json,2,1,pass,pass,pass,not-declared,F,pass,pass,,No aggregate score or winner is computed.
+primary,T2-D-r1,T2,D,1,evidence/T2-D-r1/runner.json,1,0,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-D-r2,T2,D,2,evidence/T2-D-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-G-r1,T2,G,1,evidence/T2-G-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-G-r2,T2,G,2,evidence/T2-G-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-K-r1,T2,K,1,evidence/T2-K-r1/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-K-r2,T2,K,2,evidence/T2-K-r2/runner.json,1,0,pass,pass,pass,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-P-r1,T2,P,1,evidence/T2-P-r1/runner.json,1,0,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-P-r2,T2,P,2,evidence/T2-P-r2/runner.json,1,0,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+primary,T2-S-r1,T2,S,1,evidence/T2-S-r1/runner.json,2,1,pass,pass,fail,not-declared,F,pass,not-run,,No aggregate score or winner is computed.
+primary,T2-S-r2,T2,S,2,evidence/T2-S-r2/runner.json,1,0,pass,pass,fail,not-declared,P,pass,pass,,No aggregate score or winner is computed.
+secondary,AF-L-A-r1,AF-L,A,1,secondary-evidence/AF-L-A-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-L-D-r1,AF-L,D,1,secondary-evidence/AF-L-D-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-L-G-r1,AF-L,G,1,secondary-evidence/AF-L-G-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-L-K-r1,AF-L,K,1,secondary-evidence/AF-L-K-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-L-P-r1,AF-L,P,1,secondary-evidence/AF-L-P-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-L-S-r1,AF-L,S,1,secondary-evidence/AF-L-S-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-A-r1,AF-V,A,1,secondary-evidence/AF-V-A-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-A-r1,AF-V,A,1,secondary-evidence/AF-V-A-r1/initial/runner.json,,,,,,,F,,,1,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-D-r1,AF-V,D,1,secondary-evidence/AF-V-D-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-D-r1,AF-V,D,1,secondary-evidence/AF-V-D-r1/initial/runner.json,,,,,,,P,,,1,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-G-r1,AF-V,G,1,secondary-evidence/AF-V-G-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-G-r1,AF-V,G,1,secondary-evidence/AF-V-G-r1/initial/runner.json,,,,,,,P,,,1,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-K-r1,AF-V,K,1,secondary-evidence/AF-V-K-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-K-r1,AF-V,K,1,secondary-evidence/AF-V-K-r1/initial/runner.json,,,,,,,P,,,1,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-P-r1,AF-V,P,1,secondary-evidence/AF-V-P-r1/corrected-final/runner.json,,,,,,,F,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-P-r1,AF-V,P,1,secondary-evidence/AF-V-P-r1/corrected-initial/runner.json,,,,,,,F,,,1,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-P-r1,AF-V,P,1,secondary-evidence/AF-V-P-r1/initial/runner.json,,,,,,,P,,,2,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-S-r1,AF-V,S,1,secondary-evidence/AF-V-S-r1/corrected/runner.json,,,,,,,P,,,0,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-S-r1,AF-V,S,1,secondary-evidence/AF-V-S-r1/initial/runner.json,,,,,,,F,,,1,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
+secondary,AF-V-S-r1,AF-V,S,1,secondary-evidence/AF-V-S-r1/repair1-pre-correction/runner.json,,,,,,,F,,,2,Secondary evidence is retained as observations. This extractor does not infer a final observation from directory labels such as corrected.
