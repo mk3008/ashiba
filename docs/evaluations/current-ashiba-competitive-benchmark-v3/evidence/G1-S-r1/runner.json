@@ -1,0 +1,135 @@
+{
+  "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-cells\\G1-S-r1\\candidate\\dist\\application.js",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-cells\\G1-S-r1\\candidate",
+  "workloads": [
+    "G1"
+  ],
+  "source": {
+    "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\G1-S-r1\\candidate",
+    "files": [
+      {
+        "path": "dist/application.d.ts",
+        "kind": "file",
+        "bytes": 1869,
+        "sha256": "9ad5de2ae0a952071f281e492d44523863306cf413feeb346097dba76512b7fc"
+      },
+      {
+        "path": "dist/application.js",
+        "kind": "file",
+        "bytes": 7770,
+        "sha256": "a691f6cc0b3427c607532845a19b9092b38fddf31e6d3102b25d8a42b3b089a2"
+      },
+      {
+        "path": "dist/application.test.d.ts",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/application.test.js",
+        "kind": "file",
+        "bytes": 1338,
+        "sha256": "28f428380085daf2d7b98aba4f73b4cf25c88e09764ac62d9a0f072080281174"
+      },
+      {
+        "path": "dist/generated/queries_sql.d.ts",
+        "kind": "file",
+        "bytes": 8062,
+        "sha256": "391cb97ca55cf66f31910c23f29ac4e2f302b3c8c77c25ce5e8b434c7762f0b3"
+      },
+      {
+        "path": "dist/generated/queries_sql.js",
+        "kind": "file",
+        "bytes": 8293,
+        "sha256": "66d3bffbda2ff6b1403ecf3c36aa7f9493b9e602d60d5a7db8e4f5bfe1be3145"
+      },
+      {
+        "path": "GENERATION.md",
+        "kind": "file",
+        "bytes": 405,
+        "sha256": "269977f942363cb443b8c191814aa543350aeeca2e73204ac8141237f22dfc78"
+      },
+      {
+        "path": "package-lock.json",
+        "kind": "file",
+        "bytes": 7321,
+        "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+      },
+      {
+        "path": "package.json",
+        "kind": "file",
+        "bytes": 386,
+        "sha256": "6ecd38c4b00ac74022866a7e59240a27f2239f6de70b347be08f5be9f19dbd12"
+      },
+      {
+        "path": "sqlc.yaml",
+        "kind": "file",
+        "bytes": 415,
+        "sha256": "03350cca3f58136b8aa3403b5bb93230746b08a6a86084cefe4c41dae93cdba8"
+      },
+      {
+        "path": "sqlc/queries.sql",
+        "kind": "file",
+        "bytes": 3820,
+        "sha256": "951860a46235e7234523d82c31c376133af2e6bb59b2488b1f8bfd801b185d11"
+      },
+      {
+        "path": "sqlc/schema.sql",
+        "kind": "file",
+        "bytes": 593,
+        "sha256": "7f3e3d1e41eb2dd68ea845226034d8400b0961162c6811e62cf37186d1d1ed46"
+      },
+      {
+        "path": "src/application.test.ts",
+        "kind": "file",
+        "bytes": 1265,
+        "sha256": "1c45082940f7f2dd1110127a8c5abd5b783ac5add9d8f469ddae202d688a5526"
+      },
+      {
+        "path": "src/application.ts",
+        "kind": "file",
+        "bytes": 9316,
+        "sha256": "7404cdadfdd958e0496fd13c6de5b567614ab9ac849e802352d6d404f5ccfa3b"
+      },
+      {
+        "path": "src/generated/queries_sql.ts",
+        "kind": "file",
+        "bytes": 12371,
+        "sha256": "67f342e821ac194802820f6f696ba6fa60929c263f7dce9a12de9ad1a61b071a"
+      },
+      {
+        "path": "tsconfig.json",
+        "kind": "file",
+        "bytes": 330,
+        "sha256": "e4e1699bea2b68430e903e48afcd184001cdc81e1728c71a67dc12f645288c23"
+      }
+    ],
+    "findings": [
+      {
+        "id": "runner-ddl",
+        "path": "sqlc/schema.sql"
+      }
+    ],
+    "pass": false
+  },
+  "checks": [
+    {
+      "id": "static-inspection",
+      "status": "fail",
+      "detail": [
+        {
+          "id": "runner-ddl",
+          "path": "sqlc/schema.sql"
+        }
+      ]
+    }
+  ],
+  "events": [],
+  "cleanup": {
+    "status": "not-run"
+  },
+  "startedAt": "2026-08-30T07:51:30.438Z",
+  "status": "F",
+  "finishedAt": "2026-08-30T07:51:30.438Z"
+}

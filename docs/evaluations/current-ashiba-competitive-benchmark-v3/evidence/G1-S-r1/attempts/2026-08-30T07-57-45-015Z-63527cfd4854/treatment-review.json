@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "sqlc generated TypeScript query module is the main data-access path; repaired candidate keeps schema outside candidate source.",
+  "decidedAt": "2026-08-30T07:58:07.969Z",
+  "decidedBy": "coordinator-required"
+}

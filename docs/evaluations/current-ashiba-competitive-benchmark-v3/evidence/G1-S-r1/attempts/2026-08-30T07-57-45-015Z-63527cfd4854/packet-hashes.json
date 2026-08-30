@@ -1,0 +1,10 @@
+{
+  "packet": {
+    "path": "C:\\tmp\\ashiba-benchmark-v3-cells\\G1-S-r1\\packet\\CELL.json",
+    "sha256": "e29b7788d952721562f1920bd1a41c1118e03b2adbb95f9514b4986e65766df5"
+  },
+  "prompt": {
+    "path": "C:\\tmp\\ashiba-benchmark-v3-cells\\G1-S-r1\\packet\\COMMON_ASSIGNMENT.md",
+    "sha256": "5cc995f358d664a69dae1ff30f369a8ba2d70becf24caa3fac61a4a11cba2af6"
+  }
+}

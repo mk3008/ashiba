@@ -1,0 +1,77 @@
+{
+  "root": "candidate-source-before-cleanup",
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 7770,
+    "sha256": "a691f6cc0b3427c607532845a19b9092b38fddf31e6d3102b25d8a42b3b089a2"
+  },
+  "copied": [
+    {
+      "path": "dist/application.js",
+      "sourceSha256": "a691f6cc0b3427c607532845a19b9092b38fddf31e6d3102b25d8a42b3b089a2",
+      "snapshotSha256": "a691f6cc0b3427c607532845a19b9092b38fddf31e6d3102b25d8a42b3b089a2",
+      "redacted": false
+    },
+    {
+      "path": "GENERATION.md",
+      "sourceSha256": "ac79243dc22f9d19b4f889e8ed0013a16ec3997a3050157b0f3973a82f336cb7",
+      "snapshotSha256": "ac79243dc22f9d19b4f889e8ed0013a16ec3997a3050157b0f3973a82f336cb7",
+      "redacted": false
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "snapshotSha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "redacted": false
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "70dca0312eea452ad65943a82f99e87ebf881cc2b20b9ef5201f546b85d0966e",
+      "snapshotSha256": "70dca0312eea452ad65943a82f99e87ebf881cc2b20b9ef5201f546b85d0966e",
+      "redacted": false
+    },
+    {
+      "path": "scripts/generate-sqlc.ps1",
+      "sourceSha256": "73a3493be2d4559d5b0366ee4789ec0e92eb8e2746fb5065732bac4c6120b3fc",
+      "snapshotSha256": "73a3493be2d4559d5b0366ee4789ec0e92eb8e2746fb5065732bac4c6120b3fc",
+      "redacted": false
+    },
+    {
+      "path": "sqlc.yaml",
+      "sourceSha256": "f3b2bdea78d2b8ff221a31a26fab943a5fab1b9a328e587574865d016c99cce7",
+      "snapshotSha256": "f3b2bdea78d2b8ff221a31a26fab943a5fab1b9a328e587574865d016c99cce7",
+      "redacted": false
+    },
+    {
+      "path": "sqlc/queries.sql",
+      "sourceSha256": "951860a46235e7234523d82c31c376133af2e6bb59b2488b1f8bfd801b185d11",
+      "snapshotSha256": "951860a46235e7234523d82c31c376133af2e6bb59b2488b1f8bfd801b185d11",
+      "redacted": false
+    },
+    {
+      "path": "src/application.test.ts",
+      "sourceSha256": "1c45082940f7f2dd1110127a8c5abd5b783ac5add9d8f469ddae202d688a5526",
+      "snapshotSha256": "1c45082940f7f2dd1110127a8c5abd5b783ac5add9d8f469ddae202d688a5526",
+      "redacted": false
+    },
+    {
+      "path": "src/application.ts",
+      "sourceSha256": "7404cdadfdd958e0496fd13c6de5b567614ab9ac849e802352d6d404f5ccfa3b",
+      "snapshotSha256": "7404cdadfdd958e0496fd13c6de5b567614ab9ac849e802352d6d404f5ccfa3b",
+      "redacted": false
+    },
+    {
+      "path": "src/generated/queries_sql.ts",
+      "sourceSha256": "67f342e821ac194802820f6f696ba6fa60929c263f7dce9a12de9ad1a61b071a",
+      "snapshotSha256": "67f342e821ac194802820f6f696ba6fa60929c263f7dce9a12de9ad1a61b071a",
+      "redacted": false
+    },
+    {
+      "path": "tsconfig.json",
+      "sourceSha256": "e4e1699bea2b68430e903e48afcd184001cdc81e1728c71a67dc12f645288c23",
+      "snapshotSha256": "e4e1699bea2b68430e903e48afcd184001cdc81e1728c71a67dc12f645288c23",
+      "redacted": false
+    }
+  ],
+  "excluded": []
+}

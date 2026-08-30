@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Drizzle node-postgres query-builder and transaction APIs are the main data-access path; raw SQL escape and direct pool query usage are absent.",
+  "decidedAt": "2026-08-30T07:57:35.553Z",
+  "decidedBy": "coordinator-required"
+}
