@@ -1,0 +1,15 @@
+{
+  "cell": "AF-L-P-r2",
+  "phase": "final",
+  "finalizedAt": "2026-08-30T21:21:34.8765492Z",
+  "typecheckExit": 0,
+  "buildExit": 0,
+  "runnerExit": 1,
+  "runnerStatus": "F",
+  "staticInspection": "included in runner.json",
+  "candidateTests": "no executable candidate tests were added",
+  "architectureDelta": "included in runner.json",
+  "repairCap": "reached",
+  "outcome": "F",
+  "cleanup": "completed: candidate, evidence, and isolated npm cache removed from C:/tmp after durable preservation; runner-owned schema and role cleanup passed"
+}

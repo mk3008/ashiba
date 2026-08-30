@@ -1,0 +1,10 @@
+{
+  "cell": "AF-L-P-r2",
+  "attempt": "initial",
+  "preservedAt": "2026-08-30T21:17:28.5435219Z",
+  "typecheckExit": 0,
+  "buildExit": 0,
+  "runnerExit": 1,
+  "result": "F",
+  "preservation": "source-and-logs-copied-before-repair"
+}

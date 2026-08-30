@@ -1,0 +1,10 @@
+{
+  "cell": "AF-L-P-r2",
+  "attempt": "repair-1",
+  "preservedAt": "2026-08-30T21:20:28.6650389Z",
+  "action": "author contract/config then attempt Prisma contract emit using an incorrect build path",
+  "contractEmitExit": 1,
+  "result": "F",
+  "repairClassification": "tool/API misuse",
+  "preservation": "source-and-logs-copied-before-repair-2"
+}
