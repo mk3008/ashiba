@@ -1,0 +1,14 @@
+{
+  "cell": "E1-P-r1",
+  "control": "E1",
+  "arm": "P",
+  "replicate": 1,
+  "protocol": "secondary-controls-v1",
+  "baselineManifest": "../baseline-manifest.json",
+  "forbiddenPatterns": [
+    "from\\s+['\"]@prisma/client['\"]",
+    "require\\(['\"]@prisma/client['\"]\\)",
+    "['\"]@prisma/client['\"]\\s*:",
+    "['\"]prisma['\"]\\s*:"
+  ]
+}

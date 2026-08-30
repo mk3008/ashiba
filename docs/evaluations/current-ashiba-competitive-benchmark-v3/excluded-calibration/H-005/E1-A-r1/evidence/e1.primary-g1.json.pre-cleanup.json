@@ -1,0 +1,150 @@
+{
+  "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\E1-A-r1\\candidate\\dist\\application.js",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\E1-A-r1\\candidate",
+  "workloads": [
+    "G1"
+  ],
+  "source": {
+    "root": "C:\\tmp\\ashiba-benchmark-v3-secondary\\E1-A-r1\\candidate",
+    "files": [
+      {
+        "path": "dist/application.d.ts",
+        "kind": "file",
+        "bytes": 1395,
+        "sha256": "5ba349c807370e395dc3371dd02e9028aa853b992684760ffd1ea82cad9784d2"
+      },
+      {
+        "path": "dist/application.js",
+        "kind": "file",
+        "bytes": 9437,
+        "sha256": "d1b4ed13a5d65d7011b6aaa669af8a10643c4db4c81550d88677eb4ce059052c"
+      },
+      {
+        "path": "package-lock.json",
+        "kind": "file",
+        "bytes": 7327,
+        "sha256": "d08b3d5f5b66e4eaf1ca5e3ad77f82e0ede472540c6ab392902c2b7defe8cfc9"
+      },
+      {
+        "path": "package.json",
+        "kind": "file",
+        "bytes": 427,
+        "sha256": "75641105c877e85743f1f5cdde8cfd99d2245826ae17bcb087d8a2da56c2ca01"
+      },
+      {
+        "path": "src/application.ts",
+        "kind": "file",
+        "bytes": 11012,
+        "sha256": "259a6d43dd9df557189d26f266bcd6f638019e4c513c9bcee1d9902edf574231"
+      },
+      {
+        "path": "test/application.test.mjs",
+        "kind": "file",
+        "bytes": 1036,
+        "sha256": "384b84bf198a8bc44aa56e20d7ac01674bb8d16c467eee8da90eb91b6233b3d3"
+      },
+      {
+        "path": "tsconfig.json",
+        "kind": "file",
+        "bytes": 290,
+        "sha256": "0389a0984d28a636aa1f39d365bf1259ecd829fc938994d183103a96446e0033"
+      }
+    ],
+    "findings": [],
+    "pass": true
+  },
+  "checks": [],
+  "events": [],
+  "cleanup": {
+    "status": "pending",
+    "recordedBeforeCleanup": true
+  },
+  "startedAt": "2026-08-30T13:30:32.597Z",
+  "schema": "ashiba_v3_21547892a27bf017",
+  "candidateRole": "ashiba_v3_candidate_69d39e2af32c6c92",
+  "status": "F",
+  "runnerError": {
+    "name": "Error",
+    "code": "ERR_MODULE_NOT_FOUND",
+    "message": "Cannot find package 'pg' imported from C:\\tmp\\ashiba-benchmark-v3-secondary\\E1-A-r1\\candidate\\dist\\application.js"
+  },
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "10000"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "5000"
+      }
+    ],
+    "transferAudit": [],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8002",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  },
+  "preCleanupRecord": {
+    "status": "written",
+    "path": "C:\\tmp\\ashiba-benchmark-v3-secondary\\E1-A-r1\\evidence\\e1.primary-g1.json.pre-cleanup.json",
+    "writtenAt": "2026-08-30T13:30:32.651Z"
+  }
+}

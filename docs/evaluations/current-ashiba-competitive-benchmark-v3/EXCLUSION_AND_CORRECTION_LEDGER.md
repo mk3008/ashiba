@@ -50,7 +50,9 @@ or calibration evidence.
 - **Required remeasure:** preserve H-004/H-005 setup evidence, freshly
   materialize every E1 arm under the completed packet, then execute the frozen
   pre-run installation before candidate generation and runner import.
-- **Status:** pending correction commit.
+- **Correction commit:** `d91c2bd` (`docs: freeze E1 runtime installation step`).
+- **Status:** committed; all E1 cells must be freshly materialized under the
+  completed packet.
 
 # H-003 — AF baseline TypeScript configuration correction
 
