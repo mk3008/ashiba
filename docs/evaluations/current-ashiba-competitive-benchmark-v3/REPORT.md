@@ -91,14 +91,17 @@ The common runner demonstrates the additional deterministic named-parameter
 boundary only where the Ashiba treatment was used; it does not measure a
 long-run defect rate or establish a universal marginal benefit over plain pg.
 The evidence remains mixed on agent familiarity, repair cause, and secondary
-architecture/exit controls.
+architecture/exit controls. SD and E1 now have durable secondary schema
+documents, but those controls remain non-aggregate and fixture-specific.
 
 ## Architecture, safety, and operations
 
 The dedicated architecture controls begin with frozen VSA and layered
 baselines. They measure imposed movement, centralization, generated
 directories, configuration, and native-pool/test reuse; they do not score a
-preferred architecture. See [ARCHITECTURE_FITNESS.md](./ARCHITECTURE_FITNESS.md).
+preferred architecture. AF replicate 1 has durable observations; AF replicate
+2 is pending, so no arm-level architecture conclusion is published. See
+[ARCHITECTURE_FITNESS.md](./ARCHITECTURE_FITNESS.md).
 
 Safety authority is distributed. The runner, PostgreSQL, candidate logic,
 tool/runtime, TypeScript, and review cover different failure modes. In
@@ -121,6 +124,16 @@ adoption guidance for migration-centric teams, multi-database portability,
 open-ended report builders, or human-only workflows. The decision matrix
 therefore marks incomplete scenarios as `INSUFFICIENT-EVIDENCE`; see
 [ADOPTION_DECISION_MATRIX.md](./ADOPTION_DECISION_MATRIX.md).
+
+## Treatment-fidelity caveat
+
+**Observed.** The preserved final treatment review records `pass` for all
+eight primary Prisma cells. Several notes describe a Prisma 8 RC raw-SQL or
+raw-plan main path. **Unadjudicated.** The review does not normalize raw-SQL
+proportion or decide whether each raw-SQL-dominant candidate represents a
+normal Prisma client/contract workflow. A recorded fidelity pass means only
+what the frozen review recorded; it is not evidence that an ordinary
+Prisma-client comparison was performed.
 
 ## Reproduction and limits
 

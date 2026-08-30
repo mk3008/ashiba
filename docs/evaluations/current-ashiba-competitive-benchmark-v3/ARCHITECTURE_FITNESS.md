@@ -15,11 +15,13 @@ hash deltas and reuses the primary G1 PostgreSQL oracle read-only.
 
 ## Evidence status
 
-The result index has AF observations for both controls. They are
+The result index has durable AF-V and AF-L **replicate 1** observations. AF-V
+also preserves invalidated/pre-correction runner records in accordance with
+the correction ledger. AF replicate 2 is pending. These controls are
 observation-only and are not included in the primary matrix or an aggregate.
-The raw extractor intentionally does not infer a final observation merely
+The raw extractor intentionally does not infer an arm-level conclusion merely
 from directory labels. Readers must inspect each stored runner output and
-baseline delta before asserting arm-level architecture conclusions.
+baseline delta before asserting architecture conclusions.
 
 ## Bounded inference
 

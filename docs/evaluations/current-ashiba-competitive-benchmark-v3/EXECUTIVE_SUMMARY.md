@@ -8,13 +8,13 @@ Drizzle (`D`), Kysely (`K`), and native `pg` (`G`). It is not an overall
 ranking, a performance contest, or a claim about all versions or uses of any
 product.
 
-**Observed.** The durable result index currently contains 48 primary cells
-(four workloads, six arms, two independent replicates) and 67 preserved
-primary attempts. The primary runner records 37 final live passes and 11
-final live failures. These descriptive counts are not pooled into a winner
-or a superiority claim. Secondary controls are observation-only; some are
-still incomplete in the durable index and are not used to make adoption
-recommendations.
+**Observed.** The durable result index (schema v2) currently contains 48
+primary cells (four workloads, six arms, two independent replicates), 67
+preserved primary attempts, 30 secondary cells, 26 secondary runner
+observations, and 12 durable secondary-schema documents. The primary runner
+records 37 final live passes and 11 final live failures. These descriptive
+counts are not pooled into a winner or a superiority claim. Secondary controls
+are observation-only and are not used to make adoption recommendations.
 
 ## What the evidence supports so far
 
@@ -38,8 +38,8 @@ team, database, or model setting.
 
 ## Publication status
 
-The primary execution evidence is preserved and reviewable. The publication
-record remains incomplete until all preregistered secondary controls, final
-aggregation, independent audit, repository verification, and remote CI
-confirmation are completed. See [limitations](./LIMITATIONS.md) and the
-[correction ledger](./EXCLUSION_AND_CORRECTION_LEDGER.md).
+The primary execution evidence and SD/E1 durable observations are preserved
+and reviewable. The publication record remains incomplete until AF replicate
+2, final secondary interpretation, independent audit, repository verification,
+and remote CI confirmation are completed. See [limitations](./LIMITATIONS.md)
+and the [correction ledger](./EXCLUSION_AND_CORRECTION_LEDGER.md).
