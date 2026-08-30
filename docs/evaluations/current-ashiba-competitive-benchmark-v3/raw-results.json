@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-30T14:15:58.529Z",
+  "generatedAt": "2026-08-30T22:11:06.327Z",
   "generator": {
     "path": "fixtures/aggregate-results.mjs",
-    "sha256": "670f7429662e94f3bc0343d2d3b30db4cd91eec19993bf80c12c953d7101331c"
+    "sha256": "bd5e5dcffa2c65955969491986c5835ece5b0c23c2f6a0522f4dbd3c88043f0e"
   },
   "inputRoot": ".",
   "interpretationPolicy": {
@@ -20,9 +20,11 @@
   "inventory": {
     "primaryCellCount": 48,
     "primaryAttemptCount": 67,
-    "secondaryCellCount": 30,
-    "secondaryObservationCount": 26,
-    "secondaryDurableSchemaCount": 12
+    "secondaryCellCount": 42,
+    "secondaryObservationCount": 29,
+    "secondaryReliableObservationCount": 11,
+    "secondarySupplementalObservationCount": 23,
+    "secondaryDurableSchemaCount": 13
   },
   "primary": [
     {
@@ -18691,6 +18693,9 @@
       "arm": "A",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-L-A-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-A-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -18736,6 +18741,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -18744,7 +18753,76 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-L-A-r2",
+      "workloadOrControl": "AF-L",
+      "arm": "A",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-L-A-r2",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-A-r2"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-A-r2/reliable-attempt-repair-1/external-evidence/repair-1-af-runner.json",
+          "sha256": "2d25f160ca939a72d02d5baed406ab91957def2e29b99d6e0e2f6868d9dc3e9e",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:11:14.242Z",
+            "finishedAt": "2026-08-30T21:11:14.613Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "d4f0683edc9991212add5c00087fe7350661d2b773c9cfb647a52de3623ce85c",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "named-parameter compiler/binder validates missing and unused values"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -18753,6 +18831,9 @@
       "arm": "D",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-L-D-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-D-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -18798,6 +18879,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -18806,7 +18891,115 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-L-D-r2",
+      "workloadOrControl": "AF-L",
+      "arm": "D",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-L-D-r2-reliable",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-D-r2-reliable"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 1,
+      "reliableObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-D-r2-reliable/attempts/01-repair-1/logs/repair-1-runner.json",
+          "sha256": "b2ee7ffb6b71778ecf8dfb9cf249f4d8e585345425242a570f69bc8cded25723",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:20:10.710Z",
+            "finishedAt": "2026-08-30T21:20:12.484Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "74c3b7500f459fd666e1477d24a569809c3542e749aad0323ebbc7a3d8a68852",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Drizzle typed schema/query API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-D-r2-reliable/attempts/01-repair-1/logs/repair-1-runner.json",
+          "sha256": "b2ee7ffb6b71778ecf8dfb9cf249f4d8e585345425242a570f69bc8cded25723",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:20:10.710Z",
+            "finishedAt": "2026-08-30T21:20:12.484Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "74c3b7500f459fd666e1477d24a569809c3542e749aad0323ebbc7a3d8a68852",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Drizzle typed schema/query API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -18815,6 +19008,9 @@
       "arm": "G",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-L-G-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-G-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -18863,6 +19059,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -18871,7 +19071,116 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-L-G-r2",
+      "workloadOrControl": "AF-L",
+      "arm": "G",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-L-G-r2-reliable",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-G-r2-reliable",
+        "secondary-evidence/AF-L-G-r2-reliable-20260831"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 1,
+      "reliableObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-G-r2-reliable-20260831/final/initial-runner.json",
+          "sha256": "5a186a78cf67ffc4150b1a600dccae7ea00825c1c4a2f6619a693e3322a51c5b",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:33:52.359Z",
+            "finishedAt": "2026-08-30T21:33:52.734Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "54aef146428507d116b9d36fd6da4e2c5cb888ca421da251687f872c9f83d999",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "native pg parameterization and application-owned invariants"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-G-r2-reliable-20260831/final/initial-runner.json",
+          "sha256": "5a186a78cf67ffc4150b1a600dccae7ea00825c1c4a2f6619a693e3322a51c5b",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:33:52.359Z",
+            "finishedAt": "2026-08-30T21:33:52.734Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "54aef146428507d116b9d36fd6da4e2c5cb888ca421da251687f872c9f83d999",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "native pg parameterization and application-owned invariants"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -18880,6 +19189,9 @@
       "arm": "K",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-L-K-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-K-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -18928,6 +19240,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -18936,7 +19252,115 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-L-K-r2",
+      "workloadOrControl": "AF-L",
+      "arm": "K",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-L-K-r2-reliable-20260831",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-K-r2-reliable-20260831"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 1,
+      "reliableObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-K-r2-reliable-20260831/attempt-repair-1/external-evidence/repair-1-af-runner.json",
+          "sha256": "b25c6c98199247e4535a4d8542a8c7858b6ed52184dc2fa892fdc0d299ba0fb0",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:34:39.219Z",
+            "finishedAt": "2026-08-30T21:34:42.256Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "9e315216683a4758c1e85ef60659ce2e66b8dd0276a17f515049ff10699c8486",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Kysely typed query-builder API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-K-r2-reliable-20260831/attempt-repair-1/external-evidence/repair-1-af-runner.json",
+          "sha256": "b25c6c98199247e4535a4d8542a8c7858b6ed52184dc2fa892fdc0d299ba0fb0",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:34:39.219Z",
+            "finishedAt": "2026-08-30T21:34:42.256Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "9e315216683a4758c1e85ef60659ce2e66b8dd0276a17f515049ff10699c8486",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Kysely typed query-builder API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -18945,6 +19369,9 @@
       "arm": "P",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-L-P-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-P-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -18995,6 +19422,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19003,7 +19434,117 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-L-P-r2",
+      "workloadOrControl": "AF-L",
+      "arm": "P",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-L-P-r2",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-P-r2"
+      ],
+      "observationCount": 2,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-P-r2/final/runner.json",
+          "sha256": "cd5f1a03ab0a9c28a8204422094f6b6a7c7660c96c6cac634c88136ee93c944c",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:21:19.217Z",
+            "finishedAt": "2026-08-30T21:21:19.294Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "9a5f7ac0afc550d7222faa090d363f78ec1beec2014c40bb32148f99b179c12f",
+            "changedExistingFiles": [],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "prisma.config.ts",
+              "src/prisma/contract.prisma"
+            ],
+            "newGlobalFiles": [
+              "prisma.config.ts"
+            ],
+            "newConfigFiles": [
+              "prisma.config.ts",
+              "src/prisma/contract.prisma"
+            ],
+            "newGeneratedDirectories": [
+              "src/prisma"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Prisma 8 RC schema/client contract and runtime query API"
+            ]
+          },
+          "deltaComplete": true
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-P-r2/initial/runner.json",
+          "sha256": "c42654f5b0cbc5692b27129de3d41021abcc5197844ff3ffc8bc481b9a1f28e7",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:17:17.463Z",
+            "finishedAt": "2026-08-30T21:17:17.574Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "d56e5e82b186adb8abf8d6af1a15a2ac967f2a68d7cfa3ddf131ff36b52fe40b",
+            "changedExistingFiles": [],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Prisma 8 RC schema/client contract and runtime query API"
+            ]
+          },
+          "deltaComplete": true
+        }
+      ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 2,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19012,6 +19553,9 @@
       "arm": "S",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-L-S-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-S-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -19071,6 +19615,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19079,7 +19627,737 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-L-S-r2",
+      "workloadOrControl": "AF-L",
+      "arm": "S",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-L-S-r2-reliable",
+      "evidenceRoots": [
+        "secondary-evidence/AF-L-S-r2-reliable"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 6,
+      "reliableObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/final/initial-runner.json",
+          "sha256": "d7ce0e1a8c18f7ddd0a335dc3e92e34794ad68ed0e68fccb963cd6f6d2107163",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:25:16.725Z",
+            "finishedAt": "2026-08-30T21:25:16.747Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "d209949814fce55f43a61807517732af9af9eeed755f2ed747d3ebf176939e51",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/final/repair1-runner.json",
+          "sha256": "4e6c64af1c2e0104db07b2afb5da6a7bcf93d28069c183a7f9194526b3527861",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:26:42.952Z",
+            "finishedAt": "2026-08-30T21:26:43.210Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "cb53182ba4e18be10187667af1b3debf6f32ea2f440e8fbfafee0d517eca6087",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/final/repair2-runner.json",
+          "sha256": "40b620079bc794e802afd0911bd217fa81a084d4f5e13fd9890fe10a2e6929cd",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:27:42.789Z",
+            "finishedAt": "2026-08-30T21:27:42.994Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "ac7fcb63fb1e165654cc0d581be441e414415d3626104e54cfadfcc80b75a510",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/initial-before-repair1/initial-runner.json",
+          "sha256": "d7ce0e1a8c18f7ddd0a335dc3e92e34794ad68ed0e68fccb963cd6f6d2107163",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:25:16.725Z",
+            "finishedAt": "2026-08-30T21:25:16.747Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "d209949814fce55f43a61807517732af9af9eeed755f2ed747d3ebf176939e51",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/repair1-before-repair2/initial-runner.json",
+          "sha256": "d7ce0e1a8c18f7ddd0a335dc3e92e34794ad68ed0e68fccb963cd6f6d2107163",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:25:16.725Z",
+            "finishedAt": "2026-08-30T21:25:16.747Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "d209949814fce55f43a61807517732af9af9eeed755f2ed747d3ebf176939e51",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/repair1-before-repair2/repair1-runner.json",
+          "sha256": "4e6c64af1c2e0104db07b2afb5da6a7bcf93d28069c183a7f9194526b3527861",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:26:42.952Z",
+            "finishedAt": "2026-08-30T21:26:43.210Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "cb53182ba4e18be10187667af1b3debf6f32ea2f440e8fbfafee0d517eca6087",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "supplementalObservationCount": 6,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/final/initial-runner.json",
+          "sha256": "d7ce0e1a8c18f7ddd0a335dc3e92e34794ad68ed0e68fccb963cd6f6d2107163",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:25:16.725Z",
+            "finishedAt": "2026-08-30T21:25:16.747Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "d209949814fce55f43a61807517732af9af9eeed755f2ed747d3ebf176939e51",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/final/repair1-runner.json",
+          "sha256": "4e6c64af1c2e0104db07b2afb5da6a7bcf93d28069c183a7f9194526b3527861",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:26:42.952Z",
+            "finishedAt": "2026-08-30T21:26:43.210Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "cb53182ba4e18be10187667af1b3debf6f32ea2f440e8fbfafee0d517eca6087",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/final/repair2-runner.json",
+          "sha256": "40b620079bc794e802afd0911bd217fa81a084d4f5e13fd9890fe10a2e6929cd",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:27:42.789Z",
+            "finishedAt": "2026-08-30T21:27:42.994Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "ac7fcb63fb1e165654cc0d581be441e414415d3626104e54cfadfcc80b75a510",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/initial-before-repair1/initial-runner.json",
+          "sha256": "d7ce0e1a8c18f7ddd0a335dc3e92e34794ad68ed0e68fccb963cd6f6d2107163",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:25:16.725Z",
+            "finishedAt": "2026-08-30T21:25:16.747Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "d209949814fce55f43a61807517732af9af9eeed755f2ed747d3ebf176939e51",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/repair1-before-repair2/initial-runner.json",
+          "sha256": "d7ce0e1a8c18f7ddd0a335dc3e92e34794ad68ed0e68fccb963cd6f6d2107163",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:25:16.725Z",
+            "finishedAt": "2026-08-30T21:25:16.747Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "d209949814fce55f43a61807517732af9af9eeed755f2ed747d3ebf176939e51",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/schema.sql"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-L-S-r2-reliable/repair1-before-repair2/repair1-runner.json",
+          "sha256": "4e6c64af1c2e0104db07b2afb5da6a7bcf93d28069c183a7f9194526b3527861",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:26:42.952Z",
+            "finishedAt": "2026-08-30T21:26:43.210Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+            "candidateHash": "cb53182ba4e18be10187667af1b3debf6f32ea2f440e8fbfafee0d517eca6087",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/application/ticket-service.ts",
+              "src/data-access/ticket-data-access.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "sqlc/queries.sql",
+              "src/generated/queries_sql.ts",
+              "tests/static.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml",
+              "src/generated/queries_sql.ts"
+            ],
+            "newConfigFiles": [
+              "scripts/generate-sqlc.ps1",
+              "sqlc.yaml"
+            ],
+            "newGeneratedDirectories": [
+              "sqlc",
+              "src/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "no",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19088,6 +20366,9 @@
       "arm": "A",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-V-A-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-A-r1"
+      ],
       "observationCount": 2,
       "observations": [
         {
@@ -19177,6 +20458,97 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 2,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-A-r1/initial/runner-repair1.json",
+          "sha256": "419e2e66891a5a034e9689aa82d524f2b86ec2ea49c093c38514c2cd2e736274",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T11:22:58.164Z",
+            "finishedAt": "2026-08-30T11:22:58.383Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "7934443c21aaa8801bb0a7cff4c8a87bdd300c55d5d512ad5e6d3a76f35821ff",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "src/tickets/query/ticket-read-model.ts",
+              "tsconfig.json"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "named-parameter compiler/binder validates missing and unused values"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-V-A-r1/initial/runner-repair2.json",
+          "sha256": "9ec1210fb438aadb1889bc993709f257a7ab0ba9e50ce13a5395fca3d7cdc774",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T11:25:45.256Z",
+            "finishedAt": "2026-08-30T11:25:45.463Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "d3e03690bde97b6f60d895c6f37b644bab3d7c4107cdb1fdf80b31a060afab9f",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "src/tickets/query/ticket-read-model.ts",
+              "tsconfig.json"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "named-parameter compiler/binder validates missing and unused values"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        }
+      ],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19185,7 +20557,374 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-V-A-r2",
+      "workloadOrControl": "AF-V",
+      "arm": "A",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-V-A-r2",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-A-r2"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 4,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-A-r2/attempt-initial/runner-initial.json",
+          "sha256": "f6b33512648624c45eed34b6d809d2995c707e5b50ec1c044bbe0746158bdd2b",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T14:18:05.858Z",
+            "finishedAt": "2026-08-30T14:18:06.138Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "c4a2208518efaab5e372bb506b6a764358538d1615889369f822072a96f6cdbe",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/platform/pool.ts",
+              "src/platform/transaction.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "src/tickets/query/ticket-read-model.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              ".npm-cache/_cacache/content-v2/sha512/15/d5/bdaff8d066149ea21b35677b08d72c4540d16f31c9e67ee8f85813144f13ab0322cc693704d5a00c0624e56cc35a5ef04242e562d11ee177cb9d0d23fbba",
+              ".npm-cache/_cacache/content-v2/sha512/22/9d/844029e0a3024b18e7c2c241613d753bfe58e5867e91c659b2e1761f2f663ebf244ce7dfbcb91db1a9158a75899b5e6c4214e0262b106e49409d177e2a2e",
+              ".npm-cache/_cacache/content-v2/sha512/2c/a6/14d620172575200179fd5118e2bbe3168725171ecbdfa7b99cb989bd75250a2b4fc28edad4c050310fcdbf98259bb4bb068c521a774c08b28778ceb4c011",
+              ".npm-cache/_cacache/content-v2/sha512/36/86/8cb738713abb9b78bffb519b8d4eb7a307830f009d11a7166a5d07f6a97b959533ee1ba63ca78bbd74a45ab9ee328e60bb661cd53b6fd8cb29f6e739eb3d",
+              ".npm-cache/_cacache/content-v2/sha512/51/c8/dc24e5a49eb36417a3cb5fcdea70733a28781528d915eb663c6b9b980d5bfdc9d19057000730aa877498ded554d6a658c6d1662908386b09d00e607e135a",
+              ".npm-cache/_cacache/content-v2/sha512/56/8e/f3ffaaeb418c69351ca5a784e5a1bd9e9736e1f8dfcc3906f1155582c52ee8131ea3179dc64c91712b6596a4ab814649a28a7e0cb7ec687c50e3c74f51d0",
+              ".npm-cache/_cacache/content-v2/sha512/56/96/6b52a53903af5e4325b6739080d63b4b79c0ac37653f6c3e958a5ac50d6ab9fb95081153bb9dacd2dd311c1dfd73b8f60efeca86bd4bd6eb683ce915d9b8",
+              ".npm-cache/_cacache/content-v2/sha512/58/2b/5a6d2eadddcf129290c15256f59233acee5ebac6c19d2a920f66c838c11f81dfebbd500ba6da8752b05f6d9efc60f348786712d6332e294633ac148a90a7",
+              ".npm-cache/_cacache/content-v2/sha512/5f/05/8319c2d11825c047c17f00ce5b1bb43e0375a6dace907848e538a64b947dd461c82e8aa0962b259755a8394cb4c88d1ee8389518f247000da66058fc8b7a",
+              ".npm-cache/_cacache/content-v2/sha512/7d/a8/869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135",
+              ".npm-cache/_cacache/content-v2/sha512/80/ab/4f9057503d4dc392ca2854b8bd2ec8d9c6bb015192296beeda571f8b579a4d8742b33f86657ae776a68f82a27af16ee5c6049e877deafa85d829201a416b",
+              ".npm-cache/_cacache/content-v2/sha512/8e/5d/6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b",
+              ".npm-cache/_cacache/content-v2/sha512/8f/7e/f949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965",
+              ".npm-cache/_cacache/content-v2/sha512/a9/30/0096b12c97cb383a211063af700ef70c21d40deb0773e688d088ecba61132eca7c5e9ce3743b9a02a4923a96c85ceac720018f2abc9d8e9ffa7e09763418",
+              ".npm-cache/_cacache/content-v2/sha512/b0/82/d7bad2d58c22e3703b8e9af857e5ed99e1c4b9a86ffa06edd592917075fffadf712518ba4487d6e09ae239238b2a2aa9227d0886ca209cc751ddb6b2bbb6",
+              ".npm-cache/_cacache/content-v2/sha512/b2/e0/e68cb55083bf2730ad94678e788401be3805be1d03d9ea7fbe4cd0d45fe2f4fae5252f2c27a3124a0e8bb9d599becd30a3ac297436ae89f42e613fdbcafd",
+              ".npm-cache/_cacache/content-v2/sha512/b8/fa/9bb104f6dcd2d8fe7b96e25065e3d11bc430d1c9f38652659b883fda98b39c805e9ed6c873238ef2850117c4562d92ddced2d85a085e4dfa63f5ec6c4912",
+              ".npm-cache/_cacache/content-v2/sha512/e7/ee/47a979ec64f13ae4825948c919b544404597a57a5da85d410ef2b1fcdd54bf8711f9befd6e1eab8f839c19b3cc8c01f76ff7bd4853e91c3d47338bb35505",
+              ".npm-cache/_cacache/content-v2/sha512/f5/98/5728cfebc37e74375a2fb961db1b19c687f48d278727c4788cd2bc44e15378d70b20f0ff335a7f61bff6ee2b4d113f85af94ecabfd10438a9b72c556e465",
+              ".npm-cache/_cacache/index-v5/17/fa/e9d0409c4a453fa0e1ec562f099edf0c0ee408a36fa2c7800fc3ddcb7d69",
+              ".npm-cache/_cacache/index-v5/2c/1e/91ad3155089bbff8af3021b9acd58bd8222b57c1108a8bafc4a5251e152c",
+              ".npm-cache/_cacache/index-v5/4d/7d/74be32029cceffff84e7c429799d51cf0f7435c9eec95ba3daac65b4562c",
+              ".npm-cache/_cacache/index-v5/4f/38/6541b6b60a29318c22cbcd32071e06cc988fd1d4918f0fb52f4ae534498b",
+              ".npm-cache/_cacache/index-v5/4f/4e/20c89d4c9d8a8a6e0407099b875826862a3a5ffca2d67d2b75129ab3421d",
+              ".npm-cache/_cacache/index-v5/5a/0d/7e16ea920209f28606999566383d651eaf632b4842837df764c5cc476e83",
+              ".npm-cache/_cacache/index-v5/67/d5/bf35408a99ca3a6b7d2ecdddc96187fa505b46711c6d4ef8dffa8b02f1c0",
+              ".npm-cache/_cacache/index-v5/6a/b2/cff74a8452b6159ec5df4cd310e05e05bfaa99de31da7de4b5a7a7a849d9",
+              ".npm-cache/_cacache/index-v5/6e/27/e0e109737591117c80b7bfe42acbf7883d2aeeb26d019d11537373ec6793",
+              ".npm-cache/_cacache/index-v5/86/0c/8449635a499c1c1f44f2b6380cea2715c6e3ebe03e524b37d6fe263a4ebb",
+              ".npm-cache/_cacache/index-v5/b0/67/37231a71c60a62030abda7158f45c20266623bd2420141def58a58121c2c",
+              ".npm-cache/_cacache/index-v5/b0/fc/92a989cf347ec24035994b934b7bb07a131b9fe567752d4994a03f7ddc2a",
+              ".npm-cache/_cacache/index-v5/be/b6/fa4dbd3ad4b02fca6f5793d20843c1561fcc2f01d54c0df79a799a4195a2",
+              ".npm-cache/_cacache/index-v5/c5/31/7bec4fadfbd057e2b2e801050a0987f7c34b96e43ae5cd18fe029fee427e",
+              ".npm-cache/_cacache/index-v5/c8/61/53f02412ff2fc3a3b5ec4806ccf1e7aab0888801d6f232a9311384b37a9b",
+              ".npm-cache/_cacache/index-v5/d8/68/2ccc4f5419612d6589707007cc9e166f10f83934c1d58cf18fc54f4421fd",
+              ".npm-cache/_cacache/index-v5/f1/44/cf52860ef2ac0b2a06d907c20d37c3a2182e836b3062f58eb27077317544",
+              ".npm-cache/_cacache/index-v5/f1/ce/129ef407a2da10de5334e157bcbcdc6862247afab71c3d8d823885a3d9f5",
+              ".npm-cache/_cacache/index-v5/fc/63/3196c1979679042290850577369860b49f1391c279c79982941dcd31991b",
+              ".npm-cache/_logs/2026-08-30T14_11_43_453Z-debug-0.log",
+              ".npm-cache/_update-notifier-last-checked",
+              "package-lock.json",
+              "package.json",
+              "src/tickets/sql/tickets.ts"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": true,
+            "changedTransactionSeam": true,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "named-parameter compiler/binder validates missing and unused values"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-V-A-r2/final/runner-initial.json",
+          "sha256": "f6b33512648624c45eed34b6d809d2995c707e5b50ec1c044bbe0746158bdd2b",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T14:18:05.858Z",
+            "finishedAt": "2026-08-30T14:18:06.138Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "c4a2208518efaab5e372bb506b6a764358538d1615889369f822072a96f6cdbe",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/platform/pool.ts",
+              "src/platform/transaction.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "src/tickets/query/ticket-read-model.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              ".npm-cache/_cacache/content-v2/sha512/15/d5/bdaff8d066149ea21b35677b08d72c4540d16f31c9e67ee8f85813144f13ab0322cc693704d5a00c0624e56cc35a5ef04242e562d11ee177cb9d0d23fbba",
+              ".npm-cache/_cacache/content-v2/sha512/22/9d/844029e0a3024b18e7c2c241613d753bfe58e5867e91c659b2e1761f2f663ebf244ce7dfbcb91db1a9158a75899b5e6c4214e0262b106e49409d177e2a2e",
+              ".npm-cache/_cacache/content-v2/sha512/2c/a6/14d620172575200179fd5118e2bbe3168725171ecbdfa7b99cb989bd75250a2b4fc28edad4c050310fcdbf98259bb4bb068c521a774c08b28778ceb4c011",
+              ".npm-cache/_cacache/content-v2/sha512/36/86/8cb738713abb9b78bffb519b8d4eb7a307830f009d11a7166a5d07f6a97b959533ee1ba63ca78bbd74a45ab9ee328e60bb661cd53b6fd8cb29f6e739eb3d",
+              ".npm-cache/_cacache/content-v2/sha512/51/c8/dc24e5a49eb36417a3cb5fcdea70733a28781528d915eb663c6b9b980d5bfdc9d19057000730aa877498ded554d6a658c6d1662908386b09d00e607e135a",
+              ".npm-cache/_cacache/content-v2/sha512/56/8e/f3ffaaeb418c69351ca5a784e5a1bd9e9736e1f8dfcc3906f1155582c52ee8131ea3179dc64c91712b6596a4ab814649a28a7e0cb7ec687c50e3c74f51d0",
+              ".npm-cache/_cacache/content-v2/sha512/56/96/6b52a53903af5e4325b6739080d63b4b79c0ac37653f6c3e958a5ac50d6ab9fb95081153bb9dacd2dd311c1dfd73b8f60efeca86bd4bd6eb683ce915d9b8",
+              ".npm-cache/_cacache/content-v2/sha512/58/2b/5a6d2eadddcf129290c15256f59233acee5ebac6c19d2a920f66c838c11f81dfebbd500ba6da8752b05f6d9efc60f348786712d6332e294633ac148a90a7",
+              ".npm-cache/_cacache/content-v2/sha512/5f/05/8319c2d11825c047c17f00ce5b1bb43e0375a6dace907848e538a64b947dd461c82e8aa0962b259755a8394cb4c88d1ee8389518f247000da66058fc8b7a",
+              ".npm-cache/_cacache/content-v2/sha512/7d/a8/869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135",
+              ".npm-cache/_cacache/content-v2/sha512/80/ab/4f9057503d4dc392ca2854b8bd2ec8d9c6bb015192296beeda571f8b579a4d8742b33f86657ae776a68f82a27af16ee5c6049e877deafa85d829201a416b",
+              ".npm-cache/_cacache/content-v2/sha512/8e/5d/6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b",
+              ".npm-cache/_cacache/content-v2/sha512/8f/7e/f949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965",
+              ".npm-cache/_cacache/content-v2/sha512/a9/30/0096b12c97cb383a211063af700ef70c21d40deb0773e688d088ecba61132eca7c5e9ce3743b9a02a4923a96c85ceac720018f2abc9d8e9ffa7e09763418",
+              ".npm-cache/_cacache/content-v2/sha512/b0/82/d7bad2d58c22e3703b8e9af857e5ed99e1c4b9a86ffa06edd592917075fffadf712518ba4487d6e09ae239238b2a2aa9227d0886ca209cc751ddb6b2bbb6",
+              ".npm-cache/_cacache/content-v2/sha512/b2/e0/e68cb55083bf2730ad94678e788401be3805be1d03d9ea7fbe4cd0d45fe2f4fae5252f2c27a3124a0e8bb9d599becd30a3ac297436ae89f42e613fdbcafd",
+              ".npm-cache/_cacache/content-v2/sha512/b8/fa/9bb104f6dcd2d8fe7b96e25065e3d11bc430d1c9f38652659b883fda98b39c805e9ed6c873238ef2850117c4562d92ddced2d85a085e4dfa63f5ec6c4912",
+              ".npm-cache/_cacache/content-v2/sha512/e7/ee/47a979ec64f13ae4825948c919b544404597a57a5da85d410ef2b1fcdd54bf8711f9befd6e1eab8f839c19b3cc8c01f76ff7bd4853e91c3d47338bb35505",
+              ".npm-cache/_cacache/content-v2/sha512/f5/98/5728cfebc37e74375a2fb961db1b19c687f48d278727c4788cd2bc44e15378d70b20f0ff335a7f61bff6ee2b4d113f85af94ecabfd10438a9b72c556e465",
+              ".npm-cache/_cacache/index-v5/17/fa/e9d0409c4a453fa0e1ec562f099edf0c0ee408a36fa2c7800fc3ddcb7d69",
+              ".npm-cache/_cacache/index-v5/2c/1e/91ad3155089bbff8af3021b9acd58bd8222b57c1108a8bafc4a5251e152c",
+              ".npm-cache/_cacache/index-v5/4d/7d/74be32029cceffff84e7c429799d51cf0f7435c9eec95ba3daac65b4562c",
+              ".npm-cache/_cacache/index-v5/4f/38/6541b6b60a29318c22cbcd32071e06cc988fd1d4918f0fb52f4ae534498b",
+              ".npm-cache/_cacache/index-v5/4f/4e/20c89d4c9d8a8a6e0407099b875826862a3a5ffca2d67d2b75129ab3421d",
+              ".npm-cache/_cacache/index-v5/5a/0d/7e16ea920209f28606999566383d651eaf632b4842837df764c5cc476e83",
+              ".npm-cache/_cacache/index-v5/67/d5/bf35408a99ca3a6b7d2ecdddc96187fa505b46711c6d4ef8dffa8b02f1c0",
+              ".npm-cache/_cacache/index-v5/6a/b2/cff74a8452b6159ec5df4cd310e05e05bfaa99de31da7de4b5a7a7a849d9",
+              ".npm-cache/_cacache/index-v5/6e/27/e0e109737591117c80b7bfe42acbf7883d2aeeb26d019d11537373ec6793",
+              ".npm-cache/_cacache/index-v5/86/0c/8449635a499c1c1f44f2b6380cea2715c6e3ebe03e524b37d6fe263a4ebb",
+              ".npm-cache/_cacache/index-v5/b0/67/37231a71c60a62030abda7158f45c20266623bd2420141def58a58121c2c",
+              ".npm-cache/_cacache/index-v5/b0/fc/92a989cf347ec24035994b934b7bb07a131b9fe567752d4994a03f7ddc2a",
+              ".npm-cache/_cacache/index-v5/be/b6/fa4dbd3ad4b02fca6f5793d20843c1561fcc2f01d54c0df79a799a4195a2",
+              ".npm-cache/_cacache/index-v5/c5/31/7bec4fadfbd057e2b2e801050a0987f7c34b96e43ae5cd18fe029fee427e",
+              ".npm-cache/_cacache/index-v5/c8/61/53f02412ff2fc3a3b5ec4806ccf1e7aab0888801d6f232a9311384b37a9b",
+              ".npm-cache/_cacache/index-v5/d8/68/2ccc4f5419612d6589707007cc9e166f10f83934c1d58cf18fc54f4421fd",
+              ".npm-cache/_cacache/index-v5/f1/44/cf52860ef2ac0b2a06d907c20d37c3a2182e836b3062f58eb27077317544",
+              ".npm-cache/_cacache/index-v5/f1/ce/129ef407a2da10de5334e157bcbcdc6862247afab71c3d8d823885a3d9f5",
+              ".npm-cache/_cacache/index-v5/fc/63/3196c1979679042290850577369860b49f1391c279c79982941dcd31991b",
+              ".npm-cache/_logs/2026-08-30T14_11_43_453Z-debug-0.log",
+              ".npm-cache/_update-notifier-last-checked",
+              "package-lock.json",
+              "package.json",
+              "src/tickets/sql/tickets.ts"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": true,
+            "changedTransactionSeam": true,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "named-parameter compiler/binder validates missing and unused values"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-V-A-r2/final/runner-repair1-live.json",
+          "sha256": "4303572f15b4342a77bf6f1ad714d7a387687f50effcc4ebd3dea9aac61f849d",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T20:56:18.939Z",
+            "finishedAt": "2026-08-30T20:56:19.249Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "3dc17b1633af8ae71d3e68e35243f577476218623bb37d819cd6021f97878fd6",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/platform/pool.ts",
+              "src/platform/transaction.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "src/tickets/query/ticket-read-model.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              ".npm-cache/_cacache/content-v2/sha512/15/d5/bdaff8d066149ea21b35677b08d72c4540d16f31c9e67ee8f85813144f13ab0322cc693704d5a00c0624e56cc35a5ef04242e562d11ee177cb9d0d23fbba",
+              ".npm-cache/_cacache/content-v2/sha512/22/9d/844029e0a3024b18e7c2c241613d753bfe58e5867e91c659b2e1761f2f663ebf244ce7dfbcb91db1a9158a75899b5e6c4214e0262b106e49409d177e2a2e",
+              ".npm-cache/_cacache/content-v2/sha512/2c/a6/14d620172575200179fd5118e2bbe3168725171ecbdfa7b99cb989bd75250a2b4fc28edad4c050310fcdbf98259bb4bb068c521a774c08b28778ceb4c011",
+              ".npm-cache/_cacache/content-v2/sha512/36/86/8cb738713abb9b78bffb519b8d4eb7a307830f009d11a7166a5d07f6a97b959533ee1ba63ca78bbd74a45ab9ee328e60bb661cd53b6fd8cb29f6e739eb3d",
+              ".npm-cache/_cacache/content-v2/sha512/51/c8/dc24e5a49eb36417a3cb5fcdea70733a28781528d915eb663c6b9b980d5bfdc9d19057000730aa877498ded554d6a658c6d1662908386b09d00e607e135a",
+              ".npm-cache/_cacache/content-v2/sha512/56/8e/f3ffaaeb418c69351ca5a784e5a1bd9e9736e1f8dfcc3906f1155582c52ee8131ea3179dc64c91712b6596a4ab814649a28a7e0cb7ec687c50e3c74f51d0",
+              ".npm-cache/_cacache/content-v2/sha512/56/96/6b52a53903af5e4325b6739080d63b4b79c0ac37653f6c3e958a5ac50d6ab9fb95081153bb9dacd2dd311c1dfd73b8f60efeca86bd4bd6eb683ce915d9b8",
+              ".npm-cache/_cacache/content-v2/sha512/58/2b/5a6d2eadddcf129290c15256f59233acee5ebac6c19d2a920f66c838c11f81dfebbd500ba6da8752b05f6d9efc60f348786712d6332e294633ac148a90a7",
+              ".npm-cache/_cacache/content-v2/sha512/5f/05/8319c2d11825c047c17f00ce5b1bb43e0375a6dace907848e538a64b947dd461c82e8aa0962b259755a8394cb4c88d1ee8389518f247000da66058fc8b7a",
+              ".npm-cache/_cacache/content-v2/sha512/7d/a8/869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135",
+              ".npm-cache/_cacache/content-v2/sha512/80/ab/4f9057503d4dc392ca2854b8bd2ec8d9c6bb015192296beeda571f8b579a4d8742b33f86657ae776a68f82a27af16ee5c6049e877deafa85d829201a416b",
+              ".npm-cache/_cacache/content-v2/sha512/8e/5d/6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b",
+              ".npm-cache/_cacache/content-v2/sha512/8f/7e/f949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965",
+              ".npm-cache/_cacache/content-v2/sha512/a9/30/0096b12c97cb383a211063af700ef70c21d40deb0773e688d088ecba61132eca7c5e9ce3743b9a02a4923a96c85ceac720018f2abc9d8e9ffa7e09763418",
+              ".npm-cache/_cacache/content-v2/sha512/b0/82/d7bad2d58c22e3703b8e9af857e5ed99e1c4b9a86ffa06edd592917075fffadf712518ba4487d6e09ae239238b2a2aa9227d0886ca209cc751ddb6b2bbb6",
+              ".npm-cache/_cacache/content-v2/sha512/b2/e0/e68cb55083bf2730ad94678e788401be3805be1d03d9ea7fbe4cd0d45fe2f4fae5252f2c27a3124a0e8bb9d599becd30a3ac297436ae89f42e613fdbcafd",
+              ".npm-cache/_cacache/content-v2/sha512/b8/fa/9bb104f6dcd2d8fe7b96e25065e3d11bc430d1c9f38652659b883fda98b39c805e9ed6c873238ef2850117c4562d92ddced2d85a085e4dfa63f5ec6c4912",
+              ".npm-cache/_cacache/content-v2/sha512/e7/ee/47a979ec64f13ae4825948c919b544404597a57a5da85d410ef2b1fcdd54bf8711f9befd6e1eab8f839c19b3cc8c01f76ff7bd4853e91c3d47338bb35505",
+              ".npm-cache/_cacache/content-v2/sha512/f5/98/5728cfebc37e74375a2fb961db1b19c687f48d278727c4788cd2bc44e15378d70b20f0ff335a7f61bff6ee2b4d113f85af94ecabfd10438a9b72c556e465",
+              ".npm-cache/_cacache/index-v5/17/fa/e9d0409c4a453fa0e1ec562f099edf0c0ee408a36fa2c7800fc3ddcb7d69",
+              ".npm-cache/_cacache/index-v5/2c/1e/91ad3155089bbff8af3021b9acd58bd8222b57c1108a8bafc4a5251e152c",
+              ".npm-cache/_cacache/index-v5/4d/7d/74be32029cceffff84e7c429799d51cf0f7435c9eec95ba3daac65b4562c",
+              ".npm-cache/_cacache/index-v5/4f/38/6541b6b60a29318c22cbcd32071e06cc988fd1d4918f0fb52f4ae534498b",
+              ".npm-cache/_cacache/index-v5/4f/4e/20c89d4c9d8a8a6e0407099b875826862a3a5ffca2d67d2b75129ab3421d",
+              ".npm-cache/_cacache/index-v5/5a/0d/7e16ea920209f28606999566383d651eaf632b4842837df764c5cc476e83",
+              ".npm-cache/_cacache/index-v5/67/d5/bf35408a99ca3a6b7d2ecdddc96187fa505b46711c6d4ef8dffa8b02f1c0",
+              ".npm-cache/_cacache/index-v5/6a/b2/cff74a8452b6159ec5df4cd310e05e05bfaa99de31da7de4b5a7a7a849d9",
+              ".npm-cache/_cacache/index-v5/6e/27/e0e109737591117c80b7bfe42acbf7883d2aeeb26d019d11537373ec6793",
+              ".npm-cache/_cacache/index-v5/86/0c/8449635a499c1c1f44f2b6380cea2715c6e3ebe03e524b37d6fe263a4ebb",
+              ".npm-cache/_cacache/index-v5/b0/67/37231a71c60a62030abda7158f45c20266623bd2420141def58a58121c2c",
+              ".npm-cache/_cacache/index-v5/b0/fc/92a989cf347ec24035994b934b7bb07a131b9fe567752d4994a03f7ddc2a",
+              ".npm-cache/_cacache/index-v5/be/b6/fa4dbd3ad4b02fca6f5793d20843c1561fcc2f01d54c0df79a799a4195a2",
+              ".npm-cache/_cacache/index-v5/c5/31/7bec4fadfbd057e2b2e801050a0987f7c34b96e43ae5cd18fe029fee427e",
+              ".npm-cache/_cacache/index-v5/c8/61/53f02412ff2fc3a3b5ec4806ccf1e7aab0888801d6f232a9311384b37a9b",
+              ".npm-cache/_cacache/index-v5/d8/68/2ccc4f5419612d6589707007cc9e166f10f83934c1d58cf18fc54f4421fd",
+              ".npm-cache/_cacache/index-v5/f1/44/cf52860ef2ac0b2a06d907c20d37c3a2182e836b3062f58eb27077317544",
+              ".npm-cache/_cacache/index-v5/f1/ce/129ef407a2da10de5334e157bcbcdc6862247afab71c3d8d823885a3d9f5",
+              ".npm-cache/_cacache/index-v5/fc/63/3196c1979679042290850577369860b49f1391c279c79982941dcd31991b",
+              ".npm-cache/_logs/2026-08-30T14_11_43_453Z-debug-0.log",
+              ".npm-cache/_update-notifier-last-checked",
+              "package-lock.json",
+              "package.json",
+              "src/tickets/sql/tickets.ts"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": true,
+            "changedTransactionSeam": true,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "named-parameter compiler/binder validates missing and unused values"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-V-A-r2/final/runner-repair1-resumed.json",
+          "sha256": "ac0c3ffa74118e1aef86c84b95e63b0eb2ca4507d7e20213ee8a87a4d053c57a",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T20:54:36.985Z",
+            "finishedAt": "2026-08-30T20:54:37.166Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "3dc17b1633af8ae71d3e68e35243f577476218623bb37d819cd6021f97878fd6",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/platform/pool.ts",
+              "src/platform/transaction.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "src/tickets/query/ticket-read-model.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              ".npm-cache/_cacache/content-v2/sha512/15/d5/bdaff8d066149ea21b35677b08d72c4540d16f31c9e67ee8f85813144f13ab0322cc693704d5a00c0624e56cc35a5ef04242e562d11ee177cb9d0d23fbba",
+              ".npm-cache/_cacache/content-v2/sha512/22/9d/844029e0a3024b18e7c2c241613d753bfe58e5867e91c659b2e1761f2f663ebf244ce7dfbcb91db1a9158a75899b5e6c4214e0262b106e49409d177e2a2e",
+              ".npm-cache/_cacache/content-v2/sha512/2c/a6/14d620172575200179fd5118e2bbe3168725171ecbdfa7b99cb989bd75250a2b4fc28edad4c050310fcdbf98259bb4bb068c521a774c08b28778ceb4c011",
+              ".npm-cache/_cacache/content-v2/sha512/36/86/8cb738713abb9b78bffb519b8d4eb7a307830f009d11a7166a5d07f6a97b959533ee1ba63ca78bbd74a45ab9ee328e60bb661cd53b6fd8cb29f6e739eb3d",
+              ".npm-cache/_cacache/content-v2/sha512/51/c8/dc24e5a49eb36417a3cb5fcdea70733a28781528d915eb663c6b9b980d5bfdc9d19057000730aa877498ded554d6a658c6d1662908386b09d00e607e135a",
+              ".npm-cache/_cacache/content-v2/sha512/56/8e/f3ffaaeb418c69351ca5a784e5a1bd9e9736e1f8dfcc3906f1155582c52ee8131ea3179dc64c91712b6596a4ab814649a28a7e0cb7ec687c50e3c74f51d0",
+              ".npm-cache/_cacache/content-v2/sha512/56/96/6b52a53903af5e4325b6739080d63b4b79c0ac37653f6c3e958a5ac50d6ab9fb95081153bb9dacd2dd311c1dfd73b8f60efeca86bd4bd6eb683ce915d9b8",
+              ".npm-cache/_cacache/content-v2/sha512/58/2b/5a6d2eadddcf129290c15256f59233acee5ebac6c19d2a920f66c838c11f81dfebbd500ba6da8752b05f6d9efc60f348786712d6332e294633ac148a90a7",
+              ".npm-cache/_cacache/content-v2/sha512/5f/05/8319c2d11825c047c17f00ce5b1bb43e0375a6dace907848e538a64b947dd461c82e8aa0962b259755a8394cb4c88d1ee8389518f247000da66058fc8b7a",
+              ".npm-cache/_cacache/content-v2/sha512/7d/a8/869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135",
+              ".npm-cache/_cacache/content-v2/sha512/80/ab/4f9057503d4dc392ca2854b8bd2ec8d9c6bb015192296beeda571f8b579a4d8742b33f86657ae776a68f82a27af16ee5c6049e877deafa85d829201a416b",
+              ".npm-cache/_cacache/content-v2/sha512/8e/5d/6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b",
+              ".npm-cache/_cacache/content-v2/sha512/8f/7e/f949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965",
+              ".npm-cache/_cacache/content-v2/sha512/a9/30/0096b12c97cb383a211063af700ef70c21d40deb0773e688d088ecba61132eca7c5e9ce3743b9a02a4923a96c85ceac720018f2abc9d8e9ffa7e09763418",
+              ".npm-cache/_cacache/content-v2/sha512/b0/82/d7bad2d58c22e3703b8e9af857e5ed99e1c4b9a86ffa06edd592917075fffadf712518ba4487d6e09ae239238b2a2aa9227d0886ca209cc751ddb6b2bbb6",
+              ".npm-cache/_cacache/content-v2/sha512/b2/e0/e68cb55083bf2730ad94678e788401be3805be1d03d9ea7fbe4cd0d45fe2f4fae5252f2c27a3124a0e8bb9d599becd30a3ac297436ae89f42e613fdbcafd",
+              ".npm-cache/_cacache/content-v2/sha512/b8/fa/9bb104f6dcd2d8fe7b96e25065e3d11bc430d1c9f38652659b883fda98b39c805e9ed6c873238ef2850117c4562d92ddced2d85a085e4dfa63f5ec6c4912",
+              ".npm-cache/_cacache/content-v2/sha512/e7/ee/47a979ec64f13ae4825948c919b544404597a57a5da85d410ef2b1fcdd54bf8711f9befd6e1eab8f839c19b3cc8c01f76ff7bd4853e91c3d47338bb35505",
+              ".npm-cache/_cacache/content-v2/sha512/f5/98/5728cfebc37e74375a2fb961db1b19c687f48d278727c4788cd2bc44e15378d70b20f0ff335a7f61bff6ee2b4d113f85af94ecabfd10438a9b72c556e465",
+              ".npm-cache/_cacache/index-v5/17/fa/e9d0409c4a453fa0e1ec562f099edf0c0ee408a36fa2c7800fc3ddcb7d69",
+              ".npm-cache/_cacache/index-v5/2c/1e/91ad3155089bbff8af3021b9acd58bd8222b57c1108a8bafc4a5251e152c",
+              ".npm-cache/_cacache/index-v5/4d/7d/74be32029cceffff84e7c429799d51cf0f7435c9eec95ba3daac65b4562c",
+              ".npm-cache/_cacache/index-v5/4f/38/6541b6b60a29318c22cbcd32071e06cc988fd1d4918f0fb52f4ae534498b",
+              ".npm-cache/_cacache/index-v5/4f/4e/20c89d4c9d8a8a6e0407099b875826862a3a5ffca2d67d2b75129ab3421d",
+              ".npm-cache/_cacache/index-v5/5a/0d/7e16ea920209f28606999566383d651eaf632b4842837df764c5cc476e83",
+              ".npm-cache/_cacache/index-v5/67/d5/bf35408a99ca3a6b7d2ecdddc96187fa505b46711c6d4ef8dffa8b02f1c0",
+              ".npm-cache/_cacache/index-v5/6a/b2/cff74a8452b6159ec5df4cd310e05e05bfaa99de31da7de4b5a7a7a849d9",
+              ".npm-cache/_cacache/index-v5/6e/27/e0e109737591117c80b7bfe42acbf7883d2aeeb26d019d11537373ec6793",
+              ".npm-cache/_cacache/index-v5/86/0c/8449635a499c1c1f44f2b6380cea2715c6e3ebe03e524b37d6fe263a4ebb",
+              ".npm-cache/_cacache/index-v5/b0/67/37231a71c60a62030abda7158f45c20266623bd2420141def58a58121c2c",
+              ".npm-cache/_cacache/index-v5/b0/fc/92a989cf347ec24035994b934b7bb07a131b9fe567752d4994a03f7ddc2a",
+              ".npm-cache/_cacache/index-v5/be/b6/fa4dbd3ad4b02fca6f5793d20843c1561fcc2f01d54c0df79a799a4195a2",
+              ".npm-cache/_cacache/index-v5/c5/31/7bec4fadfbd057e2b2e801050a0987f7c34b96e43ae5cd18fe029fee427e",
+              ".npm-cache/_cacache/index-v5/c8/61/53f02412ff2fc3a3b5ec4806ccf1e7aab0888801d6f232a9311384b37a9b",
+              ".npm-cache/_cacache/index-v5/d8/68/2ccc4f5419612d6589707007cc9e166f10f83934c1d58cf18fc54f4421fd",
+              ".npm-cache/_cacache/index-v5/f1/44/cf52860ef2ac0b2a06d907c20d37c3a2182e836b3062f58eb27077317544",
+              ".npm-cache/_cacache/index-v5/f1/ce/129ef407a2da10de5334e157bcbcdc6862247afab71c3d8d823885a3d9f5",
+              ".npm-cache/_cacache/index-v5/fc/63/3196c1979679042290850577369860b49f1391c279c79982941dcd31991b",
+              ".npm-cache/_logs/2026-08-30T14_11_43_453Z-debug-0.log",
+              ".npm-cache/_update-notifier-last-checked",
+              "package-lock.json",
+              "package.json",
+              "src/tickets/sql/tickets.ts"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": true,
+            "changedTransactionSeam": true,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "named-parameter compiler/binder validates missing and unused values"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19194,6 +20933,9 @@
       "arm": "D",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-V-D-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-D-r1"
+      ],
       "observationCount": 2,
       "observations": [
         {
@@ -19284,6 +21026,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19292,7 +21038,74 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-V-D-r2",
+      "workloadOrControl": "AF-V",
+      "arm": "D",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-V-D-r2",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-D-r2"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-D-r2/attempts/repair-1/af-run.json",
+          "sha256": "5d9eba30baa5b9353ac93cfd7ce82ba8b0c87b7618382ccadd880dda3d3e0ff9",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:44:15.605Z",
+            "finishedAt": "2026-08-30T21:44:16.206Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "55bf5b13ae1b9bea3c7c232121b79c76a561d1ba81bce6ae31cd8b40cbf31091",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Drizzle typed schema/query API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19301,6 +21114,9 @@
       "arm": "G",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-V-G-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-G-r1"
+      ],
       "observationCount": 2,
       "observations": [
         {
@@ -19392,6 +21208,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19400,7 +21220,117 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-V-G-r2",
+      "workloadOrControl": "AF-V",
+      "arm": "G",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-V-G-r2-reliable-20260831",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-G-r2-reliable-20260831"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 1,
+      "reliableObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-G-r2-reliable-20260831/final/initial-runner.json",
+          "sha256": "f502b27203c761d5bfa505f2c8e8612975978bb74f39a25100125a6ac3cd0b4b",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:54:12.989Z",
+            "finishedAt": "2026-08-30T21:54:13.323Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "723a18207bee94172aefb31309561f25f9dde92528a238d42922bb26f76c787e",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "src/tickets/sql/ticket-sql.ts"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "native pg parameterization and application-owned invariants"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-G-r2-reliable-20260831/final/initial-runner.json",
+          "sha256": "f502b27203c761d5bfa505f2c8e8612975978bb74f39a25100125a6ac3cd0b4b",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:54:12.989Z",
+            "finishedAt": "2026-08-30T21:54:13.323Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "723a18207bee94172aefb31309561f25f9dde92528a238d42922bb26f76c787e",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "src/tickets/sql/ticket-sql.ts"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "native pg parameterization and application-owned invariants"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19409,6 +21339,9 @@
       "arm": "K",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-V-K-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-K-r1"
+      ],
       "observationCount": 2,
       "observations": [
         {
@@ -19497,6 +21430,10 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19505,7 +21442,117 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-V-K-r2",
+      "workloadOrControl": "AF-V",
+      "arm": "K",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-V-K-r2-reliable-20260831",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-K-r2-reliable-20260831"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 1,
+      "reliableObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-K-r2-reliable-20260831/attempt-initial/external-evidence/initial-af-runner.json",
+          "sha256": "e39be1694c0792a77d93119b1253db8de7742b423a3dbb334e9eb4665969ac67",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:54:31.529Z",
+            "finishedAt": "2026-08-30T21:54:33.875Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "1f864fa6eecd75d5fec61f3d5c6bee89502cc790770e2e151507dd3dcf0983c5",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/tickets/application/ticket-use-cases.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Kysely typed query-builder API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-K-r2-reliable-20260831/attempt-initial/external-evidence/initial-af-runner.json",
+          "sha256": "e39be1694c0792a77d93119b1253db8de7742b423a3dbb334e9eb4665969ac67",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:54:31.529Z",
+            "finishedAt": "2026-08-30T21:54:33.875Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "1f864fa6eecd75d5fec61f3d5c6bee89502cc790770e2e151507dd3dcf0983c5",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/tickets/application/ticket-use-cases.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json"
+            ],
+            "newGlobalFiles": [],
+            "newConfigFiles": [],
+            "newGeneratedDirectories": [],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Kysely typed query-builder API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-reliable-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19514,6 +21561,9 @@
       "arm": "P",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-V-P-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-P-r1"
+      ],
       "observationCount": 3,
       "observations": [
         {
@@ -19664,6 +21714,119 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 2,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-P-r1/corrected-final/runner-repair1.json",
+          "sha256": "39a8553f7864bc6d179caa85837015cd19426c7d757a4886ff7960955ed9d827",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T12:02:12.022Z",
+            "finishedAt": "2026-08-30T12:02:12.542Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "b3020ab1a74728497757b44b8a5ebe388685e97ac894b3d3aa4c9b710603e344",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "src/tickets/dto.ts",
+              "src/tickets/query/ticket-read-model.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "prisma.config.ts",
+              "src/prisma/contract.d.ts",
+              "src/prisma/contract.json",
+              "src/prisma/contract.prisma"
+            ],
+            "newGlobalFiles": [
+              "prisma.config.ts"
+            ],
+            "newConfigFiles": [
+              "prisma.config.ts",
+              "src/prisma/contract.prisma"
+            ],
+            "newGeneratedDirectories": [
+              "src/prisma"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": true,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Prisma 8 RC schema/client contract and runtime query API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        },
+        {
+          "evidencePath": "secondary-evidence/AF-V-P-r1/corrected-final/runner-repair2.json",
+          "sha256": "4e19c8c13569fe9bbd65a6950e57f744adbe6cb6483c9e700e26fc07d04cc116",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T12:04:00.549Z",
+            "finishedAt": "2026-08-30T12:04:01.086Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "67cd2059a08c1575e430f4220cff006c3c207b484763ee0eb6f66102e74d6417",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "src/tickets/dto.ts",
+              "src/tickets/query/ticket-read-model.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "prisma.config.ts",
+              "src/prisma/contract.d.ts",
+              "src/prisma/contract.json",
+              "src/prisma/contract.prisma"
+            ],
+            "newGlobalFiles": [
+              "prisma.config.ts"
+            ],
+            "newConfigFiles": [
+              "prisma.config.ts",
+              "src/prisma/contract.prisma"
+            ],
+            "newGeneratedDirectories": [
+              "src/prisma"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": true,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Prisma 8 RC schema/client contract and runtime query API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        }
+      ],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19672,7 +21835,86 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-V-P-r2",
+      "workloadOrControl": "AF-V",
+      "arm": "P",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-V-P-r2",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-P-r2"
+      ],
+      "observationCount": 0,
+      "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-P-r2/attempt-repair2-final-root-evidence/repair2-runner.json",
+          "sha256": "9d023aac65786877b67e4007572e46b474616c07ae96ff9f54e3fd602af62b5c",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:44:58.103Z",
+            "finishedAt": "2026-08-30T21:44:59.011Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "e42fc6fed9368934af8d9e7a2b0c00250d75b7f088c7392070a8026cc26d8ae7",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "prisma.config.ts",
+              "src/tickets/prisma/contract.d.ts",
+              "src/tickets/prisma/contract.json",
+              "src/tickets/prisma/contract.prisma",
+              "src/tickets/query/ticket-queries.ts"
+            ],
+            "newGlobalFiles": [
+              "prisma.config.ts"
+            ],
+            "newConfigFiles": [
+              "prisma.config.ts",
+              "src/tickets/prisma/contract.prisma"
+            ],
+            "newGeneratedDirectories": [
+              "src/tickets/prisma"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "not-applicable",
+            "requiredGuarantees": [
+              "Prisma 8 RC schema/client contract and runtime query API"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        }
+      ],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 0,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19681,6 +21923,9 @@
       "arm": "S",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/AF-V-S-r1",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-S-r1"
+      ],
       "observationCount": 3,
       "observations": [
         {
@@ -19849,6 +22094,66 @@
           "deltaComplete": true
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 1,
+      "supplementalObservations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-S-r1/repair1-pre-correction/runner-repair1.json",
+          "sha256": "b387a1a12cfa53d56494a62f32085dcff3efaf7032a60f373f2d78f1bdff6043",
+          "live": {
+            "status": "P",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T11:46:07.973Z",
+            "finishedAt": "2026-08-30T11:46:08.166Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "1539860c005796e02f8e6be9b45fcf53fdb838cf49c9f38c0573982962a295ea",
+            "changedExistingFiles": [
+              "src/application.ts",
+              "src/platform/pool.ts",
+              "src/platform/transaction.ts",
+              "src/tickets/application/ticket-use-cases.ts",
+              "tsconfig.json"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "sqlc.yaml",
+              "src/tickets/sql/generated/queries.ts",
+              "src/tickets/sql/GENERATION.md",
+              "src/tickets/sql/queries.sql",
+              "tests/application.test.mjs"
+            ],
+            "newGlobalFiles": [
+              "sqlc.yaml"
+            ],
+            "newConfigFiles": [
+              "sqlc.yaml"
+            ],
+            "newGeneratedDirectories": [
+              "src/tickets/sql/generated"
+            ],
+            "changedPoolSeam": true,
+            "changedTransactionSeam": true,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "yes",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true,
+          "sourceKind": "nonstandard-af-path"
+        }
+      ],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -19857,7 +22162,84 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
+    },
+    {
+      "kind": "secondary",
+      "cell": "AF-V-S-r2",
+      "workloadOrControl": "AF-V",
+      "arm": "S",
+      "replicate": 2,
+      "evidenceRoot": "secondary-evidence/AF-V-S-r2",
+      "evidenceRoots": [
+        "secondary-evidence/AF-V-S-r2"
+      ],
+      "observationCount": 1,
+      "observations": [
+        {
+          "evidencePath": "secondary-evidence/AF-V-S-r2/reliable-v013-20260831/final/runner.json",
+          "sha256": "442b025d723034a05871599e1617f26adffa1f2d3b514c1929e515ddb6943661",
+          "live": {
+            "status": "F",
+            "harness": "af-controls-v1",
+            "workloads": null,
+            "checks": null,
+            "source": null,
+            "cleanup": null,
+            "startedAt": "2026-08-30T21:51:27.691Z",
+            "finishedAt": "2026-08-30T21:51:27.704Z"
+          },
+          "architectureDelta": {
+            "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+            "candidateHash": "d93d2ed22dabcd412b3748e0883b56a0f2def22eb7d1333c5eb24b2fb42b79ab",
+            "changedExistingFiles": [
+              "src/application.ts"
+            ],
+            "missingExistingFiles": [],
+            "movedOrRenamedExistingFiles": [],
+            "newFiles": [
+              "package-lock.json",
+              "package.json",
+              "sqlc.yaml",
+              "src/tickets/generated/queries_sql.ts",
+              "src/tickets/sql/queries.sql",
+              "src/tickets/sql/schema.sql"
+            ],
+            "newGlobalFiles": [
+              "sqlc.yaml"
+            ],
+            "newConfigFiles": [
+              "sqlc.yaml",
+              "src/tickets/sql/schema.sql"
+            ],
+            "newGeneratedDirectories": [
+              "src/tickets/generated"
+            ],
+            "changedPoolSeam": false,
+            "changedTransactionSeam": false,
+            "changedDtoSeam": false,
+            "changedTestSeam": false,
+            "featureLocalSql": "yes",
+            "requiredGuarantees": [
+              "sqlc-generated TypeScript query/type contract"
+            ]
+          },
+          "deltaComplete": true
+        }
+      ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
+      "durableSchemas": [],
+      "evidenceCounts": {
+        "firstPassDocuments": 0,
+        "liveDocuments": 1,
+        "finalDocuments": 0,
+        "treatmentDocuments": 0,
+        "attemptRecords": 0
+      },
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19866,8 +22248,15 @@
       "arm": "A",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/E1-A-r1",
+      "evidenceRoots": [
+        "secondary-evidence/E1-A-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "e1",
@@ -19916,7 +22305,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19925,8 +22314,15 @@
       "arm": "D",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/E1-D-r1",
+      "evidenceRoots": [
+        "secondary-evidence/E1-D-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "e1",
@@ -19975,7 +22371,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -19984,8 +22380,15 @@
       "arm": "G",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/E1-G-r1",
+      "evidenceRoots": [
+        "secondary-evidence/E1-G-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "e1",
@@ -20034,7 +22437,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20043,8 +22446,15 @@
       "arm": "K",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/E1-K-r1",
+      "evidenceRoots": [
+        "secondary-evidence/E1-K-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "e1",
@@ -20093,7 +22503,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20102,8 +22512,15 @@
       "arm": "P",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/E1-P-r1",
+      "evidenceRoots": [
+        "secondary-evidence/E1-P-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "e1",
@@ -20152,7 +22569,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20161,8 +22578,15 @@
       "arm": "S",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/E1-S-r1",
+      "evidenceRoots": [
+        "secondary-evidence/E1-S-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "e1",
@@ -20211,7 +22635,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20220,9 +22644,67 @@
       "arm": "A",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/SD-A-r1",
+      "evidenceRoots": [
+        "secondary-evidence/SD-A-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
+        {
+          "schema": "sd",
+          "evidencePath": "secondary-evidence/SD-A-r1/corrected-h007/sd.json",
+          "sha256": "9c093a31f625ec9a1f746539c7b5b3a03485bb9f3e26423fb0b8f595b2dfdcd9",
+          "summary": {
+            "status": "P",
+            "harness": "sd-schema-drift-v1",
+            "staticInspection": {
+              "pass": true,
+              "findingCount": 0
+            },
+            "mutationCount": 3,
+            "mutationObservations": [
+              {
+                "mutation": "column-rename",
+                "firstDetectionStage": "application-execution",
+                "observationCount": 5,
+                "cleanup": {
+                  "status": "pass",
+                  "schema": "pass",
+                  "role": "pass",
+                  "connection": "pass"
+                }
+              },
+              {
+                "mutation": "nullability-tighten",
+                "firstDetectionStage": "not-detected-in-measured-stages",
+                "observationCount": 5,
+                "cleanup": {
+                  "status": "pass",
+                  "schema": "pass",
+                  "role": "pass",
+                  "connection": "pass"
+                }
+              },
+              {
+                "mutation": "integer-to-bigint",
+                "firstDetectionStage": "not-detected-in-measured-stages",
+                "observationCount": 5,
+                "cleanup": {
+                  "status": "pass",
+                  "schema": "pass",
+                  "role": "pass",
+                  "connection": "pass"
+                }
+              }
+            ],
+            "startedAt": "2026-08-30T20:57:58.688Z",
+            "finishedAt": "2026-08-30T20:58:07.509Z"
+          }
+        },
         {
           "schema": "sd",
           "evidencePath": "secondary-evidence/SD-A-r1/final/sd.json",
@@ -20244,11 +22726,11 @@
       "evidenceCounts": {
         "firstPassDocuments": 0,
         "liveDocuments": 0,
-        "finalDocuments": 1,
-        "treatmentDocuments": 0,
-        "attemptRecords": 1
+        "finalDocuments": 2,
+        "treatmentDocuments": 1,
+        "attemptRecords": 2
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20257,8 +22739,15 @@
       "arm": "D",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/SD-D-r1",
+      "evidenceRoots": [
+        "secondary-evidence/SD-D-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "sd",
@@ -20319,7 +22808,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20328,8 +22817,15 @@
       "arm": "G",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/SD-G-r1",
+      "evidenceRoots": [
+        "secondary-evidence/SD-G-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "sd",
@@ -20390,7 +22886,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20399,8 +22895,15 @@
       "arm": "K",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/SD-K-r1",
+      "evidenceRoots": [
+        "secondary-evidence/SD-K-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "sd",
@@ -20461,7 +22964,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20470,8 +22973,15 @@
       "arm": "P",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/SD-P-r1",
+      "evidenceRoots": [
+        "secondary-evidence/SD-P-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "sd",
@@ -20532,7 +23042,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20541,8 +23051,15 @@
       "arm": "S",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/SD-S-r1",
+      "evidenceRoots": [
+        "secondary-evidence/SD-S-r1"
+      ],
       "observationCount": 0,
       "observations": [],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [
         {
           "schema": "sd",
@@ -20603,7 +23120,7 @@
         "treatmentDocuments": 1,
         "attemptRecords": 1
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20612,6 +23129,9 @@
       "arm": "A",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/X1-A-r1",
+      "evidenceRoots": [
+        "secondary-evidence/X1-A-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -20639,6 +23159,10 @@
           "deltaComplete": null
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20647,7 +23171,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20656,6 +23180,9 @@
       "arm": "D",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/X1-D-r1",
+      "evidenceRoots": [
+        "secondary-evidence/X1-D-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -20686,6 +23213,10 @@
           "deltaComplete": null
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20694,7 +23225,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20703,6 +23234,9 @@
       "arm": "G",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/X1-G-r1",
+      "evidenceRoots": [
+        "secondary-evidence/X1-G-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -20733,6 +23267,10 @@
           "deltaComplete": null
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20741,7 +23279,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20750,6 +23288,9 @@
       "arm": "K",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/X1-K-r1",
+      "evidenceRoots": [
+        "secondary-evidence/X1-K-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -20780,6 +23321,10 @@
           "deltaComplete": null
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20788,7 +23333,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20797,6 +23342,9 @@
       "arm": "P",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/X1-P-r1",
+      "evidenceRoots": [
+        "secondary-evidence/X1-P-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -20826,6 +23374,10 @@
           "deltaComplete": null
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20834,7 +23386,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     },
     {
       "kind": "secondary",
@@ -20843,6 +23395,9 @@
       "arm": "S",
       "replicate": 1,
       "evidenceRoot": "secondary-evidence/X1-S-r1",
+      "evidenceRoots": [
+        "secondary-evidence/X1-S-r1"
+      ],
       "observationCount": 1,
       "observations": [
         {
@@ -20873,6 +23428,10 @@
           "deltaComplete": null
         }
       ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "durableSchemas": [],
       "evidenceCounts": {
         "firstPassDocuments": 0,
@@ -20881,7 +23440,7 @@
         "treatmentDocuments": 0,
         "attemptRecords": 0
       },
-      "note": "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names."
+      "note": "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names."
     }
   ]
 }

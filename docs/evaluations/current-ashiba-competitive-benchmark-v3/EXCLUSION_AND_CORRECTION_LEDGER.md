@@ -9,6 +9,27 @@ No scored candidate has started at preregistration.
 Entries are append-only. A correction does not overwrite the preceding failed
 or calibration evidence.
 
+# EXCL-002 — AF-V-S-r2 sqlc plugin 0.1.2 pre-execution setup incident
+
+- **Observed:** 2026-08-31 before the AF-V-S-r2 reliable candidate performed
+  generation, candidate verification, or a runner invocation.
+- **Original evidence:**
+  `secondary-evidence/AF-V-S-r2/reliable-20260831/` retains the pre-action
+  packet manifest. It identifies the downloaded `sqlc-gen-typescript` 0.1.2
+  tooling while the frozen packet requires 0.1.3.
+- **Disposition:** excluded setup incident, not a candidate attempt, repair,
+  treatment result, or runner outcome.
+- **Correction:** the fresh, disjoint
+  `reliable-v013-20260831` root verified sqlc 1.31.1 and
+  sqlc-gen-typescript 0.1.3 before the initial candidate action. Its immutable
+  pre-action snapshot and every later attempt are retained under that root.
+- **Evidence handling:** this is a durable-path relocation from an external
+  clean-room root into the repository evidence tree after preservation. The
+  materializer/root paths remain recorded in `RUN_MANIFEST.md`; relocation does
+  not replace, edit, or reclassify the 0.1.2 setup artifact.
+- **Status:** the 0.1.2 path remains excluded. Only the v0.1.3 reliable path
+  may be reported as an AF-V-S-r2 candidate sequence.
+
 # H-006 — Frozen packet verification scope clarification
 
 - **Observed:** 2026-08-31 during final-head reproduction review.

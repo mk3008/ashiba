@@ -51,6 +51,16 @@ documents plus E1 documents that record a nested `primaryG1` live result.
 recorded mutation observations. `firstPassDocuments` remains zero unless a
 future secondary schema supplies a first-pass document.
 
+## Nonstandard AF paths
+
+AF replicate-two evidence includes explicitly preserved reliable clean-room
+paths whose runner files are not uniformly named `runner.json`. The extractor
+groups those roots with their canonical AF cell and retains matching
+`af-controls-v1` documents under `supplementalObservations`. The original
+relative path, hash, runner summary, and `sourceKind` are retained. These
+records do not acquire a normalized first-pass, treatment-fidelity, or repair
+classification merely because they are grouped for discoverability.
+
 ## Missing telemetry and non-inference
 
 This index does not estimate token use, credits, time, causal category, treatment

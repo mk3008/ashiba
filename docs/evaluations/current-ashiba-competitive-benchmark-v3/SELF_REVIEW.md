@@ -12,11 +12,16 @@
 - Raw SQL escape hatches are treated as treatment-fidelity evidence, not
   silently accepted as an equivalent treatment.
 - Architecture controls, X1, SD, and E1 are not added to the primary matrix.
+- SD/E1 durable schema-v2 observations are reported without causal labels.
+- AF replicate-two reliable/nonstandard paths are explicitly retained without
+  inventing normalized causal labels.
+- Prisma raw-SQL-dominant treatment fidelity is disclosed as unadjudicated.
 - Historical Ashiba results are not presented as Current Ashiba results.
 
 ## Remaining review gates
 
-- Complete and independently review all required secondary controls.
+- Independently review all required secondary controls, including the
+  heterogeneous AF replicate-two preservation paths.
 - Regenerate the raw index and these reports from finalized evidence.
 - Perform the required independent publication-quality audit, including
   workload fairness, treatment fidelity, reproduction completeness, and

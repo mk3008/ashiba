@@ -41,10 +41,16 @@ causal category. File and directory names are retained as evidence paths only;
 they do not determine an outcome or causal interpretation.
 
 `results.csv` is a convenience table with one primary row per cell and one
-secondary row per runner observation; a secondary cell without a runner row
-emits one row per durable schema document. It should be read with
+secondary row per standard runner observation, durable schema document, or
+explicit nonstandard AF runner record. It should be read with
 `raw-results.json` and the linked immutable evidence, not as an independent
 benchmark result.
+
+Reliable AF roots are identified by their explicit `-reliable` suffix and are
+grouped under the canonical cell. The extractor also retains AF runner-shaped
+documents in an exact cell root as `supplementalObservations`; it records the
+path and runner summary but does not convert heterogeneous preservation layout
+into a repair or treatment category.
 
 See [RAW_RESULTS_SCHEMA.md](./RAW_RESULTS_SCHEMA.md) for fields and current
 coverage limits.

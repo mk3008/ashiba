@@ -17,9 +17,15 @@
    versions. Secondary controls have their own correction entries.
 7. The compact aggregation cannot infer normalized repair causality or final
    secondary meaning when source evidence does not declare it.
-8. At this state, E1 and SD have no indexed runner observations; X1 and AF
-   must remain non-aggregate controls. No exit, drift, or open-ended
-   composition recommendation is justified from absent or unfinalized data.
-9. Candidate behavior passes do not independently verify production security,
+8. E1 and SD have one durable record per arm, but remain non-aggregate,
+   fixture-specific controls. AF replicate two has heterogeneous standard and
+   explicitly retained nonstandard evidence paths; it has no normalized
+   cross-cell first-pass/treatment/repair schema. X1 and AF must remain
+   non-aggregate controls; no broad exit, drift, open-ended-composition, or
+   architecture recommendation is justified from these limited observations.
+9. The Prisma treatment review records final `pass` values, but does not
+   adjudicate whether raw-SQL-dominant Prisma candidates are representative of
+   a normal Prisma client/contract workflow. No raw-SQL proportion is scored.
+10. Candidate behavior passes do not independently verify production security,
    observability, performance, deployment, migration policy, or long-term
    upgrade compatibility.

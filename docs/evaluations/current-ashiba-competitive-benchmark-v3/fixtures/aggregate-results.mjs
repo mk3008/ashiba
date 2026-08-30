@@ -13,6 +13,7 @@ import { basename, dirname, join, relative, resolve } from "node:path";
 
 const PRIMARY_CELL = /^(G1|T1|T2|Q1)-(A|P|S|D|K|G)-r(\d+)$/;
 const SECONDARY_CELL = /^(AF-V|AF-L|X1|SD|E1)-(A|P|S|D|K|G)-r(\d+)$/;
+const SECONDARY_RELIABLE_ROOT = /^(AF-V|AF-L|X1|SD|E1)-(A|P|S|D|K|G)-r(\d+)-reliable(?:-[a-z0-9]+)*$/i;
 
 function usage(message) {
   console.error(`Usage: node fixtures/aggregate-results.mjs --root <benchmark-dir> [--json <path>] [--csv <path>]`);
@@ -291,13 +292,41 @@ function walkRunnerDocuments(root, directory) {
   return results.sort((left, right) => left.localeCompare(right));
 }
 
+function walkAfRunnerDocuments(directory) {
+  const results = [];
+  function walk(current) {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const path = join(current, entry.name);
+      if (entry.isDirectory()) {
+        walk(path);
+      } else if (entry.isFile() && /(?:runner|af-run).*\.json$/i.test(entry.name)) {
+        const document = readJson(path);
+        // An AF runner record has the AF runner envelope. This rejects
+        // nested primary runner attachments, which use a different harness.
+        if (document?.harness === "af-controls-v1") results.push(path);
+      }
+    }
+  }
+  if (existsSync(directory)) walk(directory);
+  return results.sort((left, right) => left.localeCompare(right));
+}
+
 function secondaryRecords(root) {
   const evidenceRoot = join(root, "secondary-evidence");
-  return sortedDirectories(evidenceRoot)
-    .map((cell) => {
-      const metadata = parseCell(cell, SECONDARY_CELL);
-      if (!metadata) return null;
-      const cellRoot = join(evidenceRoot, cell);
+  const grouped = new Map();
+  for (const name of sortedDirectories(evidenceRoot)) {
+    const exact = parseCell(name, SECONDARY_CELL);
+    const reliable = parseCell(name, SECONDARY_RELIABLE_ROOT);
+    const metadata = exact ?? reliable;
+    if (!metadata) continue;
+    const cell = `${metadata.workloadOrControl}-${metadata.arm}-r${metadata.replicate}`;
+    const group = grouped.get(cell) ?? { cell, metadata, exactRoots: [], reliableRoots: [] };
+    (exact ? group.exactRoots : group.reliableRoots).push(join(evidenceRoot, name));
+    grouped.set(cell, group);
+  }
+  return [...grouped.values()]
+    .map(({ cell, metadata, exactRoots, reliableRoots }) => {
+      const cellRoot = exactRoots[0] ?? reliableRoots[0];
       const observations = walkRunnerDocuments(root, cellRoot).map((path) => {
         const document = readJson(path);
         return {
@@ -309,16 +338,52 @@ function secondaryRecords(root) {
         };
       });
       const durableSchemas = durableSchemaRecords(root, cellRoot);
+      const exactNonstandardObservations = exactRoots.flatMap((exactRoot) =>
+        walkAfRunnerDocuments(exactRoot).map((path) => {
+          const document = readJson(path);
+          return {
+            evidencePath: relative(root, path).replaceAll("\\", "/"),
+            sha256: hash(path),
+            live: liveSummary(document),
+            architectureDelta: document?.architectureDelta ?? null,
+            deltaComplete: typeof document?.deltaComplete === "boolean" ? document.deltaComplete : null,
+            sourceKind: "nonstandard-af-path",
+          };
+        }),
+      );
+      const reliableObservations = reliableRoots.flatMap((reliableRoot) =>
+        walkAfRunnerDocuments(reliableRoot).map((path) => {
+          const document = readJson(path);
+          return {
+            evidencePath: relative(root, path).replaceAll("\\", "/"),
+            sha256: hash(path),
+            live: liveSummary(document),
+            architectureDelta: document?.architectureDelta ?? null,
+            deltaComplete: typeof document?.deltaComplete === "boolean" ? document.deltaComplete : null,
+            sourceKind: "nonstandard-reliable-path",
+          };
+        }),
+      );
+      const standardPaths = new Set(observations.map((entry) => entry.evidencePath));
+      const supplementalObservations = [...exactNonstandardObservations, ...reliableObservations].filter(
+        (entry, index, all) =>
+          !standardPaths.has(entry.evidencePath) && all.findIndex((candidate) => candidate.evidencePath === entry.evidencePath) === index,
+      );
       return {
         kind: "secondary",
         cell,
         ...metadata,
         evidenceRoot: relative(root, cellRoot).replaceAll("\\", "/"),
+        evidenceRoots: [...exactRoots, ...reliableRoots].map((path) => relative(root, path).replaceAll("\\", "/")),
         observationCount: observations.length,
         observations,
+        reliableObservationCount: reliableObservations.length,
+        reliableObservations,
+        supplementalObservationCount: supplementalObservations.length,
+        supplementalObservations,
         durableSchemas,
         evidenceCounts: secondaryEvidenceCounts(observations, durableSchemas),
-        note: "Secondary evidence is retained as recorded observations and durable schema documents. This extractor does not infer a causal category from directory or file names.",
+        note: "Secondary evidence is retained as recorded observations, durable schema documents, and explicit nonstandard AF runner records. This extractor does not infer a causal category from directory or file names.",
       };
     })
     .filter(Boolean)
@@ -384,18 +449,20 @@ function csvRows(primary, secondary) {
     ]);
   }
   for (const record of secondary) {
-    const rowsForCell =
-      record.observations.length > 0
-        ? record.observations.map((observation, index) => ({ observation, index, durableSchema: null }))
-        : record.durableSchemas.map((durableSchema) => ({ observation: null, index: null, durableSchema }));
-    rowsForCell.forEach(({ observation, index, durableSchema }) => {
+    const rowsForCell = [
+      ...record.observations.map((observation, index) => ({ observation, index, durableSchema: null, reliable: null })),
+      ...record.durableSchemas.map((durableSchema) => ({ observation: null, index: null, durableSchema, reliable: null })),
+      ...record.supplementalObservations.map((reliable, index) => ({ observation: null, index, durableSchema: null, reliable })),
+    ];
+    if (rowsForCell.length === 0) rowsForCell.push({ observation: null, index: null, durableSchema: null, reliable: null });
+    rowsForCell.forEach(({ observation, index, durableSchema, reliable }) => {
       rows.push([
         record.kind,
         record.cell,
         record.workloadOrControl,
         record.arm,
         record.replicate,
-        observation?.evidencePath ?? durableSchema?.evidencePath ?? record.evidenceRoot,
+        observation?.evidencePath ?? durableSchema?.evidencePath ?? reliable?.evidencePath ?? record.evidenceRoot,
         null,
         null,
         record.evidenceCounts.firstPassDocuments,
@@ -406,11 +473,11 @@ function csvRows(primary, secondary) {
         null,
         null,
         null,
-        observation?.live?.status ?? durableSchema?.summary?.status ?? null,
+        observation?.live?.status ?? durableSchema?.summary?.status ?? reliable?.live?.status ?? null,
         null,
-        observation?.live?.cleanup?.status ?? null,
+        observation?.live?.cleanup?.status ?? reliable?.live?.cleanup?.status ?? null,
         index,
-        durableSchema?.schema ?? null,
+        durableSchema?.schema ?? reliable?.sourceKind ?? null,
         record.note,
       ]);
     });
@@ -451,6 +518,8 @@ const output = {
     primaryAttemptCount: primary.reduce((sum, record) => sum + record.attemptCount, 0),
     secondaryCellCount: secondary.length,
     secondaryObservationCount: secondary.reduce((sum, record) => sum + record.observationCount, 0),
+    secondaryReliableObservationCount: secondary.reduce((sum, record) => sum + record.reliableObservationCount, 0),
+    secondarySupplementalObservationCount: secondary.reduce((sum, record) => sum + record.supplementalObservationCount, 0),
     secondaryDurableSchemaCount: secondary.reduce((sum, record) => sum + record.durableSchemas.length, 0),
   },
   primary,

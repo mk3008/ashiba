@@ -10,11 +10,12 @@ product.
 
 **Observed.** The durable result index (schema v2) currently contains 48
 primary cells (four workloads, six arms, two independent replicates), 67
-preserved primary attempts, 30 secondary cells, 26 secondary runner
-observations, and 12 durable secondary-schema documents. The primary runner
-records 37 final live passes and 11 final live failures. These descriptive
-counts are not pooled into a winner or a superiority claim. Secondary controls
-are observation-only and are not used to make adoption recommendations.
+preserved primary attempts, 42 canonical secondary cells, 29 standard runner
+observations, 22 supplemental nonstandard AF runner observations, and 13
+durable E1/SD schema documents. The primary runner records 37 final live
+passes and 11 final live failures. These descriptive counts are not pooled into
+a winner or a superiority claim. Secondary controls are observation-only and
+are not used to make adoption recommendations.
 
 ## What the evidence supports so far
 
@@ -38,8 +39,9 @@ team, database, or model setting.
 
 ## Publication status
 
-The primary execution evidence and SD/E1 durable observations are preserved
-and reviewable. The publication record remains incomplete until AF replicate
-2, final secondary interpretation, independent audit, repository verification,
-and remote CI confirmation are completed. See [limitations](./LIMITATIONS.md)
+The primary execution evidence and corrected SD/E1 durable observations are
+preserved and reviewable. AF replicate-two evidence is retained but
+heterogeneous, so it is reported by path rather than made into a normalized
+score. The publication record still requires independent audit, repository
+verification, and remote CI confirmation. See [limitations](./LIMITATIONS.md)
 and the [correction ledger](./EXCLUSION_AND_CORRECTION_LEDGER.md).

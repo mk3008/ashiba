@@ -63,6 +63,11 @@ slots and additional attempts are retained separately. The index intentionally
 does not infer causal repair categories where the original schema did not
 record them.
 
+The complete per-cell and per-arm transcription, including first-pass command
+slots, final live status, frozen treatment review, and retained attempt counts,
+is [RESULT_MATRICES.md](./RESULT_MATRICES.md). It is descriptive rather than a
+score table.
+
 ## Primary findings
 
 ### A. What Current Ashiba is demonstrably good at
@@ -99,8 +104,9 @@ documents, but those controls remain non-aggregate and fixture-specific.
 The dedicated architecture controls begin with frozen VSA and layered
 baselines. They measure imposed movement, centralization, generated
 directories, configuration, and native-pool/test reuse; they do not score a
-preferred architecture. AF replicate 1 has durable observations; AF replicate
-2 is pending, so no arm-level architecture conclusion is published. See
+preferred architecture. AF replicate 1 has durable observations and AF
+replicate two has explicitly retained, heterogeneous standard/nonstandard
+paths; neither supports an arm-level architecture conclusion. See
 [ARCHITECTURE_FITNESS.md](./ARCHITECTURE_FITNESS.md).
 
 Safety authority is distributed. The runner, PostgreSQL, candidate logic,
