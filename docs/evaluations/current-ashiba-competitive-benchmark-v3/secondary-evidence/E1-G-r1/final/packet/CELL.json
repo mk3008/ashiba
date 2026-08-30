@@ -1,0 +1,9 @@
+{
+  "cell": "E1-G-r1",
+  "control": "E1",
+  "arm": "G",
+  "replicate": 1,
+  "protocol": "secondary-controls-v1",
+  "baselineManifest": "../baseline-manifest.json",
+  "forbiddenPatterns": []
+}

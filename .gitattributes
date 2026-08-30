@@ -14,6 +14,7 @@ docs/evaluations/current-ashiba-competitive-benchmark-v3/secondary-candidate-sna
 docs/evaluations/current-ashiba-competitive-benchmark-v3/excluded-calibration/H-004/E1-S-r1/baseline-snapshot/src/generated/queries_sql.ts -whitespace
 docs/evaluations/current-ashiba-competitive-benchmark-v3/excluded-calibration/H-005/E1-S-r1/baseline-snapshot/src/generated/queries_sql.ts -whitespace
 docs/evaluations/current-ashiba-competitive-benchmark-v3/excluded-calibration/H-005/E1-S-r1/candidate/src/generated/queries_sql.ts -whitespace
+docs/evaluations/current-ashiba-competitive-benchmark-v3/secondary-evidence/E1-S-r1/final/baseline-snapshot/src/generated/queries_sql.ts -whitespace
 *.tsx text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf

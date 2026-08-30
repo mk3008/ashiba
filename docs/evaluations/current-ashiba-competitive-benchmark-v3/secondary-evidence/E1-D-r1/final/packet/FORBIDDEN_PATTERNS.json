@@ -1,0 +1,12 @@
+{
+  "protocol": "secondary-controls-v1",
+  "purpose": "Frozen, path-independent treatment markers for the E1 removal scan. Patterns intentionally target imports, package-dependency entries, commands, and generated/configuration identifiers rather than ordinary explanatory prose.",
+  "arms": {
+    "A": ["from\\s+['\"]@ashiba-ts/named-parameters['\"]", "require\\(['\"]@ashiba-ts/named-parameters['\"]\\)", "['\"]@ashiba-ts/named-parameters['\"]\\s*:"],
+    "P": ["from\\s+['\"]@prisma/client['\"]", "require\\(['\"]@prisma/client['\"]\\)", "['\"]@prisma/client['\"]\\s*:", "['\"]prisma['\"]\\s*:"],
+    "S": ["sqlc\\.yaml", "sqlc generate", "sqlc-gen-typescript", "from\\s+['\"]@sqlc"],
+    "D": ["from\\s+['\"]drizzle-orm['\"]", "require\\(['\"]drizzle-orm['\"]\\)", "['\"]drizzle-orm['\"]\\s*:", "['\"]drizzle-kit['\"]\\s*:"],
+    "K": ["from\\s+['\"]kysely['\"]", "require\\(['\"]kysely['\"]\\)", "['\"]kysely['\"]\\s*:"],
+    "G": []
+  }
+}
