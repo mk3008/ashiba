@@ -2,8 +2,9 @@
 
 These matrices transcribe durable records. They are not rankings and do not
 assign causal labels to additional attempts. `First B/T/Test` means the first
-captured build/typecheck/test command slots; the primary first runner slot is
-`not-declared` in every source record. `Attempts (+)` is the retained attempt
+captured build/typecheck/test command slots. `First oracle/live` is the direct
+alias of the first chronological attempt's captured runner result; it is not
+reconstructed from those command slots. `Attempts (+)` is the retained attempt
 count and records after the first attempt. `P` and `F` are runner-recorded
 statuses, not a product-quality score.
 
@@ -62,14 +63,20 @@ statuses, not a product-quality score.
 
 ## Primary per-arm descriptive inventory
 
-| Arm | Cells | First B/T/Test all P | Final live P | Frozen treatment pass | Frozen treatment fail | Retained attempts |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| A | 8 | 7 | 5 | 8 | 0 | 14 |
-| P | 8 | 4 | 6 | 8 | 0 | 10 |
-| S | 8 | 3 | 4 | 7 | 1 | 15 |
-| D | 8 | 5 | 8 | 8 | 0 | 8 |
-| K | 8 | 8 | 7 | 8 | 0 | 10 |
-| G | 8 | 5 | 7 | 8 | 0 | 10 |
+| Arm | Cells | First B/T/Test all P | First oracle P/F | Final live P/F | Frozen treatment pass | Frozen treatment fail | Retained attempts (+) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| A | 8 | 7 | 4 / 4 | 5 / 3 | 8 | 0 | 14 (+6) |
+| P | 8 | 4 | 6 / 2 | 6 / 2 | 8 | 0 | 10 (+2) |
+| S | 8 | 3 | 3 / 5 | 4 / 4 | 7 | 1 | 15 (+7) |
+| D | 8 | 5 | 8 / 0 | 8 / 0 | 8 | 0 | 8 (+0) |
+| K | 8 | 8 | 6 / 2 | 7 / 1 | 8 | 0 | 10 (+2) |
+| G | 8 | 5 | 7 / 1 | 7 / 1 | 8 | 0 | 10 (+2) |
+
+Across all primary cells, direct first oracle/live status is 34 P / 14 F;
+terminal live status is 37 P / 11 F. The raw index preserves the per-cell
+`firstLiveSource` hash/path and the terminal runner source. The difference is
+an observation of retained attempt sequences, not an attribution of repair
+cause or tool effect.
 
 The Prisma `pass` column is the frozen review. Its separate final workflow
 interpretation is in [PRISMA_TREATMENT_ADJUDICATION.md](./PRISMA_TREATMENT_ADJUDICATION.md): six cells are qualified-inline-contract and two are
@@ -112,14 +119,15 @@ into normalized primary repairs.
 
 | Cell | Selected terminal runner | Recorded final/live status | Boundary |
 | --- | --- | --- | --- |
-| X1-A-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | one corrected, non-aggregate replicate |
-| X1-P-r2 | `corrected-h007/runner-evidence/runner-initial.json` | F | missing candidate entrypoint; no candidate repair or native-pg fallback |
-| X1-S-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | one corrected, non-aggregate replicate |
-| X1-D-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | one corrected, non-aggregate replicate |
-| X1-K-r2 | `corrected-h007/runner-evidence/runner.json` | P | one corrected, non-aggregate replicate |
-| X1-G-r2 | `corrected-h007/runner-evidence/runner.json` | P | one corrected, non-aggregate replicate |
+| X1-A-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | terminal-only, non-aggregate record |
+| X1-P-r2 | `corrected-h007/runner-evidence/runner-initial.json` | F | terminal-only, non-aggregate record |
+| X1-S-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | terminal-only, non-aggregate record |
+| X1-D-r2 | `corrected-h007/runner-evidence/runner-repair1.json` | P | terminal-only, non-aggregate record |
+| X1-K-r2 | `corrected-h007/runner-evidence/runner.json` | P | terminal-only, non-aggregate record |
+| X1-G-r2 | `corrected-h007/runner-evidence/runner.json` | P | terminal-only, non-aggregate record |
 
 The selected file mapping is explicit in the aggregate script. It supersedes
 r1 only for terminal X1 interpretation; r1 files remain retained correction
-context. It is not a directory-name heuristic and does not establish
-report-builder suitability.
+context. The r2 repair-path names are not a comparative repair metric. It is
+not a directory-name heuristic and does not establish report-builder
+suitability.

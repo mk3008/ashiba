@@ -12,15 +12,19 @@
 | `generator` | Relative generator path and SHA-256. |
 | `interpretationPolicy` | Guardrails that prohibit implicit scoring. |
 | `limitations` | Explicit non-measurements and evidence boundaries. |
-| `inventory` | Counts of retained records, not scores. |
+| `inventory` | Counts of retained records, including direct first-attempt live-status counts; not scores. |
 | `primary` | One record per primary benchmark cell. |
 | `secondary` | One record per secondary control cell. |
+| `excludedCorrections` | Explicit non-comparable correction roots retained for audit, outside canonical cells and result counts. |
 
 ## Primary record
 
 Each primary record preserves the cell identity, the `runner.json` final live
 summary and link, every chronological attempt, the first/final attempt aliases,
-and `evidenceCounts`. The count fields are source-record counts, not scores:
+and `evidenceCounts`. `firstLive` and `firstLiveSource` are direct aliases of
+the first chronological attempt's captured `runner-result.json` / live summary;
+they are neither a reconstructed value nor a command-slot result. The count
+fields are source-record counts, not scores:
 `firstPassDocuments`, `liveDocuments`, `finalDocuments`,
 `treatmentDocuments`, and `attemptRecords`. An attempt retains, where present:
 
@@ -77,3 +81,11 @@ into benchmark outcome fields.
 
 The schema therefore supports auditability without converting unavailable
 telemetry or heterogeneous secondary evidence into a misleading comparison.
+
+## Excluded correction evidence
+
+X1 H-007 r3 is stored in `excludedCorrections`. It is an
+evidence-preservation remeasurement whose source could not reproduce the r2
+initial defects without forcing a replacement. Its roots and summary hashes
+remain indexed, but it contributes no canonical cell, observation, live result,
+repair count, or treatment-fidelity value.

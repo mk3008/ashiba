@@ -14,6 +14,7 @@ import { basename, dirname, join, relative, resolve } from "node:path";
 const PRIMARY_CELL = /^(G1|T1|T2|Q1)-(A|P|S|D|K|G)-r(\d+)$/;
 const SECONDARY_CELL = /^(AF-V|AF-L|X1|SD|E1)-(A|P|S|D|K|G)-r(\d+)$/;
 const SECONDARY_RELIABLE_ROOT = /^(AF-V|AF-L|X1|SD|E1)-(A|P|S|D|K|G)-r(\d+)-reliable(?:-[a-z0-9]+)*$/i;
+const EXCLUDED_X1_R3_ROOT = /^X1-(A|P|S|D|K|G)-r3$/;
 
 // H-007 reran every X1 arm under the corrected static-isolation rule. These
 // entries are an explicit, audited selection of the terminal runner output in
@@ -191,6 +192,11 @@ function primaryRecords(root) {
         additionalAttemptCount: Math.max(0, attempts.length - 1),
         firstAttempt: attempts[0] ?? null,
         finalAttempt: attempts.at(-1) ?? null,
+        // This is a direct alias of the first attempt's captured runner
+        // result. It is deliberately distinct from first-pass command slots
+        // and from the terminal cell-level runner.json.
+        firstLive: attempts[0]?.live ?? null,
+        firstLiveSource: attempts[0]?.sources?.runner ?? null,
         finalLive: liveSummary(finalRunner),
         finalLiveSource: fileReference(root, finalRunnerPath),
         attempts,
@@ -199,6 +205,16 @@ function primaryRecords(root) {
     })
     .filter(Boolean)
     .sort((left, right) => left.cell.localeCompare(right.cell));
+}
+
+function primaryFirstLiveCounts(primary) {
+  const counts = { P: 0, F: 0, missing: 0 };
+  for (const record of primary) {
+    const status = record.firstLive?.status;
+    if (status === "P" || status === "F") counts[status] += 1;
+    else counts.missing += 1;
+  }
+  return counts;
 }
 
 function walkNamedDocuments(directory, matcher) {
@@ -358,6 +374,9 @@ function secondaryRecords(root) {
   const evidenceRoot = join(root, "secondary-evidence");
   const grouped = new Map();
   for (const name of sortedDirectories(evidenceRoot)) {
+    // r3 is a deliberately aborted evidence-preservation remeasurement, not
+    // a secondary benchmark cell. Its roots are retained separately below.
+    if (EXCLUDED_X1_R3_ROOT.test(name)) continue;
     const exact = parseCell(name, SECONDARY_CELL);
     const reliable = parseCell(name, SECONDARY_RELIABLE_ROOT);
     const metadata = exact ?? reliable;
@@ -435,6 +454,31 @@ function secondaryRecords(root) {
     .sort((left, right) => left.cell.localeCompare(right.cell));
 }
 
+function excludedCorrectionEvidence(root) {
+  const evidenceRoot = join(root, "secondary-evidence");
+  const roots = sortedDirectories(evidenceRoot)
+    .filter((name) => EXCLUDED_X1_R3_ROOT.test(name))
+    .map((name) => `secondary-evidence/${name}`);
+  const summaryPaths = [
+    "secondary-evidence/X1-r3-h007-evidence-preservation-noncomparability.md",
+    "secondary-evidence/X1-r3-h007-evidence-preservation-hash-verification.json",
+  ];
+  return {
+    control: "X1",
+    label: "H-007 r3 evidence-preservation remeasurement",
+    disposition: "excluded-non-comparable-non-pooled",
+    roots,
+    summaries: summaryPaths.map((evidencePath) => {
+      const path = join(root, evidencePath);
+      return {
+        evidencePath,
+        sha256: existsSync(path) ? hash(path) : null,
+        missing: !existsSync(path),
+      };
+    }),
+  };
+}
+
 function csvEscape(value) {
   const text = value == null ? "" : String(value);
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
@@ -457,7 +501,7 @@ function csvRows(primary, secondary) {
     "first_build_status",
     "first_typecheck_status",
     "first_test_status",
-    "first_runner_status",
+    "first_oracle_live_status",
     "final_live_status",
     "final_treatment_value",
     "final_cleanup_status",
@@ -484,7 +528,7 @@ function csvRows(primary, secondary) {
       slots.build?.status ?? null,
       slots.typecheck?.status ?? null,
       slots.test?.status ?? null,
-      slots.runner?.status ?? null,
+      record.firstLive?.status ?? null,
       record.finalLive?.status ?? null,
       record.finalAttempt?.treatment?.value ?? null,
       record.finalLive?.cleanup?.status ?? null,
@@ -540,6 +584,7 @@ const jsonOutput = resolve(args.json ?? join(root, "raw-results.json"));
 const csvOutput = resolve(args.csv ?? join(root, "results.csv"));
 const primary = primaryRecords(root);
 const secondary = secondaryRecords(root);
+const excludedCorrections = [excludedCorrectionEvidence(root)];
 const output = {
   schemaVersion: 2,
   // A wall-clock timestamp would mutate otherwise identical durable output on
@@ -558,6 +603,7 @@ const output = {
     missingFieldPolicy: "Missing or undocumented fields remain null/absent and are not interpreted as a pass, failure, causal category, or tool-quality signal.",
     attemptPolicy: "Each preserved primary attempt is listed in chronological directory order. An attempt after the first is recorded only as an additional attempt.",
     secondaryPolicy: "Each secondary runner document and durable E1/SD schema document is retained as recorded evidence. Directory and file names do not establish a causal category.",
+    excludedCorrectionPolicy: "Explicitly listed excluded correction roots are preserved for audit but are not canonical secondary cells, observations, final outcomes, repair counts, or treatment-fidelity results.",
   },
   limitations: [
     "Token and credit telemetry are not synthesized by this extractor. They remain unavailable unless recorded in source evidence or the orchestration ledger.",
@@ -567,14 +613,17 @@ const output = {
   inventory: {
     primaryCellCount: primary.length,
     primaryAttemptCount: primary.reduce((sum, record) => sum + record.attemptCount, 0),
+    primaryFirstLiveStatusCounts: primaryFirstLiveCounts(primary),
     secondaryCellCount: secondary.length,
     secondaryObservationCount: secondary.reduce((sum, record) => sum + record.observationCount, 0),
     secondaryReliableObservationCount: secondary.reduce((sum, record) => sum + record.reliableObservationCount, 0),
     secondarySupplementalObservationCount: secondary.reduce((sum, record) => sum + record.supplementalObservationCount, 0),
     secondaryDurableSchemaCount: secondary.reduce((sum, record) => sum + record.durableSchemas.length, 0),
+    excludedCorrectionRootCount: excludedCorrections.reduce((sum, record) => sum + record.roots.length, 0),
   },
   primary,
   secondary,
+  excludedCorrections,
 };
 writeFileSync(jsonOutput, JSON.stringify(output, null, 2) + "\n");
 writeFileSync(csvOutput, csvRows(primary, secondary));

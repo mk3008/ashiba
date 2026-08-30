@@ -1,0 +1,25 @@
+{
+  "source": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\current-ashiba-competitive-benchmark-v3\\docs\\evaluations\\current-ashiba-competitive-benchmark-v3\\secondary-candidate-snapshots\\X1-A-r3\\evidence-preservation-remeasurement-h007\\initial",
+  "files": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 364,
+      "sha256": "97088dcef2274d49c3b8c76be535adc12dabd314716021ef088a5f900c6c5633"
+    },
+    {
+      "path": "src/report.ts",
+      "bytes": 3386,
+      "sha256": "c3d280aa1f124091d817f8551473feca0d9af223dbc9ee137711154e264b13f4"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 181,
+      "sha256": "27b347f21eca252ef0a4ecb87d715b77e93bf651ef2315b3a52ef6f3933af616"
+    }
+  ]
+}

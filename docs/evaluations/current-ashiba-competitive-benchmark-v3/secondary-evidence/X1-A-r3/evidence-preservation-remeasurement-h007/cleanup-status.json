@@ -1,0 +1,7 @@
+{
+  "arm": "A",
+  "externalRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary-h007-preservation-r3\\X1-A-r3",
+  "status": "removed",
+  "cleanupAfter": "candidate source, packet, logs, and SHA-256 manifests were copied to repository evidence",
+  "checkedAt": "2026-08-30T23:13:53.8220064Z"
+}

@@ -1,0 +1,45 @@
+{
+  "source": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\current-ashiba-competitive-benchmark-v3\\docs\\evaluations\\current-ashiba-competitive-benchmark-v3\\secondary-candidate-snapshots\\X1-S-r3\\evidence-preservation-remeasurement-h007\\initial",
+  "files": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 373,
+      "sha256": "636b2f765a83ee65ddd4b010c9437af56dcbff2c823d6b9764582a3c262dc3b7"
+    },
+    {
+      "path": "query.sql",
+      "bytes": 738,
+      "sha256": "21a09851f0b9422711f1554d0f3e67a70995068dfb2e3d166e4ad103d5a67d1d"
+    },
+    {
+      "path": "schema.sql",
+      "bytes": 188,
+      "sha256": "97e3d18237af5074c008adbb78aecc8cf55c73eeaaf8ceb4ca44af292dd20dcf"
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 362,
+      "sha256": "f73f1fcb4c30aa3123da199f639607ea1b9f7c29c0a63ac534588a6db7370cf9"
+    },
+    {
+      "path": "src/generated/query_sql.ts",
+      "bytes": 2667,
+      "sha256": "6419f247c093a3af0b97071757929cd6e2d5752bc79372d57710a78a31ad9842"
+    },
+    {
+      "path": "src/report.ts",
+      "bytes": 3167,
+      "sha256": "eae7b5e999a3d5376887b8c619b30c6540859a4117276b6bf2156487caf81e88"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 181,
+      "sha256": "27b347f21eca252ef0a4ecb87d715b77e93bf651ef2315b3a52ef6f3933af616"
+    }
+  ]
+}

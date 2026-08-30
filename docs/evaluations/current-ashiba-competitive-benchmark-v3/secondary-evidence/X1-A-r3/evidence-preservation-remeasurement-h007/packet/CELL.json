@@ -1,0 +1,7 @@
+{
+  "cell": "X1-A-r1",
+  "control": "X1",
+  "arm": "A",
+  "replicate": 1,
+  "protocol": "secondary-controls-v1"
+}

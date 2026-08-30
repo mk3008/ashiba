@@ -13,9 +13,10 @@ primary cells (four workloads, six arms, two independent replicates), 67
 preserved primary attempts, 48 canonical secondary cells, 32 standard runner
 observations, 23 supplemental nonstandard AF runner observations, and 13
 durable E1/SD schema documents. The primary runner records 37 final live
-passes and 11 final live failures. These descriptive counts are not pooled into
-a winner or a superiority claim. Secondary controls are observation-only and
-are not used to make adoption recommendations.
+passes and 11 final live failures; direct first-attempt oracle/live records
+are 34 passes and 14 failures. These descriptive counts are not pooled into a
+winner or a superiority claim. Secondary controls are observation-only and are
+not used to make adoption recommendations.
 
 ## What the evidence supports so far
 
@@ -36,6 +37,11 @@ the proposition that a small SQL-native treatment is viable for bounded
 AI-assisted PostgreSQL work. It does not establish that Ashiba is preferable
 to native `pg`, an ORM, a query builder, or sqlc in a different application,
 team, database, or model setting.
+
+The complete first/final per-arm matrix is A 4/5, P 6/6, S 3/4, D 8/8,
+K 6/7, and G 7/7 (P counts out of eight). The direct first-oracle alias and
+source path are retained per cell; later candidate attempt records are not
+converted into causal repair or orchestration-retry claims.
 
 ## Publication status
 

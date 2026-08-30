@@ -36,7 +36,11 @@ is intentionally compact: it preserves first-pass slots, every captured live
 result, treatment review, finalization record, durable E1/SD schema summary,
 and evidence path without copying large event streams a second time. Every
 cell also emits `evidenceCounts` for first-pass, live, final, treatment, and
-attempt source records; these are inventories rather than verdicts.
+attempt source records; these are inventories rather than verdicts. For each
+primary cell, `firstLive` is a direct alias of the first chronological
+attempt's captured runner result, while `finalLive` remains the cell-level
+terminal runner result. This makes first-oracle and final-live status visibly
+separate without deriving either from build/typecheck/test slots.
 
 ## Interpretation boundary
 
@@ -62,3 +66,11 @@ into a repair or treatment category.
 
 See [RAW_RESULTS_SCHEMA.md](./RAW_RESULTS_SCHEMA.md) for fields and current
 coverage limits.
+
+## Excluded correction roots
+
+`X1-<arm>-r3` roots are intentionally excluded from canonical secondary cells.
+They preserve a non-comparable H-007 evidence-preservation remeasurement, not
+a candidate result. The index lists their roots and the two summary hashes in
+`excludedCorrections`; it does not turn their static/typecheck/environment
+observations into live outcomes, repair counts, or fidelity records.

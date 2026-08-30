@@ -95,6 +95,24 @@ or calibration evidence.
 - **Status:** completed. The aggregate's explicit X1 selection map points only
   at the six r2 terminal runner documents.
 
+## H-007 extension — X1 r3 evidence-preservation remeasurement
+
+- **Purpose:** preserve initial source and command evidence missing from the
+  r2 terminal paths without forcing a candidate defect to recur.
+- **Observed divergence:** A and D reached static/npm/typecheck PASS rather
+  than their r2 initial failures; S stopped at an obsolete absolute sqlc path
+  during environment preparation. No r3 runner/oracle, candidate repair,
+  treatment-fidelity result, or database cleanup is claimed.
+- **Evidence:**
+  `secondary-evidence/X1-r3-h007-evidence-preservation-noncomparability.md`
+  and `secondary-evidence/X1-r3-h007-evidence-preservation-hash-verification.json`;
+  source/snapshot hashes match for A, S, and D. Exact external roots were
+  removed after durable preservation.
+- **Disposition:** excluded, non-comparable, and non-pooled. The aggregate
+  indexes these roots only as `excludedCorrections`, never as secondary cells
+  or results. The r3 procedure neither replaces nor adjudicates r2 outcomes.
+- **Status:** completed as evidence preservation; no benchmark result exists.
+
 # EXCL-001 — AF-L r2 evidence-preservation setup attempts
 
 - **Observed:** 2026-08-31 before any AF-L r2 runner oracle result.

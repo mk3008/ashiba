@@ -1,0 +1,23 @@
+[
+  {
+    "arm": "A",
+    "sourceFileCount": 4,
+    "snapshotFileCount": 4,
+    "hashMatch": true,
+    "mismatches": []
+  },
+  {
+    "arm": "S",
+    "sourceFileCount": 8,
+    "snapshotFileCount": 8,
+    "hashMatch": true,
+    "mismatches": []
+  },
+  {
+    "arm": "D",
+    "sourceFileCount": 4,
+    "snapshotFileCount": 4,
+    "hashMatch": true,
+    "mismatches": []
+  }
+]
