@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Kysely query/sql API is the candidate main data-access path; repair 1 satisfied frozen Q1 lifecycle contract.",
+  "decidedAt": "2026-08-30T10:29:11.875Z",
+  "decidedBy": "coordinator-required"
+}

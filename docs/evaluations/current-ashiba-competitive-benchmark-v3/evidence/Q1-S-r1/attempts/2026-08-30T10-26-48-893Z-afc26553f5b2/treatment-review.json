@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "sqlc generated query/types remained candidate main path; final permitted repair did not satisfy frozen Q1 EXPLAIN plan-shape contract.",
+  "decidedAt": "2026-08-30T10:27:07.221Z",
+  "decidedBy": "coordinator-required"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "benchmark-v3-arm-k-packet",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.18.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "npm run build --silent && node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "kysely": "0.29.5",
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "@types/pg": "8.15.6",
+    "typescript": "5.9.3"
+  }
+}
