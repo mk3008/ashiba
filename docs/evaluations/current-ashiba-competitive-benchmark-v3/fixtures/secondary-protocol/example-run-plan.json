@@ -1,0 +1,24 @@
+{
+  "protocolVersion": "secondary-controls-v1",
+  "controls": ["AF-V", "AF-L", "X1", "SD", "E1"],
+  "arms": ["A", "P", "S", "D", "K", "G"],
+  "primaryPacketReadOnly": true,
+  "sharedRunnerReadOnly": true,
+  "candidateIsolation": {
+    "freshDirectory": true,
+    "isolatedNpmCache": true,
+    "nonceSchemaAndRole": true,
+    "separateEvidenceDirectory": true
+  },
+  "repairCap": 2,
+  "resultAggregation": "none",
+  "requiredEvidence": [
+    "packet-hashes",
+    "candidate-source-manifest",
+    "command-logs",
+    "runner-result",
+    "pre-cleanup-db-state",
+    "cleanup-result",
+    "treatment-review"
+  ]
+}
