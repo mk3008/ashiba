@@ -29,8 +29,10 @@ or calibration evidence.
 - **Required remeasure:** all six AF-V r1 cells must use newly materialized,
   isolated candidate directories under the corrected baseline. Original
   attempts remain preserved and are not pooled with corrected observations.
-- **Status:** correction commit pending; no further AF runner result may be
-  treated as scored until this entry is committed.
+- **Correction commit:** `f7e7b28` (`docs: correct AF baseline TypeScript
+  fixture`).
+- **Status:** committed. Corrected AF-V cells may now be newly materialized;
+  only their post-correction observations may be interpreted.
 # H-001 — Pre-scoring reference-control serialization defect
 
 - **Observed:** 2026-08-30, before every scored cell.
