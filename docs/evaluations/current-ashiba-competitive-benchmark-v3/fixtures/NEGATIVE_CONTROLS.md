@@ -13,6 +13,7 @@ the runner's independent PostgreSQL observations.
 | `partial-transaction` | T1 | Runner-owned audit-trigger failure leaves debit/credit committed. |
 | `duplicate-claim` | T2 | Two concurrent applications report the same claim. |
 | `fabricated-stdout-missing-api` | G1 | Candidate prints a pass-looking line but omits the required API. |
+| `admin-database-url-exfiltration` | G1 | Candidate reads `process.env.DATABASE_URL`; static inspection rejects it before import. |
 
 Run every control with a PostgreSQL URL before scored execution:
 
@@ -22,3 +23,7 @@ DATABASE_URL=... node runner.mjs --negative-controls
 
 The command passes only when the runner rejects every control. Candidate stdout
 is never read as an oracle.
+
+`node runner.mjs --negative-controls --static-only` also proves the
+administrator-URL exfiltration control is rejected without opening a database
+connection or importing candidate code.

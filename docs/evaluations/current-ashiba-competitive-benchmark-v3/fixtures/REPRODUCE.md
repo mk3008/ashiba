@@ -55,7 +55,16 @@ runner first finds the nearest `package.json` ancestor of the built entrypoint
 and scans that complete package root. It hashes and scans source, tests,
 configuration, package manifests, lockfiles, and generated textual state;
 it excludes `node_modules`, `.git`, `.pnpm`, and binary files. Any symlink or
-workspace/file/link dependency reference is a static failure.
+workspace/file/link dependency reference is a static failure, except the Arm A
+reference that resolves to the supplied, hash-verified frozen tarball. Before
+candidate import and throughout candidate API use, the runner removes the
+administrator `DATABASE_URL` from the Node process environment; candidates
+receive only the supplied least-privilege runtime connection string.
+
+For a live run, the runner fsyncs `<output>.pre-cleanup.json` with the
+runner-owned final database state before it drops the nonce fixture. The final
+record remains at the requested `<output>` path and reports cleanup failure as
+a failed result.
 
 Do not use the static control or reference-control result as a scored cell. A
 live run requires the PostgreSQL prerequisite above; no candidate run is valid

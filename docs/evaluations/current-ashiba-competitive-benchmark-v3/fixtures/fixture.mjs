@@ -85,19 +85,26 @@ export async function createFixture(adminDatabaseUrl, schema = makeNonceSchema()
 
 export async function dropFixture(fixture) {
   if (!fixture?.client) return { status: 'not-run' };
-  const cleanup = { schema: 'not-run', role: 'not-run' };
+  const cleanup = { schema: 'not-run', role: 'not-run', connection: 'not-run' };
+  let failure;
   try {
     await fixture.client.query(`DROP SCHEMA IF EXISTS ${fixture.qualifiedSchema} CASCADE`);
     cleanup.schema = 'pass';
     await fixture.client.query(`DROP OWNED BY ${quoteRole(fixture.role)}`);
     await fixture.client.query(`DROP ROLE IF EXISTS ${quoteRole(fixture.role)}`);
     cleanup.role = 'pass';
-    return { status: 'pass', ...cleanup };
   } catch (error) {
-    return { status: 'fail', ...cleanup, error: error instanceof Error ? error.message : String(error) };
-  } finally {
-    await fixture.client.end().catch(() => undefined);
+    failure = error;
   }
+  try {
+    await fixture.client.end();
+    cleanup.connection = 'pass';
+  } catch (error) {
+    cleanup.connection = 'fail';
+    failure ??= error;
+  }
+  if (failure) return { status: 'fail', ...cleanup, error: failure instanceof Error ? failure.message : String(failure) };
+  return { status: 'pass', ...cleanup };
 }
 
 export async function withClient(databaseUrl, callback) {

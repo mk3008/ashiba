@@ -23,6 +23,7 @@ const PROTOCOL_INPUTS = Object.freeze([
   'benchmark/PREREGISTRATION_AMENDMENT_3.md',
   'benchmark/PREREGISTRATION_AMENDMENT_4.md',
   'benchmark/PREREGISTRATION_AMENDMENT_5.md',
+  'benchmark/PREREGISTRATION_AMENDMENT_6.md',
   'benchmark/WORKLOADS.md',
   'fixtures/packet/packet-hash.mjs',
 ]);
@@ -44,6 +45,7 @@ const FIXTURE_INPUTS = Object.freeze([
   'fixtures/evidence-executor/REPORT.md', 'fixtures/evidence-executor/SPEC.md', 'fixtures/evidence-executor/attempt-evidence-executor.mjs',
   'fixtures/reference/reference-application.mjs',
   'fixtures/negative-controls/duplicate-claim/candidate.mjs',
+  'fixtures/negative-controls/admin-database-url-exfiltration/candidate.mjs',
   'fixtures/negative-controls/fabricated-stdout-missing-api/candidate.mjs',
   'fixtures/negative-controls/hostile-value/candidate.mjs',
   'fixtures/negative-controls/invalid-sort/candidate.mjs',

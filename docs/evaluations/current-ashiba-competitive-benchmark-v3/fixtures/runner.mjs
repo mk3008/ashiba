@@ -1,20 +1,27 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, stat, writeFile, readlink } from 'node:fs/promises';
+import { mkdir, open, readFile, readdir, stat, readlink, realpath, mkdtemp } from 'node:fs/promises';
 import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { tmpdir } from 'node:os';
 import { WORKLOAD_OPERATIONS, assertApiShape } from './api-contract.mjs';
 import { createFixture, databaseState, dropFixture, quoteSchema, withClient } from './fixture.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const RUNNER_ID = 'current-ashiba-competitive-benchmark-v3-fixture-runner-2';
+const RUNNER_ID = 'current-ashiba-competitive-benchmark-v3-fixture-runner-3';
 const TEXT_EXTENSIONS = new Set(['.cjs', '.css', '.cts', '.js', '.json', '.lock', '.md', '.mjs', '.mts', '.sql', '.toml', '.ts', '.tsx', '.txt', '.yaml', '.yml']);
 const BINARY_EXTENSIONS = new Set(['.bin', '.dll', '.dylib', '.exe', '.gif', '.gz', '.ico', '.jar', '.jpeg', '.jpg', '.node', '.pdf', '.png', '.tar', '.tgz', '.wasm', '.webp', '.zip']);
 const EXCLUDED_DIRECTORIES = new Set(['.git', '.pnpm', 'node_modules']);
+const FROZEN_PACKED_ARTIFACT = Object.freeze({
+  packageName: '@ashiba-ts/named-parameters',
+  path: join(HERE, 'artifacts', 'ashiba-ts-named-parameters-0.1.0.tgz'),
+  sha256: '64b95657af62120d5b8662224b298cc610a74280e515b33ee485e41247bdcc4d',
+});
 const FORBIDDEN_SOURCE = [
   { id: 'public-schema', pattern: /\b(?:from|join|update|into|delete\s+from|create\s+schema|alter\s+schema)\s+public\b/i },
   { id: 'runner-ddl', pattern: /\b(?:create|alter|drop)\s+(?:schema|database|table|type|domain)\b/i },
   { id: 'search-path-public', pattern: /\bsearch_path\b[^;]*\bpublic\b/i },
   { id: 'candidate-failure-injection', pattern: /\b(?:auditFailure|failAfterDebit|failAfterClaim|failure_injection)\b/ },
+  { id: 'candidate-admin-database-url', pattern: /\bprocess\s*(?:\.\s*env|\[\s*['"]env['"]\s*\])\s*(?:\.\s*DATABASE_URL|\[\s*['"]DATABASE_URL['"]\s*\])/ },
 ];
 
 function jsonValue(value) {
@@ -241,18 +248,45 @@ function dependencyLeakage(value) {
   return typeof value === 'string' && /^(?:file:|link:|workspace:|\.{1,2}[\\/]|[A-Za-z]:[\\/])/i.test(value);
 }
 
-function addManifestDependencyFindings(content, displayPath, findings) {
+function samePath(left, right) {
+  return process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
+}
+
+async function isFrozenPackedArtifact(reference, manifestPath) {
+  if (typeof reference !== 'string' || !reference.startsWith('file:')) return false;
+  const target = reference.slice('file:'.length);
+  if (!target || /^\/\//.test(target)) return false;
+  try {
+    const [resolvedTarget, frozenTarget] = await Promise.all([
+      realpath(resolve(dirname(manifestPath), target)),
+      realpath(FROZEN_PACKED_ARTIFACT.path),
+    ]);
+    if (!samePath(resolvedTarget, frozenTarget)) return false;
+    const contents = await readFile(resolvedTarget);
+    return createHash('sha256').update(contents).digest('hex') === FROZEN_PACKED_ARTIFACT.sha256;
+  } catch {
+    return false;
+  }
+}
+
+async function addManifestDependencyFindings(content, displayPath, manifestPath, findings) {
   let parsed;
   try { parsed = JSON.parse(content); } catch { return; }
   for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
     for (const [name, value] of Object.entries(parsed?.[section] ?? {})) {
-      if (dependencyLeakage(value)) findings.push({ id: 'workspace-file-link-dependency', path: displayPath, detail: `${section}.${name}=${value}` });
+      if (!dependencyLeakage(value)) continue;
+      const permittedArtifact = name === FROZEN_PACKED_ARTIFACT.packageName && await isFrozenPackedArtifact(value, manifestPath);
+      if (!permittedArtifact) findings.push({ id: 'workspace-file-link-dependency', path: displayPath, detail: `${section}.${name}=${value}` });
     }
   }
 }
 
-function addLockDependencyFindings(content, displayPath, findings) {
-  if (/\b(?:file:|link:|workspace:)\S+/i.test(content)) findings.push({ id: 'workspace-file-link-lock', path: displayPath });
+async function addLockDependencyFindings(content, displayPath, lockPath, findings) {
+  const references = content.match(/(?:file:|link:|workspace:)[^\s",]+/gi) ?? [];
+  for (const reference of new Set(references)) {
+    if (reference.startsWith('file:') && await isFrozenPackedArtifact(reference, lockPath)) continue;
+    findings.push({ id: 'workspace-file-link-lock', path: displayPath, detail: reference });
+  }
 }
 
 export async function inspectCandidate(candidatePath) {
@@ -275,8 +309,8 @@ export async function inspectCandidate(candidatePath) {
     if (TEXT_EXTENSIONS.has(extension) || ['package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'npm-shrinkwrap.json'].includes(displayPath.split('/').at(-1))) {
       for (const forbidden of FORBIDDEN_SOURCE) if (forbidden.pattern.test(content)) findings.push({ id: forbidden.id, path: displayPath });
     }
-    if (displayPath.endsWith('package.json')) addManifestDependencyFindings(content, displayPath, findings);
-    if (['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'npm-shrinkwrap.json'].includes(displayPath.split('/').at(-1))) addLockDependencyFindings(content, displayPath, findings);
+    if (displayPath.endsWith('package.json')) await addManifestDependencyFindings(content, displayPath, entry.path, findings);
+    if (['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'npm-shrinkwrap.json'].includes(displayPath.split('/').at(-1))) await addLockDependencyFindings(content, displayPath, entry.path, findings);
   }
   return { root, files: manifest, findings, pass: findings.length === 0 };
 }
@@ -303,6 +337,49 @@ async function resolveCandidateRoot(candidatePath, requestedRoot, rootIsComplete
   return explicitRoot ?? dirname(resolve(candidatePath));
 }
 
+async function writeJsonDurably(path, value) {
+  const absolute = resolve(path);
+  await mkdir(dirname(absolute), { recursive: true });
+  const handle = await open(absolute, 'w');
+  try {
+    await handle.writeFile(`${JSON.stringify(jsonValue(value), null, 2)}\n`);
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  return absolute;
+}
+
+async function preCleanupPath(outputPath) {
+  if (outputPath) return `${resolve(outputPath)}.pre-cleanup.json`;
+  const directory = await mkdtemp(join(tmpdir(), 'ashiba-v3-runner-'));
+  return join(directory, 'pre-cleanup.json');
+}
+
+async function writePreCleanupRecord(record, outputPath) {
+  const path = await preCleanupPath(outputPath);
+  const writtenAt = new Date().toISOString();
+  const preCleanupRecord = {
+    ...record,
+    cleanup: { status: 'pending', recordedBeforeCleanup: true },
+    preCleanupRecord: { status: 'written', path, writtenAt },
+  };
+  await writeJsonDurably(path, preCleanupRecord);
+  record.preCleanupRecord = { status: 'written', path, writtenAt };
+}
+
+async function withoutAdminDatabaseUrl(action) {
+  const hadDatabaseUrl = Object.hasOwn(process.env, 'DATABASE_URL');
+  const databaseUrl = process.env.DATABASE_URL;
+  delete process.env.DATABASE_URL;
+  try {
+    return await action();
+  } finally {
+    if (hadDatabaseUrl) process.env.DATABASE_URL = databaseUrl;
+    else delete process.env.DATABASE_URL;
+  }
+}
+
 const NEGATIVE_CONTROL_CASES = Object.freeze([
   { id: 'wrong-schema', workload: 'G1' },
   { id: 'wrong-output', workload: 'G1' },
@@ -311,13 +388,30 @@ const NEGATIVE_CONTROL_CASES = Object.freeze([
   { id: 'partial-transaction', workload: 'T1' },
   { id: 'duplicate-claim', workload: 'T2' },
   { id: 'fabricated-stdout-missing-api', workload: 'G1' },
+  { id: 'admin-database-url-exfiltration', workload: 'G1' },
+]);
+
+const STATIC_NEGATIVE_CONTROL_CASES = Object.freeze([
+  { id: 'admin-database-url-exfiltration', workload: 'G1' },
 ]);
 
 export async function runNegativeControls({ databaseUrl = process.env.DATABASE_URL, staticOnly = false } = {}) {
   const checks = [];
   check(checks, 'negative-missing-api-rejected', (() => { try { assertApiShape({ list() {} }); return false; } catch { return true; } })(), 'missing public operations are rejected');
   check(checks, 'negative-failure-flag-rejected', FORBIDDEN_SOURCE.find((item) => item.id === 'candidate-failure-injection').pattern.test('const auditFailure = true;'), 'candidate-visible failure flags are statically rejected');
-  if (staticOnly) return checks;
+  if (staticOnly) {
+    for (const control of STATIC_NEGATIVE_CONTROL_CASES) {
+      const sourceRoot = join(HERE, 'negative-controls', control.id);
+      const result = await runBenchmark({
+        candidatePath: join(sourceRoot, 'candidate.mjs'),
+        sourceRoot,
+        workloads: [control.workload],
+        staticOnly: true,
+      });
+      check(checks, `negative-${control.id}-statically-rejected`, result.status === 'F', `static inspection rejects ${control.id}: ${result.status}`);
+    }
+    return checks;
+  }
   if (!databaseUrl) {
     check(checks, 'negative-controls-live-database', false, 'DATABASE_URL is required for live negative controls');
     return checks;
@@ -349,49 +443,73 @@ export async function runBenchmark({ databaseUrl = process.env.DATABASE_URL, can
   } else {
     let fixture;
     try {
-      fixture = await createFixture(databaseUrl);
-      record.schema = fixture.schema;
-      record.candidateRole = fixture.role;
-      if (!source.pass) record.checks.push({ id: 'static-inspection', status: 'fail', detail: source.findings });
-      const module = await import(pathToFileURL(resolve(candidatePath)).href);
-      if (typeof module.createApplication !== 'function') throw new Error('candidate must export createApplication(runtime)');
-      for (const workload of workloads) {
-        const context = {
-          adminDatabaseUrl: databaseUrl,
-          candidateDatabaseUrl: fixture.candidateDatabaseUrl,
-          schema: fixture.schema,
-          createApplication: module.createApplication,
-          checks: record.checks,
-          events: record.events,
-        };
-        if (workload === 'G1') await runG1(context);
-        else if (workload === 'T1') await runT1(context);
-        else if (workload === 'T2') await runT2(context);
-        else if (workload === 'Q1') await runQ1(context);
-        else throw new Error(`unknown workload: ${workload}`);
+      if (!source.pass) {
+        record.checks.push({ id: 'static-inspection', status: 'fail', detail: source.findings });
+        record.status = 'F';
+      } else {
+        fixture = await createFixture(databaseUrl);
+        record.schema = fixture.schema;
+        record.candidateRole = fixture.role;
+        await withoutAdminDatabaseUrl(async () => {
+        const module = await import(pathToFileURL(resolve(candidatePath)).href);
+        if (typeof module.createApplication !== 'function') throw new Error('candidate must export createApplication(runtime)');
+        for (const workload of workloads) {
+          const context = {
+            adminDatabaseUrl: databaseUrl,
+            candidateDatabaseUrl: fixture.candidateDatabaseUrl,
+            schema: fixture.schema,
+            createApplication: module.createApplication,
+            checks: record.checks,
+            events: record.events,
+          };
+          if (workload === 'G1') await runG1(context);
+          else if (workload === 'T1') await runT1(context);
+          else if (workload === 'T2') await runT2(context);
+          else if (workload === 'Q1') await runQ1(context);
+          else throw new Error(`unknown workload: ${workload}`);
+        }
+        });
+        // Preserve runner-owned final database state before cleanup. This is
+        // evidence, not a candidate assertion, and lets later review distinguish
+        // a behavioral failure from a cleanup incident.
+        record.finalDatabaseState = await databaseState(databaseUrl, fixture.schema);
+        record.status = record.checks.every((item) => item.status === 'pass') ? 'P' : 'F';
       }
-      // Preserve runner-owned final database state before cleanup. This is
-      // evidence, not a candidate assertion, and lets later review distinguish
-      // a behavioral failure from a cleanup incident.
-      record.finalDatabaseState = await databaseState(databaseUrl, fixture.schema);
-      record.status = record.checks.every((item) => item.status === 'pass') ? 'P' : 'F';
     } catch (error) {
       record.status = 'F';
       record.runnerError = errorValue(error);
     } finally {
       if (fixture) {
-        record.cleanup = await dropFixture(fixture);
-        if (record.cleanup.status !== 'pass') {
+        if (!Object.hasOwn(record, 'finalDatabaseState')) {
+          try {
+            record.finalDatabaseState = await databaseState(databaseUrl, fixture.schema);
+          } catch (error) {
+            record.status = 'F';
+            record.finalDatabaseState = { status: 'unavailable', error: errorValue(error) };
+            record.runnerError ??= errorValue(error);
+          }
+        }
+        try {
+          await writePreCleanupRecord(record, outputPath);
+        } catch (error) {
           record.status = 'F';
-          record.runnerError ??= { name: 'CleanupError', message: 'fixture cleanup did not complete' };
+          record.preCleanupRecord = { status: 'fail', error: errorValue(error) };
+          record.cleanup = { status: 'not-run', reason: 'pre-cleanup-record-write-failed' };
+          record.runnerError ??= errorValue(error);
+        }
+        if (record.preCleanupRecord?.status === 'written') {
+          record.cleanup = await dropFixture(fixture);
+          if (record.cleanup.status !== 'pass') {
+            record.status = 'F';
+            record.runnerError ??= { name: 'CleanupError', message: 'fixture cleanup did not complete' };
+          }
         }
       }
     }
   }
   record.finishedAt = new Date().toISOString();
   if (outputPath) {
-    await mkdir(dirname(resolve(outputPath)), { recursive: true });
-    await writeFile(resolve(outputPath), `${JSON.stringify(jsonValue(record), null, 2)}\n`);
+    await writeJsonDurably(outputPath, record);
   }
   return record;
 }
@@ -413,8 +531,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
     const record = { harness: RUNNER_ID, kind: 'negative-controls', status, checks, finishedAt: new Date().toISOString() };
     const outputPath = argValue(args, '--output');
     if (outputPath) {
-      await mkdir(dirname(resolve(outputPath)), { recursive: true });
-      await writeFile(resolve(outputPath), `${JSON.stringify(jsonValue(record), null, 2)}\n`);
+      await writeJsonDurably(outputPath, record);
     }
     console.log(JSON.stringify({ ...record, output: outputPath ?? null }, null, 2));
     if (status !== 'P') process.exitCode = 1;

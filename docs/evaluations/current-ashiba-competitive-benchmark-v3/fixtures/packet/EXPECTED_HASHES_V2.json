@@ -13,6 +13,7 @@
     "benchmark/PREREGISTRATION_AMENDMENT_3.md",
     "benchmark/PREREGISTRATION_AMENDMENT_4.md",
     "benchmark/PREREGISTRATION_AMENDMENT_5.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_6.md",
     "benchmark/WORKLOADS.md",
     "fixtures/packet/packet-hash.mjs"
   ],
@@ -73,6 +74,11 @@
       "bytes": 1235
     },
     {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_6.md",
+      "sha256": "cae1bd65e03077868de56345f477d164de413e5558f8621410218853cb9e612e",
+      "bytes": 1621
+    },
+    {
       "path": "benchmark/WORKLOADS.md",
       "sha256": "cf8ed1ef417762133cd0fb0c699d5e1f995456ecabd338b81588cd2493b277ed",
       "bytes": 1841
@@ -84,13 +90,13 @@
     },
     {
       "path": "fixtures/NEGATIVE_CONTROLS.md",
-      "sha256": "b06069bbfcd475b25c272b183696e14941b078faa94d0f6a78886afe315755c0",
-      "bytes": 1185
+      "sha256": "69ff021669b57ea906629f6a57a39944c06cdc235c1733a6ab84e0b91d4015c3",
+      "bytes": 1505
     },
     {
       "path": "fixtures/REPRODUCE.md",
-      "sha256": "42567482dd7f69a42c5a74cb76139fd33f268a79f44aa28103f7024426a5b116",
-      "bytes": 3092
+      "sha256": "59fe4089c58983b4cad01317a0a978fccf34c6c4058212709b0dfd4c568d712f",
+      "bytes": 3652
     },
     {
       "path": "fixtures/api-contract.mjs",
@@ -109,18 +115,23 @@
     },
     {
       "path": "fixtures/evidence-executor/SPEC.md",
-      "sha256": "6cdf552049ebf5f27a49ef3ba58541174acb13267ad697e2a5fad51ff4f2333d",
-      "bytes": 2887
+      "sha256": "af40d63c1ad6dbf0d3761e3f65e9e40670d61f321369915a21f14e22b8c5c0ef",
+      "bytes": 4063
     },
     {
       "path": "fixtures/evidence-executor/attempt-evidence-executor.mjs",
-      "sha256": "8f84546a049f83a29129a259f451dfb9a6c00ecaba716cccc0c7ba11e308ef31",
-      "bytes": 15264
+      "sha256": "b123556c0f3bd9c3af16c385e0d3c0f0017c185a57d486da1bdd1d1ad4e87ae0",
+      "bytes": 21520
     },
     {
       "path": "fixtures/fixture.mjs",
-      "sha256": "9aaa3d668009d8ffa6b689b6e8bb0fcc39b68a765873ee643c23ad2ab4e15361",
-      "bytes": 6104
+      "sha256": "ca0f262492ffc782f2dde93f2ee28903a7283e8d25b50c07c95a8c93ed2d8cfc",
+      "bytes": 6262
+    },
+    {
+      "path": "fixtures/negative-controls/admin-database-url-exfiltration/candidate.mjs",
+      "sha256": "6e7671d96cec8b425b3f3450da3d6b4bc2a7def01af2f06288418812ff0af1ed",
+      "bytes": 298
     },
     {
       "path": "fixtures/negative-controls/duplicate-claim/candidate.mjs",
@@ -259,8 +270,8 @@
     },
     {
       "path": "fixtures/packet/packet-hash.mjs",
-      "sha256": "1026da3ce02566e8eb491827680f391ef7a860233deb0d1ef4a4b4df69686c51",
-      "bytes": 7702
+      "sha256": "33c177fb237dd62278ae4a703fd35408d0e8ee43d19e1f2541983400b325de0a",
+      "bytes": 7826
     },
     {
       "path": "fixtures/prompts/A.md",
@@ -329,8 +340,8 @@
     },
     {
       "path": "fixtures/runner.mjs",
-      "sha256": "91b1406e42198a0f966d065ade5ff5a4a9bda13c3a4754789beb52e62c890481",
-      "bytes": 24965
+      "sha256": "dce3d4f6126f7d8047217b4617f7b15684b84ae474cc2ac8910138d61bd36e69",
+      "bytes": 29553
     },
     {
       "path": "fixtures/schema.sql",
