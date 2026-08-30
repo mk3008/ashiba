@@ -1,0 +1,21 @@
+{
+  "cell": "AF-L-G-r2",
+  "phase": "initial-pre-action",
+  "capturedAt": "2026-08-30T21:31:17.5899779Z",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-G-r2-fresh-20260831\\candidate",
+  "files": [
+    { "path": "package-lock.json", "bytes": 7321, "sha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c" },
+    { "path": "package.json", "bytes": 190, "sha256": "c95591ace71cc0a166851160799f3f1891555fe559a3c79adfe6f5a32aefa4d6" },
+    { "path": "README.md", "bytes": 437, "sha256": "bc212ee12405c2fcf2f7f44833d8a34d7419ce1256569ab84d5569b613f1bb2f" },
+    { "path": "src/application.ts", "bytes": 187, "sha256": "cae70d64ba64462888b326fd70eb1889423ec78416fd83239461dc4db5bbaf82" },
+    { "path": "src/application/ticket-service.ts", "bytes": 149, "sha256": "008714b205816c1de4a4e5cc072d38d7afb1bf20c986c69cbd60084216364426" },
+    { "path": "src/contracts/ticket-dto.ts", "bytes": 298, "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64" },
+    { "path": "src/data-access/ticket-data-access.ts", "bytes": 136, "sha256": "e1b7d418296bcc67f8dd9d93eb75f4e1fbe4153d40bb1edae0f2fe71f2f8811a" },
+    { "path": "src/platform/pool.ts", "bytes": 186, "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a" },
+    { "path": "src/platform/transaction.ts", "bytes": 200, "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34" },
+    { "path": "src/presentation/ticket-controller.ts", "bytes": 137, "sha256": "90692bc33b9d6c3cdc7b9ae624015d5ad704f3105e9a2328dbc86a97a6296331" },
+    { "path": "tests/tickets.integration.test.ts", "bytes": 143, "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db" },
+    { "path": "tsconfig.json", "bytes": 262, "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085" }
+  ],
+  "officialDocumentArchiveSha256": "8b86cf5abc883f57975b78fa06e3bd3d614486449e1e8b395bad1700695b8c57"
+}
