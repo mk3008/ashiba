@@ -1,0 +1,351 @@
+{
+  "harness": "sd-schema-drift-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "SD",
+  "arm": "K",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-K-r1\\candidate\\dist\\application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-K-r1\\candidate",
+  "candidateSourceManifest": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7683,
+      "sha256": "7e75808f25529929668c2499b166eceec288c1e782e7036aa6f59da06a6d8da3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 261,
+      "sha256": "731f7434ac48673b0abab4ceec34484ea34f01426a42e334b9ef84e36b140c4c"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 8381,
+      "sha256": "8b62ba5a2ad2d41680faf611cb98224b64283c4276423c27a1d20017392be928"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "3cf69bdc71fc8cf38001eb1c29032652d147a8e1d23f7e27ee2a4b1e6c0af90c"
+    }
+  ],
+  "baselineSourceHash": "cf27db7ae721569e56074168e5cd2ada825d27d8cfd526cdc261529d87ef2d68",
+  "staticInspection": {
+    "pass": true,
+    "findings": []
+  },
+  "commands": {
+    "typecheck": "npm run typecheck",
+    "test": "npm test"
+  },
+  "mutations": [
+    {
+      "mutation": "column-rename",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1817,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "fail",
+          "detail": {
+            "status": "fail",
+            "exitCode": 1,
+            "signal": null,
+            "durationMs": 552,
+            "stdout": "",
+            "stderr": "npm error Missing script: \"test\"\nnpm error\nnpm error To see a list of scripts, run:\nnpm error   npm run\nnpm error A complete log of this run can be found in: C:\\Users\\mssgm\\AppData\\Local\\npm-cache\\_logs\\2026-08-30T13_10_27_474Z-debug-0.log\n"
+          }
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:22.917Z",
+      "sourceHashBefore": "cf27db7ae721569e56074168e5cd2ada825d27d8cfd526cdc261529d87ef2d68",
+      "schema": "ashiba_v3_28c08985a7b94552",
+      "firstDetectionStage": "candidate-test",
+      "finalDatabaseState": {
+        "status": "unavailable",
+        "error": {
+          "name": "error",
+          "code": "42703",
+          "message": "column \"title\" does not exist"
+        }
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      }
+    },
+    {
+      "mutation": "nullability-tighten",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1600,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "fail",
+          "detail": {
+            "status": "fail",
+            "exitCode": 1,
+            "signal": null,
+            "durationMs": 289,
+            "stdout": "",
+            "stderr": "npm error Missing script: \"test\"\nnpm error\nnpm error To see a list of scripts, run:\nnpm error   npm run\nnpm error A complete log of this run can be found in: C:\\Users\\mssgm\\AppData\\Local\\npm-cache\\_logs\\2026-08-30T13_10_29_479Z-debug-0.log\n"
+          }
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:27.604Z",
+      "sourceHashBefore": "cf27db7ae721569e56074168e5cd2ada825d27d8cfd526cdc261529d87ef2d68",
+      "schema": "ashiba_v3_bad173edff1b8c2b",
+      "firstDetectionStage": "candidate-test",
+      "finalDatabaseState": {
+        "tickets": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": "runner-compatible",
+            "priority": 5,
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "ticketAudit": [],
+        "accounts": [
+          {
+            "account_id": "7001",
+            "balance_cents": "10000"
+          },
+          {
+            "account_id": "7002",
+            "balance_cents": "5000"
+          }
+        ],
+        "transferAudit": [],
+        "workItems": [
+          {
+            "id": "8001",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8002",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8003",
+            "state": "queued",
+            "claimed_by": null
+          }
+        ]
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      }
+    },
+    {
+      "mutation": "integer-to-bigint",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1530,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "fail",
+          "detail": {
+            "status": "fail",
+            "exitCode": 1,
+            "signal": null,
+            "durationMs": 306,
+            "stdout": "",
+            "stderr": "npm error Missing script: \"test\"\nnpm error\nnpm error To see a list of scripts, run:\nnpm error   npm run\nnpm error A complete log of this run can be found in: C:\\Users\\mssgm\\AppData\\Local\\npm-cache\\_logs\\2026-08-30T13_10_31_399Z-debug-0.log\n"
+          }
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:29.589Z",
+      "sourceHashBefore": "cf27db7ae721569e56074168e5cd2ada825d27d8cfd526cdc261529d87ef2d68",
+      "schema": "ashiba_v3_b89ac5ae61c8e5eb",
+      "firstDetectionStage": "candidate-test",
+      "finalDatabaseState": {
+        "tickets": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": "5",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": "3",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": "5",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": "1",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "ticketAudit": [],
+        "accounts": [
+          {
+            "account_id": "7001",
+            "balance_cents": "10000"
+          },
+          {
+            "account_id": "7002",
+            "balance_cents": "5000"
+          }
+        ],
+        "transferAudit": [],
+        "workItems": [
+          {
+            "id": "8001",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8002",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8003",
+            "state": "queued",
+            "claimed_by": null
+          }
+        ]
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      }
+    }
+  ],
+  "startedAt": "2026-08-30T13:10:22.916Z",
+  "status": "P",
+  "finishedAt": "2026-08-30T13:10:31.506Z"
+}

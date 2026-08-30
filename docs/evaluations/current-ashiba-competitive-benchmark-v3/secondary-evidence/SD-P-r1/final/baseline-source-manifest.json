@@ -1,0 +1,34 @@
+{
+  "cell": "SD-P-r1",
+  "control": "SD",
+  "arm": "P",
+  "sourceSnapshot": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\current-ashiba-competitive-benchmark-v3\\docs\\evaluations\\current-ashiba-competitive-benchmark-v3\\candidate-snapshots\\G1-P-r1",
+  "files": [
+    {
+      "path": "package-lock.json",
+      "bytes": 284626,
+      "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+    },
+    {
+      "path": "package.json",
+      "bytes": 335,
+      "sha256": "098108818f5f0554151bfe483a7a47b080dd37f0b8902dee374f0cf52a042eb9"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 11423,
+      "sha256": "290a5baa50a5064700dee9fdf5a2c85dee7ccdbf5896db9cd818df0e38a2ae41"
+    },
+    {
+      "path": "test/application.test.mjs",
+      "bytes": 854,
+      "sha256": "b6214e104030f8f314236b7862c7d9f4f2f258b122c62160aa69696cd2463e29"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 314,
+      "sha256": "f6e920ad01ce01bc17d6fa13cc0d4605330076aaa838a3b5d31a1b04e68666d1"
+    }
+  ],
+  "sha256": "d57f8aa64f8045fbfcb33f10d5fe8391d090560be871130cbcb23fffcfe027a3"
+}
