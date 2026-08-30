@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "0fd087fa32eaa25092458a18bebd152538df02b9",
+  "evaluationOnly": true,
+  "scopeChanged": false,
+  "goldenPathChanged": false,
+  "productCodeChanged": false,
+  "arms": {
+    "currentWorkflow": {
+      "input": "PR #106 strict TypeScript VSA evidence plus a new isolated change exercise",
+      "packages": ["@ashiba-ts/cli", "@ashiba-ts/named-parameters"],
+      "metadataArtifacts": 8,
+      "freshness": {
+        "intentionalStaleArtifact": "failed before build/test/database",
+        "repair": "regenerate then check passed"
+      },
+      "changeExercise": {
+        "change": "optional typed status guard on get",
+        "sourceFilesChanged": 4,
+        "commands": ["generate", "check:generated", "typecheck", "test"],
+        "initialLiveFailure": "SQLSTATE 42P08 for an untyped nullable PostgreSQL guard",
+        "repairs": 1,
+        "postgresOracle": "pass"
+      }
+    },
+    "primitiveOnly": {
+      "input": "packed named-parameters tarball, frozen DDL/acceptance, consumer prompt/guidance, harness",
+      "packages": ["@ashiba-ts/named-parameters"],
+      "ashibaCliUsed": false,
+      "sourceHash": false,
+      "freshness": {
+        "automaticCheck": false,
+        "controlledSourceOnlyDrift": "npm run build passed while stale static binding remained"
+      },
+      "initialAcceptance": {
+        "strictTypeScript": "pass",
+        "candidateTests": "pass",
+        "initialLiveFailure": "SQLSTATE 42P08 for untyped nullable list guards",
+        "repairs": 1,
+        "postgresOracle": "pass"
+      },
+      "changeExercise": {
+        "change": "same optional typed status guard on get",
+        "sourceFilesChanged": 4,
+        "emittedDistFilesChanged": 2,
+        "commands": ["typecheck", "build", "test"],
+        "automaticStaleFailure": false,
+        "artifactSynchronization": "manual",
+        "postgresOracle": "pass"
+      }
+    }
+  },
+  "focusedVerification": {
+    "currentWorkflowOracle": "pass",
+    "primitiveOnlyOracle": "pass",
+    "primitiveOnlyDriftControl": "pass-build-with-stale-binding"
+  },
+  "repositoryVerification": {
+    "pnpmTypecheck": "pass",
+    "pnpmBuild": "pass",
+    "pnpmTest": "pass",
+    "pnpmVerify": "pass",
+    "pnpmDocsBuild": "pass",
+    "gitDiffCheck": "pass"
+  },
+  "orchestration": {
+    "ledger": "tmp/orchestration-metrics/model-gen-durable-ownership-evaluation/metrics.jsonl",
+    "delegations": 3,
+    "followUpTasks": 3,
+    "models": ["gpt-5.6-luna"],
+    "retries": 2,
+    "escalations": 0,
+    "tokenTelemetry": "unavailable",
+    "creditTelemetry": "unavailable"
+  },
+  "temporaryResources": {
+    "postgresContainer": "ashiba-model-gen-eval-pg",
+    "status": "removed after final oracle runs",
+    "cleanRooms": "removed after evidence capture",
+    "tarballs": "removed after evidence capture"
+  }
+}
