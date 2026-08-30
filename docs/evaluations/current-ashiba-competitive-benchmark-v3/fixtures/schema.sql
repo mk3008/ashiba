@@ -26,7 +26,10 @@ CREATE TABLE {{schema}}.failure_injection (
 );
 
 CREATE FUNCTION {{schema}}.raise_when_injected() RETURNS trigger
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = {{schema}}, pg_temp
+AS $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM {{schema}}.failure_injection

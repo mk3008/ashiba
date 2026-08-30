@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { API_OPERATIONS, assertApiShape } from './api-contract.mjs';
+import { WORKLOAD_OPERATIONS, assertApiShape } from './api-contract.mjs';
 import { createFixture, databaseState, dropFixture, quoteSchema, withClient } from './fixture.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -56,17 +56,18 @@ async function invoke(application, operation, input, events) {
   }
 }
 
-async function createCheckedApplication(createApplication, runtime) {
-  return assertApiShape(await createApplication(runtime));
+async function createCheckedApplication(createApplication, runtime, workload) {
+  return assertApiShape(await createApplication(runtime), WORKLOAD_OPERATIONS[workload]);
 }
 
-async function verifyClose(application, checks, events, label) {
+async function verifyClose(application, checks, events, label, workload) {
   const first = await invoke(application, 'close', {}, events);
   check(checks, `${label}-close`, first.ok && first.output === undefined, 'close resolves with no value');
   const second = await invoke(application, 'close', {}, events);
   check(checks, `${label}-close-idempotent`, second.ok && second.output === undefined, 'close is idempotent');
-  const afterClose = await invoke(application, 'list', {}, events);
-  check(checks, `${label}-closed-rejection`, codeIs(afterClose, 'APPLICATION_CLOSED'), 'operations reject after close');
+  const probe = WORKLOAD_OPERATIONS[workload].find((operation) => operation !== 'close');
+  const afterClose = await invoke(application, probe, {}, events);
+  check(checks, `${label}-closed-rejection`, codeIs(afterClose, 'APPLICATION_CLOSED'), `${probe} rejects after close`);
 }
 
 async function setInjection(databaseUrl, schema, name, enabled) {
@@ -77,8 +78,8 @@ async function setInjection(databaseUrl, schema, name, enabled) {
 }
 
 async function runG1(context) {
-  const { databaseUrl, schema, createApplication, checks, events } = context;
-  const application = await createCheckedApplication(createApplication, { connectionString: databaseUrl, schema });
+  const { adminDatabaseUrl, candidateDatabaseUrl, schema, createApplication, checks, events } = context;
+  const application = await createCheckedApplication(createApplication, { connectionString: candidateDatabaseUrl, schema }, 'G1');
   try {
     const all = await invoke(application, 'list', { sort: 'priority', direction: 'desc', offset: 0, limit: 10 }, events);
     check(checks, 'G1-list-order', all.ok && all.output.map((row) => row.id).join(',') === '101,103,102,104', 'priority desc then stable id asc');
@@ -94,68 +95,90 @@ async function runG1(context) {
     check(checks, 'G1-hostile-value', createdRow.ok && createdRow.output?.title === hostileTitle && createdRow.output?.metadata?.marker === hostileTitle, 'hostile text remains a value');
     const assigned = await invoke(application, 'assign', { id: '103', assignee: 'carol' }, events);
     check(checks, 'G1-assign', assigned.ok, 'assignment commits');
-    const beforeFailure = await databaseState(databaseUrl, schema);
-    await setInjection(databaseUrl, schema, 'assign_audit', true);
+    const beforeFailure = await databaseState(adminDatabaseUrl, schema);
+    await setInjection(adminDatabaseUrl, schema, 'assign_audit', true);
     const failed = await invoke(application, 'assign', { id: '102', assignee: 'injected-worker' }, events);
-    await setInjection(databaseUrl, schema, 'assign_audit', false);
-    const afterFailure = await databaseState(databaseUrl, schema);
+    await setInjection(adminDatabaseUrl, schema, 'assign_audit', false);
+    const afterFailure = await databaseState(adminDatabaseUrl, schema);
     check(checks, 'G1-assign-trigger-rollback', !failed.ok && JSON.stringify(afterFailure.tickets) === JSON.stringify(beforeFailure.tickets) && JSON.stringify(afterFailure.ticketAudit) === JSON.stringify(beforeFailure.ticketAudit), 'runner-owned post-audit trigger rolls back assignment');
   } finally {
-    await verifyClose(application, checks, events, 'G1');
+    await verifyClose(application, checks, events, 'G1', 'G1');
   }
 }
 
 async function runT1(context) {
-  const { databaseUrl, schema, createApplication, checks, events } = context;
-  const application = await createCheckedApplication(createApplication, { connectionString: databaseUrl, schema });
+  const { adminDatabaseUrl, candidateDatabaseUrl, schema, createApplication, checks, events } = context;
+  const application = await createCheckedApplication(createApplication, { connectionString: candidateDatabaseUrl, schema }, 'T1');
   try {
     const success = await invoke(application, 'transfer', { fromAccountId: '7001', toAccountId: '7002', amountCents: '1250', note: 'runner control' }, events);
-    const afterSuccess = await databaseState(databaseUrl, schema);
+    const afterSuccess = await databaseState(adminDatabaseUrl, schema);
     check(checks, 'T1-success', success.ok && afterSuccess.accounts[0].balance_cents === '8750' && afterSuccess.accounts[1].balance_cents === '6250' && afterSuccess.transferAudit.length === 1, 'debit, credit, and audit commit together');
     const beforeInsufficient = JSON.stringify(afterSuccess);
     const insufficient = await invoke(application, 'transfer', { fromAccountId: '7002', toAccountId: '7001', amountCents: '999999', note: 'insufficient' }, events);
-    const afterInsufficient = await databaseState(databaseUrl, schema);
+    const afterInsufficient = await databaseState(adminDatabaseUrl, schema);
     check(checks, 'T1-insufficient-rollback', codeIs(insufficient, 'INSUFFICIENT_FUNDS') && JSON.stringify(afterInsufficient) === beforeInsufficient, 'insufficient funds do not mutate state');
-    await setInjection(databaseUrl, schema, 'transfer_audit', true);
+    await setInjection(adminDatabaseUrl, schema, 'transfer_audit', true);
     const injected = await invoke(application, 'transfer', { fromAccountId: '7001', toAccountId: '7002', amountCents: '100', note: 'db-trigger failure' }, events);
-    await setInjection(databaseUrl, schema, 'transfer_audit', false);
-    const afterInjected = await databaseState(databaseUrl, schema);
+    await setInjection(adminDatabaseUrl, schema, 'transfer_audit', false);
+    const afterInjected = await databaseState(adminDatabaseUrl, schema);
     check(checks, 'T1-trigger-rollback', !injected.ok && JSON.stringify(afterInjected) === beforeInsufficient, 'runner-owned post-debit trigger rolls back transfer');
   } finally {
-    await verifyClose(application, checks, events, 'T1');
+    await verifyClose(application, checks, events, 'T1', 'T1');
   }
 }
 
+function createStartBarrier(participants) {
+  let arrived = 0;
+  let release;
+  const ready = new Promise((resolveReady) => { release = resolveReady; });
+  return {
+    async wait() {
+      arrived += 1;
+      if (arrived === participants) release();
+      await ready;
+    },
+  };
+}
+
+async function invokeAtBarrier(application, operation, input, events, barrier) {
+  await barrier.wait();
+  return invoke(application, operation, input, events);
+}
+
 async function runT2(context) {
-  const { databaseUrl, schema, createApplication, checks, events } = context;
-  const runtime = { connectionString: databaseUrl, schema };
-  const workerA = await createCheckedApplication(createApplication, runtime);
-  const workerB = await createCheckedApplication(createApplication, runtime);
+  const { adminDatabaseUrl, candidateDatabaseUrl, schema, createApplication, checks, events } = context;
+  const runtime = { connectionString: candidateDatabaseUrl, schema };
+  const workerA = await createCheckedApplication(createApplication, runtime, 'T2');
+  const workerB = await createCheckedApplication(createApplication, runtime, 'T2');
   try {
-    const [a, b] = await Promise.all([invoke(workerA, 'claim', { workerId: 'worker-a' }, events), invoke(workerB, 'claim', { workerId: 'worker-b' }, events)]);
+    const barrier = createStartBarrier(2);
+    const [a, b] = await Promise.all([
+      invokeAtBarrier(workerA, 'claim', { workerId: 'worker-a' }, events, barrier),
+      invokeAtBarrier(workerB, 'claim', { workerId: 'worker-b' }, events, barrier),
+    ]);
     const claims = [a.output?.claimedWorkId, b.output?.claimedWorkId];
-    const state = await databaseState(databaseUrl, schema);
+    const state = await databaseState(adminDatabaseUrl, schema);
     check(checks, 'T2-distinct-claims', a.ok && b.ok && claims.every(Boolean) && new Set(claims).size === 2, 'concurrent workers claim distinct queued rows');
     check(checks, 'T2-final-state', state.workItems.filter((row) => claims.includes(row.id)).every((row) => row.state === 'claimed'), 'claims are committed');
-    await setInjection(databaseUrl, schema, 'claim_update', true);
+    await setInjection(adminDatabaseUrl, schema, 'claim_update', true);
     const failed = await invoke(workerA, 'claim', { workerId: 'worker-failure' }, events);
-    await setInjection(databaseUrl, schema, 'claim_update', false);
-    const afterFailure = await databaseState(databaseUrl, schema);
+    await setInjection(adminDatabaseUrl, schema, 'claim_update', false);
+    const afterFailure = await databaseState(adminDatabaseUrl, schema);
     check(checks, 'T2-trigger-rollback', !failed.ok && afterFailure.workItems.some((row) => row.id === '8003' && row.state === 'queued' && row.claimed_by === null), 'runner trigger restores failed claim');
   } finally {
-    await verifyClose(workerA, checks, events, 'T2-worker-a');
-    await verifyClose(workerB, checks, events, 'T2-worker-b');
+    await verifyClose(workerA, checks, events, 'T2-worker-a', 'T2');
+    await verifyClose(workerB, checks, events, 'T2-worker-b', 'T2');
   }
 }
 
 async function runQ1(context) {
-  const { databaseUrl, schema, createApplication, checks, events } = context;
-  const application = await createCheckedApplication(createApplication, { connectionString: databaseUrl, schema });
+  const { adminDatabaseUrl, candidateDatabaseUrl, schema, createApplication, checks, events } = context;
+  const application = await createCheckedApplication(createApplication, { connectionString: candidateDatabaseUrl, schema }, 'Q1');
   try {
     const input = { requestedTag: 'vip', tier: 'gold' };
     const template = await readFile(join(HERE, 'q1.sql'), 'utf8');
     const oracleSql = template.replaceAll('{{schema}}', quoteSchema(schema));
-    const expected = await withClient(databaseUrl, async (client) => (await client.query(oracleSql, [input.requestedTag, input.tier])).rows);
+    const expected = await withClient(adminDatabaseUrl, async (client) => (await client.query(oracleSql, [input.requestedTag, input.tier])).rows);
     const actual = await invoke(application, 'investigate', input, events);
     check(checks, 'Q1-result-equivalence', actual.ok && JSON.stringify(jsonValue(actual.output?.rows)) === JSON.stringify(jsonValue(expected)), 'candidate-owned query result matches frozen independent oracle');
     const explained = await invoke(application, 'explain', input, events);
@@ -163,7 +186,7 @@ async function runQ1(context) {
     const safeTrace = typeof evidence?.sourceSql === 'string' && /^\s*(?:WITH|SELECT)\b/i.test(evidence.sourceSql) && !/\bpublic\b/i.test(evidence.sourceSql) && !/;\s*\S/.test(evidence.sourceSql);
     check(checks, 'Q1-candidate-explain', explained.ok && safeTrace && Array.isArray(evidence?.params) && evidence.params.join(',') === 'vip,gold' && evidence.plan != null, 'candidate-owned EXPLAIN evidence returned through frozen entrypoint');
   } finally {
-    await verifyClose(application, checks, events, 'Q1');
+    await verifyClose(application, checks, events, 'Q1', 'Q1');
   }
 }
 
@@ -195,17 +218,44 @@ export async function inspectCandidate(candidatePath) {
   return { root, files: manifest, findings, pass: findings.length === 0 };
 }
 
-export async function runNegativeControls() {
+const NEGATIVE_CONTROL_CASES = Object.freeze([
+  { id: 'wrong-schema', workload: 'G1' },
+  { id: 'wrong-output', workload: 'G1' },
+  { id: 'hostile-value', workload: 'G1' },
+  { id: 'invalid-sort', workload: 'G1' },
+  { id: 'partial-transaction', workload: 'T1' },
+  { id: 'duplicate-claim', workload: 'T2' },
+  { id: 'fabricated-stdout-missing-api', workload: 'G1' },
+]);
+
+export async function runNegativeControls({ databaseUrl = process.env.DATABASE_URL, staticOnly = false } = {}) {
   const checks = [];
   check(checks, 'negative-missing-api-rejected', (() => { try { assertApiShape({ list() {} }); return false; } catch { return true; } })(), 'missing public operations are rejected');
   check(checks, 'negative-failure-flag-rejected', FORBIDDEN_SOURCE.find((item) => item.id === 'candidate-failure-injection').pattern.test('const auditFailure = true;'), 'candidate-visible failure flags are statically rejected');
+  if (staticOnly) return checks;
+  if (!databaseUrl) {
+    check(checks, 'negative-controls-live-database', false, 'DATABASE_URL is required for live negative controls');
+    return checks;
+  }
+  for (const control of NEGATIVE_CONTROL_CASES) {
+    const sourceRoot = join(HERE, 'negative-controls', control.id);
+    const result = await runBenchmark({
+      databaseUrl,
+      candidatePath: join(sourceRoot, 'candidate.mjs'),
+      sourceRoot,
+      workloads: [control.workload],
+    });
+    check(checks, `negative-${control.id}-rejected`, result.status === 'F', `runner rejects ${control.id}: ${result.status}`);
+  }
   return checks;
 }
 
-export async function runBenchmark({ databaseUrl = process.env.DATABASE_URL, candidatePath, workloads = ['G1', 'T1', 'T2', 'Q1'], outputPath, staticOnly = false } = {}) {
+export async function runBenchmark({ databaseUrl = process.env.DATABASE_URL, candidatePath, sourceRoot, workloads = ['G1', 'T1', 'T2', 'Q1'], outputPath, staticOnly = false } = {}) {
   if (!candidatePath) throw new Error('candidatePath is required');
-  const source = await inspectCandidate(candidatePath);
-  const record = { harness: RUNNER_ID, candidatePath: resolve(candidatePath), workloads, source, checks: [], events: [], cleanup: { status: 'not-run' }, startedAt: new Date().toISOString() };
+  const resolvedCandidatePath = resolve(candidatePath);
+  const resolvedSourceRoot = resolve(sourceRoot ?? dirname(resolvedCandidatePath));
+  const source = await inspectCandidate(resolvedSourceRoot);
+  const record = { harness: RUNNER_ID, candidatePath: resolvedCandidatePath, sourceRoot: resolvedSourceRoot, workloads, source, checks: [], events: [], cleanup: { status: 'not-run' }, startedAt: new Date().toISOString() };
   if (staticOnly) {
     record.status = source.pass ? 'P' : 'F';
   } else if (!databaseUrl) {
@@ -216,11 +266,19 @@ export async function runBenchmark({ databaseUrl = process.env.DATABASE_URL, can
     try {
       fixture = await createFixture(databaseUrl);
       record.schema = fixture.schema;
+      record.candidateRole = fixture.role;
       if (!source.pass) record.checks.push({ id: 'static-inspection', status: 'fail', detail: source.findings });
       const module = await import(pathToFileURL(resolve(candidatePath)).href);
       if (typeof module.createApplication !== 'function') throw new Error('candidate must export createApplication(runtime)');
       for (const workload of workloads) {
-        const context = { databaseUrl, schema: fixture.schema, createApplication: module.createApplication, checks: record.checks, events: record.events };
+        const context = {
+          adminDatabaseUrl: databaseUrl,
+          candidateDatabaseUrl: fixture.candidateDatabaseUrl,
+          schema: fixture.schema,
+          createApplication: module.createApplication,
+          checks: record.checks,
+          events: record.events,
+        };
         if (workload === 'G1') await runG1(context);
         else if (workload === 'T1') await runT1(context);
         else if (workload === 'T2') await runT2(context);
@@ -244,7 +302,7 @@ export async function runBenchmark({ databaseUrl = process.env.DATABASE_URL, can
 }
 
 export async function runReferenceControl(options = {}) {
-  return runBenchmark({ ...options, candidatePath: join(HERE, 'reference', 'reference-application.mjs') });
+  return runBenchmark({ ...options, candidatePath: join(HERE, 'reference', 'reference-application.mjs'), sourceRoot: join(HERE, 'reference') });
 }
 
 function argValue(args, name) {
@@ -255,11 +313,13 @@ function argValue(args, name) {
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
   const args = process.argv.slice(2);
   if (args.includes('--negative-controls')) {
-    const checks = await runNegativeControls();
-    console.log(JSON.stringify({ status: checks.every((item) => item.status === 'pass') ? 'P' : 'F', checks }, null, 2));
+    const checks = await runNegativeControls({ staticOnly: args.includes('--static-only') });
+    const status = checks.every((item) => item.status === 'pass') ? 'P' : 'F';
+    console.log(JSON.stringify({ status, checks }, null, 2));
+    if (status !== 'P') process.exitCode = 1;
   } else {
     const workloads = (argValue(args, '--workload') ?? 'G1,T1,T2,Q1').split(',').filter(Boolean);
-    const options = { candidatePath: argValue(args, '--candidate'), outputPath: argValue(args, '--output'), workloads, staticOnly: args.includes('--static-only') };
+    const options = { candidatePath: argValue(args, '--candidate'), sourceRoot: argValue(args, '--source-root'), outputPath: argValue(args, '--output'), workloads, staticOnly: args.includes('--static-only') };
     const record = args.includes('--reference-control') ? await runReferenceControl(options) : await runBenchmark(options);
     console.log(JSON.stringify({ status: record.status, checks: record.checks, cleanup: record.cleanup, output: options.outputPath ?? null }, null, 2));
     if (record.status !== 'P') process.exitCode = 1;

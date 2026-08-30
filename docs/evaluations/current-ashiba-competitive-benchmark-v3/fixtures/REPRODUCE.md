@@ -16,7 +16,7 @@ node --check api-contract.mjs
 node --check fixture.mjs
 node --check runner.mjs
 node --check reference/reference-application.mjs
-node runner.mjs --negative-controls
+node runner.mjs --negative-controls --static-only
 node runner.mjs --reference-control --static-only
 ```
 
@@ -26,13 +26,17 @@ not open a database connection or execute a candidate.
 ## Live reference control
 
 Set `DATABASE_URL` to a disposable PostgreSQL 18.6 database where the runner
-role may create and drop a nonce `ashiba_v3_<16 lower-case hex>` schema. The
-runner creates DDL and seed data itself, enables private trigger injection for
-rollback checks, records a JSON result, and drops that nonce schema in `finally`.
+role may create and drop a nonce `ashiba_v3_<16 lower-case hex>` schema and
+short-lived login roles. The runner creates DDL and seed data itself, provisions
+a unique non-superuser candidate role with only nonce-schema workload
+privileges, enables private trigger injection for rollback checks, records a
+JSON result without the candidate credential, and drops that role and schema
+in `finally`.
 
 ```powershell
 $env:DATABASE_URL = 'postgres://runner:password@127.0.0.1:5432/ashiba_benchmark'
 node runner.mjs --reference-control --output .\evidence\reference-control.json
+node runner.mjs --negative-controls
 ```
 
 ## Candidate entrypoint
@@ -43,10 +47,19 @@ transpile TypeScript, modify candidate source, inject failure flags, or use
 candidate tests/SQL/stdout as an oracle.
 
 ```powershell
-node runner.mjs --candidate C:\candidate\dist\application.js --workload G1,T1,T2,Q1 --output C:\evidence\run.json
+node runner.mjs --candidate C:\candidate\dist\application.js --source-root C:\candidate\src --workload G1,T1,T2,Q1 --output C:\evidence\run.json
 ```
 
 Do not use the static control or reference-control result as a scored cell. A
 live run requires the PostgreSQL prerequisite above; no candidate run is valid
 until the preregistration's packet, isolation, evidence, repair, and treatment
 requirements are also satisfied.
+
+## Isolation boundary
+
+The runner enforces database isolation through a per-cell nonce schema and
+short-lived least-privilege candidate role. It does **not** provide an operating
+system sandbox: a candidate process on the same host can only be treated as
+isolated if the execution environment separately restricts filesystem and
+process access. The benchmark must report that limitation rather than claiming
+the database role alone provides full clean-room isolation.

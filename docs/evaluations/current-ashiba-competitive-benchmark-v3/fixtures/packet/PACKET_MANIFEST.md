@@ -1,10 +1,19 @@
-# Execution packet manifest
+# Execution packet manifest (protocol v2)
 
-This is the committed, pre-scoring packet for protocol v1. Retrieval timestamp
+This is the committed, pre-scoring packet for protocol v2. Protocol v1 was
+invalidated by `PREREGISTRATION_AMENDMENT_3.md` and remains historical evidence
+only. Retrieval timestamp
 for external material: **2026-08-30 UTC**. A candidate may use only the
 arm-specific material named here, its installed declared dependencies, and the
 common fixture/prompt hashes below. A package-lock produced from each arm's
 declared direct pins is the transitive-resolution authority.
+
+`EXPECTED_HASHES_V2.json` is the expected-hash authority for the frozen local
+inputs, documentation archive, and every arm/fixture package lock. Run
+`node packet-hash.mjs` from this directory before dispatching a scored cell;
+the command exits nonzero for a missing, changed, duplicate, or unlisted lock
+or frozen input. The packet verifier and fetch helper are evaluation tooling,
+not Ashiba product dependencies.
 
 ## Shared runtime and artifact identities
 
@@ -50,13 +59,16 @@ WASM does not match the listed digest.
 
 ## Official documentation snapshots
 
-The `docs/` files are byte-preserved fetches, not paraphrased tutorials. Their
-source URLs and hashes are recorded in `OFFICIAL_SOURCES.md`. Candidates may
-read only their arm's listed snapshot(s). Documentation snapshots measure
-cold-start docs dependence; they do not measure model-training familiarity.
+The `official-doc-snapshots-v1.zip` archive contains the byte-preserved fetches,
+not paraphrased tutorials. Its member names, source URLs, and hashes are
+recorded in `OFFICIAL_SOURCES.md`. Candidates may read only their arm's listed
+snapshot(s). Documentation snapshots measure cold-start docs dependence; they
+do not measure model-training familiarity.
 
 ## Freeze rule
 
 `packet-hash.mjs` must pass before a scored candidate is dispatched. Changing
 any input listed above, a package lock, an artifact digest, the API/runner, or
-a prompt after this freeze is a protocol change, not a candidate repair.
+a prompt after this freeze is a protocol change, not a candidate repair. The
+v2 expected-hash file is generated only after the current fixture and packet
+inputs are final; it must not be regenerated to conceal a post-freeze change.

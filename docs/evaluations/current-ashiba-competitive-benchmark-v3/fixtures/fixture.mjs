@@ -7,14 +7,24 @@ import pg from 'pg';
 const { Client } = pg;
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const SCHEMA_RE = /^ashiba_v3_[a-z0-9]{16}$/;
+export const ROLE_RE = /^ashiba_v3_candidate_[a-z0-9]{16}$/;
 
 export function makeNonceSchema() {
   return `ashiba_v3_${randomBytes(8).toString('hex')}`;
 }
 
+export function makeNonceRole() {
+  return `ashiba_v3_candidate_${randomBytes(8).toString('hex')}`;
+}
+
 export function quoteSchema(schema) {
   if (!SCHEMA_RE.test(schema)) throw new Error(`unsafe schema identifier: ${schema}`);
   return `"${schema}"`;
+}
+
+function quoteRole(role) {
+  if (!ROLE_RE.test(role)) throw new Error(`unsafe role identifier: ${role}`);
+  return `"${role}"`;
 }
 
 function render(sql, schema) {
@@ -25,17 +35,49 @@ async function textFile(name) {
   return readFile(join(HERE, name), 'utf8');
 }
 
-export async function createFixture(databaseUrl, schema = makeNonceSchema()) {
-  const client = new Client({ connectionString: databaseUrl });
+function candidateUrl(adminDatabaseUrl, role, password) {
+  const url = new URL(adminDatabaseUrl);
+  url.username = role;
+  url.password = password;
+  return url.toString();
+}
+
+async function provisionCandidateRole(client, schema, role, password) {
   const qualifiedSchema = quoteSchema(schema);
+  const qualifiedRole = quoteRole(role);
+  // `password` is generated as base64url and never written to an evidence file.
+  await client.query(`CREATE ROLE ${qualifiedRole} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT CONNECTION LIMIT 4 PASSWORD '${password}'`);
+  await client.query(`ALTER ROLE ${qualifiedRole} SET statement_timeout TO '10s'`);
+  await client.query(`ALTER ROLE ${qualifiedRole} SET search_path TO ${qualifiedSchema}`);
+  await client.query(`GRANT USAGE ON SCHEMA ${qualifiedSchema} TO ${qualifiedRole}`);
+  await client.query(`GRANT USAGE ON TYPE ${qualifiedSchema}.ticket_status, ${qualifiedSchema}.order_state, ${qualifiedSchema}.money_cents TO ${qualifiedRole}`);
+  await client.query(`GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE ${qualifiedSchema}.tickets, ${qualifiedSchema}.ticket_audit, ${qualifiedSchema}.accounts, ${qualifiedSchema}.transfer_audit, ${qualifiedSchema}.work_items TO ${qualifiedRole}`);
+  await client.query(`GRANT SELECT ON TABLE ${qualifiedSchema}.customers, ${qualifiedSchema}.orders TO ${qualifiedRole}`);
+  await client.query(`GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${qualifiedSchema} TO ${qualifiedRole}`);
+}
+
+export async function createFixture(adminDatabaseUrl, schema = makeNonceSchema()) {
+  const client = new Client({ connectionString: adminDatabaseUrl });
+  const qualifiedSchema = quoteSchema(schema);
+  const role = makeNonceRole();
+  const password = randomBytes(24).toString('base64url');
   await client.connect();
   try {
     await client.query(`CREATE SCHEMA ${qualifiedSchema}`);
     await client.query(render(await textFile('schema.sql'), schema));
     await client.query(render(await textFile('seed.sql'), schema));
-    return { databaseUrl, schema, qualifiedSchema, client };
+    await provisionCandidateRole(client, schema, role, password);
+    return {
+      adminDatabaseUrl,
+      candidateDatabaseUrl: candidateUrl(adminDatabaseUrl, role, password),
+      schema,
+      qualifiedSchema,
+      role,
+      client,
+    };
   } catch (error) {
     await client.query(`DROP SCHEMA IF EXISTS ${qualifiedSchema} CASCADE`).catch(() => undefined);
+    await client.query(`DROP ROLE IF EXISTS ${quoteRole(role)}`).catch(() => undefined);
     await client.end().catch(() => undefined);
     throw error;
   }
@@ -43,11 +85,16 @@ export async function createFixture(databaseUrl, schema = makeNonceSchema()) {
 
 export async function dropFixture(fixture) {
   if (!fixture?.client) return { status: 'not-run' };
+  const cleanup = { schema: 'not-run', role: 'not-run' };
   try {
     await fixture.client.query(`DROP SCHEMA IF EXISTS ${fixture.qualifiedSchema} CASCADE`);
-    return { status: 'pass' };
+    cleanup.schema = 'pass';
+    await fixture.client.query(`DROP OWNED BY ${quoteRole(fixture.role)}`);
+    await fixture.client.query(`DROP ROLE IF EXISTS ${quoteRole(fixture.role)}`);
+    cleanup.role = 'pass';
+    return { status: 'pass', ...cleanup };
   } catch (error) {
-    return { status: 'fail', error: error instanceof Error ? error.message : String(error) };
+    return { status: 'fail', ...cleanup, error: error instanceof Error ? error.message : String(error) };
   } finally {
     await fixture.client.end().catch(() => undefined);
   }
