@@ -40,4 +40,6 @@
 
 ## Review readiness
 
-Ready for human review, conditional on remote CI including the Ticket Queue live lane.
+Remote CI run `33290510451` passed the aggregate verify, Node 22/npm 10 and
+Node 24/npm 11 packed distribution jobs, and the Ticket Queue PostgreSQL live
+reference. Ready for human review.

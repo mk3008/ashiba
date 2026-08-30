@@ -15,6 +15,13 @@
     "changesetsStatus": "pass after removing pending entries for removed packages",
     "ticketQueueLive": "not run locally: Docker could not allocate a new network because predefined address pools are exhausted; remote CI is the authority"
   },
+  "remoteCi": {
+    "run": "33290510451",
+    "verify": "pass",
+    "npmDistributionNode22Npm10": "pass",
+    "npmDistributionNode24Npm11": "pass",
+    "postgresTicketQueueReference": "pass"
+  },
   "currentSurfaceScan": {
     "cliPackageOrCommandReferences": 0,
     "sourceHashReferencesInCurrentDocsExamplesScripts": 0,
