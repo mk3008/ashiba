@@ -98,8 +98,8 @@
     },
     {
       "path": "packet/PACKET_MANIFEST.md",
-      "sha256": "0c3a544c997b200159c33fcdb0298884ec382bc21fe21b84d0d0bee8c722cce1",
-      "bytes": 5208
+      "sha256": "562286d4b2446ce142f14eee4d40e2ec1083fc120d9293359c8d1aaabce6dfa4",
+      "bytes": 5213
     },
     {
       "path": "packet/arms/A/package-lock.json",
