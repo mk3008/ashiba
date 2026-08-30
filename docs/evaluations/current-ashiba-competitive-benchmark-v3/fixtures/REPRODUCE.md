@@ -1,9 +1,13 @@
 # Fixture runner reproduction
 
 Run these commands from this `fixtures` directory with the frozen Node release
-recorded in the benchmark preregistration (Node 24.18.0). The runner relies on
-the workspace's frozen `pg` dependency and needs no candidate package to run
-the reference control.
+recorded in the benchmark preregistration (Node 24.18.0). Install this fixture's
+committed `pg` dependency first; it is deliberately independent of the Ashiba
+workspace dependency graph.
+
+```powershell
+npm ci
+```
 
 ## Syntax and static controls
 
