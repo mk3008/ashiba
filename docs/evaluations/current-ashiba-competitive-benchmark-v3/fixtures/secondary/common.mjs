@@ -54,7 +54,15 @@ export async function staticIsolationCheck(root, extra = []) {
   for (const file of await sourceTexts(root)) {
     if (/\b(?:from|join|update|into|delete\s+from)\s+public\b/i.test(file.text)) findings.push({ id: 'public-schema', path: file.path });
     if (/ashiba[-\s]*(?:cli|model-gen)|@ashiba-ts\/cli/i.test(file.text)) findings.push({ id: 'removed-ashiba-surface', path: file.path });
-    if (/file:\.{2}(?:[\\/].*)?ashiba/i.test(file.text) || /worktrees[\\/]|github[\\/]ashiba/i.test(file.text)) findings.push({ id: 'workspace-reference', path: file.path });
+    // Secondary Arm A receives the frozen packed artifact through a sibling
+    // `artifacts/` directory. That fixed tarball reference is not a workspace
+    // link. Keep rejecting every other relative Ashiba file reference as a
+    // potential repository leak.
+    const withoutPermittedTarball = file.text.replaceAll(
+      'file:../artifacts/ashiba-ts-named-parameters-0.1.0.tgz',
+      'permitted-packed-artifact',
+    );
+    if (/file:\.{2}(?:[\\/].*)?ashiba/i.test(withoutPermittedTarball) || /worktrees[\\/]|github[\\/]ashiba/i.test(file.text)) findings.push({ id: 'workspace-reference', path: file.path });
     for (const rule of extra) if (rule.pattern.test(file.text)) findings.push({ id: rule.id, path: file.path });
   }
   return { pass: findings.length === 0, findings };

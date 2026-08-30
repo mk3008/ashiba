@@ -9,6 +9,45 @@ No scored candidate has started at preregistration.
 Entries are append-only. A correction does not overwrite the preceding failed
 or calibration evidence.
 
+# H-006 — Frozen packet verification scope clarification
+
+- **Observed:** 2026-08-31 during final-head reproduction review.
+- **Original evidence:** the primary packet verifier correctly fails at a
+  post-freeze checkout because `EXCLUSION_AND_CORRECTION_LEDGER.md` is both a
+  frozen packet input and an intentionally append-only publication record.
+- **Cause:** reproduction text did not distinguish verification of the frozen
+  packet identity from verification of the evolving publication branch.
+- **Correction:** add a wrapper that creates a detached worktree at the
+  immutable packet freeze SHA and runs the existing verifier there. It neither
+  alters the frozen packet nor regenerates expected hashes.
+- **Affected scored cells:** none. This is a reproduction-scope correction,
+  not a harness, candidate, or result correction.
+- **Correction commit:** pending.
+- **Status:** prepared; the wrapper's observed PASS is retained in
+  `FROZEN_PACKET_REPRODUCTION.md`.
+
+# H-007 — SD-A packed-artifact isolation false positive
+
+- **Observed:** 2026-08-30 in durable `SD-A-r1` evidence.
+- **Original evidence:** `secondary-evidence/SD-A-r1/final/sd.json` records a
+  static-isolation failure before the schema-drift mutations ran. The copied
+  candidate's `package.json` and lockfile reference
+  `file:../artifacts/ashiba-ts-named-parameters-0.1.0.tgz`.
+- **Cause:** the shared static-isolation regular expression classified every
+  relative Ashiba `file:` reference as a workspace reference. The Arm A
+  materializer's frozen sibling tarball is explicitly a supplied public-package
+  artifact, not a workspace path.
+- **Correction:** permit only that exact frozen tarball reference; continue to
+  reject all other relative Ashiba references and repository/worktree paths.
+  Historical source and result evidence remain unchanged.
+- **Affected controls:** `SD-A-r1` only. X1 Arm A materializes its supplied
+  tarball at `./vendor/` and was not matched by the faulty expression.
+- **Required remeasure:** freshly materialize and rerun SD-A with unchanged
+  candidate source, lockfile, and schema-drift mutations; record the new
+  result as corrected evidence beside the preserved original.
+- **Correction commit:** pending.
+- **Status:** correction prepared; no replacement result has been recorded.
+
 # H-004 — E1 forbidden-marker packet omission
 
 - **Observed:** 2026-08-30, after E1 candidate directories were materialized
