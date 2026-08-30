@@ -127,4 +127,3 @@ oracle result, treatment review, files/lines touched, generated persistent
 artifacts, direct dependencies, tool-specific configuration, wall time if
 reliable, and token/credit values only if runtime reports them. Missing telemetry
 is recorded as `unavailable`.
-

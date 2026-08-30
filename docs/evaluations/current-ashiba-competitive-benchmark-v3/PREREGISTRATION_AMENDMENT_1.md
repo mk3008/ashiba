@@ -122,4 +122,3 @@ zones, movement, configuration, generated state, and boundary violations,
 alongside each tool's guarantees; they do not presume fewer structures are
 better. The benchmark reports observed facts separately from inferences and
 hypotheses.
-

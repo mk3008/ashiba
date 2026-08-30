@@ -34,4 +34,3 @@ not a scored arm.
 The P arm measures the frozen Prisma 8 RC/current-generation workflow, not
 all past or future Prisma releases. A result for this arm is not a claim about
 Prisma 7, nor a claim that RC maturity is equivalent to a GA release.
-

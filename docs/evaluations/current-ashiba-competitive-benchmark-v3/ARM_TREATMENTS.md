@@ -19,4 +19,3 @@ archive results.
 Treatment review has three outcomes: `pass`, `fail`, or `unknown`. It is
 secondary to live behaviour and is never reconstructed from a successful
 candidate after the fact.
-

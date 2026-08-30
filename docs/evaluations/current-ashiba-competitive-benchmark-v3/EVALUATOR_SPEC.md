@@ -16,4 +16,3 @@ For each cell the runner rejects missing exports, use of a wrong/public schema,
 and stale result claims. It verifies hostile values are represented as values,
 not evaluator-composed SQL. It uses two independent database connections for
 T2 and a fresh connection after every mutation assertion.
-

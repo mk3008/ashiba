@@ -12,4 +12,3 @@ ignored temporary directory.
 Results distinguish observations from inferences and hypotheses. A passing
 candidate behaviour test does not by itself establish treatment fidelity, and a
 tool-specific workflow is not treated as an application-architecture mandate.
-

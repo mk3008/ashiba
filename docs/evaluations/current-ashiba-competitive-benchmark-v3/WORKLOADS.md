@@ -15,4 +15,3 @@ schema/migration, schema drift, and exit exercises are separate controls.
 | X1 | open-ended projection/join/predicate/grouping report | separate live result and composition safety | inclusion in primary aggregate |
 | SD | alter DB schema without source changes | record detection stage | ranking schema ownership |
 | E1 | remove selected tool from a successful candidate while retaining behaviour | files/artifacts/repairs required | universal removability claim |
-
