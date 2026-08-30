@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Ashiba tarball compile/bind and native pg are candidate main data path.",
+  "decidedAt": "2026-08-30T09:40:56.284Z",
+  "decidedBy": "coordinator-required"
+}

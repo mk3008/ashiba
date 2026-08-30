@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Plain native pg is the only candidate data-access path.",
+  "decidedAt": "2026-08-30T09:53:21.699Z",
+  "decidedBy": "coordinator-required"
+}

@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Prisma 8 RC runtime/raw-SQL lane is the candidate data path; native pg is not used.",
+  "decidedAt": "2026-08-30T09:43:59.928Z",
+  "decidedBy": "coordinator-required"
+}
