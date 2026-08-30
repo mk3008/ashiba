@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-30T01:53:58.111Z",
+  "environment": {
+    "node": "v22.14.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "independentFreshAgentTool": {
+    "available": false,
+    "limitation": "No independent fresh-agent runner is available inside this worker; ordinary rg is a scripted tools-only control."
+  },
+  "target": {
+    "table": "public.accounts",
+    "column": "public.accounts.account_id"
+  },
+  "sizes": {
+    "small": {
+      "size": "small",
+      "sqlStatements": 20,
+      "fixture": {
+        "root": "<temporary-and-removed>",
+        "filesCreated": 41,
+        "manifest": "manifest.json"
+      },
+      "parserFailureFixture": true,
+      "methods": {
+        "ashiba": "node packages/cli/dist/index.js query uses {table|column} ... --root-dir FIXTURE --format json",
+        "ordinaryRg": "rg -n -i --glob \"*.sql\" {accounts|account_id} FIXTURE",
+        "groundTruth": "Generated manifest truth flags; one SQL statement per catalog. Comments/string literals and near-name controls are negative truth rows."
+      },
+      "runs": {
+        "table": {
+          "ashiba": {
+            "tool": "ashiba-query-uses",
+            "kind": "table",
+            "target": "public.accounts",
+            "allowParserFallback": false,
+            "invocationCount": 1,
+            "exitCode": 1,
+            "wallMs": 355.009,
+            "stderr": "Error: SQL AST parse failed while analyzing sql/q-0001.sql.\nCode: ASHIBA_QUERY_USES_AST_PARSE_FAILED\nCause: The command input did not satisfy an Ashiba command contract.\nNext: Fix the SQL, report a rawsql-ts parser issue if the SQL is valid, or rerun with --allow-parser-fallback when you intentionally accept low-confidence fallback analysis.",
+            "summary": null,
+            "score": null,
+            "parserFailureBehavior": {
+              "expectedQueryIds": [
+                "q-0001:1"
+              ],
+              "failClosed": true,
+              "observedErrorCode": null
+            }
+          },
+          "ordinaryRg": {
+            "tool": "ordinary-rg",
+            "kind": "table",
+            "target": "public.accounts",
+            "lexicalTerm": "accounts",
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 42.554,
+            "matchedFileCount": 20,
+            "stderr": "",
+            "score": {
+              "expectedCount": 17,
+              "actualCount": 20,
+              "truePositiveCount": 17,
+              "falsePositiveCount": 3,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 0.85,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0015:1",
+                "q-0016:1",
+                "q-0017:1",
+                "q-0018:1",
+                "q-0020:1"
+              ],
+              "falsePositiveSample": [
+                "q-0007:1",
+                "q-0011:1",
+                "q-0019:1"
+              ],
+              "falseNegativeSample": []
+            },
+            "matchedQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0016:1",
+              "q-0017:1",
+              "q-0018:1",
+              "q-0019:1",
+              "q-0020:1"
+            ]
+          },
+          "ashibaFallback": {
+            "tool": "ashiba-query-uses",
+            "kind": "table",
+            "target": "public.accounts",
+            "allowParserFallback": true,
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 323.353,
+            "stderr": "",
+            "summary": {
+              "catalogsScanned": 20,
+              "statementsScanned": 20,
+              "matches": 17,
+              "fallbackMatches": 1,
+              "unresolvedSqlFiles": 0,
+              "parseWarnings": 1,
+              "highConfidenceMatches": 16,
+              "lowConfidenceMatches": 1,
+              "unresolvedMatches": 0
+            },
+            "score": {
+              "expectedCount": 17,
+              "actualCount": 17,
+              "truePositiveCount": 17,
+              "falsePositiveCount": 0,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 1,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0015:1",
+                "q-0016:1",
+                "q-0017:1",
+                "q-0018:1",
+                "q-0020:1"
+              ],
+              "falsePositiveSample": [],
+              "falseNegativeSample": []
+            },
+            "matchQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0015:1",
+              "q-0016:1",
+              "q-0017:1",
+              "q-0018:1",
+              "q-0020:1"
+            ],
+            "parserFailureBehavior": {
+              "expectedQueryIds": [
+                "q-0001:1"
+              ],
+              "failClosed": false,
+              "observedErrorCode": null
+            }
+          }
+        },
+        "column": {
+          "ashiba": {
+            "tool": "ashiba-query-uses",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "allowParserFallback": false,
+            "invocationCount": 1,
+            "exitCode": 1,
+            "wallMs": 329.243,
+            "stderr": "Error: SQL AST parse failed while analyzing sql/q-0001.sql.\nCode: ASHIBA_QUERY_USES_AST_PARSE_FAILED\nCause: The command input did not satisfy an Ashiba command contract.\nNext: Fix the SQL, report a rawsql-ts parser issue if the SQL is valid, or rerun with --allow-parser-fallback when you intentionally accept low-confidence fallback analysis.",
+            "summary": null,
+            "score": null,
+            "parserFailureBehavior": {
+              "expectedQueryIds": [
+                "q-0001:1"
+              ],
+              "failClosed": true,
+              "observedErrorCode": null
+            }
+          },
+          "ordinaryRg": {
+            "tool": "ordinary-rg",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "lexicalTerm": "account_id",
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 31.454,
+            "matchedFileCount": 18,
+            "stderr": "",
+            "score": {
+              "expectedCount": 17,
+              "actualCount": 18,
+              "truePositiveCount": 15,
+              "falsePositiveCount": 3,
+              "falseNegativeCount": 2,
+              "completenessRecall": 0.882353,
+              "precision": 0.833333,
+              "truePositiveSample": [
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "q-0006:1",
+                "…",
+                "q-0015:1",
+                "q-0016:1",
+                "q-0017:1",
+                "q-0018:1",
+                "q-0020:1"
+              ],
+              "falsePositiveSample": [
+                "q-0007:1",
+                "q-0011:1",
+                "q-0019:1"
+              ],
+              "falseNegativeSample": [
+                "q-0001:1",
+                "q-0009:1"
+              ]
+            },
+            "matchedQueryIdSample": [
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "q-0006:1",
+              "…",
+              "q-0016:1",
+              "q-0017:1",
+              "q-0018:1",
+              "q-0019:1",
+              "q-0020:1"
+            ]
+          },
+          "ashibaFallback": {
+            "tool": "ashiba-query-uses",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "allowParserFallback": true,
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 325.316,
+            "stderr": "",
+            "summary": {
+              "catalogsScanned": 20,
+              "statementsScanned": 20,
+              "matches": 16,
+              "fallbackMatches": 0,
+              "unresolvedSqlFiles": 0,
+              "parseWarnings": 1,
+              "highConfidenceMatches": 7,
+              "lowConfidenceMatches": 9,
+              "unresolvedMatches": 0
+            },
+            "score": {
+              "expectedCount": 17,
+              "actualCount": 16,
+              "truePositiveCount": 16,
+              "falsePositiveCount": 0,
+              "falseNegativeCount": 1,
+              "completenessRecall": 0.941176,
+              "precision": 1,
+              "truePositiveSample": [
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "q-0006:1",
+                "…",
+                "q-0015:1",
+                "q-0016:1",
+                "q-0017:1",
+                "q-0018:1",
+                "q-0020:1"
+              ],
+              "falsePositiveSample": [],
+              "falseNegativeSample": [
+                "q-0001:1"
+              ]
+            },
+            "matchQueryIdSample": [
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "q-0006:1",
+              "…",
+              "q-0015:1",
+              "q-0016:1",
+              "q-0017:1",
+              "q-0018:1",
+              "q-0020:1"
+            ],
+            "parserFailureBehavior": {
+              "expectedQueryIds": [
+                "q-0001:1"
+              ],
+              "failClosed": false,
+              "observedErrorCode": null
+            }
+          }
+        }
+      }
+    }
+  },
+  "totalWallMs": 1434.134
+}

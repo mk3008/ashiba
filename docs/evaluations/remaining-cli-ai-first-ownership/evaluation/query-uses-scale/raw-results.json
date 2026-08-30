@@ -1,0 +1,807 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-30T01:53:41.350Z",
+  "environment": {
+    "node": "v22.14.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "independentFreshAgentTool": {
+    "available": false,
+    "limitation": "No independent fresh-agent runner is available inside this worker; ordinary rg is a scripted tools-only control."
+  },
+  "target": {
+    "table": "public.accounts",
+    "column": "public.accounts.account_id"
+  },
+  "sizes": {
+    "small": {
+      "size": "small",
+      "sqlStatements": 20,
+      "fixture": {
+        "root": "<temporary-and-removed>",
+        "filesCreated": 41,
+        "manifest": "manifest.json"
+      },
+      "parserFailureFixture": false,
+      "methods": {
+        "ashiba": "node packages/cli/dist/index.js query uses {table|column} ... --root-dir FIXTURE --format json",
+        "ordinaryRg": "rg -n -i --glob \"*.sql\" {accounts|account_id} FIXTURE",
+        "groundTruth": "Generated manifest truth flags; one SQL statement per catalog. Comments/string literals and near-name controls are negative truth rows."
+      },
+      "runs": {
+        "table": {
+          "ashiba": {
+            "tool": "ashiba-query-uses",
+            "kind": "table",
+            "target": "public.accounts",
+            "allowParserFallback": false,
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 389.99,
+            "stderr": "",
+            "summary": {
+              "catalogsScanned": 20,
+              "statementsScanned": 20,
+              "matches": 17,
+              "fallbackMatches": 0,
+              "unresolvedSqlFiles": 0,
+              "parseWarnings": 0,
+              "highConfidenceMatches": 17,
+              "lowConfidenceMatches": 0,
+              "unresolvedMatches": 0
+            },
+            "score": {
+              "expectedCount": 17,
+              "actualCount": 17,
+              "truePositiveCount": 17,
+              "falsePositiveCount": 0,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 1,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0015:1",
+                "q-0016:1",
+                "q-0017:1",
+                "q-0018:1",
+                "q-0020:1"
+              ],
+              "falsePositiveSample": [],
+              "falseNegativeSample": []
+            },
+            "matchQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0015:1",
+              "q-0016:1",
+              "q-0017:1",
+              "q-0018:1",
+              "q-0020:1"
+            ],
+            "parserFailureBehavior": null
+          },
+          "ordinaryRg": {
+            "tool": "ordinary-rg",
+            "kind": "table",
+            "target": "public.accounts",
+            "lexicalTerm": "accounts",
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 35.489,
+            "matchedFileCount": 20,
+            "stderr": "",
+            "score": {
+              "expectedCount": 17,
+              "actualCount": 20,
+              "truePositiveCount": 17,
+              "falsePositiveCount": 3,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 0.85,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0015:1",
+                "q-0016:1",
+                "q-0017:1",
+                "q-0018:1",
+                "q-0020:1"
+              ],
+              "falsePositiveSample": [
+                "q-0007:1",
+                "q-0011:1",
+                "q-0019:1"
+              ],
+              "falseNegativeSample": []
+            },
+            "matchedQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0016:1",
+              "q-0017:1",
+              "q-0018:1",
+              "q-0019:1",
+              "q-0020:1"
+            ]
+          }
+        },
+        "column": {
+          "ashiba": {
+            "tool": "ashiba-query-uses",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "allowParserFallback": false,
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 321.201,
+            "stderr": "",
+            "summary": {
+              "catalogsScanned": 20,
+              "statementsScanned": 20,
+              "matches": 17,
+              "fallbackMatches": 0,
+              "unresolvedSqlFiles": 0,
+              "parseWarnings": 0,
+              "highConfidenceMatches": 8,
+              "lowConfidenceMatches": 9,
+              "unresolvedMatches": 0
+            },
+            "score": {
+              "expectedCount": 17,
+              "actualCount": 17,
+              "truePositiveCount": 17,
+              "falsePositiveCount": 0,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 1,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0015:1",
+                "q-0016:1",
+                "q-0017:1",
+                "q-0018:1",
+                "q-0020:1"
+              ],
+              "falsePositiveSample": [],
+              "falseNegativeSample": []
+            },
+            "matchQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0015:1",
+              "q-0016:1",
+              "q-0017:1",
+              "q-0018:1",
+              "q-0020:1"
+            ],
+            "parserFailureBehavior": null
+          },
+          "ordinaryRg": {
+            "tool": "ordinary-rg",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "lexicalTerm": "account_id",
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 26.533,
+            "matchedFileCount": 19,
+            "stderr": "",
+            "score": {
+              "expectedCount": 17,
+              "actualCount": 19,
+              "truePositiveCount": 16,
+              "falsePositiveCount": 3,
+              "falseNegativeCount": 1,
+              "completenessRecall": 0.941176,
+              "precision": 0.842105,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0015:1",
+                "q-0016:1",
+                "q-0017:1",
+                "q-0018:1",
+                "q-0020:1"
+              ],
+              "falsePositiveSample": [
+                "q-0007:1",
+                "q-0011:1",
+                "q-0019:1"
+              ],
+              "falseNegativeSample": [
+                "q-0009:1"
+              ]
+            },
+            "matchedQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0016:1",
+              "q-0017:1",
+              "q-0018:1",
+              "q-0019:1",
+              "q-0020:1"
+            ]
+          }
+        }
+      }
+    },
+    "medium": {
+      "size": "medium",
+      "sqlStatements": 300,
+      "fixture": {
+        "root": "<temporary-and-removed>",
+        "filesCreated": 601,
+        "manifest": "manifest.json"
+      },
+      "parserFailureFixture": false,
+      "methods": {
+        "ashiba": "node packages/cli/dist/index.js query uses {table|column} ... --root-dir FIXTURE --format json",
+        "ordinaryRg": "rg -n -i --glob \"*.sql\" {accounts|account_id} FIXTURE",
+        "groundTruth": "Generated manifest truth flags; one SQL statement per catalog. Comments/string literals and near-name controls are negative truth rows."
+      },
+      "runs": {
+        "table": {
+          "ashiba": {
+            "tool": "ashiba-query-uses",
+            "kind": "table",
+            "target": "public.accounts",
+            "allowParserFallback": false,
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 661.133,
+            "stderr": "",
+            "summary": {
+              "catalogsScanned": 300,
+              "statementsScanned": 300,
+              "matches": 250,
+              "fallbackMatches": 0,
+              "unresolvedSqlFiles": 0,
+              "parseWarnings": 0,
+              "highConfidenceMatches": 250,
+              "lowConfidenceMatches": 0,
+              "unresolvedMatches": 0
+            },
+            "score": {
+              "expectedCount": 250,
+              "actualCount": 250,
+              "truePositiveCount": 250,
+              "falsePositiveCount": 0,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 1,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0294:1",
+                "q-0296:1",
+                "q-0297:1",
+                "q-0298:1",
+                "q-0300:1"
+              ],
+              "falsePositiveSample": [],
+              "falseNegativeSample": []
+            },
+            "matchQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0294:1",
+              "q-0296:1",
+              "q-0297:1",
+              "q-0298:1",
+              "q-0300:1"
+            ],
+            "parserFailureBehavior": null
+          },
+          "ordinaryRg": {
+            "tool": "ordinary-rg",
+            "kind": "table",
+            "target": "public.accounts",
+            "lexicalTerm": "accounts",
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 295.227,
+            "matchedFileCount": 300,
+            "stderr": "",
+            "score": {
+              "expectedCount": 250,
+              "actualCount": 300,
+              "truePositiveCount": 250,
+              "falsePositiveCount": 50,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 0.833333,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0294:1",
+                "q-0296:1",
+                "q-0297:1",
+                "q-0298:1",
+                "q-0300:1"
+              ],
+              "falsePositiveSample": [
+                "q-0007:1",
+                "q-0011:1",
+                "q-0019:1",
+                "q-0023:1",
+                "q-0031:1",
+                "…",
+                "q-0275:1",
+                "q-0283:1",
+                "q-0287:1",
+                "q-0295:1",
+                "q-0299:1"
+              ],
+              "falseNegativeSample": []
+            },
+            "matchedQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0296:1",
+              "q-0297:1",
+              "q-0298:1",
+              "q-0299:1",
+              "q-0300:1"
+            ]
+          }
+        },
+        "column": {
+          "ashiba": {
+            "tool": "ashiba-query-uses",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "allowParserFallback": false,
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 3846.416,
+            "stderr": "",
+            "summary": {
+              "catalogsScanned": 300,
+              "statementsScanned": 300,
+              "matches": 250,
+              "fallbackMatches": 0,
+              "unresolvedSqlFiles": 0,
+              "parseWarnings": 0,
+              "highConfidenceMatches": 100,
+              "lowConfidenceMatches": 150,
+              "unresolvedMatches": 0
+            },
+            "score": {
+              "expectedCount": 250,
+              "actualCount": 250,
+              "truePositiveCount": 250,
+              "falsePositiveCount": 0,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 1,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0294:1",
+                "q-0296:1",
+                "q-0297:1",
+                "q-0298:1",
+                "q-0300:1"
+              ],
+              "falsePositiveSample": [],
+              "falseNegativeSample": []
+            },
+            "matchQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0294:1",
+              "q-0296:1",
+              "q-0297:1",
+              "q-0298:1",
+              "q-0300:1"
+            ],
+            "parserFailureBehavior": null
+          },
+          "ordinaryRg": {
+            "tool": "ordinary-rg",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "lexicalTerm": "account_id",
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 82.908,
+            "matchedFileCount": 275,
+            "stderr": "",
+            "score": {
+              "expectedCount": 250,
+              "actualCount": 275,
+              "truePositiveCount": 225,
+              "falsePositiveCount": 50,
+              "falseNegativeCount": 25,
+              "completenessRecall": 0.9,
+              "precision": 0.818182,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-0293:1",
+                "q-0294:1",
+                "q-0296:1",
+                "q-0298:1",
+                "q-0300:1"
+              ],
+              "falsePositiveSample": [
+                "q-0007:1",
+                "q-0011:1",
+                "q-0019:1",
+                "q-0023:1",
+                "q-0031:1",
+                "…",
+                "q-0275:1",
+                "q-0283:1",
+                "q-0287:1",
+                "q-0295:1",
+                "q-0299:1"
+              ],
+              "falseNegativeSample": [
+                "q-0009:1",
+                "q-0021:1",
+                "q-0033:1",
+                "q-0045:1",
+                "q-0057:1",
+                "…",
+                "q-0249:1",
+                "q-0261:1",
+                "q-0273:1",
+                "q-0285:1",
+                "q-0297:1"
+              ]
+            },
+            "matchedQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-0295:1",
+              "q-0296:1",
+              "q-0298:1",
+              "q-0299:1",
+              "q-0300:1"
+            ]
+          }
+        }
+      }
+    },
+    "large": {
+      "size": "large",
+      "sqlStatements": 3000,
+      "fixture": {
+        "root": "<temporary-and-removed>",
+        "filesCreated": 6001,
+        "manifest": "manifest.json"
+      },
+      "parserFailureFixture": false,
+      "methods": {
+        "ashiba": "node packages/cli/dist/index.js query uses {table|column} ... --root-dir FIXTURE --format json",
+        "ordinaryRg": "rg -n -i --glob \"*.sql\" {accounts|account_id} FIXTURE",
+        "groundTruth": "Generated manifest truth flags; one SQL statement per catalog. Comments/string literals and near-name controls are negative truth rows."
+      },
+      "runs": {
+        "table": {
+          "ashiba": {
+            "tool": "ashiba-query-uses",
+            "kind": "table",
+            "target": "public.accounts",
+            "allowParserFallback": false,
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 3743.657,
+            "stderr": "",
+            "summary": {
+              "catalogsScanned": 3000,
+              "statementsScanned": 3000,
+              "matches": 2500,
+              "fallbackMatches": 0,
+              "unresolvedSqlFiles": 0,
+              "parseWarnings": 0,
+              "highConfidenceMatches": 2500,
+              "lowConfidenceMatches": 0,
+              "unresolvedMatches": 0
+            },
+            "score": {
+              "expectedCount": 2500,
+              "actualCount": 2500,
+              "truePositiveCount": 2500,
+              "falsePositiveCount": 0,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 1,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-2994:1",
+                "q-2996:1",
+                "q-2997:1",
+                "q-2998:1",
+                "q-3000:1"
+              ],
+              "falsePositiveSample": [],
+              "falseNegativeSample": []
+            },
+            "matchQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-2994:1",
+              "q-2996:1",
+              "q-2997:1",
+              "q-2998:1",
+              "q-3000:1"
+            ],
+            "parserFailureBehavior": null
+          },
+          "ordinaryRg": {
+            "tool": "ordinary-rg",
+            "kind": "table",
+            "target": "public.accounts",
+            "lexicalTerm": "accounts",
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 1585.818,
+            "matchedFileCount": 3000,
+            "stderr": "",
+            "score": {
+              "expectedCount": 2500,
+              "actualCount": 3000,
+              "truePositiveCount": 2500,
+              "falsePositiveCount": 500,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 0.833333,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-2994:1",
+                "q-2996:1",
+                "q-2997:1",
+                "q-2998:1",
+                "q-3000:1"
+              ],
+              "falsePositiveSample": [
+                "q-0007:1",
+                "q-0011:1",
+                "q-0019:1",
+                "q-0023:1",
+                "q-0031:1",
+                "…",
+                "q-2975:1",
+                "q-2983:1",
+                "q-2987:1",
+                "q-2995:1",
+                "q-2999:1"
+              ],
+              "falseNegativeSample": []
+            },
+            "matchedQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-2996:1",
+              "q-2997:1",
+              "q-2998:1",
+              "q-2999:1",
+              "q-3000:1"
+            ]
+          }
+        },
+        "column": {
+          "ashiba": {
+            "tool": "ashiba-query-uses",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "allowParserFallback": false,
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 2484.939,
+            "stderr": "",
+            "summary": {
+              "catalogsScanned": 3000,
+              "statementsScanned": 3000,
+              "matches": 2500,
+              "fallbackMatches": 0,
+              "unresolvedSqlFiles": 0,
+              "parseWarnings": 0,
+              "highConfidenceMatches": 1000,
+              "lowConfidenceMatches": 1500,
+              "unresolvedMatches": 0
+            },
+            "score": {
+              "expectedCount": 2500,
+              "actualCount": 2500,
+              "truePositiveCount": 2500,
+              "falsePositiveCount": 0,
+              "falseNegativeCount": 0,
+              "completenessRecall": 1,
+              "precision": 1,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-2994:1",
+                "q-2996:1",
+                "q-2997:1",
+                "q-2998:1",
+                "q-3000:1"
+              ],
+              "falsePositiveSample": [],
+              "falseNegativeSample": []
+            },
+            "matchQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-2994:1",
+              "q-2996:1",
+              "q-2997:1",
+              "q-2998:1",
+              "q-3000:1"
+            ],
+            "parserFailureBehavior": null
+          },
+          "ordinaryRg": {
+            "tool": "ordinary-rg",
+            "kind": "column",
+            "target": "public.accounts.account_id",
+            "lexicalTerm": "account_id",
+            "invocationCount": 1,
+            "exitCode": 0,
+            "wallMs": 115.889,
+            "matchedFileCount": 2750,
+            "stderr": "",
+            "score": {
+              "expectedCount": 2500,
+              "actualCount": 2750,
+              "truePositiveCount": 2250,
+              "falsePositiveCount": 500,
+              "falseNegativeCount": 250,
+              "completenessRecall": 0.9,
+              "precision": 0.818182,
+              "truePositiveSample": [
+                "q-0001:1",
+                "q-0002:1",
+                "q-0003:1",
+                "q-0004:1",
+                "q-0005:1",
+                "…",
+                "q-2993:1",
+                "q-2994:1",
+                "q-2996:1",
+                "q-2998:1",
+                "q-3000:1"
+              ],
+              "falsePositiveSample": [
+                "q-0007:1",
+                "q-0011:1",
+                "q-0019:1",
+                "q-0023:1",
+                "q-0031:1",
+                "…",
+                "q-2975:1",
+                "q-2983:1",
+                "q-2987:1",
+                "q-2995:1",
+                "q-2999:1"
+              ],
+              "falseNegativeSample": [
+                "q-0009:1",
+                "q-0021:1",
+                "q-0033:1",
+                "q-0045:1",
+                "q-0057:1",
+                "…",
+                "q-2949:1",
+                "q-2961:1",
+                "q-2973:1",
+                "q-2985:1",
+                "q-2997:1"
+              ]
+            },
+            "matchedQueryIdSample": [
+              "q-0001:1",
+              "q-0002:1",
+              "q-0003:1",
+              "q-0004:1",
+              "q-0005:1",
+              "…",
+              "q-2995:1",
+              "q-2996:1",
+              "q-2998:1",
+              "q-2999:1",
+              "q-3000:1"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "totalWallMs": 16660.37
+}

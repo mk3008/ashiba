@@ -1,0 +1,772 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-30T01:47:02.955Z",
+  "fixture": {
+    "tableCount": 600,
+    "target": {
+      "table": "orders",
+      "column": "status",
+      "type": "text"
+    },
+    "dump": {
+      "files": 1,
+      "bytes": 723773,
+      "lines": 13210,
+      "sha256": "26688f8feb790246c8070a42b6957969c9fc28c4c1eceb8f1afde40b1ca64936"
+    },
+    "split": {
+      "files": 600,
+      "bytes": 722856,
+      "lines": 12601,
+      "sha256": "45b1f93824a54b8288856c303d82a4771f286a8beec01a635ba6fcb31f24aafb"
+    },
+    "falseCandidateCoverage": [
+      "comment containing CREATE TABLE public.orders (",
+      "string literal containing public.orders and status",
+      "non-target tables orders_archive and orders_status_shadow",
+      "status columns on every non-target table"
+    ]
+  },
+  "method": {
+    "command": "rg --line-number --no-heading --color never plus Node.js filesystem reads",
+    "iterations": 5,
+    "relevantBytesExamined": "sum of bytes in every file content scope passed to rg plus bytes read by the extraction parser; rg --files listing bytes are reported separately",
+    "relevantLinesExamined": "sum of lines in every file content scope passed to rg plus lines read by the extraction parser; directory listing lines are reported separately",
+    "toolCalls": "count of rg process invocations per run; filesystem reads are counted separately",
+    "elapsed": "wall-clock milliseconds around each extraction run on the local machine; not a token or credit measure"
+  },
+  "scenarios": {
+    "targeted": {
+      "dump": {
+        "runs": [
+          {
+            "elapsedMs": 118.25279999999998,
+            "toolCalls": 2,
+            "fsReads": 1,
+            "fsBytes": 723773,
+            "fsLines": 13210,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "rgElapsedMs": 114.81459999999993,
+            "listingBytes": 0,
+            "listingLines": 0,
+            "relevantBytesExamined": 2171319,
+            "relevantLinesExamined": 39630,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 11,
+              "columnLine": 15,
+              "elapsedMs": 3.064799999999991
+            },
+            "correctness": true,
+            "targetPath": "dump.sql"
+          },
+          {
+            "elapsedMs": 61.766200000000026,
+            "toolCalls": 2,
+            "fsReads": 1,
+            "fsBytes": 723773,
+            "fsLines": 13210,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "rgElapsedMs": 58.54970000000003,
+            "listingBytes": 0,
+            "listingLines": 0,
+            "relevantBytesExamined": 2171319,
+            "relevantLinesExamined": 39630,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 11,
+              "columnLine": 15,
+              "elapsedMs": 3.1386999999999716
+            },
+            "correctness": true,
+            "targetPath": "dump.sql"
+          },
+          {
+            "elapsedMs": 55.01480000000004,
+            "toolCalls": 2,
+            "fsReads": 1,
+            "fsBytes": 723773,
+            "fsLines": 13210,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "rgElapsedMs": 52.48159999999996,
+            "listingBytes": 0,
+            "listingLines": 0,
+            "relevantBytesExamined": 2171319,
+            "relevantLinesExamined": 39630,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 11,
+              "columnLine": 15,
+              "elapsedMs": 2.498100000000022
+            },
+            "correctness": true,
+            "targetPath": "dump.sql"
+          },
+          {
+            "elapsedMs": 53.49750000000006,
+            "toolCalls": 2,
+            "fsReads": 1,
+            "fsBytes": 723773,
+            "fsLines": 13210,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "rgElapsedMs": 51.00499999999988,
+            "listingBytes": 0,
+            "listingLines": 0,
+            "relevantBytesExamined": 2171319,
+            "relevantLinesExamined": 39630,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 11,
+              "columnLine": 15,
+              "elapsedMs": 2.4453999999999496
+            },
+            "correctness": true,
+            "targetPath": "dump.sql"
+          },
+          {
+            "elapsedMs": 55.6866,
+            "toolCalls": 2,
+            "fsReads": 1,
+            "fsBytes": 723773,
+            "fsLines": 13210,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "rgElapsedMs": 53.32999999999993,
+            "listingBytes": 0,
+            "listingLines": 0,
+            "relevantBytesExamined": 2171319,
+            "relevantLinesExamined": 39630,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 11,
+              "columnLine": 15,
+              "elapsedMs": 2.293700000000058
+            },
+            "correctness": true,
+            "targetPath": "dump.sql"
+          }
+        ],
+        "runsCount": 5,
+        "elapsedMs": {
+          "min": 53.49750000000006,
+          "median": 55.6866,
+          "max": 118.25279999999998,
+          "total": 344.2179000000001
+        },
+        "toolCalls": {
+          "min": 2,
+          "median": 2,
+          "max": 2,
+          "total": 10
+        },
+        "fsReads": {
+          "min": 1,
+          "median": 1,
+          "max": 1,
+          "total": 5
+        },
+        "fsBytes": {
+          "min": 723773,
+          "median": 723773,
+          "max": 723773,
+          "total": 3618865
+        },
+        "fsLines": {
+          "min": 13210,
+          "median": 13210,
+          "max": 13210,
+          "total": 66050
+        },
+        "rgBytes": {
+          "min": 1447546,
+          "median": 1447546,
+          "max": 1447546,
+          "total": 7237730
+        },
+        "rgLines": {
+          "min": 26420,
+          "median": 26420,
+          "max": 26420,
+          "total": 132100
+        },
+        "listingBytes": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "listingLines": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "relevantBytesExamined": {
+          "min": 2171319,
+          "median": 2171319,
+          "max": 2171319,
+          "total": 10856595
+        },
+        "relevantLinesExamined": {
+          "min": 39630,
+          "median": 39630,
+          "max": 39630,
+          "total": 198150
+        },
+        "correctness": true
+      },
+      "split": {
+        "runs": [
+          {
+            "elapsedMs": 96.21810000000005,
+            "toolCalls": 3,
+            "fsReads": 1,
+            "fsBytes": 1105,
+            "fsLines": 22,
+            "rgBytes": 2210,
+            "rgLines": 44,
+            "rgElapsedMs": 62.871599999999944,
+            "listingBytes": 57583,
+            "listingLines": 600,
+            "relevantBytesExamined": 3315,
+            "relevantLinesExamined": 66,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 4,
+              "columnLine": 8,
+              "elapsedMs": 0.13570000000004256
+            },
+            "correctness": true,
+            "targetPath": "tables/public.orders.sql"
+          },
+          {
+            "elapsedMs": 107.56140000000005,
+            "toolCalls": 3,
+            "fsReads": 1,
+            "fsBytes": 1105,
+            "fsLines": 22,
+            "rgBytes": 2210,
+            "rgLines": 44,
+            "rgElapsedMs": 45.623800000000074,
+            "listingBytes": 57583,
+            "listingLines": 600,
+            "relevantBytesExamined": 3315,
+            "relevantLinesExamined": 66,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 4,
+              "columnLine": 8,
+              "elapsedMs": 0.13020000000005894
+            },
+            "correctness": true,
+            "targetPath": "tables/public.orders.sql"
+          },
+          {
+            "elapsedMs": 68.9686999999999,
+            "toolCalls": 3,
+            "fsReads": 1,
+            "fsBytes": 1105,
+            "fsLines": 22,
+            "rgBytes": 2210,
+            "rgLines": 44,
+            "rgElapsedMs": 42.30009999999993,
+            "listingBytes": 57583,
+            "listingLines": 600,
+            "relevantBytesExamined": 3315,
+            "relevantLinesExamined": 66,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 4,
+              "columnLine": 8,
+              "elapsedMs": 0.14530000000013388
+            },
+            "correctness": true,
+            "targetPath": "tables/public.orders.sql"
+          },
+          {
+            "elapsedMs": 66.7165,
+            "toolCalls": 3,
+            "fsReads": 1,
+            "fsBytes": 1105,
+            "fsLines": 22,
+            "rgBytes": 2210,
+            "rgLines": 44,
+            "rgElapsedMs": 41.37069999999994,
+            "listingBytes": 57583,
+            "listingLines": 600,
+            "relevantBytesExamined": 3315,
+            "relevantLinesExamined": 66,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 4,
+              "columnLine": 8,
+              "elapsedMs": 0.11469999999985703
+            },
+            "correctness": true,
+            "targetPath": "tables/public.orders.sql"
+          },
+          {
+            "elapsedMs": 96.65049999999997,
+            "toolCalls": 3,
+            "fsReads": 1,
+            "fsBytes": 1105,
+            "fsLines": 22,
+            "rgBytes": 2210,
+            "rgLines": 44,
+            "rgElapsedMs": 71.10530000000017,
+            "listingBytes": 57583,
+            "listingLines": 600,
+            "relevantBytesExamined": 3315,
+            "relevantLinesExamined": 66,
+            "extracted": {
+              "table": "orders",
+              "column": "status",
+              "type": "text",
+              "declarationLine": 4,
+              "columnLine": 8,
+              "elapsedMs": 0.12419999999997344
+            },
+            "correctness": true,
+            "targetPath": "tables/public.orders.sql"
+          }
+        ],
+        "runsCount": 5,
+        "elapsedMs": {
+          "min": 66.7165,
+          "median": 96.21810000000005,
+          "max": 107.56140000000005,
+          "total": 436.11519999999996
+        },
+        "toolCalls": {
+          "min": 3,
+          "median": 3,
+          "max": 3,
+          "total": 15
+        },
+        "fsReads": {
+          "min": 1,
+          "median": 1,
+          "max": 1,
+          "total": 5
+        },
+        "fsBytes": {
+          "min": 1105,
+          "median": 1105,
+          "max": 1105,
+          "total": 5525
+        },
+        "fsLines": {
+          "min": 22,
+          "median": 22,
+          "max": 22,
+          "total": 110
+        },
+        "rgBytes": {
+          "min": 2210,
+          "median": 2210,
+          "max": 2210,
+          "total": 11050
+        },
+        "rgLines": {
+          "min": 44,
+          "median": 44,
+          "max": 44,
+          "total": 220
+        },
+        "listingBytes": {
+          "min": 57583,
+          "median": 57583,
+          "max": 57583,
+          "total": 287915
+        },
+        "listingLines": {
+          "min": 600,
+          "median": 600,
+          "max": 600,
+          "total": 3000
+        },
+        "relevantBytesExamined": {
+          "min": 3315,
+          "median": 3315,
+          "max": 3315,
+          "total": 16575
+        },
+        "relevantLinesExamined": {
+          "min": 66,
+          "median": 66,
+          "max": 66,
+          "total": 330
+        },
+        "correctness": true
+      }
+    },
+    "recursiveSearch": {
+      "dump": {
+        "runs": [
+          {
+            "elapsedMs": 49.909799999999905,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "relevantBytesExamined": 1447546,
+            "relevantLinesExamined": 26420,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          },
+          {
+            "elapsedMs": 47.92319999999995,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "relevantBytesExamined": 1447546,
+            "relevantLinesExamined": 26420,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          },
+          {
+            "elapsedMs": 46.221900000000005,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "relevantBytesExamined": 1447546,
+            "relevantLinesExamined": 26420,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          },
+          {
+            "elapsedMs": 46.328599999999824,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "relevantBytesExamined": 1447546,
+            "relevantLinesExamined": 26420,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          },
+          {
+            "elapsedMs": 94.03089999999997,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1447546,
+            "rgLines": 26420,
+            "relevantBytesExamined": 1447546,
+            "relevantLinesExamined": 26420,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          }
+        ],
+        "runsCount": 5,
+        "elapsedMs": {
+          "min": 46.221900000000005,
+          "median": 47.92319999999995,
+          "max": 94.03089999999997,
+          "total": 284.41439999999966
+        },
+        "toolCalls": {
+          "min": 2,
+          "median": 2,
+          "max": 2,
+          "total": 10
+        },
+        "fsReads": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "fsBytes": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "fsLines": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "rgBytes": {
+          "min": 1447546,
+          "median": 1447546,
+          "max": 1447546,
+          "total": 7237730
+        },
+        "rgLines": {
+          "min": 26420,
+          "median": 26420,
+          "max": 26420,
+          "total": 132100
+        },
+        "listingBytes": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "listingLines": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "relevantBytesExamined": {
+          "min": 1447546,
+          "median": 1447546,
+          "max": 1447546,
+          "total": 7237730
+        },
+        "relevantLinesExamined": {
+          "min": 26420,
+          "median": 26420,
+          "max": 26420,
+          "total": 132100
+        },
+        "correctness": true
+      },
+      "split": {
+        "runs": [
+          {
+            "elapsedMs": 830.5193999999999,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1445712,
+            "rgLines": 25202,
+            "relevantBytesExamined": 1445712,
+            "relevantLinesExamined": 25202,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          },
+          {
+            "elapsedMs": 263.0156000000002,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1445712,
+            "rgLines": 25202,
+            "relevantBytesExamined": 1445712,
+            "relevantLinesExamined": 25202,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          },
+          {
+            "elapsedMs": 192.62170000000015,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1445712,
+            "rgLines": 25202,
+            "relevantBytesExamined": 1445712,
+            "relevantLinesExamined": 25202,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          },
+          {
+            "elapsedMs": 196.1927999999998,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1445712,
+            "rgLines": 25202,
+            "relevantBytesExamined": 1445712,
+            "relevantLinesExamined": 25202,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          },
+          {
+            "elapsedMs": 211.18730000000005,
+            "toolCalls": 2,
+            "fsReads": 0,
+            "fsBytes": 0,
+            "fsLines": 0,
+            "rgBytes": 1445712,
+            "rgLines": 25202,
+            "relevantBytesExamined": 1445712,
+            "relevantLinesExamined": 25202,
+            "declarationMatches": 1,
+            "columnMatches": 600,
+            "expected": {
+              "table": "orders",
+              "column": "status",
+              "type": "text"
+            },
+            "correctness": true
+          }
+        ],
+        "runsCount": 5,
+        "elapsedMs": {
+          "min": 192.62170000000015,
+          "median": 211.18730000000005,
+          "max": 830.5193999999999,
+          "total": 1693.5368
+        },
+        "toolCalls": {
+          "min": 2,
+          "median": 2,
+          "max": 2,
+          "total": 10
+        },
+        "fsReads": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "fsBytes": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "fsLines": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "rgBytes": {
+          "min": 1445712,
+          "median": 1445712,
+          "max": 1445712,
+          "total": 7228560
+        },
+        "rgLines": {
+          "min": 25202,
+          "median": 25202,
+          "max": 25202,
+          "total": 126010
+        },
+        "listingBytes": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "listingLines": {
+          "min": 0,
+          "median": 0,
+          "max": 0,
+          "total": 0
+        },
+        "relevantBytesExamined": {
+          "min": 1445712,
+          "median": 1445712,
+          "max": 1445712,
+          "total": 7228560
+        },
+        "relevantLinesExamined": {
+          "min": 25202,
+          "median": 25202,
+          "max": 25202,
+          "total": 126010
+        },
+        "correctness": true
+      }
+    }
+  },
+  "maintenanceTradeoffs": {
+    "splitStorageOverheadRatio": 0.998733028173198,
+    "splitFileCountIncrease": 599,
+    "observations": [
+      "Table-separated files make a known table path a small locality unit: targeted rg and parser reads touch only that file, plus a directory listing.",
+      "A recursive content search without path knowledge scans all split files, so organization alone does not reduce bytes examined; a naming convention or index is the enabling maintenance convention.",
+      "The single dump has lower file-count and header overhead and is convenient for ordered replay; a split tree increases rename/move and consistency-management surface.",
+      "The fixture keeps the same table bodies and includes comments, literals, similarly named tables, and repeated status columns to test false-candidate handling."
+    ]
+  }
+}
