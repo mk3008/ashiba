@@ -15,6 +15,7 @@
     "benchmark/PREREGISTRATION_AMENDMENT_5.md",
     "benchmark/PREREGISTRATION_AMENDMENT_6.md",
     "benchmark/PREREGISTRATION_AMENDMENT_7.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_8.md",
     "benchmark/WORKLOADS.md",
     "fixtures/packet/packet-hash.mjs"
   ],
@@ -85,6 +86,11 @@
       "bytes": 966
     },
     {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_8.md",
+      "sha256": "c70994b5ba32606d274fb0eb742dda6ae1757aa6c454e15cbe2323082148e11e",
+      "bytes": 1102
+    },
+    {
       "path": "benchmark/WORKLOADS.md",
       "sha256": "cf8ed1ef417762133cd0fb0c699d5e1f995456ecabd338b81588cd2493b277ed",
       "bytes": 1841
@@ -115,6 +121,11 @@
       "bytes": 4703
     },
     {
+      "path": "fixtures/evidence-executor/MATERIALIZE_CELL.md",
+      "sha256": "2edd3aed86afe4943a3ad4805a105bf05627d49f33b32ed23a9d02f60109077f",
+      "bytes": 1063
+    },
+    {
       "path": "fixtures/evidence-executor/REPORT.md",
       "sha256": "621bd365c174079349d6b78ee4415053e2e697dd0764b1b79c98966bf77bbbbf",
       "bytes": 917
@@ -128,6 +139,11 @@
       "path": "fixtures/evidence-executor/attempt-evidence-executor.mjs",
       "sha256": "ff9a2d4071438bc3697a576bf21cc94eac1e02f11bb91c4c586376a53f74c357",
       "bytes": 22258
+    },
+    {
+      "path": "fixtures/evidence-executor/materialize-cell.mjs",
+      "sha256": "fc0d0aace0fb960c8d3fc37b3d5e867a51677f90e9ff28ba525a77191c9113f2",
+      "bytes": 5248
     },
     {
       "path": "fixtures/fixture.mjs",
@@ -276,8 +292,8 @@
     },
     {
       "path": "fixtures/packet/packet-hash.mjs",
-      "sha256": "71c010e8e060f012981b3ddc12c6c6d4c76343bf7af198e36ee08de607e6ed88",
-      "bytes": 7872
+      "sha256": "9f8171a7c99bb76d6292ed3ae3bdbae78a397487151f294bbd357228bbc1724f",
+      "bytes": 8021
     },
     {
       "path": "fixtures/prompts/A.md",
@@ -346,8 +362,8 @@
     },
     {
       "path": "fixtures/runner.mjs",
-      "sha256": "dce3d4f6126f7d8047217b4617f7b15684b84ae474cc2ac8910138d61bd36e69",
-      "bytes": 29553
+      "sha256": "9adad00f7b153744f0583b403628561f24767321242b63149ed4cd34efd448a2",
+      "bytes": 29264
     },
     {
       "path": "fixtures/schema.sql",

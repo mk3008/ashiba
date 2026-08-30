@@ -248,20 +248,12 @@ function dependencyLeakage(value) {
   return typeof value === 'string' && /^(?:file:|link:|workspace:|\.{1,2}[\\/]|[A-Za-z]:[\\/])/i.test(value);
 }
 
-function samePath(left, right) {
-  return process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
-}
-
 async function isFrozenPackedArtifact(reference, manifestPath) {
   if (typeof reference !== 'string' || !reference.startsWith('file:')) return false;
   const target = reference.slice('file:'.length);
   if (!target || /^\/\//.test(target)) return false;
   try {
-    const [resolvedTarget, frozenTarget] = await Promise.all([
-      realpath(resolve(dirname(manifestPath), target)),
-      realpath(FROZEN_PACKED_ARTIFACT.path),
-    ]);
-    if (!samePath(resolvedTarget, frozenTarget)) return false;
+    const resolvedTarget = await realpath(resolve(dirname(manifestPath), target));
     const contents = await readFile(resolvedTarget);
     return createHash('sha256').update(contents).digest('hex') === FROZEN_PACKED_ARTIFACT.sha256;
   } catch {

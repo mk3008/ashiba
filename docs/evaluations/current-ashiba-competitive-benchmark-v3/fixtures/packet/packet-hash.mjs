@@ -25,6 +25,7 @@ const PROTOCOL_INPUTS = Object.freeze([
   'benchmark/PREREGISTRATION_AMENDMENT_5.md',
   'benchmark/PREREGISTRATION_AMENDMENT_6.md',
   'benchmark/PREREGISTRATION_AMENDMENT_7.md',
+  'benchmark/PREREGISTRATION_AMENDMENT_8.md',
   'benchmark/WORKLOADS.md',
   'fixtures/packet/packet-hash.mjs',
 ]);
@@ -44,6 +45,7 @@ const FIXTURE_INPUTS = Object.freeze([
   'fixtures/package-lock.json', 'fixtures/package.json', 'fixtures/q1.sql', 'fixtures/REPRODUCE.md', 'fixtures/runner.mjs',
   'fixtures/schema.sql', 'fixtures/seed.sql', 'fixtures/artifacts/ashiba-ts-named-parameters-0.1.0.tgz',
   'fixtures/evidence-executor/REPORT.md', 'fixtures/evidence-executor/SPEC.md', 'fixtures/evidence-executor/attempt-evidence-executor.mjs',
+  'fixtures/evidence-executor/MATERIALIZE_CELL.md', 'fixtures/evidence-executor/materialize-cell.mjs',
   'fixtures/reference/reference-application.mjs',
   'fixtures/negative-controls/duplicate-claim/candidate.mjs',
   'fixtures/negative-controls/admin-database-url-exfiltration/candidate.mjs',
