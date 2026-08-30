@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "startingSha": "0288c0755e7e4a5aa468a5387d95759fedf53d3a",
+  "productCodeChanged": false,
+  "scopeChanged": false,
+  "goldenPathChanged": false,
+  "commandCatalogCount": 11,
+  "checkZeroCoverage": {
+    "checkOk": true,
+    "projectCheckOk": true,
+    "sqlFiles": 0,
+    "lintFiles": 0
+  },
+  "focusedTests": {
+    "queryUses": "passed",
+    "ddlLint": "passed",
+    "sqlResource": "passed"
+  },
+  "verification": {
+    "typecheck": "failed: local worktree TypeScript could not resolve node: built-in declarations despite @types/node junction present",
+    "build": "failed: same local worktree TypeScript resolution failure",
+    "test": "passed",
+    "verify": "failed at typecheck for the same local environment failure",
+    "docsBuild": "failed because it builds the CLI and hit the same failure",
+    "diffCheck": "pending final run"
+  },
+  "queryUsesScale": {
+    "small": 20,
+    "medium": 300,
+    "large": 3000,
+    "rawPath": "evaluation/query-uses-scale/raw-results.json",
+    "freshAgentTelemetry": "unavailable"
+  },
+  "ddlScale": {
+    "tables": 600,
+    "rawPath": "evaluation/ddl-scale/raw-results.json"
+  },
+  "postgresLive": "not rerun; credentials unavailable",
+  "temporaryResources": "query and DDL fixtures removed by their harnesses"
+}
