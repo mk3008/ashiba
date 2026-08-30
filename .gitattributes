@@ -12,6 +12,8 @@
 *.ts text eol=lf
 docs/evaluations/current-ashiba-competitive-benchmark-v3/secondary-candidate-snapshots/SD-S-r1/final/src/generated/queries_sql.ts -whitespace
 docs/evaluations/current-ashiba-competitive-benchmark-v3/excluded-calibration/H-004/E1-S-r1/baseline-snapshot/src/generated/queries_sql.ts -whitespace
+docs/evaluations/current-ashiba-competitive-benchmark-v3/excluded-calibration/H-005/E1-S-r1/baseline-snapshot/src/generated/queries_sql.ts -whitespace
+docs/evaluations/current-ashiba-competitive-benchmark-v3/excluded-calibration/H-005/E1-S-r1/candidate/src/generated/queries_sql.ts -whitespace
 *.tsx text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
