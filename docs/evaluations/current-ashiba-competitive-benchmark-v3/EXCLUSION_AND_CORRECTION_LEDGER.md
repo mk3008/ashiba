@@ -8,3 +8,16 @@ No scored candidate has started at preregistration.
 
 Entries are append-only. A correction does not overwrite the preceding failed
 or calibration evidence.
+# H-001 — Pre-scoring reference-control serialization defect
+
+- **Observed:** 2026-08-30, before every scored cell.
+- **Original evidence:** `fixtures/evidence/reference-control.json` records a
+  live PostgreSQL 18.6 reference-control failure only on `close()` assertions.
+- **Cause:** the runner's JSON-safe event serialization attempted
+  `JSON.parse(JSON.stringify(undefined))` for the specified `close(): Promise<void>`
+  result. The reference application correctly resolved with `undefined`.
+- **Correction:** `runner.mjs` preserves `undefined` before JSON serialization.
+- **Scope:** runner event recording only; public API, workload semantics, oracle
+  assertions, and treatment policy are unchanged.
+- **Affected scored cells:** none. Scored cells at correction: 0.
+- **Required remeasure:** the reference control and negative controls only.

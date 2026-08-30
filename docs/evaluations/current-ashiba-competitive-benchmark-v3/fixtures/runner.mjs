@@ -16,6 +16,7 @@ const FORBIDDEN_SOURCE = [
 ];
 
 function jsonValue(value) {
+  if (value === undefined) return undefined;
   return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item));
 }
 
