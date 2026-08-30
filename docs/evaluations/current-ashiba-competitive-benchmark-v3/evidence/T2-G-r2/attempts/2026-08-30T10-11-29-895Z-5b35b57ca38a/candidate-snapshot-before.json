@@ -1,0 +1,53 @@
+{
+  "root": "candidate-source-before-cleanup",
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 1737,
+    "sha256": "1422b80e235bb45b5947596e36e7f2b820a82f860e7d8e24a3b15b762c0491dd"
+  },
+  "copied": [
+    {
+      "path": "dist/application.js",
+      "sourceSha256": "1422b80e235bb45b5947596e36e7f2b820a82f860e7d8e24a3b15b762c0491dd",
+      "snapshotSha256": "1422b80e235bb45b5947596e36e7f2b820a82f860e7d8e24a3b15b762c0491dd",
+      "redacted": false
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c",
+      "snapshotSha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c",
+      "redacted": false
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "45eec449f0fceb4c7374b8e8093c95534ded3b227f673edf3b8ab94ee502dab6",
+      "snapshotSha256": "45eec449f0fceb4c7374b8e8093c95534ded3b227f673edf3b8ab94ee502dab6",
+      "redacted": false
+    },
+    {
+      "path": "README.md",
+      "sourceSha256": "a8ca43774144abfa607520e5662adba75527b09e9b2545d11ac2de2710455a97",
+      "snapshotSha256": "a8ca43774144abfa607520e5662adba75527b09e9b2545d11ac2de2710455a97",
+      "redacted": false
+    },
+    {
+      "path": "src/application.ts",
+      "sourceSha256": "63cb3e3d8bc3954f51fb8d2550c6267ce372d3240ab032d3b167c1fafce14b3e",
+      "snapshotSha256": "63cb3e3d8bc3954f51fb8d2550c6267ce372d3240ab032d3b167c1fafce14b3e",
+      "redacted": false
+    },
+    {
+      "path": "test/application.test.mjs",
+      "sourceSha256": "b05d4ed13068b7b8c7bcc5316afe9509c9636e0e43b3e8cba0adcf6c283bb4d1",
+      "snapshotSha256": "b05d4ed13068b7b8c7bcc5316afe9509c9636e0e43b3e8cba0adcf6c283bb4d1",
+      "redacted": false
+    },
+    {
+      "path": "tsconfig.json",
+      "sourceSha256": "cdd2c147ff82dbba507a00dee6e8cdf39a149955e6396816fc602bf81c66145f",
+      "snapshotSha256": "cdd2c147ff82dbba507a00dee6e8cdf39a149955e6396816fc602bf81c66145f",
+      "redacted": false
+    }
+  ],
+  "excluded": []
+}

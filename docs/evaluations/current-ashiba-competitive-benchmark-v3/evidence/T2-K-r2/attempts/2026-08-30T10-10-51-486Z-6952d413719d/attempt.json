@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "kind": "benchmark-attempt-evidence-controller",
+  "scoring": "external",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-K-r2\\candidate",
+  "entrypoint": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-K-r2\\candidate\\dist\\application.js",
+  "attemptId": "2026-08-30T10-10-51-486Z-6952d413719d",
+  "createdAt": "2026-08-30T10:10:51.510Z",
+  "cleanup": {
+    "status": "pending",
+    "recordedBeforeCleanup": false
+  }
+}

@@ -1,0 +1,7 @@
+model WorkItem {
+  id        BigInt  @id
+  state     String
+  claimedBy String? @map("claimed_by")
+
+  @@map("work_items")
+}

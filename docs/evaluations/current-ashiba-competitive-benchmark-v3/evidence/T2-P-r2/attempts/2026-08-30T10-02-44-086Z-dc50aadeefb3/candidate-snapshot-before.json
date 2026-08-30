@@ -1,0 +1,71 @@
+{
+  "root": "candidate-source-before-cleanup",
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 1896,
+    "sha256": "2cabc0725aa3b8c42df89237b6c0ed775cd82ad7c32c863792b8e7ad7c122e83"
+  },
+  "copied": [
+    {
+      "path": "dist/application.js",
+      "sourceSha256": "2cabc0725aa3b8c42df89237b6c0ed775cd82ad7c32c863792b8e7ad7c122e83",
+      "snapshotSha256": "2cabc0725aa3b8c42df89237b6c0ed775cd82ad7c32c863792b8e7ad7c122e83",
+      "redacted": false
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c",
+      "snapshotSha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c",
+      "redacted": false
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "d8fe20e7bdcf820b2bde012b90a633bb7fd96b068cf1a2994486605972fe607d",
+      "snapshotSha256": "d8fe20e7bdcf820b2bde012b90a633bb7fd96b068cf1a2994486605972fe607d",
+      "redacted": false
+    },
+    {
+      "path": "prisma.config.ts",
+      "sourceSha256": "b2ef51e3e4d63cb5629339c4707acbe710c207111163a20912ba0415cd952056",
+      "snapshotSha256": "b2ef51e3e4d63cb5629339c4707acbe710c207111163a20912ba0415cd952056",
+      "redacted": false
+    },
+    {
+      "path": "RUN_REPORT.md",
+      "sourceSha256": "e479c6c2ac461b42a1cfbcf617553d01ad3d2c2b6c9b390749a7271002034c4e",
+      "snapshotSha256": "e479c6c2ac461b42a1cfbcf617553d01ad3d2c2b6c9b390749a7271002034c4e",
+      "redacted": false
+    },
+    {
+      "path": "src/application.ts",
+      "sourceSha256": "ad206ac6a0cb703d946e2551caca061b8daf69b1751b87910acc45fbada73e3e",
+      "snapshotSha256": "ad206ac6a0cb703d946e2551caca061b8daf69b1751b87910acc45fbada73e3e",
+      "redacted": false
+    },
+    {
+      "path": "src/prisma/contract.d.ts",
+      "sourceSha256": "613ba57e4668878fd4a3544ff89a0a9bbb700152b74b37f1455db2b8f24ed5ca",
+      "snapshotSha256": "613ba57e4668878fd4a3544ff89a0a9bbb700152b74b37f1455db2b8f24ed5ca",
+      "redacted": false
+    },
+    {
+      "path": "src/prisma/contract.json",
+      "sourceSha256": "52589a38ce2a375af2bbb9947661df52a795fcfe7b37fd703bb295635e2771e9",
+      "snapshotSha256": "52589a38ce2a375af2bbb9947661df52a795fcfe7b37fd703bb295635e2771e9",
+      "redacted": false
+    },
+    {
+      "path": "src/prisma/contract.prisma",
+      "sourceSha256": "95f6775f27a0ff4cea3356c816cb4e0f027a7e4ff09923f877bd512d81babb4a",
+      "snapshotSha256": "95f6775f27a0ff4cea3356c816cb4e0f027a7e4ff09923f877bd512d81babb4a",
+      "redacted": false
+    },
+    {
+      "path": "tsconfig.json",
+      "sourceSha256": "1c1652c3ce3996b463fba81051187896af1f5c40a5d9ee643b7918f8a7cab82d",
+      "snapshotSha256": "1c1652c3ce3996b463fba81051187896af1f5c40a5d9ee643b7918f8a7cab82d",
+      "redacted": false
+    }
+  ],
+  "excluded": []
+}
