@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "startingSha": "efc47b2d294f58465887f3b58f744cdd16439fb8",
+  "productCodeChanged": false,
+  "scopeChanged": false,
+  "goldenPathChanged": false,
+  "decisions": {
+    "snapshot": "REMOVE",
+    "compare": "REHOME-AS-GENERIC-TOOL"
+  },
+  "consumers": {
+    "application": 0,
+    "ci": 0,
+    "currentDocs": 1,
+    "tests": "unit and environment-gated live only"
+  },
+  "ablation": {
+    "rawPath": "evaluation/raw-results.json",
+    "scales": [20, 300, 3000],
+    "arms": {
+      "A": "temporary persisted snapshots with existing compare",
+      "B": "ordinary Git/hash/rg evidence without artifact",
+      "C": "in-memory compiler derive-now without artifact"
+    },
+    "liveDatabase": "not rerun; ASHIBA_TEST_DATABASE_URL and ASHIBA_POSTGRES_DATABASE_URL unavailable"
+  },
+  "focusedSqlResourceTest": "passed after named-parameters build",
+  "harness": "passed",
+  "verification": {
+    "typecheck": "passed",
+    "build": "passed",
+    "test": "passed",
+    "verify": "passed",
+    "docsBuild": "passed",
+    "diffCheck": "passed"
+  },
+  "remoteCi": {
+    "run": "33288193009",
+    "status": "passed",
+    "checks": [
+      "verify",
+      "npm-distribution (22, 10)",
+      "npm-distribution (24, 11)",
+      "postgres-live",
+      "postgres-ticket-queue-reference",
+      "support-inbox-example",
+      "support-inbox-example-autocrlf"
+    ]
+  },
+  "temporaryResources": "harness snapshots were removed after each scale; no database resource created",
+  "telemetry": {
+    "token": "unavailable",
+    "credit": "unavailable"
+  }
+}

@@ -1,0 +1,361 @@
+{
+  "harness": "sql-resource-final-ownership-ablation",
+  "version": 1,
+  "generatedAt": "2026-08-30T02:19:32.835Z",
+  "arms": {
+    "A": "persisted JSON snapshots compared with existing compareSqlResourceSnapshotFiles",
+    "B": "ordinary git/hash/rg-style evidence with no fleet artifact",
+    "C": "in-memory derive-now semantic comparison with compileNamedParameters"
+  },
+  "changeKinds": [
+    "formatting/comment-only",
+    "semantic predicate",
+    "parameter add",
+    "parameter remove",
+    "result column add",
+    "result column remove",
+    "table change",
+    "column change",
+    "query add",
+    "query remove"
+  ],
+  "scales": [
+    20,
+    300,
+    3000
+  ],
+  "scaleResults": [
+    {
+      "count": 20,
+      "armA": {
+        "checked": 20,
+        "affected": 2,
+        "summary": {
+          "checked": 20,
+          "unaffected": 18,
+          "compatible": 0,
+          "contractChanged": 0,
+          "executionBreaking": 0,
+          "needsReview": 2
+        },
+        "deterministicFieldsCompared": 1165
+      },
+      "armB": {
+        "changedFiles": 2,
+        "changed": [
+          {
+            "path": "queries/q-1.sql",
+            "kind": "text/hash changed"
+          },
+          {
+            "path": "queries/q-2.sql",
+            "kind": "text/hash changed"
+          }
+        ],
+        "method": "git diff + ordinary hash/rg candidate scan",
+        "persistentArtifact": false
+      },
+      "armC": {
+        "checked": 20,
+        "affected": 2,
+        "changed": [
+          {
+            "id": "ashiba:query:q-1",
+            "classification": "needs-review",
+            "changes": [
+              "canonical SQL changed"
+            ]
+          },
+          {
+            "id": "ashiba:query:q-2",
+            "classification": "needs-review",
+            "changes": [
+              "canonical SQL changed",
+              "parameter set changed"
+            ]
+          }
+        ],
+        "method": "derive current semantic facts from before/after SQL in memory",
+        "persistentArtifact": false
+      },
+      "snapshotBytes": 178199
+    },
+    {
+      "count": 300,
+      "armA": {
+        "checked": 300,
+        "affected": 2,
+        "summary": {
+          "checked": 300,
+          "unaffected": 298,
+          "compatible": 0,
+          "contractChanged": 0,
+          "executionBreaking": 0,
+          "needsReview": 2
+        },
+        "deterministicFieldsCompared": 17405
+      },
+      "armB": {
+        "changedFiles": 2,
+        "changed": [
+          {
+            "path": "queries/q-1.sql",
+            "kind": "text/hash changed"
+          },
+          {
+            "path": "queries/q-2.sql",
+            "kind": "text/hash changed"
+          }
+        ],
+        "method": "git diff + ordinary hash/rg candidate scan",
+        "persistentArtifact": false
+      },
+      "armC": {
+        "checked": 300,
+        "affected": 2,
+        "changed": [
+          {
+            "id": "ashiba:query:q-1",
+            "classification": "needs-review",
+            "changes": [
+              "canonical SQL changed"
+            ]
+          },
+          {
+            "id": "ashiba:query:q-2",
+            "classification": "needs-review",
+            "changes": [
+              "canonical SQL changed",
+              "parameter set changed"
+            ]
+          }
+        ],
+        "method": "derive current semantic facts from before/after SQL in memory",
+        "persistentArtifact": false
+      },
+      "snapshotBytes": 2667959
+    },
+    {
+      "count": 3000,
+      "armA": {
+        "checked": 3000,
+        "affected": 2,
+        "summary": {
+          "checked": 3000,
+          "unaffected": 2998,
+          "compatible": 0,
+          "contractChanged": 0,
+          "executionBreaking": 0,
+          "needsReview": 2
+        },
+        "deterministicFieldsCompared": 174005
+      },
+      "armB": {
+        "changedFiles": 2,
+        "changed": [
+          {
+            "path": "queries/q-1.sql",
+            "kind": "text/hash changed"
+          },
+          {
+            "path": "queries/q-2.sql",
+            "kind": "text/hash changed"
+          }
+        ],
+        "method": "git diff + ordinary hash/rg candidate scan",
+        "persistentArtifact": false
+      },
+      "armC": {
+        "checked": 3000,
+        "affected": 2,
+        "changed": [
+          {
+            "id": "ashiba:query:q-1",
+            "classification": "needs-review",
+            "changes": [
+              "canonical SQL changed"
+            ]
+          },
+          {
+            "id": "ashiba:query:q-2",
+            "classification": "needs-review",
+            "changes": [
+              "canonical SQL changed",
+              "parameter set changed"
+            ]
+          }
+        ],
+        "method": "derive current semantic facts from before/after SQL in memory",
+        "persistentArtifact": false
+      },
+      "snapshotBytes": 26715159
+    }
+  ],
+  "categoryResults": [
+    {
+      "kind": "formatting/comment-only",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "needs-review",
+        "unaffected"
+      ]
+    },
+    {
+      "kind": "semantic predicate",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    },
+    {
+      "kind": "parameter add",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    },
+    {
+      "kind": "parameter remove",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    },
+    {
+      "kind": "result column add",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    },
+    {
+      "kind": "result column remove",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    },
+    {
+      "kind": "table change",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    },
+    {
+      "kind": "column change",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    },
+    {
+      "kind": "query add",
+      "summary": {
+        "checked": 21,
+        "unaffected": 20,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    },
+    {
+      "kind": "query remove",
+      "summary": {
+        "checked": 20,
+        "unaffected": 19,
+        "compatible": 0,
+        "contractChanged": 0,
+        "executionBreaking": 0,
+        "needsReview": 1
+      },
+      "affected": 1,
+      "classifications": [
+        "unaffected",
+        "needs-review"
+      ]
+    }
+  ],
+  "limitations": [
+    "Synthetic fixtures exercise the existing comparison model but do not claim PostgreSQL catalog truth.",
+    "Arm B is a reproducible ordinary-tool baseline, not a fresh-agent behavioral trial.",
+    "No live database was required; live contract derivation remains an application/CI concern."
+  ]
+}
