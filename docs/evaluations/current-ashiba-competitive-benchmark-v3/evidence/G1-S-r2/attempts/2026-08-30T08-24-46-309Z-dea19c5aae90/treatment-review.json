@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Real sqlc 1.31.1 Docker generation with the pinned TypeScript WASM plugin produced the main generated query module; provenance and generated hash are retained.",
+  "decidedAt": "2026-08-30T08:25:04.295Z",
+  "decidedBy": "coordinator-required"
+}

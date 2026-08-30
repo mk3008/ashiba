@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Visible SQL, compileNamedParameters, bindNamedParameters, and native pg are the main data-access path.",
+  "decidedAt": "2026-08-30T08:15:59.631Z",
+  "decidedBy": "coordinator-required"
+}

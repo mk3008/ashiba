@@ -1,0 +1,89 @@
+{
+  "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\G1-S-r2\\candidate",
+  "fileCount": 11,
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 6550,
+    "sha256": "4aa41d3c56faf5b89dacadbc4a38ceefeb28245078fdf405ba037991f59ad221"
+  },
+  "files": [
+    {
+      "path": "dist/application.js",
+      "bytes": 6550,
+      "sha256": "4aa41d3c56faf5b89dacadbc4a38ceefeb28245078fdf405ba037991f59ad221",
+      "lockfile": false,
+      "excludedFromSnapshot": false,
+      "includedBecause": "declared-entrypoint"
+    },
+    {
+      "path": "GENERATION.md",
+      "bytes": 1365,
+      "sha256": "3711a5d05a2dcad8e5f8261c627d9764c6361857713525679e60b4d0f4affcbf",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "lockfile": true,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package.json",
+      "bytes": 354,
+      "sha256": "9c6cbb99b8e1cb11f08f81c6c8a72c461ea7d63aab7aa4488c013877ca01f030",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "queries.sql",
+      "bytes": 3656,
+      "sha256": "d176530b7ce9a7a8ac685621b17a46c51c7238cba1a10e295043f3e73f541828",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "sqlc.docker.yaml",
+      "bytes": 487,
+      "sha256": "5dcea8a54d2909d65fafe9d10241c5992aa9d126fc99dce7f2f2843e134d3222",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "sqlc.provenance.json",
+      "bytes": 658,
+      "sha256": "b6ffa6ee1263d7caae80ab7074286464477f124dd65dc9d139cea20053f4c2d8",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 513,
+      "sha256": "e5bc53863785beb434fde15266fb155a1473af994b576fa1733697b83b04ecd7",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 7850,
+      "sha256": "ccf3876139a4e5d138237544635392d3e31c582cbe058c9d9fb7d10b4bc15e36",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/generated/queries_sql.ts",
+      "bytes": 12239,
+      "sha256": "7bc893dc0456baa8df6dd155caa957053ef08373798cb5470a9f13f2e9c17b16",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 311,
+      "sha256": "2911e5f89cf6d2dd96a1c9e4962c760d705ed98a733705389ea0f49fe8deedc4",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    }
+  ]
+}

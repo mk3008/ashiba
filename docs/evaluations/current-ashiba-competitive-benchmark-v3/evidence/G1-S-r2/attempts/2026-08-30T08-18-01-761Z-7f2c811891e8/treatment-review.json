@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "fail",
+  "note": "Live behavior passed, but the candidate has no actual sqlc executable/plugin dependency or generated artifact provenance; a manually maintained query layer is not sqlc treatment fidelity.",
+  "decidedAt": "2026-08-30T08:18:20.279Z",
+  "decidedBy": "coordinator-required"
+}

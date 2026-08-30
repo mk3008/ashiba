@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Kysely query-builder and transaction APIs are the main data-access path.",
+  "decidedAt": "2026-08-30T08:46:55.761Z",
+  "decidedBy": "coordinator-required"
+}

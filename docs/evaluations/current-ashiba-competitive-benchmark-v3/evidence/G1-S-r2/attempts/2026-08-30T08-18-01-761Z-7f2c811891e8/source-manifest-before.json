@@ -1,0 +1,75 @@
+{
+  "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\G1-S-r2\\candidate",
+  "fileCount": 9,
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 6372,
+    "sha256": "76a27dce14ef88d6e4137a4871d145a741245040f1f1ef9949759308c8e0f264"
+  },
+  "files": [
+    {
+      "path": "dist/application.js",
+      "bytes": 6372,
+      "sha256": "76a27dce14ef88d6e4137a4871d145a741245040f1f1ef9949759308c8e0f264",
+      "lockfile": false,
+      "excludedFromSnapshot": false,
+      "includedBecause": "declared-entrypoint"
+    },
+    {
+      "path": "GENERATION.md",
+      "bytes": 488,
+      "sha256": "9b6f544bf7a0ddd5f921a081f4da59e3e70fb6393aa02f6d021860273f43189d",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "lockfile": true,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package.json",
+      "bytes": 354,
+      "sha256": "9c6cbb99b8e1cb11f08f81c6c8a72c461ea7d63aab7aa4488c013877ca01f030",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "queries.sql",
+      "bytes": 3656,
+      "sha256": "d176530b7ce9a7a8ac685621b17a46c51c7238cba1a10e295043f3e73f541828",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 513,
+      "sha256": "e5bc53863785beb434fde15266fb155a1473af994b576fa1733697b83b04ecd7",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 7323,
+      "sha256": "f2592edc296504171f8344ffd102c7e3b42fb105603e55170a9fc86ee182c38d",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/generated/queries.ts",
+      "bytes": 3779,
+      "sha256": "109a0ace98d90bce79ebc0bf9ec30d9a369066455d0ef81ce6c7032b2bec26af",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 311,
+      "sha256": "2911e5f89cf6d2dd96a1c9e4962c760d705ed98a733705389ea0f49fe8deedc4",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    }
+  ]
+}

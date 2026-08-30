@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Drizzle query-builder and transaction APIs are the main data-access path; direct pg query APIs are absent.",
+  "decidedAt": "2026-08-30T08:20:25.537Z",
+  "decidedBy": "coordinator-required"
+}

@@ -1,0 +1,19 @@
+{
+  "generator": {
+    "tool": "sqlc",
+    "version": "1.31.1",
+    "image": "sqlc/sqlc@sha256:70f53171d27b2424e9358869975455a6e955a5aa8e58a998a270a6e34e525537"
+  },
+  "plugin": {
+    "name": "sqlc-gen-typescript",
+    "version": "0.1.2",
+    "url": "https://downloads.sqlc.dev/plugin/sqlc-gen-typescript_0.1.2.wasm",
+    "sha256": "f8b59cdd78b35fae157a95c5813cb09b1ebdd9a31acf2d7015465539986ccd2b"
+  },
+  "source": "queries.sql",
+  "schema": "runner-owned schema.sql, rendered only in a deleted temporary file",
+  "output": {
+    "path": "src/generated/queries_sql.ts",
+    "sha256": "7bc893dc0456baa8df6dd155caa957053ef08373798cb5470a9f13f2e9c17b16"
+  }
+}

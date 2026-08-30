@@ -1,0 +1,24 @@
+{
+  "status": "recorded-not-scored",
+  "slots": {
+    "build": {
+      "status": "fail",
+      "command": "build",
+      "exitCode": 1
+    },
+    "typecheck": {
+      "status": "fail",
+      "command": "typecheck",
+      "exitCode": 1
+    },
+    "test": {
+      "status": "pass",
+      "command": "test",
+      "exitCode": 0
+    },
+    "runner": {
+      "status": "not-declared"
+    }
+  },
+  "note": "Command outcomes are not a benchmark score."
+}

@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Prisma 8 RC raw SQL plans and Prisma transaction are the main path; first live attempt failed due to an application result-shape mismatch.",
+  "decidedAt": "2026-08-30T08:17:38.475Z",
+  "decidedBy": "coordinator-required"
+}
