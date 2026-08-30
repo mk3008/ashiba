@@ -26,7 +26,14 @@
     "gitDiffCheck": "pass",
     "currentStaleCliScan": "pass"
   },
-  "remoteCi": "pending",
+  "remoteCi": {
+    "run": "33292416009",
+    "head": "d6d68b957260e3d4a63bfc6b8e5c15bb8f8e2aca",
+    "verify": "pass",
+    "npmDistributionNode22Npm10": "pass",
+    "npmDistributionNode24Npm11": "pass",
+    "postgresTicketQueueReference": "pass"
+  },
   "temporaryResources": {
     "cleanRoom": "removed",
     "postgresContainer": "removed"

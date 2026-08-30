@@ -17,4 +17,4 @@
 
 - Blockers: none.
 - Follow-ups: none required; cross-DBMS clean-room evidence is optional future breadth.
-- Review readiness: ready once the final repository and remote CI checks in `raw-results.json` are green.
+- Review readiness: ready. Local checks and remote CI run `33292416009` are green.
