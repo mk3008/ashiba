@@ -86,9 +86,11 @@ chosen visible SQL and native drivers.
 treatment. Native `pg` and Kysely also had strong records. Ashiba was viable
 across all four primary workload types, but did not lead the matrix.
 
-It is legitimate to say that, *under the measured conditions*, Drizzle was
-most consistent and Ashiba did not outperform native `pg`. It is not
-legitimate to extend that statement into a general winner claim.
+It is legitimate to say that, *under the measured conditions*, Drizzle alone
+had 8/8 first-live passes, while Prisma, Drizzle, and Kysely each had 8/8
+corrected terminal passes. Ashiba had fewer first-live passes than native
+`pg` and the same corrected terminal count. Those observations are not a
+general winner claim.
 
 ### It cannot determine
 
@@ -96,8 +98,9 @@ The benchmark does not establish long-run production defect rates, statistical
 superiority, model-independent discoverability, human-only productivity,
 performance, multi-year upgrade cost, or the exact zero-human-coding model
 used in this interpretation. Prisma's measured treatment was raw-SQL-dominant,
-not a full generated-client comparison; sqlc results apply to its frozen
-early-access TypeScript plugin. Repair causes were not normalized.
+not a full generated-client comparison; the mixed-version sqlc primary record
+does not support an arm-level conclusion about frozen plugin 0.1.3. Repair
+causes were not normalized.
 
 The right conclusion is two-level: measured-condition judgment is possible;
 general product superiority is not established.
@@ -134,9 +137,9 @@ that Ashiba makes AI-generated applications generally more reliable than `pg`.
 
 **Observed.** Ashiba used visible SQL, direct compile/bind, and native `pg`; it
 required no CLI, generator, static artifact, source hash, adapter, repository
-abstraction, or application framework. Its failures included transaction,
-concurrency, and SQL/EXPLAIN concerns—areas that the named-parameter primitive
-does not own.
+abstraction, or application framework. Its first-attempt/repair sequences
+included transaction, concurrency, and SQL/EXPLAIN concerns—areas that the
+named-parameter primitive does not own.
 
 **Assessment.** A viable narrow raw-SQL safety layer with a favorable ownership
 boundary, but not a data layer that constrains most autonomous-agent mistakes.

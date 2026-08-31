@@ -96,7 +96,7 @@ workflow claim.
 
 ## Prisma three-field outcome summary
 
-| Cell | Live behavior | Frozen treatment review | Final Prisma workflow interpretation |
+| Cell | Adjudication-time cell-root live observation | Frozen treatment review | Final Prisma workflow interpretation |
 | --- | --- | --- | --- |
 | G1-P-r1 | P | pass | qualified-inline-contract |
 | G1-P-r2 | F | pass | qualified-inline-contract |
@@ -107,8 +107,10 @@ workflow claim.
 | Q1-P-r1 | P | pass | qualified-inline-contract |
 | Q1-P-r2 | P | pass | qualified-inline-contract |
 
-This table transcribes the separate final adjudication; it does not alter the
-historical live result, first-pass slots, or retained attempt count.
+This table transcribes the separate final adjudication and its contemporaneous
+initial cell-root runner observation. It does not replace the corrected
+terminal-attempt `finalLive` value in the primary matrix, alter first-pass
+slots, or change retained attempt counts.
 
 ## Secondary control record coverage
 

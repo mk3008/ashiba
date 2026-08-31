@@ -42,6 +42,11 @@ dispatch-unverified wording, and the observed/inference boundary. The audit
 does not replace repository verification, remote CI, or the orchestration
 ledger finish.
 
+The H-010 independent Sol audit separately confirmed the terminal-attempt
+selection, 45 P / 3 F corrected inventory, the sqlc 0.1.2 exclusion, and the
+absence of an arm-level frozen-0.1.3 sqlc conclusion. Its dependent wording,
+PR-body, and final-gate conditions are recorded in the correction documents.
+
 ## Completed final gates
 
 - Repository verification passed: `pnpm typecheck`, `pnpm build`, `pnpm test`,

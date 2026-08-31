@@ -26,11 +26,13 @@ successful cells demonstrate that this path can satisfy the frozen bounded
 G1, transaction T1, concurrent-claim T2, and SQL/EXPLAIN Q1 runner contracts
 under the measured conditions.
 
-**Observed.** Every treatment has successful primary observations. Five arms
-also have at least one recorded final live failure; Drizzle has eight recorded
-primary final-live passes. These are cell counts, not a ranking or a causal
-claim. The current evidence does not support an ``overall winner'' claim, nor
-does it support treating a single final failure as a product-wide failure.
+**Observed.** Every treatment has successful primary observations. Under the
+corrected terminal-attempt selection, A and G each retain one terminal failure,
+and the mixed-version sqlc descriptive record retains one; P, D, and K are all
+8/8 terminal P. sqlc is not an eligible arm-level frozen-0.1.3 comparison.
+These are cell counts, not a ranking or a causal claim. The current evidence
+does not support an ``overall winner'' claim, nor does it support treating a
+single final failure as a product-wide failure.
 
 **Inference, deliberately limited.** The primary matrix is consistent with
 the proposition that a small SQL-native treatment is viable for bounded
@@ -51,6 +53,7 @@ The primary execution evidence, corrected SD/E1 durable observations, and
 completed AF replicate-two path preservation are reviewable. AF is reported
 by path rather than made into a normalized score. X1 H-007 r2 supplies six
 explicit terminal records; r1 remains preserved correction context. The
-publication record still requires independent audit, repository verification,
-and remote CI confirmation. See [limitations](./LIMITATIONS.md) and the
+H-010 independent publication audit and local repository verification are
+complete. Remote CI confirmation remains the final external gate for the new
+head. See [limitations](./LIMITATIONS.md) and the
 [correction ledger](./EXCLUSION_AND_CORRECTION_LEDGER.md).
