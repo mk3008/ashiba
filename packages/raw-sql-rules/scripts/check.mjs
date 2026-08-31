@@ -75,6 +75,12 @@ const required = [
   "evaluation/v5/steady-state/insert-change/candidate/regression.mjs",
   "evidence/v5/results.md",
   "evidence/v5/independent-review.md",
+  "evaluation/v6/PLAN.md",
+  "evidence/v6/AMENDMENT.md",
+  "evidence/v6/rules-v6.sha256",
+  "evidence/v6/confirmation.md",
+  "evaluation/v6/bootstrap/candidate/regression.mjs",
+  "evaluation/v6/steady-state/candidate/regression.mjs",
 ];
 for (const relative of required) {
   if (!fs.existsSync(path.join(root, relative))) fail(`missing ${relative}`);

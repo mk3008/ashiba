@@ -166,3 +166,18 @@ The decision is **READY-WITH-LIMIT** for the evaluated two-state contract:
 when a DB-backed path is absent, establish one small authority path; afterward,
 Rules plus the visible repository example were sufficient in this study. The
 remaining limit is agent/task diversity, not a known unsafe escape.
+
+## V6 final amendment confirmation: READY-WITH-LIMIT
+
+V6 makes the V5 two-state model normative inside Rule 8: normally follow the
+application's existing database-backed regression pattern; if none exists,
+bootstrap one smallest reusable authority path. The runtime-authority principle
+is unchanged. The final Rules SHA-256 is
+`A0E1F71BFBF4CE664F581757284A08B8C9EB6EB28AE9E953CC38965189AB7375`.
+
+One fresh bootstrap and one fresh steady-state confirmation both passed MySQL
+8.4/mysql2 native-driver execution with actual SQL assets, behavior assertions,
+runtime representation assertions, and no added infrastructure. Independent
+read-only review also passed. The final decision is **READY-WITH-LIMIT** as a
+shippable initial contract. Its limit is applicability evidence: one evaluated
+driver/dialect and small agent/task diversity, not a known contract defect.

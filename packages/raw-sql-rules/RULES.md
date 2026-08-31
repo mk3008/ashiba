@@ -1,4 +1,4 @@
-# Raw SQL Rules (v3)
+# Raw SQL Rules (v6)
 
 ## 1. One visible query representation
 
@@ -83,6 +83,17 @@ or extend the relevant regression coverage.
 
 Test architecture remains application-owned. These Rules prescribe no testkit,
 mocking layer, loader, or test pyramid.
+
+Follow the application's existing database-backed regression pattern. Changed
+database behavior remains covered by that pattern; an existing regression may
+be reused when it already proves the changed behavior.
+
+If no database-backed regression path exists, establish the smallest reusable
+path: apply only the relevant canonical DDL to the target database, execute
+representative application SQL through the native driver, assert meaningful
+behavior and relevant runtime result representations, and provide one
+repeatable command. Do not create broad test infrastructure merely to satisfy
+this bootstrap.
 
 ## Decision rule
 

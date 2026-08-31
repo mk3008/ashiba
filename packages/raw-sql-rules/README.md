@@ -26,6 +26,10 @@ authority path. With that example visible, two ordinary Rules-only changes
 extended real DB coverage without extra completion prose or infrastructure.
 This is sufficient for the evaluated scope, not a universal reliability claim.
 
+For adoption, use [Rule 8 in RULES.md](RULES.md#8-verify-behavior-at-the-real-database-boundary)
+as the single normative source for the bootstrap-versus-steady-state distinction.
+Do not duplicate it in a separate testing contract.
+
 ## Scope and evidence limit
 
 The V3 live lane uses MySQL 8.4 with `mysql2@3.22.3` and its
