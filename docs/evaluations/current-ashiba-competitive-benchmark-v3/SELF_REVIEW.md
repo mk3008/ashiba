@@ -11,6 +11,11 @@
   live status.
 - Primary failures, pre-scoring corrections, and incomplete secondary controls
   are disclosed.
+- Primary terminal-live aggregation selects the most recent finalized attempt;
+  original cell-root runners are retained separately, and all eight changed
+  derived selections are listed in `PRIMARY_RESULT_CORRECTION.md`.
+- The six sqlc 0.1.2 primary snapshots are retained but excluded from a frozen
+  0.1.3 arm-level conclusion rather than pooled into a misleading score.
 - Ashiba is not given an author-written detailed tutorial that other arms lack.
 - Raw SQL escape hatches are treated as treatment-fidelity evidence, not
   silently accepted as an equivalent treatment.
@@ -41,11 +46,11 @@ ledger finish.
 
 - Repository verification passed: `pnpm typecheck`, `pnpm build`, `pnpm test`,
   `pnpm verify`, `pnpm docs:build`, and `git diff --check`.
-- Final-head PR CI passed: `verify`, Node 22/npm 10 distribution, Node 24/npm
-  11 distribution, and the Ticket Queue PostgreSQL reference.
+- This review-correction head passed local `pnpm verify`, `pnpm docs:build`,
+  and `git diff --check`; final-head PR CI is pending after push.
 - The append-only orchestration ledger is finished. Historical per-session
   telemetry remains unavailable and is not reconstructed.
 
-Status: **done for human review**. This self-review records both required
+Status: **done for renewed human review**. This self-review records both required
 review cycles; it does not convert unavailable historical telemetry into
 measured data.

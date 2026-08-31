@@ -19,9 +19,9 @@
 
 ## Primary record
 
-Each primary record preserves the cell identity, the `runner.json` final live
-summary and link, every chronological attempt, the first/final attempt aliases,
-and `evidenceCounts`. `firstLive` and `firstLiveSource` are direct aliases of
+Each primary record preserves the cell identity, every chronological attempt,
+the first/final attempt aliases, the initial cell-root runner observation, and
+`evidenceCounts`. `firstLive` and `firstLiveSource` are direct aliases of
 the first chronological attempt's captured `runner-result.json` / live summary;
 they are neither a reconstructed value nor a command-slot result. The count
 fields are source-record counts, not scores:
@@ -36,6 +36,12 @@ fields are source-record counts, not scores:
 
 `additionalAttemptCount` is a count of records after the first attempt. It is
 not assigned a causal category.
+
+`finalLive` and `finalLiveSource` select the most recent finalized attempt's
+captured runner result; if no attempt has a finalization record, the extractor
+falls back to the final chronological attempt. `cellRootLive` and
+`cellRootLiveSource` retain the original `evidence/<cell>/runner.json`
+observation separately. The latter is not a terminal verdict after a repair.
 
 ## Secondary record
 

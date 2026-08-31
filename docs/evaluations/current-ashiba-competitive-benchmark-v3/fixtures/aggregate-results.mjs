@@ -183,6 +183,12 @@ function primaryRecords(root) {
       );
       const finalRunnerPath = join(cellRoot, "runner.json");
       const finalRunner = maybeJson(finalRunnerPath);
+      // The immutable cell-root runner is the initial runner observation. A
+      // repair is represented by a later, separately finalized attempt. The
+      // terminal primary outcome must therefore select the most recent
+      // finalized attempt, rather than silently retaining the initial
+      // cell-root runner as the final live result.
+      const terminalAttempt = [...attempts].reverse().find((attempt) => attempt.finalization != null) ?? attempts.at(-1) ?? null;
       const record = {
         kind: "primary",
         cell,
@@ -191,14 +197,19 @@ function primaryRecords(root) {
         attemptCount: attempts.length,
         additionalAttemptCount: Math.max(0, attempts.length - 1),
         firstAttempt: attempts[0] ?? null,
-        finalAttempt: attempts.at(-1) ?? null,
+        finalAttempt: terminalAttempt,
         // This is a direct alias of the first attempt's captured runner
         // result. It is deliberately distinct from first-pass command slots
         // and from the terminal cell-level runner.json.
         firstLive: attempts[0]?.live ?? null,
         firstLiveSource: attempts[0]?.sources?.runner ?? null,
-        finalLive: liveSummary(finalRunner),
-        finalLiveSource: fileReference(root, finalRunnerPath),
+        finalLive: terminalAttempt?.live ?? null,
+        finalLiveSource: terminalAttempt?.sources?.runner ?? null,
+        // Preserve the original cell-root runner independently. It is
+        // evidence of the initial runner observation, not a terminal verdict
+        // when a later attempt has been finalized.
+        cellRootLive: liveSummary(finalRunner),
+        cellRootLiveSource: fileReference(root, finalRunnerPath),
         attempts,
       };
       return { ...record, evidenceCounts: primaryEvidenceCounts(record) };

@@ -3,12 +3,13 @@
 This matrix is intentionally conservative. `INSUFFICIENT-EVIDENCE` means the
 benchmark should not turn an unmeasured condition into product guidance.
 
-**Observed primary context.** First-oracle/final-live P counts are A 4/5,
-P 6/6, S 3/4, D 8/8, K 6/7, and G 7/7, each out of eight cells. These are
-descriptive cell counts, not an aggregate score or a causal explanation for
-the retained additional attempts. The exact per-cell first source and terminal
-source are preserved in [raw-results.json](./raw-results.json) and summarized
-in [RESULT_MATRICES.md](./RESULT_MATRICES.md).
+**Observed primary context.** Corrected terminal-attempt P counts are A 4/7,
+P 6/8, D 8/8, K 6/8, and G 7/7, each out of eight cells. sqlc is not pooled:
+six of eight cells used 0.1.2 rather than the frozen 0.1.3 plugin. These are
+descriptive counts, not an aggregate score or a causal explanation for
+retained attempts. Exact per-cell sources and the eligibility screen are in
+[raw-results.json](./raw-results.json), [RESULT_MATRICES.md](./RESULT_MATRICES.md),
+and [PRIMARY_RESULT_CORRECTION.md](./PRIMARY_RESULT_CORRECTION.md).
 
 | Scenario | Current Ashiba | Prisma 8 RC | sqlc TS | Drizzle | Kysely | native pg | Basis/status |
 | --- | --- | --- | --- | --- | --- | --- | --- |

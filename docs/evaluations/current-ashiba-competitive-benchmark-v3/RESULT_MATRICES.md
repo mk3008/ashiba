@@ -18,11 +18,11 @@ statuses, not a product-quality score.
 | G1-D-r2 | P/P/P | P | pass | 1 (+0) |
 | G1-G-r1 | P/P/P | P | pass | 1 (+0) |
 | G1-G-r2 | F/F/P | P | pass | 1 (+0) |
-| G1-K-r1 | P/P/P | F | pass | 2 (+1) |
+| G1-K-r1 | P/P/P | P | pass | 2 (+1) |
 | G1-K-r2 | P/P/P | P | pass | 1 (+0) |
 | G1-P-r1 | P/P/P | P | pass | 1 (+0) |
-| G1-P-r2 | P/P/P | F | pass | 2 (+1) |
-| G1-S-r1 | P/P/P | F | pass | 2 (+1) |
+| G1-P-r2 | P/P/P | P | pass | 2 (+1) |
+| G1-S-r1 | P/P/P | P | pass | 2 (+1) |
 | G1-S-r2 | P/P/P | P | pass | 2 (+1) |
 | Q1-A-r1 | P/P/P | F | pass | 3 (+2) |
 | Q1-A-r2 | P/P/P | P | pass | 3 (+2) |
@@ -36,7 +36,7 @@ statuses, not a product-quality score.
 | Q1-P-r2 | P/P/P | P | pass | 1 (+0) |
 | Q1-S-r1 | P/P/F | F | pass | 3 (+2) |
 | Q1-S-r2 | P/P/F | P | pass | 2 (+1) |
-| T1-A-r1 | P/F/P | F | pass | 2 (+1) |
+| T1-A-r1 | P/F/P | P | pass | 2 (+1) |
 | T1-A-r2 | P/P/P | P | pass | 1 (+0) |
 | T1-D-r1 | P/P/P | P | pass | 1 (+0) |
 | T1-D-r2 | P/P/F | P | pass | 1 (+0) |
@@ -44,12 +44,12 @@ statuses, not a product-quality score.
 | T1-G-r2 | P/P/F | P | pass | 1 (+0) |
 | T1-K-r1 | P/P/P | P | pass | 1 (+0) |
 | T1-K-r2 | P/P/P | P | pass | 1 (+0) |
-| T1-P-r1 | P/F/P | F | pass | 2 (+1) |
+| T1-P-r1 | P/F/P | P | pass | 2 (+1) |
 | T1-P-r2 | P/P/P | P | pass | 1 (+0) |
 | T1-S-r1 | P/P/P | P | fail | 1 (+0) |
-| T1-S-r2 | P/P/F | F | pass | 2 (+1) |
+| T1-S-r2 | P/P/F | P | pass | 2 (+1) |
 | T2-A-r1 | P/P/P | P | pass | 1 (+0) |
-| T2-A-r2 | P/P/P | F | pass | 2 (+1) |
+| T2-A-r2 | P/P/P | P | pass | 2 (+1) |
 | T2-D-r1 | P/P/F | P | pass | 1 (+0) |
 | T2-D-r2 | P/P/P | P | pass | 1 (+0) |
 | T2-G-r1 | P/P/P | P | pass | 1 (+0) |
@@ -58,25 +58,36 @@ statuses, not a product-quality score.
 | T2-K-r2 | P/P/P | P | pass | 1 (+0) |
 | T2-P-r1 | P/P/F | P | pass | 1 (+0) |
 | T2-P-r2 | P/P/F | P | pass | 1 (+0) |
-| T2-S-r1 | P/P/F | F | pass | 2 (+1) |
+| T2-S-r1 | P/P/F | P | pass | 2 (+1) |
 | T2-S-r2 | P/P/F | P | pass | 1 (+0) |
 
 ## Primary per-arm descriptive inventory
 
 | Arm | Cells | First B/T/Test all P | First oracle P/F | Final live P/F | Frozen treatment pass | Frozen treatment fail | Retained attempts (+) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| A | 8 | 7 | 4 / 4 | 5 / 3 | 8 | 0 | 14 (+6) |
-| P | 8 | 4 | 6 / 2 | 6 / 2 | 8 | 0 | 10 (+2) |
-| S | 8 | 3 | 3 / 5 | 4 / 4 | 7 | 1 | 15 (+7) |
+| A | 8 | 7 | 4 / 4 | 7 / 1 | 8 | 0 | 14 (+6) |
+| P | 8 | 4 | 6 / 2 | 8 / 0 | 8 | 0 | 10 (+2) |
+| S | 8 | 3 | 3 / 5 | 7 / 1 | 7 | 1 | 15 (+7) |
 | D | 8 | 5 | 8 / 0 | 8 / 0 | 8 | 0 | 8 (+0) |
-| K | 8 | 8 | 6 / 2 | 7 / 1 | 8 | 0 | 10 (+2) |
+| K | 8 | 8 | 6 / 2 | 8 / 0 | 8 | 0 | 10 (+2) |
 | G | 8 | 5 | 7 / 1 | 7 / 1 | 8 | 0 | 10 (+2) |
 
 Across all primary cells, direct first oracle/live status is 34 P / 14 F;
-terminal live status is 37 P / 11 F. The raw index preserves the per-cell
-`firstLiveSource` hash/path and the terminal runner source. The difference is
+terminal live status is 45 P / 3 F. The raw index preserves the per-cell
+`firstLiveSource` hash/path, terminal-attempt runner source, and original
+cell-root runner observation. The difference is
 an observation of retained attempt sequences, not an attribution of repair
 cause or tool effect.
+
+### sqlc primary eligibility boundary
+
+Six sqlc primary cells (`G1-S-r1`, `G1-S-r2`, `Q1-S-r1`, `T1-S-r2`,
+`T2-S-r1`, and `T2-S-r2`) used the `sqlc-gen-typescript` 0.1.2 WASM plugin,
+not the frozen 0.1.3 plugin. Their immutable observations remain in the table
+and raw index, but they are **not eligible for a pooled frozen-0.1.3 sqlc
+result**. Only `T1-S-r1` and `Q1-S-r2` are exact-version primary observations;
+the former has a failed frozen treatment review. See
+[PRIMARY_RESULT_CORRECTION.md](./PRIMARY_RESULT_CORRECTION.md).
 
 The Prisma `pass` column is the frozen review. Its separate final workflow
 interpretation is in [PRISMA_TREATMENT_ADJUDICATION.md](./PRISMA_TREATMENT_ADJUDICATION.md): six cells are qualified-inline-contract and two are

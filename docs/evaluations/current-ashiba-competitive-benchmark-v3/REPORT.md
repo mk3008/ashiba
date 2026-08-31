@@ -57,9 +57,9 @@ Prisma 7 is historical context only and was not scored.
 
 | Workload | Construct measured | Final live observations |
 | --- | --- | --- |
-| G1 | Bounded business application and maintenance request | first 9 pass / 3 fail; final 9 pass / 3 fail |
-| T1 | Atomic debit/credit/audit transaction | first 9 pass / 3 fail; final 9 pass / 3 fail |
-| T2 | Concurrent work claim | first 10 pass / 2 fail; final 10 pass / 2 fail |
+| G1 | Bounded business application and maintenance request | first 9 pass / 3 fail; final 12 pass / 0 fail |
+| T1 | Atomic debit/credit/audit transaction | first 9 pass / 3 fail; final 12 pass / 0 fail |
+| T2 | Concurrent work claim | first 10 pass / 2 fail; final 12 pass / 0 fail |
 | Q1 | Complex PostgreSQL query, trace, and EXPLAIN task | first 6 pass / 6 fail; final 9 pass / 3 fail |
 
 Those counts are cell observations, not tool scores. The per-cell record,
@@ -131,8 +131,10 @@ single adoption-cost score.
 ### G. First-pass success and retained attempts
 
 **Observed.** Direct first-attempt oracle/live records are 34 P / 14 F;
-terminal live records are 37 P / 11 F. By arm, first/final P counts are A
-4/5, P 6/6, S 3/4, D 8/8, K 6/7, and G 7/7 (out of eight each). There are 19
+terminal live records are 45 P / 3 F. By arm, first/final P counts are A
+4/7, P 6/8, D 8/8, K 6/8, and G 7/7 (out of eight each). sqlc is not
+aggregable as frozen 0.1.3 evidence because six primary cells used 0.1.2.
+There are 19
 additional primary attempt records. **Inference boundary.** The source does
 not declare a normalized cause for each additional attempt, and orchestration
 retries are unavailable rather than counted as candidate repairs. See
@@ -141,7 +143,7 @@ retries are unavailable rather than counted as candidate repairs. See
 ### H. Plain `pg` marginal value
 
 **Observed.** Ashiba and native `pg` are separate frozen treatments; their
-final P counts are 5 and 7 respectively, and their first P counts are 4 and
+corrected terminal P counts are both 7, and their first P counts are 4 and
 7. **Inference boundary.** Two replicates and unclassified repair causes do
 not establish the long-run marginal defect-prevention value of named binding.
 
@@ -160,7 +162,8 @@ is DB-centric and does not establish incident-debugging ergonomics generally.
 ### K. Finite dynamic SQL
 
 **Observed.** G1 runner controls finite sort vocabulary, value separation,
-filters, and pagination; its first and final results are both 9 P / 3 F.
+filters, and pagination; its first result is 9 P / 3 F and corrected terminal
+result is 12 P / 0 F.
 **Inference boundary.** That bounded condition does not cover arbitrary SQL
 syntax composition.
 
@@ -176,19 +179,19 @@ comparison.
 
 ### M. Transactions
 
-**Observed.** T1 first and final records are both 9 P / 3 F, with runner-owned
-rollback controls. **Inference boundary.** This does not compare all
+**Observed.** T1 first records are 9 P / 3 F and corrected terminal records
+are 12 P / 0 F, with runner-owned rollback controls. **Inference boundary.** This does not compare all
 transaction API designs or production failure modes.
 
 ### N. Concurrency
 
-**Observed.** T2 first and final records are both 10 P / 2 F under the frozen
-claim oracle. **Inference boundary.** The result does not generalize to other
+**Observed.** T2 first records are 10 P / 2 F and corrected terminal records
+are 12 P / 0 F under the frozen claim oracle. **Inference boundary.** The result does not generalize to other
 isolation levels or concurrency patterns.
 
 ### O. Prisma 8 RC contract/framework trade-offs
 
-**Observed.** Prisma has 6/8 first and final P records; its frozen treatment
+**Observed.** Prisma has 6/8 first and 8/8 corrected terminal P records; its frozen treatment
 review passes 8/8. Final adjudication records six
 `qualified-inline-contract` and two `emitted-contract-plus-raw-SQL` paths,
 all through the Prisma runtime. **Weakest boundary.** This is not evidence of
@@ -197,8 +200,9 @@ the complete generated Prisma client lifecycle. See
 
 ### P. sqlc generation trade-offs
 
-**Observed.** sqlc has 3/8 first P and 4/8 final P records; frozen treatment
-review passes 7/8. **Weakest boundary.** The TypeScript plugin is early access,
+**Observed, qualified.** Six sqlc primary cells used the non-frozen 0.1.2
+plugin, so no 0.1.3 arm-level score is reported. Of the two exact-version
+cells, only one passes frozen treatment review. **Weakest boundary.** The TypeScript plugin is early access,
 and these cells do not establish sqlc core behavior in other languages.
 
 ### Q. Drizzle trade-offs
@@ -209,7 +213,7 @@ general Drizzle superiority result.
 
 ### R. Kysely trade-offs
 
-**Observed.** Kysely has 6/8 first P and 7/8 final P records under frozen
+**Observed.** Kysely has 6/8 first P and 8/8 corrected terminal P records under frozen
 treatment review. **Weakest boundary.** This does not measure its ecosystem,
 migration, or open-ended-composition breadth.
 

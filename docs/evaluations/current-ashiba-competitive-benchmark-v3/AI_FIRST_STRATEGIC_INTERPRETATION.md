@@ -20,8 +20,10 @@ benchmark observations.
 ## Executive conclusion
 
 **Observed.** The frozen primary matrix records 48 cells. Drizzle had 8/8
-first-live and 8/8 final-live passes; native `pg` had 7/8 and 7/8; Current
-Ashiba had 4/8 and 5/8. Every arm had at least one successful primary
+first-live and 8/8 corrected terminal-live passes; native `pg` had 7/8 and
+7/8; Current Ashiba had 4/8 and 7/8. Prisma and Kysely also had 8/8 corrected
+terminal-live passes. sqlc is not comparable as a frozen 0.1.3 arm because
+six primary cells used 0.1.2. Every arm had at least one successful primary
 observation. These are descriptive results for the frozen packets, model
 profile, Node 24.18.0, PostgreSQL 18.6, and two replicates—not a universal
 product ranking.
@@ -73,11 +75,11 @@ chosen visible SQL and native drivers.
 
 | Arm | First live pass | Final live pass | Retained attempts |
 | --- | ---: | ---: | ---: |
-| Current Ashiba | 4/8 | 5/8 | 14 |
-| Prisma 8 RC | 6/8 | 6/8 | 10 |
-| sqlc TypeScript | 3/8 | 4/8 | 15 |
+| Current Ashiba | 4/8 | 7/8 | 14 |
+| Prisma 8 RC | 6/8 | 8/8 | 10 |
+| sqlc TypeScript | not comparable | not comparable | six cells used 0.1.2 |
 | Drizzle | 8/8 | 8/8 | 8 |
-| Kysely | 6/8 | 7/8 | 10 |
+| Kysely | 6/8 | 8/8 | 10 |
 | native `pg` | 7/8 | 7/8 | 10 |
 
 **Observed.** Under these packets, Drizzle was the most consistently successful
@@ -113,7 +115,7 @@ SQL, deterministic `$n` lowering, and pre-driver missing/unused rejection.
 | Hostile value separation | Mostly neutral | Both work when `pg` is correctly parameterized |
 | SQL semantics/result correctness | Neutral | Both need PostgreSQL and tests |
 | Dependency and concepts | Negative, small | One package plus compile/bind boundary |
-| Measured primary outcome | Not positive | 5/8 final versus `pg` 7/8 |
+| Measured primary outcome | Mixed | 7/8 corrected terminal versus `pg` 7/8; G already received Raw SQL safety rules |
 | Long-run defect reduction | Unestablished | Not isolated by this benchmark |
 
 **Inference.** Ashiba is a positive micro-mechanism and an unproven
@@ -147,7 +149,7 @@ types, relation modeling, integrated migrations, or a complete data layer.
 
 ### Prisma 8 RC
 
-**Observed.** The frozen Prisma 8 RC arm had 6/8 first and final live passes.
+**Observed.** The frozen Prisma 8 RC arm had 6/8 first and 8/8 corrected terminal live passes.
 All treatment reviews passed; six cells used qualified inline contract evidence
 and two used emitted contract artifacts, with no native-`pg` bypass. Prisma 8
 remains an RC, not GA/stable.
@@ -161,7 +163,8 @@ trade-off.
 
 ### sqlc TypeScript
 
-**Observed.** sqlc recorded 3/8 first and 4/8 final live passes. Core sqlc was
+**Observed, qualified.** Six sqlc cells used plugin 0.1.2 rather than frozen
+0.1.3, so the record does not support a pooled sqlc 0.1.3 outcome. Core sqlc was
 stable, while the TypeScript plugin was early access; the workflow owns SQL,
 schema/configuration, generation, and generated TypeScript.
 
@@ -183,7 +186,7 @@ The study does not establish long-term migration, upgrade, or incident cost.
 
 ### Kysely
 
-**Observed.** Kysely recorded 6/8 first and 7/8 final live passes, including
+**Observed.** Kysely recorded 6/8 first and 8/8 corrected terminal live passes, including
 successful transaction, concurrency, and Q1 observations.
 
 **Assessment.** A plausible middle path: typed composition with less lifecycle

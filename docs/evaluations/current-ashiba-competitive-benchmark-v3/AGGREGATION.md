@@ -37,10 +37,13 @@ result, treatment review, finalization record, durable E1/SD schema summary,
 and evidence path without copying large event streams a second time. Every
 cell also emits `evidenceCounts` for first-pass, live, final, treatment, and
 attempt source records; these are inventories rather than verdicts. For each
-primary cell, `firstLive` is a direct alias of the first chronological
-attempt's captured runner result, while `finalLive` remains the cell-level
-terminal runner result. This makes first-oracle and final-live status visibly
-separate without deriving either from build/typecheck/test slots.
+primary cell, `firstLive` is the first chronological attempt's captured runner
+result. `finalLive` is the captured runner result from the most recent
+finalized attempt (falling back to the final chronological attempt only if no
+finalization record exists). The original cell-root `runner.json` remains
+preserved as `cellRootLive`; it is an initial observation, not a terminal
+verdict after a repair attempt. This makes first-oracle and final-live status
+visibly separate without deriving either from build/typecheck/test slots.
 
 ## Interpretation boundary
 

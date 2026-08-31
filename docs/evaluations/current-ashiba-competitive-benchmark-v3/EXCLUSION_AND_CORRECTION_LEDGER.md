@@ -9,6 +9,26 @@ No scored candidate has started at preregistration.
 Entries are append-only. A correction does not overwrite the preceding failed
 or calibration evidence.
 
+# H-010 — Primary terminal aggregation and sqlc plugin-fidelity audit
+
+- **Observed:** 2026-08-31 during human publication review.
+- **Original evidence:** each immutable primary attempt already retained its
+  runner capture and finalization record. The compact extractor nevertheless
+  used a cell-root initial `runner.json` as `finalLive` after later attempts
+  were finalized. Six primary sqlc cell snapshots also used plugin 0.1.2
+  although the frozen packet specifies 0.1.3.
+- **Correction:** `finalLive` now selects the most recent finalized attempt,
+  preserving the old cell-root observation as `cellRootLive`. Mixed-plugin
+  sqlc cells remain retained but are excluded from a frozen-0.1.3 arm outcome.
+- **Affected cells:** terminal selection: `G1-K-r1`, `G1-P-r2`, `G1-S-r1`,
+  `T1-A-r1`, `T1-P-r1`, `T1-S-r2`, `T2-A-r2`, `T2-S-r1`; plugin eligibility:
+  `G1-S-r1`, `G1-S-r2`, `Q1-S-r1`, `T1-S-r2`, `T2-S-r1`, `T2-S-r2`.
+- **Evidence handling:** no candidate, attempt, runner, or source snapshot is
+  rewritten. The regenerated index and documents point to the preserved
+  sources. See [PRIMARY_RESULT_CORRECTION.md](./PRIMARY_RESULT_CORRECTION.md).
+- **Status:** completed in this review-correction change; a future complete
+  sqlc 0.1.3 remeasurement remains separate work.
+
 # EXCL-002 — AF-V-S-r2 sqlc plugin 0.1.2 pre-execution setup incident
 
 - **Observed:** 2026-08-31 before the AF-V-S-r2 reliable candidate performed

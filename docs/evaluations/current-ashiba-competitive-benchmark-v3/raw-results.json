@@ -3,7 +3,7 @@
   "generatedAt": null,
   "generator": {
     "path": "fixtures/aggregate-results.mjs",
-    "sha256": "3e3435386cd22c33d326e89842e0c23f6c019ce96a807bb2dbe1ff75f40da2e1"
+    "sha256": "099a393d05a6efaedeec768f323fcae814a9f2a48deb311bd72e75cd44c08646"
   },
   "inputRoot": ".",
   "interpretationPolicy": {
@@ -300,6 +300,36 @@
         "finishedAt": "2026-08-30T07:49:56.680Z"
       },
       "finalLiveSource": {
+        "path": "evidence/G1-A-r1/attempts/2026-08-30T07-49-35-521Z-d8b54c5c6c44/runner-result.json",
+        "sha256": "782b61ed1c8ede70b1c6e465551fe0dc2718a47e1a31c4cfd3bc0fd3153c128b"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 7,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T07:49:56.480Z",
+        "finishedAt": "2026-08-30T07:49:56.680Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/G1-A-r1/runner.json",
         "sha256": "dcdf93879ec189bdb908c9b59aff0de9aec515e10aa7e0a64929cf20ca8e2773"
       },
@@ -679,6 +709,36 @@
         "finishedAt": "2026-08-30T08:15:52.459Z"
       },
       "finalLiveSource": {
+        "path": "evidence/G1-A-r2/attempts/2026-08-30T08-15-42-315Z-35f5a09a8ba4/runner-result.json",
+        "sha256": "d40bff6d6bfa59189147f258e6de0f82f31a6ebb356bcf48733101c9de31e92e"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:15:52.254Z",
+        "finishedAt": "2026-08-30T08:15:52.459Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/G1-A-r2/runner.json",
         "sha256": "b90494928948e3b44937264a8151a4e2b5951d62fb3ca75ddd18871bf9a963bf"
       },
@@ -1058,6 +1118,36 @@
         "finishedAt": "2026-08-30T07:57:28.184Z"
       },
       "finalLiveSource": {
+        "path": "evidence/G1-D-r1/attempts/2026-08-30T07-57-08-187Z-ccfcea5939c0/runner-result.json",
+        "sha256": "43a8b2b1510f885e769e6d637e5852ae0ffe9c577d8916e59e1148760ae4f305"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 11,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T07:57:27.668Z",
+        "finishedAt": "2026-08-30T07:57:28.184Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/G1-D-r1/runner.json",
         "sha256": "d093128f6646ed2f588172023e2140762c24e12e16c0652da62215bb665f5845"
       },
@@ -1437,6 +1527,36 @@
         "finishedAt": "2026-08-30T08:20:18.494Z"
       },
       "finalLiveSource": {
+        "path": "evidence/G1-D-r2/attempts/2026-08-30T08-20-08-353Z-b320d7ac7b2a/runner-result.json",
+        "sha256": "b278badfa3821867414afbee34c1abcbaafd7aa0708af86cfa7919db7572b6da"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:20:17.936Z",
+        "finishedAt": "2026-08-30T08:20:18.494Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/G1-D-r2/runner.json",
         "sha256": "8ae647510a328ce789f43a692220833ebb1b53b54a88d48e2b72aada3177bf13"
       },
@@ -1816,6 +1936,36 @@
         "finishedAt": "2026-08-30T08:03:12.278Z"
       },
       "finalLiveSource": {
+        "path": "evidence/G1-G-r1/attempts/2026-08-30T08-03-02-756Z-e6fd4e92a16a/runner-result.json",
+        "sha256": "2f6a999c2bcadbaf9c3534a681f5085310d4663730d7e332dd4ca7b8d3d94b24"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:03:11.826Z",
+        "finishedAt": "2026-08-30T08:03:12.278Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/G1-G-r1/runner.json",
         "sha256": "543ab37dd50a9e77732f28df4e5f7e0f6a6de7cc004a16b15c253751faadb12a"
       },
@@ -2195,6 +2345,36 @@
         "finishedAt": "2026-08-30T08:43:49.814Z"
       },
       "finalLiveSource": {
+        "path": "evidence/G1-G-r2/attempts/2026-08-30T08-43-37-543Z-be2327566c5f/runner-result.json",
+        "sha256": "f1af18591e32a00cf2a893b78b9d0e39e66c527e10f179a75c5cdca98fcf9015"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 4,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:43:49.591Z",
+        "finishedAt": "2026-08-30T08:43:49.814Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/G1-G-r2/runner.json",
         "sha256": "f2ff6214c740a0367c20b28b1259abd857d717b494ea9ed8c9de41b82d8396ba"
       },
@@ -2550,6 +2730,36 @@
         "sha256": "d88aed345dea6d574443b0828f6f60f7f9c588406217175a679dba18a477e4ba"
       },
       "finalLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:05:00.679Z",
+        "finishedAt": "2026-08-30T08:05:01.076Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/G1-K-r1/attempts/2026-08-30T08-04-48-730Z-199b55d44345/runner-result.json",
+        "sha256": "65634764e1effbbafec52fb91a7a651081a2d367124b08f91637a4cd8b0acf46"
+      },
+      "cellRootLive": {
         "status": "F",
         "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
         "workloads": [
@@ -2576,7 +2786,7 @@
         "startedAt": "2026-08-30T08:03:52.213Z",
         "finishedAt": "2026-08-30T08:03:52.500Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/G1-K-r1/runner.json",
         "sha256": "626fb59821594496eea8b36cc1f659c0228bede10ee1b12e1486602dbece739a"
       },
@@ -3057,6 +3267,36 @@
         "finishedAt": "2026-08-30T08:43:50.109Z"
       },
       "finalLiveSource": {
+        "path": "evidence/G1-K-r2/attempts/2026-08-30T08-43-37-778Z-d53ce3fedb7a/runner-result.json",
+        "sha256": "44b46a856e56ac53a857c5d5b8abd13e059a7b39b2b47548a08f03d72e904ca1"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:43:49.756Z",
+        "finishedAt": "2026-08-30T08:43:50.109Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/G1-K-r2/runner.json",
         "sha256": "6a24437ccef3393d4a97502cc6f3afd2ab7011901f1bb250d19fd0b50be7d733"
       },
@@ -3436,6 +3676,36 @@
         "finishedAt": "2026-08-30T07:50:48.553Z"
       },
       "finalLiveSource": {
+        "path": "evidence/G1-P-r1/attempts/2026-08-30T07-50-35-584Z-7c090a002042/runner-result.json",
+        "sha256": "74a8962a7126728c0570714709d5040bbd95bdf02737240a9e05b6ae57f057d9"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T07:50:47.050Z",
+        "finishedAt": "2026-08-30T07:50:48.553Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/G1-P-r1/runner.json",
         "sha256": "503d0dd33bd795abfefa24bb9ca6ed5a91eb3a052ec99be57173ea4106faed2c"
       },
@@ -3791,6 +4061,36 @@
         "sha256": "b3288ee48267f584fbc6e53197f263aa6eaa1d43647d7dab1700e713c424b9ed"
       },
       "finalLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:18:59.576Z",
+        "finishedAt": "2026-08-30T08:19:00.111Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/G1-P-r2/attempts/2026-08-30T08-18-50-368Z-cf139c4f9597/runner-result.json",
+        "sha256": "836a95ca88d3ec334ed20c809e6ee3a359f7115f79b63d2f8e547efcd2911788"
+      },
+      "cellRootLive": {
         "status": "F",
         "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
         "workloads": [
@@ -3817,7 +4117,7 @@
         "startedAt": "2026-08-30T08:17:23.074Z",
         "finishedAt": "2026-08-30T08:17:24.207Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/G1-P-r2/runner.json",
         "sha256": "15fe7d95bf30ae7dc840e46c5adabad89d03a3967a09fe9c0a6c605ae8ac7da2"
       },
@@ -4266,6 +4566,36 @@
         "sha256": "bae4ab73158974af5f45a48edbbbf7443028c600d4dfff140557ac0b8b5b7ca0"
       },
       "finalLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 16,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T07:58:00.359Z",
+        "finishedAt": "2026-08-30T07:58:00.569Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/G1-S-r1/attempts/2026-08-30T07-57-45-015Z-63527cfd4854/runner-result.json",
+        "sha256": "0ec6d62c206b1616e508f8c8e67d8206731ae79c83e58ff4dd6cbe7cb63e8466"
+      },
+      "cellRootLive": {
         "status": "F",
         "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
         "workloads": [
@@ -4288,7 +4618,7 @@
         "startedAt": "2026-08-30T07:51:30.438Z",
         "finishedAt": "2026-08-30T07:51:30.438Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/G1-S-r1/runner.json",
         "sha256": "e91a606f132dbe54682838ddb9c27ce16a6d0df58427f4a7ed6468ed8af64f7c"
       },
@@ -4752,6 +5082,36 @@
         },
         "source": {
           "pass": true,
+          "fileCount": 12,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:24:56.368Z",
+        "finishedAt": "2026-08-30T08:24:56.543Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/G1-S-r2/attempts/2026-08-30T08-24-46-309Z-dea19c5aae90/runner-result.json",
+        "sha256": "f67621e23d9851b31a5785a3d62ef7aac1db2c45dc00b424eb835ea398a631df"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "G1"
+        ],
+        "checks": {
+          "total": 20,
+          "statusCounts": {
+            "pass": 20
+          }
+        },
+        "source": {
+          "pass": true,
           "fileCount": 10,
           "findingCount": 0
         },
@@ -4764,7 +5124,7 @@
         "startedAt": "2026-08-30T08:18:10.688Z",
         "finishedAt": "2026-08-30T08:18:10.988Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/G1-S-r2/runner.json",
         "sha256": "dd874cce0456d071389d6d778c001e5b082df9057c9f709e580c936f5bd66d77"
       },
@@ -5248,6 +5608,37 @@
         "finishedAt": "2026-08-30T10:25:58.360Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-A-r1/attempts/2026-08-30T10-25-48-805Z-014dc3b42966/runner-result.json",
+        "sha256": "a67e1818eb05d5b79f1c0f6d0b693740c503345630b58aaf5b090b1f5d9f5d56"
+      },
+      "cellRootLive": {
+        "status": "F",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 4,
+            "fail": 2
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:25:58.253Z",
+        "finishedAt": "2026-08-30T10:25:58.360Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-A-r1/runner.json",
         "sha256": "f2ec4e24e80bba63bc324e8f1589f6f16fe7419ca161da6cf9755d9d6902ad0c"
       },
@@ -5832,6 +6223,36 @@
         "finishedAt": "2026-08-30T10:40:29.459Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-A-r2/attempts/2026-08-30T10-40-26-786Z-d7ee90314650/runner-result.json",
+        "sha256": "d52af542697e6bc9d6c1aa130501bfd65090be1aaba56038abbf0f7f4f121ee4"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 7,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:40:29.360Z",
+        "finishedAt": "2026-08-30T10:40:29.459Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-A-r2/runner.json",
         "sha256": "6b44cc2417118e0adb6dacdeed78eae769c0dc5c7565130e679249b5c4804e79"
       },
@@ -6413,6 +6834,36 @@
         "finishedAt": "2026-08-30T10:24:58.052Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-D-r1/attempts/2026-08-30T10-24-48-041Z-5a82385b980e/runner-result.json",
+        "sha256": "f93d89ffa43bf5052b55329a4d5606fad4b85ec7ff69d9f859037d41aafb2215"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:24:57.618Z",
+        "finishedAt": "2026-08-30T10:24:58.052Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-D-r1/runner.json",
         "sha256": "fe2888ff0ee60dedf348aff09942f5872661d1d086e13f715880e116ae02c02d"
       },
@@ -6792,6 +7243,36 @@
         "finishedAt": "2026-08-30T10:47:08.541Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-D-r2/attempts/2026-08-30T10-47-04-237Z-d8244042cd49/runner-result.json",
+        "sha256": "cfd97a921ae5f0ae60bfc8eb1808dc5ba6c011e9f8e37ba8b532b364f1899512"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:47:08.105Z",
+        "finishedAt": "2026-08-30T10:47:08.541Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-D-r2/runner.json",
         "sha256": "ecc43ed4a65bc970106405a8705979628fe2ed88d21771b0753d82c4e096621c"
       },
@@ -7171,6 +7652,36 @@
         "finishedAt": "2026-08-30T10:30:43.063Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-G-r1/attempts/2026-08-30T10-30-34-418Z-796d71428fd0/runner-result.json",
+        "sha256": "d2e6acc7ca705177179df25f9664e814d18d6cd8761fbf945e54ed7746995c5a"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:30:42.936Z",
+        "finishedAt": "2026-08-30T10:30:43.063Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-G-r1/runner.json",
         "sha256": "c9843312cc781e1505d3a04d86c9cf90d391c88e443ed90a5bab444e1bcceae2"
       },
@@ -7554,6 +8065,37 @@
         "finishedAt": "2026-08-30T10:51:25.533Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-G-r2/attempts/2026-08-30T10-51-21-541Z-659d91f07bc8/runner-result.json",
+        "sha256": "84a3ea704cd7b2f4bdddb2c1191f00d0428d3a8ba4507511b85ff60a1e72f280"
+      },
+      "cellRootLive": {
+        "status": "F",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 4,
+            "fail": 2
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 10,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:51:25.405Z",
+        "finishedAt": "2026-08-30T10:51:25.533Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-G-r2/runner.json",
         "sha256": "5d20e961146d3e6c944b7bb3d4e7491efa709d0aad11e3267a857c7dabc4d85f"
       },
@@ -8138,6 +8680,36 @@
         "finishedAt": "2026-08-30T10:29:04.517Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-K-r1/attempts/2026-08-30T10-28-53-524Z-db11e2734d51/runner-result.json",
+        "sha256": "1305c4a9b4bef414a221c6b181a614c330759fc1a5fd80565256bbcb014eaefd"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 7,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:29:04.273Z",
+        "finishedAt": "2026-08-30T10:29:04.517Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-K-r1/runner.json",
         "sha256": "7d4647255f663637a0301ccbe3596977b6d59b283a34782c32ed7d10bacabcc4"
       },
@@ -8618,6 +9190,36 @@
         "finishedAt": "2026-08-30T10:47:27.838Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-K-r2/attempts/2026-08-30T10-47-24-575Z-1d4950908f61/runner-result.json",
+        "sha256": "b41f9eacc02e23d9afb02ae6f0a97cfe3fb330589d17e148ab759cdd995e6472"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:47:27.573Z",
+        "finishedAt": "2026-08-30T10:47:27.838Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-K-r2/runner.json",
         "sha256": "f5151232abe400ec1f186fb52088ba693a5d9d6a4a905bd07f0246408c8a8133"
       },
@@ -8997,6 +9599,36 @@
         "finishedAt": "2026-08-30T10:21:31.104Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-P-r1/attempts/2026-08-30T10-21-18-354Z-4dbfe9682c66/runner-result.json",
+        "sha256": "e47a8b4ebd985ba40664a43c2682f8cd3da6d16457c5a379cd7333b6aad976f1"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 8,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:21:28.894Z",
+        "finishedAt": "2026-08-30T10:21:31.104Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-P-r1/runner.json",
         "sha256": "49baab27e4d61a988c622a49bf972b9d884766c6b53f3ca57d791a2c5d514ead"
       },
@@ -9376,6 +10008,36 @@
         "finishedAt": "2026-08-30T10:40:03.022Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-P-r2/attempts/2026-08-30T10-39-39-429Z-3e584cf53fe3/runner-result.json",
+        "sha256": "603dbb73476282960dda896c62ff96951b7ea46c9ed26edcda41fc8b102ca8b0"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 7,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:40:01.623Z",
+        "finishedAt": "2026-08-30T10:40:03.022Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-P-r2/runner.json",
         "sha256": "9195df0f95950e70c9397eaafa485899e1528825b86acf9e1fbcb8a77ab57111"
       },
@@ -9759,6 +10421,37 @@
         "finishedAt": "2026-08-30T10:26:57.990Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-S-r1/attempts/2026-08-30T10-26-48-893Z-afc26553f5b2/runner-result.json",
+        "sha256": "574c02c9df9486ec28deb1e8aeab642e30e2df527f697014bf02b4b24f931016"
+      },
+      "cellRootLive": {
+        "status": "F",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 5,
+            "fail": 1
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 9,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:26:57.874Z",
+        "finishedAt": "2026-08-30T10:26:57.990Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-S-r1/runner.json",
         "sha256": "59c7b54b97c83a07787d8047992802e8aed03c6a792edd987719e9662779a33e"
       },
@@ -10335,6 +11028,36 @@
         "finishedAt": "2026-08-30T10:40:48.276Z"
       },
       "finalLiveSource": {
+        "path": "evidence/Q1-S-r2/attempts/2026-08-30T10-40-45-883Z-28b1b45a5969/runner-result.json",
+        "sha256": "c68515ed7fac509c7cf84f2f87e805cbb4a46d9907f0edba1fd724ff0b73d97b"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "Q1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 12,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:40:48.161Z",
+        "finishedAt": "2026-08-30T10:40:48.276Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/Q1-S-r2/runner.json",
         "sha256": "c686e6e7f0d0fb5ee9d736af99f57d546b268660576515a7fabeffffa0ce1a29"
       },
@@ -10787,6 +11510,36 @@
         "sha256": "aa3c2bd39433a962f34db65caad8e0148b6f1d3bfc39ce8658e1a91a0055a3f9"
       },
       "finalLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 4,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:58:17.972Z",
+        "finishedAt": "2026-08-30T08:58:18.138Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/T1-A-r1/attempts/2026-08-30T08-58-11-050Z-345a3d60cb0f/runner-result.json",
+        "sha256": "0adf1abdf636ff7ddc880f822b5ca3b2a674fcd3fdca80986ec65e639500695f"
+      },
+      "cellRootLive": {
         "status": "F",
         "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
         "workloads": [
@@ -10813,7 +11566,7 @@
         "startedAt": "2026-08-30T08:56:37.212Z",
         "finishedAt": "2026-08-30T08:56:37.385Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/T1-A-r1/runner.json",
         "sha256": "53cc6e9811a790ecc0e76353ee76fde1ed336a3f76c2ff30b1884ae932e80ac0"
       },
@@ -11294,6 +12047,36 @@
         "finishedAt": "2026-08-30T09:21:47.265Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-A-r2/attempts/2026-08-30T09-21-36-651Z-6c6bc7e727f2/runner-result.json",
+        "sha256": "2cbb27f388fc5f44d6026449252bbc31f29b6ea0045a8f5eefac073c00bc0ec2"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:21:46.770Z",
+        "finishedAt": "2026-08-30T09:21:47.265Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-A-r2/runner.json",
         "sha256": "1643ca561e1d3aceb6778ac7905e00a60d4944b1b9a5c0e430e28aea6628765d"
       },
@@ -11673,6 +12456,36 @@
         "finishedAt": "2026-08-30T09:11:49.701Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-D-r1/attempts/2026-08-30T09-11-38-800Z-cbe61219197e/runner-result.json",
+        "sha256": "32b264f07831d90cde3d2bf2f75e1a27b2a1fcdf77a7485724e99f7012924a3d"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:11:49.161Z",
+        "finishedAt": "2026-08-30T09:11:49.701Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-D-r1/runner.json",
         "sha256": "4479e7618558a5d9132280f925dd7efe916587b75ef0defb7d36b179caded4d8"
       },
@@ -12052,6 +12865,36 @@
         "finishedAt": "2026-08-30T09:29:30.819Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-D-r2/attempts/2026-08-30T09-29-17-367Z-12f77f82a851/runner-result.json",
+        "sha256": "86ba5dec6835f4ae250f1a8694cef2e4a9caa9316952bd2c6808b2f4d17b605c"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 13,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:29:30.273Z",
+        "finishedAt": "2026-08-30T09:29:30.819Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-D-r2/runner.json",
         "sha256": "1ee0a7c594f616e21826221e84e6717d1b70746a4080d7461a852b20a1f38c67"
       },
@@ -12431,6 +13274,36 @@
         "finishedAt": "2026-08-30T09:12:24.243Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-G-r1/attempts/2026-08-30T09-12-15-382Z-41cf8b9793f0/runner-result.json",
+        "sha256": "f7d178f3da9fd0f4c2f5ebad1631767b3eca2895b196244dbfac25d24ae5045a"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 4,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:12:24.048Z",
+        "finishedAt": "2026-08-30T09:12:24.243Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-G-r1/runner.json",
         "sha256": "1cada7364a214a05549be397e9e6807577171411e80b0ec93d19f3b6cc1bdd31"
       },
@@ -12810,6 +13683,36 @@
         "finishedAt": "2026-08-30T09:35:03.752Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-G-r2/attempts/2026-08-30T09-34-53-182Z-7db4e4f1e2e4/runner-result.json",
+        "sha256": "1766c0f85b57b61b20b5828b47fe2caa33177fbbcffcc35b72ee53816b0c9a5c"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:35:03.550Z",
+        "finishedAt": "2026-08-30T09:35:03.752Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-G-r2/runner.json",
         "sha256": "948d1c1b0cd477d7c38ebffea20e516b7b2bf24005e13454a22155619a0f3fc8"
       },
@@ -13189,6 +14092,36 @@
         "finishedAt": "2026-08-30T09:09:50.689Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-K-r1/attempts/2026-08-30T09-09-40-448Z-e4fd5f0de2bf/runner-result.json",
+        "sha256": "08ea6db5eb0c6d52509002fb22d764372b76c5458742b734728b4627dd8874af"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:09:50.279Z",
+        "finishedAt": "2026-08-30T09:09:50.689Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-K-r1/runner.json",
         "sha256": "555a2021100d248d549be736a9b2d5dc2bedb2beb0f57846212f80473cd818a5"
       },
@@ -13568,6 +14501,36 @@
         "finishedAt": "2026-08-30T09:27:38.799Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-K-r2/attempts/2026-08-30T09-27-27-608Z-7208c9be28b1/runner-result.json",
+        "sha256": "19a4f594f93520b4719caf9d390d04f23b417f2f59604f98676682a59d30ddf1"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:27:38.370Z",
+        "finishedAt": "2026-08-30T09:27:38.799Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-K-r2/runner.json",
         "sha256": "d48a441d8136e357b83f94236265818cde87a65e8a45bf16de8f1f4127f4bb90"
       },
@@ -13923,6 +14886,36 @@
         "sha256": "f788941a9b55ed234f4248ea9d568294902dbcbe0a184972933e11d0d2ec8e5b"
       },
       "finalLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 4,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:59:55.467Z",
+        "finishedAt": "2026-08-30T08:59:56.137Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/T1-P-r1/attempts/2026-08-30T08-59-46-499Z-c6367d7fabd9/runner-result.json",
+        "sha256": "c03e044e46a3e8bdf4da6864dd91c4dd7bc3aeba24daf23ad3b72fdc7de21bd1"
+      },
+      "cellRootLive": {
         "status": "F",
         "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
         "workloads": [
@@ -13949,7 +14942,7 @@
         "startedAt": "2026-08-30T08:58:45.369Z",
         "finishedAt": "2026-08-30T08:58:47.321Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/T1-P-r1/runner.json",
         "sha256": "bb0207d37093c7b03e799de080a48574e99e3be5c4fadab3fff30745b0156ee6"
       },
@@ -14430,6 +15423,36 @@
         "finishedAt": "2026-08-30T09:35:38.869Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-P-r2/attempts/2026-08-30T09-35-25-682Z-857bbf374168/runner-result.json",
+        "sha256": "c3b8f693d667033b0ec6820e2e6bd6db80637a85db901e57433bc49f80f9ddfe"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 15,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:35:36.490Z",
+        "finishedAt": "2026-08-30T09:35:38.869Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-P-r2/runner.json",
         "sha256": "5791bc6f48b0ed3e28549b542ce0a232578665d600766c4dab7f7fcce3ba6d88"
       },
@@ -14809,6 +15832,36 @@
         "finishedAt": "2026-08-30T08:57:42.756Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T1-S-r1/attempts/2026-08-30T08-57-32-372Z-5ff8484d861b/runner-result.json",
+        "sha256": "b9f64b5200a6a4afda6646faf85ba4e8e1b1e9d181004231449e038ed09ec0da"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 9,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T08:57:42.585Z",
+        "finishedAt": "2026-08-30T08:57:42.756Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T1-S-r1/runner.json",
         "sha256": "e8c0312c2fcdb33e668aa74764e4f840a2564aca092747f99e7ef821c6bb2863"
       },
@@ -15156,6 +16209,36 @@
         "sha256": "44e85e70c72c5b8d57a4c4ffdca9b72fd4b35ad5991f012ee9578bc8e6791969"
       },
       "finalLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T1"
+        ],
+        "checks": {
+          "total": 6,
+          "statusCounts": {
+            "pass": 6
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 11,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:29:54.189Z",
+        "finishedAt": "2026-08-30T09:29:54.385Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/T1-S-r2/attempts/2026-08-30T09-29-45-151Z-152ebf2a092d/runner-result.json",
+        "sha256": "9ac8bc45ae4345326a0466f171c3b2db16daaf792dd533110114b57c9be9a6af"
+      },
+      "cellRootLive": {
         "status": "F",
         "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
         "workloads": [
@@ -15178,7 +16261,7 @@
         "startedAt": "2026-08-30T09:22:17.464Z",
         "finishedAt": "2026-08-30T09:22:17.465Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/T1-S-r2/runner.json",
         "sha256": "6f993a95524a254373911a488e65917902c9676dff9e76228b0f6f78af3ed808"
       },
@@ -15655,6 +16738,36 @@
         "finishedAt": "2026-08-30T09:40:48.470Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-A-r1/attempts/2026-08-30T09-40-37-552Z-cfa02f3c02a0/runner-result.json",
+        "sha256": "56af540c38e9c7eafd2066a8f856cf47e0a76c112673bdecda7530ef3fea1035"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:40:47.975Z",
+        "finishedAt": "2026-08-30T09:40:48.470Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-A-r1/runner.json",
         "sha256": "6f4dfff3526be078d71c9434df36e81c04ca032a49c36e308ff210274ea799a6"
       },
@@ -16010,6 +17123,36 @@
         "sha256": "3d75147cfa23e2b056590c662c0608f9af0d9916b596324525e2ea962dcacf65"
       },
       "finalLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:01:49.149Z",
+        "finishedAt": "2026-08-30T10:01:49.308Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/T2-A-r2/attempts/2026-08-30T10-01-38-547Z-7f45f59fa588/runner-result.json",
+        "sha256": "6c0a9d6599c6dc64b4a78188e7dc9fa4fafd90448029bcdf58e127e081a4eaad"
+      },
+      "cellRootLive": {
         "status": "F",
         "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
         "workloads": [
@@ -16036,7 +17179,7 @@
         "startedAt": "2026-08-30T09:59:18.374Z",
         "finishedAt": "2026-08-30T09:59:18.542Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/T2-A-r2/runner.json",
         "sha256": "ee0c2790575cbbc3be6c6e320dd892765e62504f8e03f6070262b89d03d6707a"
       },
@@ -16517,6 +17660,36 @@
         "finishedAt": "2026-08-30T09:48:09.398Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-D-r1/attempts/2026-08-30T09-47-58-716Z-430819b54b9b/runner-result.json",
+        "sha256": "d5803a6c5ba00c8866005098911edae9fbe99828382da2ea83cae71084ceb69b"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:48:08.891Z",
+        "finishedAt": "2026-08-30T09:48:09.398Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-D-r1/runner.json",
         "sha256": "74cdc375f2da0a8f94e20c3ad4030c5fd99d32bc1352f8e9f967188e9e2e39cc"
       },
@@ -16896,6 +18069,36 @@
         "finishedAt": "2026-08-30T10:10:19.680Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-D-r2/attempts/2026-08-30T10-10-08-830Z-08e034188364/runner-result.json",
+        "sha256": "4023759951134d1fb446c4a755a2016389d40cb837664913ff6562d0e0fedff2"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 9,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:10:19.102Z",
+        "finishedAt": "2026-08-30T10:10:19.680Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-D-r2/runner.json",
         "sha256": "2396819a8393e65c660ebe58b72489eb53d53da67e486ed45bd167a6eb85a074"
       },
@@ -17275,6 +18478,36 @@
         "finishedAt": "2026-08-30T09:53:14.461Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-G-r1/attempts/2026-08-30T09-53-04-240Z-daba4d45ec19/runner-result.json",
+        "sha256": "27488e6c60e3006d78233eda92aa6df95c411ed02cfa646bf8f0e7540ec0a031"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:53:14.302Z",
+        "finishedAt": "2026-08-30T09:53:14.461Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-G-r1/runner.json",
         "sha256": "c9d1f30a0aa4ce9a91a43bb957ebeb9531de6d8a47196939f80c07deaa45ff84"
       },
@@ -17654,6 +18887,36 @@
         "finishedAt": "2026-08-30T10:11:41.237Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-G-r2/attempts/2026-08-30T10-11-29-895Z-5b35b57ca38a/runner-result.json",
+        "sha256": "9baceaa7064a724de1b41c65fec02558955adbb324cd074a13d13e3f17e67b4f"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 7,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:11:41.086Z",
+        "finishedAt": "2026-08-30T10:11:41.237Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-G-r2/runner.json",
         "sha256": "6848143ccd0cc56d91c080cc6dca39fe8cb1727fed82074e9f6afb2c4b8bd605"
       },
@@ -18033,6 +19296,36 @@
         "finishedAt": "2026-08-30T09:48:35.279Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-K-r1/attempts/2026-08-30T09-48-24-864Z-f4b2a824f216/runner-result.json",
+        "sha256": "8cff4dc485a667eb685b3536d7263583c3da2554dc4d01dced98a1daf1afec26"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 5,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:48:34.994Z",
+        "finishedAt": "2026-08-30T09:48:35.279Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-K-r1/runner.json",
         "sha256": "c233b35f7943632c01a6f86383116a784c32589ff870f57e10010edb1883d429"
       },
@@ -18412,6 +19705,36 @@
         "finishedAt": "2026-08-30T10:11:01.515Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-K-r2/attempts/2026-08-30T10-10-51-486Z-6952d413719d/runner-result.json",
+        "sha256": "ddea3fc08059798fab79ce7b8bb80cb12d0f57fd76b95bca3aad0f78081e832d"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:11:01.237Z",
+        "finishedAt": "2026-08-30T10:11:01.515Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-K-r2/runner.json",
         "sha256": "d993e01442e273386853e13b973c0436a272f85d13c72ed239435899b28cfe32"
       },
@@ -18791,6 +20114,36 @@
         "finishedAt": "2026-08-30T09:43:52.471Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-P-r1/attempts/2026-08-30T09-43-41-063Z-c6cbba89fa67/runner-result.json",
+        "sha256": "0f0f18110a82fe1cbe8357166a9556f60909ece0b780248c61031c494e63b748"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 6,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:43:50.838Z",
+        "finishedAt": "2026-08-30T09:43:52.471Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-P-r1/runner.json",
         "sha256": "350fe138f97ecf5f131b7eb64847901ab50e1b6edbe3e29c1849cb4e2d2bf82f"
       },
@@ -19170,6 +20523,36 @@
         "finishedAt": "2026-08-30T10:02:56.001Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-P-r2/attempts/2026-08-30T10-02-44-086Z-dc50aadeefb3/runner-result.json",
+        "sha256": "8dfa680267886792c1f3ab184623a55e42e1df8d9bf427112d208db23f64d6a3"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 12,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:02:54.194Z",
+        "finishedAt": "2026-08-30T10:02:56.001Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-P-r2/runner.json",
         "sha256": "187b865084e1604f57a71b38d0297d8ff925ba3ba515413801e291d31c8e96da"
       },
@@ -19517,6 +20900,36 @@
         "sha256": "61201f3eb2d81182c58b9ba160849dbf048ddd3a22b1af9d314f740cde1594bb"
       },
       "finalLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 12,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T09:49:02.739Z",
+        "finishedAt": "2026-08-30T09:49:02.891Z"
+      },
+      "finalLiveSource": {
+        "path": "evidence/T2-S-r1/attempts/2026-08-30T09-48-53-222Z-9b9c0ad08846/runner-result.json",
+        "sha256": "e10f7383a36e8bf5006cf49ce72b7974aca71b875e27f3b99cc3fca6ca283a32"
+      },
+      "cellRootLive": {
         "status": "F",
         "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
         "workloads": [
@@ -19539,7 +20952,7 @@
         "startedAt": "2026-08-30T09:42:31.511Z",
         "finishedAt": "2026-08-30T09:42:31.512Z"
       },
-      "finalLiveSource": {
+      "cellRootLiveSource": {
         "path": "evidence/T2-S-r1/runner.json",
         "sha256": "b2326c0fdaedadcfc4b6219f6e006ee25b8ae5739d21b46bdec02975459383c2"
       },
@@ -20016,6 +21429,36 @@
         "finishedAt": "2026-08-30T10:06:29.430Z"
       },
       "finalLiveSource": {
+        "path": "evidence/T2-S-r2/attempts/2026-08-30T10-06-20-416Z-e770c46bbe3b/runner-result.json",
+        "sha256": "a8240e3d3dffe211e10820463bfe7349e68f39e378a4b71caa979dcf9cd5ef8b"
+      },
+      "cellRootLive": {
+        "status": "P",
+        "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+        "workloads": [
+          "T2"
+        ],
+        "checks": {
+          "total": 9,
+          "statusCounts": {
+            "pass": 9
+          }
+        },
+        "source": {
+          "pass": true,
+          "fileCount": 14,
+          "findingCount": 0
+        },
+        "cleanup": {
+          "status": "pass",
+          "schema": "pass",
+          "role": "pass",
+          "connection": "pass"
+        },
+        "startedAt": "2026-08-30T10:06:29.285Z",
+        "finishedAt": "2026-08-30T10:06:29.430Z"
+      },
+      "cellRootLiveSource": {
         "path": "evidence/T2-S-r2/runner.json",
         "sha256": "53a7c9d14c2680970be430c3e0bfde8decde127746e8448b69c962871708a5ae"
       },
