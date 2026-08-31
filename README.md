@@ -1,5 +1,11 @@
 # Ashiba
 
+> **Project status: archived.** Active product development has ended. This
+> repository is retained because its evaluations, experiments, and design
+> history are useful research evidence. The standalone successor for the Raw
+> SQL guidance produced by this work is
+> [mk3008/raw-sql-rules](https://github.com/mk3008/raw-sql-rules).
+
 ![Ashiba: Show me the SQL. Ashiba handles the boring parts.](docs/public/brand/ashiba-readme-hero.png)
 
 Show me the SQL. Ashiba handles the boring parts.
