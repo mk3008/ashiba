@@ -4,7 +4,7 @@
 
 This document records a **post-benchmark human product interpretation** of Current Ashiba Competitive Benchmark v3.
 
-It is not preregistered evidence, does not rescore any frozen cell, does not rewrite immutable attempt evidence, and does not change Ashiba product code, Scope, or Golden Path. Where the benchmark record is under human-review correction, this document treats the affected headline totals as provisional rather than substituting a new score.
+It is not preregistered evidence, does not rescore any frozen cell, does not rewrite immutable attempt evidence, and does not change Ashiba product code, Scope, or Golden Path. Where the benchmark record has been corrected in the frozen evidence pack, this document points to the corrected H-010 record while remaining explicitly a post-benchmark hypothesis note rather than a new score.
 
 The purpose is narrower: explain what the benchmark suggests about **what Ashiba may actually be**, after separating the durable product idea from the current PostgreSQL-specific implementation.
 
