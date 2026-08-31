@@ -101,3 +101,42 @@ The final decision is **NOT-YET**. A further experiment must establish a
 minimal, non-framework way for goal-driven changes to consistently produce
 database-backed tests, or demonstrate that this expectation belongs in a
 separate application task contract rather than Raw SQL Rules.
+
+## V4 re-evaluation: NOT-YET
+
+V4 preserves V3's `NOT-YET` finding and leaves Rule 8 and the v3 Rules hash
+unchanged. It tests a narrower distinction: implementation constraints in
+`RULES.md` versus a separate task completion condition. The initial four
+dispatches are retained under `evaluation/v4/probes/{a1,a2,b1,b2}` but are not
+treatment evidence: the shared fixture README was absent at dispatch time.
+That packet error and the unmodified initial candidates are documented in
+`evidence/v4/environment-correction.md`.
+
+The corrected packet supplied the frozen Rules, MySQL/mysql2 connection details,
+and schema to three fresh agents. Arm A received Rules only; Arm B additionally
+received the completion contract preregistered in `evaluation/v4/PLAN.md`.
+
+| Corrected arm / probes | Primary outcome: native mysql2 executed against MySQL before completion | Independent review |
+| --- | --- | --- |
+| A / A1, A2 | yes, yes | both pass |
+| B / B1 | yes | pass |
+
+All three corrected candidates created native mysql2 tests and successfully
+executed representative changed SQL against disposable MySQL 8.4. They also
+kept named bindings, finite complete SQL assets, and safe sort handling. This
+does **not** support the hypothesized distinction: the Rules-only arm did not
+repeat V3's omission. It is likewise too small to establish that Rules-only
+behavior is reliable; the corrected fixture context is a material confound
+against V3's less concrete implementation tasks.
+
+| V4 acceptance item | Status | Repository evidence | Gap |
+| --- | --- | --- | --- |
+| Preregistered A/B completion-contract experiment | partial | `evaluation/v4/PLAN.md`, retained preflight candidates, corrected candidates, and `evidence/v4/agent-output.md`. | Corrected treatment has three, not four, probes after the packet error. |
+| Rules-only arm observation | done | Corrected A1/A2 candidates and `evidence/v4/independent-reviews.md`. | Both passed, conflicting with V3; causal attribution remains unresolved. |
+| Completion-contract arm observation | partial | Corrected B1 native MySQL test passes. | One corrected B probe cannot establish consistency. |
+| Rule 8 / framework boundary | done | No Rules change, helper, testkit, or framework; V4 evidence records only application candidates. | No mechanical enforcement was evaluated or introduced. |
+
+The final decision remains **NOT-YET**. Keep Rule 8 as the runtime-authority
+principle; V4 does not establish that a short completion contract reliably
+causes live verification, nor that Rules alone reliably do so. Do not add more
+Rules prose or mechanical enforcement from this result alone.

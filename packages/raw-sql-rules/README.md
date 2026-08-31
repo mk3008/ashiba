@@ -20,10 +20,12 @@ uses ordinary SQL plus a native driver with named-parameter support.
 
 ## Current decision
 
-**NOT-YET.** V3 successfully added a MySQL live lane and CI-connected checks,
-but two independent goal-driven sort/filter implementations used mock-only
-tests despite Rule 8. The contract is preserved; the evidence does not support
-claiming that Rules alone reliably induce real-database regression coverage.
+**NOT-YET.** V3 found that Rules alone did not reliably produce real-database
+regression coverage. The corrected V4 packet gave concrete MySQL fixture
+details to two Rules-only and one completion-contract agent; all three created
+and ran live mysql2 tests. That does not demonstrate a completion-contract
+effect, and it conflicts with V3 rather than erasing it. Rule 8 remains
+unchanged; the evidence is insufficient to claim reliable behavior either way.
 
 ## Scope and evidence limit
 
