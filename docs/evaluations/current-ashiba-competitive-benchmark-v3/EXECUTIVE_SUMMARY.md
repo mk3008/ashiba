@@ -8,10 +8,10 @@ Drizzle (`D`), Kysely (`K`), and native `pg` (`G`). It is not an overall
 ranking, a performance contest, or a claim about all versions or uses of any
 product.
 
-**Observed.** The durable result index (schema v2) currently contains 48
+**Observed.** The durable result index (schema v3) currently contains 48
 primary cells (four workloads, six arms, two independent replicates), 67
 preserved primary attempts, 48 canonical secondary cells, 32 standard runner
-observations, 23 supplemental nonstandard AF runner observations, and 13
+observations, 22 supplemental nonstandard AF runner observations, and 13
 durable E1/SD schema documents. The corrected terminal-attempt index records
 45 final live passes and 3 final live failures; direct first-attempt oracle/live records
 are 34 passes and 14 failures. These descriptive counts are not pooled into a
