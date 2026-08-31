@@ -7,7 +7,7 @@
 
 | Field | Meaning |
 | --- | --- |
-| `schemaVersion` | Compact-index schema version (`2` adds durable E1/SD evidence and per-cell source counts). |
+| `schemaVersion` | Compact-index schema version (`3` adds explicit unavailable-evidence exclusion). |
 | `generatedAt` | Always `null`: the extractor deliberately omits a wall-clock value so an identical evidence tree produces byte-identical output. |
 | `generator` | Relative generator path and SHA-256. |
 | `interpretationPolicy` | Guardrails that prohibit implicit scoring. |
@@ -16,6 +16,7 @@
 | `primary` | One record per primary benchmark cell. |
 | `secondary` | One record per secondary control cell. |
 | `excludedCorrections` | Explicit non-comparable correction roots retained for audit, outside canonical cells and result counts. |
+| `unavailableEvidence` | Explicitly excluded uncommitted evidence paths; they are not reconstructed from summaries or local ignored files. |
 
 ## Primary record
 

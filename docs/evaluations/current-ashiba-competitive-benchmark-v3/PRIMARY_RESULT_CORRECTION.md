@@ -9,8 +9,9 @@ rerun, overwrite, or delete any Fresh-Agent candidate.
 ## Terminal-live selection
 
 The earlier extractor read `evidence/<cell>/runner.json` as `finalLive` even
-when a later attempt had been finalized. That cell-root file is the initial
-runner observation; it is not the terminal outcome after a repair.
+when a later attempt had been finalized. That cell-root file is a legacy
+runner observation retained for provenance; it is not the terminal outcome
+after a repair.
 
 The corrected extractor now selects the runner capture from the most recent
 finalized attempt as `finalLive` and retains the former source separately as

@@ -48,8 +48,10 @@ either from build/typecheck/test slots.
 
 `pnpm verify:benchmark-index` regenerates both compact files in a fresh
 temporary directory, requires byte-identical output, and verifies every
-emitted `{ path, sha256 }` reference resolves under the committed benchmark
-root. It is part of `pnpm verify`.
+emitted `{ path|evidencePath, sha256 }` reference resolves under the committed
+benchmark root. Text evidence is hashed after CRLF-to-LF normalization so the
+digest identifies committed content rather than a checkout conversion. It is
+part of `pnpm verify`.
 
 ## Interpretation boundary
 
@@ -75,6 +77,11 @@ into a repair or treatment category.
 
 See [RAW_RESULTS_SCHEMA.md](./RAW_RESULTS_SCHEMA.md) for fields and current
 coverage limits.
+
+The AF-L-D-r2 `repair-1-runner.json` was present only in an ignored local
+`logs/` directory and is not committed evidence. It is recorded as unavailable
+and excluded from compact secondary observations; the extractor never
+reconstructs it from attempt summaries or local residue.
 
 ## Excluded correction roots
 

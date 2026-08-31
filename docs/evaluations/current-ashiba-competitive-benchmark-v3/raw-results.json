@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generatedAt": null,
   "generator": {
     "path": "fixtures/aggregate-results.mjs",
-    "sha256": "d03911df1dc32305c5e183140d2f3573eddcec26d65906c58649eddd81afec29"
+    "sha256": "2fc9a50e3ee7112a92dade59b842b990dbdec71ec59fd07101f4c9b762a4d18a"
   },
   "inputRoot": ".",
   "interpretationPolicy": {
@@ -11,7 +11,8 @@
     "missingFieldPolicy": "Missing or undocumented fields remain null/absent and are not interpreted as a pass, failure, causal category, or tool-quality signal.",
     "attemptPolicy": "Each preserved primary attempt is listed in chronological directory order. An attempt after the first is recorded only as an additional attempt.",
     "secondaryPolicy": "Each secondary runner document and durable E1/SD schema document is retained as recorded evidence. Directory and file names do not establish a causal category.",
-    "excludedCorrectionPolicy": "Explicitly listed excluded correction roots are preserved for audit but are not canonical secondary cells, observations, final outcomes, repair counts, or treatment-fidelity results."
+    "excludedCorrectionPolicy": "Explicitly listed excluded correction roots are preserved for audit but are not canonical secondary cells, observations, final outcomes, repair counts, or treatment-fidelity results.",
+    "unavailableEvidencePolicy": "An explicitly listed uncommitted runner is excluded rather than reconstructed from summaries or local ignored files."
   },
   "limitations": [
     "Token and credit telemetry are not synthesized by this extractor. They remain unavailable unless recorded in source evidence or the orchestration ledger.",
@@ -28,10 +29,11 @@
     },
     "secondaryCellCount": 48,
     "secondaryObservationCount": 32,
-    "secondaryReliableObservationCount": 11,
-    "secondarySupplementalObservationCount": 23,
+    "secondaryReliableObservationCount": 10,
+    "secondarySupplementalObservationCount": 22,
     "secondaryDurableSchemaCount": 13,
-    "excludedCorrectionRootCount": 3
+    "excludedCorrectionRootCount": 3,
+    "unavailableEvidenceCount": 1
   },
   "primary": [
     {
@@ -22132,92 +22134,10 @@
       ],
       "observationCount": 0,
       "observations": [],
-      "reliableObservationCount": 1,
-      "reliableObservations": [
-        {
-          "evidencePath": "secondary-evidence/AF-L-D-r2-reliable/attempts/01-repair-1/logs/repair-1-runner.json",
-          "sha256": "b2ee7ffb6b71778ecf8dfb9cf249f4d8e585345425242a570f69bc8cded25723",
-          "live": {
-            "status": "P",
-            "harness": "af-controls-v1",
-            "workloads": null,
-            "checks": null,
-            "source": null,
-            "cleanup": null,
-            "startedAt": "2026-08-30T21:20:10.710Z",
-            "finishedAt": "2026-08-30T21:20:12.484Z"
-          },
-          "architectureDelta": {
-            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
-            "candidateHash": "74c3b7500f459fd666e1477d24a569809c3542e749aad0323ebbc7a3d8a68852",
-            "changedExistingFiles": [
-              "src/application.ts"
-            ],
-            "missingExistingFiles": [],
-            "movedOrRenamedExistingFiles": [],
-            "newFiles": [
-              "package-lock.json",
-              "package.json"
-            ],
-            "newGlobalFiles": [],
-            "newConfigFiles": [],
-            "newGeneratedDirectories": [],
-            "changedPoolSeam": false,
-            "changedTransactionSeam": false,
-            "changedDtoSeam": false,
-            "changedTestSeam": false,
-            "featureLocalSql": "not-applicable",
-            "requiredGuarantees": [
-              "Drizzle typed schema/query API"
-            ]
-          },
-          "deltaComplete": true,
-          "sourceKind": "nonstandard-reliable-path"
-        }
-      ],
-      "supplementalObservationCount": 1,
-      "supplementalObservations": [
-        {
-          "evidencePath": "secondary-evidence/AF-L-D-r2-reliable/attempts/01-repair-1/logs/repair-1-runner.json",
-          "sha256": "b2ee7ffb6b71778ecf8dfb9cf249f4d8e585345425242a570f69bc8cded25723",
-          "live": {
-            "status": "P",
-            "harness": "af-controls-v1",
-            "workloads": null,
-            "checks": null,
-            "source": null,
-            "cleanup": null,
-            "startedAt": "2026-08-30T21:20:10.710Z",
-            "finishedAt": "2026-08-30T21:20:12.484Z"
-          },
-          "architectureDelta": {
-            "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
-            "candidateHash": "74c3b7500f459fd666e1477d24a569809c3542e749aad0323ebbc7a3d8a68852",
-            "changedExistingFiles": [
-              "src/application.ts"
-            ],
-            "missingExistingFiles": [],
-            "movedOrRenamedExistingFiles": [],
-            "newFiles": [
-              "package-lock.json",
-              "package.json"
-            ],
-            "newGlobalFiles": [],
-            "newConfigFiles": [],
-            "newGeneratedDirectories": [],
-            "changedPoolSeam": false,
-            "changedTransactionSeam": false,
-            "changedDtoSeam": false,
-            "changedTestSeam": false,
-            "featureLocalSql": "not-applicable",
-            "requiredGuarantees": [
-              "Drizzle typed schema/query API"
-            ]
-          },
-          "deltaComplete": true,
-          "sourceKind": "nonstandard-reliable-path"
-        }
-      ],
+      "reliableObservationCount": 0,
+      "reliableObservations": [],
+      "supplementalObservationCount": 0,
+      "supplementalObservations": [],
       "selectedFinalObservation": null,
       "durableSchemas": [],
       "evidenceCounts": {
@@ -27122,10 +27042,18 @@
         },
         {
           "evidencePath": "secondary-evidence/X1-r3-h007-evidence-preservation-hash-verification.json",
-          "sha256": "43956927b4b04be873034eadcd65ffc9b8e4b32766a762a9a18b8e8496fcc2fb",
+          "sha256": "483eefa5f62830a15482999749881a6bd1a3befc90bb73727c55a753f6677a8a",
           "missing": false
         }
       ]
+    }
+  ],
+  "unavailableEvidence": [
+    {
+      "evidencePath": "secondary-evidence/AF-L-D-r2-reliable/attempts/01-repair-1/logs/repair-1-runner.json",
+      "disposition": "unavailable-excluded-from-compact-index",
+      "reason": "The original runner record is absent from committed evidence; retained local ignored material is not durable benchmark evidence.",
+      "committedEvidenceAvailable": false
     }
   ]
 }

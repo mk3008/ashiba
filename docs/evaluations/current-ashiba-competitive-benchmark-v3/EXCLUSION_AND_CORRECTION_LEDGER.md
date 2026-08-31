@@ -32,10 +32,9 @@ or calibration evidence.
 # H-011 — Compact-index reproducibility and qualification metadata
 
 - **Observed:** 2026-08-31 during follow-up human publication review.
-- **Original evidence:** the compact index already reproduced byte-identically
-  from the committed tree, including the AF-L-D-r2 reliable runner path and
-  the retained X1 r3 summary hash. That proof was not a required repository
-  verification, and frozen/observed sqlc version qualification was prose-only.
+- **Original evidence:** an ignored local AF-L-D-r2 runner made a local compact
+  rebuild appear byte-identical while a clean Git checkout could not reproduce
+  it. Frozen/observed sqlc version qualification was also prose-only.
 - **Correction:** add an extractor-backed `pnpm verify:benchmark-index` gate
   that rebuilds JSON/CSV in a fresh temporary directory, requires
   byte-identical outputs, and validates every emitted path/SHA-256 reference.
@@ -48,8 +47,8 @@ or calibration evidence.
   evidence is reselected.
 - **Evidence handling:** no candidate, runner, attempt, snapshot, or source
   hash is rewritten. This is an index/schema and verification-path correction.
-- **Status:** completed; a full frozen sqlc 0.1.3 remeasurement remains
-  separate work.
+- **Status:** local packaging correction pending clean final-head `verify` CI;
+  a full frozen sqlc 0.1.3 remeasurement remains separate work.
 
 # EXCL-002 — AF-V-S-r2 sqlc plugin 0.1.2 pre-execution setup incident
 

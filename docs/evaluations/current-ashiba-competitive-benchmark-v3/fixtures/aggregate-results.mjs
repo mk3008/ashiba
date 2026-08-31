@@ -16,6 +16,16 @@ const SECONDARY_CELL = /^(AF-V|AF-L|X1|SD|E1)-(A|P|S|D|K|G)-r(\d+)$/;
 const SECONDARY_RELIABLE_ROOT = /^(AF-V|AF-L|X1|SD|E1)-(A|P|S|D|K|G)-r(\d+)-reliable(?:-[a-z0-9]+)*$/i;
 const EXCLUDED_X1_R3_ROOT = /^X1-(A|P|S|D|K|G)-r3$/;
 
+// This runner was present only in an ignored local logs directory and was not
+// committed with its attempt record. Do not reconstruct it from summaries or
+// let a coordinator's local residue enter the durable compact index.
+const UNAVAILABLE_COMMITTED_EVIDENCE = new Map([
+  [
+    "secondary-evidence/AF-L-D-r2-reliable/attempts/01-repair-1/logs/repair-1-runner.json",
+    "The original runner record is absent from committed evidence; retained local ignored material is not durable benchmark evidence.",
+  ],
+]);
+
 // H-007 reran every X1 arm under the corrected static-isolation rule. These
 // entries are an explicit, audited selection of the terminal runner output in
 // that r2 correction set. The original r1 paths remain retained observations,
@@ -110,7 +120,17 @@ function maybeJson(path) {
 }
 
 function hash(path) {
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
+  // Evidence is committed as text with LF. Normalize a checkout's CRLF before
+  // hashing so the compact reference identifies committed content rather than
+  // an OS-specific working-tree conversion.
+  return createHash("sha256")
+    .update(readFileSync(path, "utf8").replaceAll("\r\n", "\n"), "utf8")
+    .digest("hex");
+}
+
+// Avoid host-locale-dependent ordering in durable generated artifacts.
+function compareCodeUnits(left, right) {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function sortedDirectories(path) {
@@ -118,7 +138,7 @@ function sortedDirectories(path) {
   return readdirSync(path, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
-    .sort((left, right) => left.localeCompare(right));
+    .sort(compareCodeUnits);
 }
 
 function resultStatus(document) {
@@ -162,6 +182,14 @@ function liveSummary(document) {
 function fileReference(root, path) {
   if (!existsSync(path)) return null;
   return { path: relative(root, path).replaceAll("\\", "/"), sha256: hash(path) };
+}
+
+function evidencePath(root, path) {
+  return relative(root, path).replaceAll("\\", "/");
+}
+
+function isUnavailableCommittedEvidence(root, path) {
+  return UNAVAILABLE_COMMITTED_EVIDENCE.has(evidencePath(root, path));
 }
 
 function attemptRecord(root, attemptDirectory, ordinal) {
@@ -263,7 +291,7 @@ function primaryRecords(root) {
       return { ...record, evidenceCounts: primaryEvidenceCounts(record) };
     })
     .filter(Boolean)
-    .sort((left, right) => left.cell.localeCompare(right.cell));
+    .sort((left, right) => compareCodeUnits(left.cell, right.cell));
 }
 
 function primaryFirstLiveCounts(primary) {
@@ -289,7 +317,7 @@ function walkNamedDocuments(directory, matcher) {
     }
   }
   if (existsSync(directory)) walk(directory);
-  return results.sort((left, right) => left.localeCompare(right));
+  return results.sort(compareCodeUnits);
 }
 
 function e1Summary(document) {
@@ -385,10 +413,10 @@ function walkRunnerDocuments(root, directory) {
     }
   }
   if (existsSync(directory)) walk(directory);
-  return results.sort((left, right) => left.localeCompare(right));
+  return results.sort(compareCodeUnits);
 }
 
-function walkAfRunnerDocuments(directory) {
+function walkAfRunnerDocuments(root, directory) {
   const results = [];
   function walk(current) {
     for (const entry of readdirSync(current, { withFileTypes: true })) {
@@ -399,12 +427,12 @@ function walkAfRunnerDocuments(directory) {
         const document = readJson(path);
         // An AF runner record has the AF runner envelope. This rejects
         // nested primary runner attachments, which use a different harness.
-        if (document?.harness === "af-controls-v1") results.push(path);
+        if (document?.harness === "af-controls-v1" && !isUnavailableCommittedEvidence(root, path)) results.push(path);
       }
     }
   }
   if (existsSync(directory)) walk(directory);
-  return results.sort((left, right) => left.localeCompare(right));
+  return results.sort(compareCodeUnits);
 }
 
 function selectedSecondaryFinalObservation(root, cell) {
@@ -461,7 +489,7 @@ function secondaryRecords(root) {
       const durableSchemas = durableSchemaRecords(root, cellRoot);
       const selectedFinalObservation = selectedSecondaryFinalObservation(root, cell);
       const exactNonstandardObservations = exactRoots.flatMap((exactRoot) =>
-        walkAfRunnerDocuments(exactRoot).map((path) => {
+        walkAfRunnerDocuments(root, exactRoot).map((path) => {
           const document = readJson(path);
           return {
             evidencePath: relative(root, path).replaceAll("\\", "/"),
@@ -474,7 +502,7 @@ function secondaryRecords(root) {
         }),
       );
       const reliableObservations = reliableRoots.flatMap((reliableRoot) =>
-        walkAfRunnerDocuments(reliableRoot).map((path) => {
+        walkAfRunnerDocuments(root, reliableRoot).map((path) => {
           const document = readJson(path);
           return {
             evidencePath: relative(root, path).replaceAll("\\", "/"),
@@ -510,7 +538,7 @@ function secondaryRecords(root) {
       };
     })
     .filter(Boolean)
-    .sort((left, right) => left.cell.localeCompare(right.cell));
+    .sort((left, right) => compareCodeUnits(left.cell, right.cell));
 }
 
 function excludedCorrectionEvidence(root) {
@@ -536,6 +564,15 @@ function excludedCorrectionEvidence(root) {
       };
     }),
   };
+}
+
+function unavailableCommittedEvidence() {
+  return [...UNAVAILABLE_COMMITTED_EVIDENCE].map(([evidencePath, reason]) => ({
+    evidencePath,
+    disposition: "unavailable-excluded-from-compact-index",
+    reason,
+    committedEvidenceAvailable: false,
+  }));
 }
 
 function csvEscape(value) {
@@ -659,8 +696,9 @@ const csvOutput = resolve(args.csv ?? join(root, "results.csv"));
 const primary = primaryRecords(root);
 const secondary = secondaryRecords(root);
 const excludedCorrections = [excludedCorrectionEvidence(root)];
+const unavailableEvidence = unavailableCommittedEvidence();
 const output = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   // A wall-clock timestamp would mutate otherwise identical durable output on
   // every rebuild. Source paths and SHA-256 values are the reproducibility
   // boundary, so absence is deliberate rather than an unavailable metric.
@@ -678,6 +716,7 @@ const output = {
     attemptPolicy: "Each preserved primary attempt is listed in chronological directory order. An attempt after the first is recorded only as an additional attempt.",
     secondaryPolicy: "Each secondary runner document and durable E1/SD schema document is retained as recorded evidence. Directory and file names do not establish a causal category.",
     excludedCorrectionPolicy: "Explicitly listed excluded correction roots are preserved for audit but are not canonical secondary cells, observations, final outcomes, repair counts, or treatment-fidelity results.",
+    unavailableEvidencePolicy: "An explicitly listed uncommitted runner is excluded rather than reconstructed from summaries or local ignored files.",
   },
   limitations: [
     "Token and credit telemetry are not synthesized by this extractor. They remain unavailable unless recorded in source evidence or the orchestration ledger.",
@@ -694,10 +733,12 @@ const output = {
     secondarySupplementalObservationCount: secondary.reduce((sum, record) => sum + record.supplementalObservationCount, 0),
     secondaryDurableSchemaCount: secondary.reduce((sum, record) => sum + record.durableSchemas.length, 0),
     excludedCorrectionRootCount: excludedCorrections.reduce((sum, record) => sum + record.roots.length, 0),
+    unavailableEvidenceCount: unavailableEvidence.length,
   },
   primary,
   secondary,
   excludedCorrections,
+  unavailableEvidence,
 };
 writeFileSync(jsonOutput, JSON.stringify(output, null, 2) + "\n");
 writeFileSync(csvOutput, csvRows(primary, secondary));

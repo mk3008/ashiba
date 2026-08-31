@@ -16,8 +16,8 @@
   derived selections are listed in `PRIMARY_RESULT_CORRECTION.md`.
 - The six sqlc 0.1.2 primary snapshots are retained but excluded from a frozen
   0.1.3 arm-level conclusion rather than pooled into a misleading score.
-- The compact index is rebuilt byte-identically from committed evidence, and
-  every emitted path/SHA-256 reference is verified under the benchmark root.
+- The compact-index rebuild/reference check is pending final-head CI after the
+  ignored AF-L-D-r2 runner was explicitly excluded from committed evidence.
 - Frozen treatment and H-010-audited sqlc observed-version eligibility are
   machine-readable without changing any live or treatment outcome.
 - `cellRootLive` is described only as legacy cell-root provenance; it is not

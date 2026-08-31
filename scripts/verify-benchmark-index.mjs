@@ -16,7 +16,9 @@ const committedJson = join(benchmarkRoot, "raw-results.json");
 const committedCsv = join(benchmarkRoot, "results.csv");
 
 function sha256(path) {
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
+  return createHash("sha256")
+    .update(readFileSync(path, "utf8").replaceAll("\r\n", "\n"), "utf8")
+    .digest("hex");
 }
 
 function assertEqualBytes(actualPath, expectedPath) {
@@ -31,15 +33,16 @@ function inspectReferences(value, failures, trail = "$") {
     return;
   }
   if (!value || typeof value !== "object") return;
-  if (typeof value.path === "string" && typeof value.sha256 === "string") {
-    const target = resolve(benchmarkRoot, value.path);
+  const reference = typeof value.path === "string" ? value.path : value.evidencePath;
+  if (typeof reference === "string" && typeof value.sha256 === "string") {
+    const target = resolve(benchmarkRoot, reference);
     const allowedPrefix = `${benchmarkRoot}${sep}`;
     if (!(target === benchmarkRoot || target.startsWith(allowedPrefix))) {
-      failures.push(`${trail}: path escapes benchmark root: ${value.path}`);
+      failures.push(`${trail}: path escapes benchmark root: ${reference}`);
     } else if (!existsSync(target)) {
-      failures.push(`${trail}: missing committed evidence: ${value.path}`);
+      failures.push(`${trail}: missing committed evidence: ${reference}`);
     } else if (sha256(target) !== value.sha256) {
-      failures.push(`${trail}: SHA-256 mismatch: ${value.path}`);
+      failures.push(`${trail}: SHA-256 mismatch: ${reference}`);
     }
   }
   for (const [key, child] of Object.entries(value)) inspectReferences(child, failures, `${trail}.${key}`);
