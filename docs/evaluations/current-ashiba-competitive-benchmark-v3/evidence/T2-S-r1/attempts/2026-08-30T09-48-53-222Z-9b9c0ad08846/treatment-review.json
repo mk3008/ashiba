@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Actual sqlc generated query/types remain the main data path; repair removed candidate-owned DDL under static protocol policy.",
+  "decidedAt": "2026-08-30T09:49:11.459Z",
+  "decidedBy": "coordinator-required"
+}

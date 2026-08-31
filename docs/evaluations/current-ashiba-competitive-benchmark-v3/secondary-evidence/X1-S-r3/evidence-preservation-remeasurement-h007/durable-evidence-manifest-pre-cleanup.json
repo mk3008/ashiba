@@ -1,0 +1,85 @@
+{
+  "root": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\current-ashiba-competitive-benchmark-v3\\docs\\evaluations\\current-ashiba-competitive-benchmark-v3\\secondary-evidence\\X1-S-r3\\evidence-preservation-remeasurement-h007",
+  "files": [
+    {
+      "path": "attempt-initial.json",
+      "bytes": 923,
+      "sha256": "9bd1dbf25efb3642e460b3cd0e23918b75ed68c6ff06a3db815d01be599cd4f7"
+    },
+    {
+      "path": "candidate-snapshot-manifest-initial.json",
+      "bytes": 1498,
+      "sha256": "c4c7658a91bdc8e8ce862d11904b95af6879e7641903b7d638dee83cf9d0fb5b"
+    },
+    {
+      "path": "candidate-source-manifest-initial.json",
+      "bytes": 1342,
+      "sha256": "2a1d36a34786d93165497adebce40e70a05dab8118949d28701342068b289358"
+    },
+    {
+      "path": "command-logs/generate-initial.log",
+      "bytes": 155,
+      "sha256": "c4610e53ee3e800d4298ec46fe485b861f92acfe74b2ebf66b51eed3ec092e91"
+    },
+    {
+      "path": "command-logs/npm-ci-initial.log",
+      "bytes": 96,
+      "sha256": "468ef638a4a039259216c1ddb563bb0fc8535f858f97a34934fe00d02c34c546"
+    },
+    {
+      "path": "command-logs/static-isolation-initial.log",
+      "bytes": 55,
+      "sha256": "bac21fee443a64ca7e6aa6826857efb1921844f3506391c4bc1e41abc5c75f02"
+    },
+    {
+      "path": "packet/ARM_ASSIGNMENT.md",
+      "bytes": 248,
+      "sha256": "b69b1458c5910f598bc9fd87aae5d088b4034e32c4eec0e77511fe79e11c6fa6"
+    },
+    {
+      "path": "packet/CELL.json",
+      "bytes": 114,
+      "sha256": "c5f6034c17ce9c2b9aaae139dee9851013a87a4667f246a77806113ac012f229"
+    },
+    {
+      "path": "packet/COMMON_API.md",
+      "bytes": 5781,
+      "sha256": "6ade3d709f9a091e44d2ffcdb151491b5c5d1bc79c9f0c210566907b3b1b7128"
+    },
+    {
+      "path": "packet/COMMON_ASSIGNMENT.md",
+      "bytes": 750,
+      "sha256": "5cc995f358d664a69dae1ff30f369a8ba2d70becf24caa3fac61a4a11cba2af6"
+    },
+    {
+      "path": "packet/OFFICIAL_SOURCES.md",
+      "bytes": 2280,
+      "sha256": "6cb1007848457b458928b90c362730ac66f807a00279d16cb0bba757b10cd690"
+    },
+    {
+      "path": "packet/official-doc-snapshots-v1.zip",
+      "bytes": 318135,
+      "sha256": "8b86cf5abc883f57975b78fa06e3bd3d614486449e1e8b395bad1700695b8c57"
+    },
+    {
+      "path": "packet/RUNNER_API.md",
+      "bytes": 1526,
+      "sha256": "6ec233f0cfc2b67d05bb1cbf6eb86962ee180f8337f9094553a7892e7d85d9ec"
+    },
+    {
+      "path": "packet/schema.sql",
+      "bytes": 2886,
+      "sha256": "b0640163e0074fd25f6c0e3ea94d9f775c6d5ce3b069daecd7cd107fa532defc"
+    },
+    {
+      "path": "packet/seed.sql",
+      "bytes": 1856,
+      "sha256": "a4b8536cb314738010219d66324022b0626770ae60f1310abfb7225ec3165c19"
+    },
+    {
+      "path": "packet/X1_ASSIGNMENT.md",
+      "bytes": 1134,
+      "sha256": "984a6740f975656e4112c5064d8f9c6a0265cfab64df93decef2b86d1b2bb776"
+    }
+  ]
+}

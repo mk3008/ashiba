@@ -1,0 +1,49 @@
+{
+  "status": "executed-not-scored",
+  "commands": [
+    {
+      "slot": "generate",
+      "command": "C:\\tmp\\ashiba-benchmark-v3-node24\\node-v24.18.0-win-x64\\npm.cmd run generate",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T07:57:45.056Z",
+      "finishedAt": "2026-08-30T07:57:48.796Z",
+      "stdout": "logs/generate.stdout.log",
+      "stderr": "logs/generate.stderr.log"
+    },
+    {
+      "slot": "typecheck",
+      "command": "C:\\tmp\\ashiba-benchmark-v3-node24\\node-v24.18.0-win-x64\\npm.cmd run typecheck",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T07:57:48.796Z",
+      "finishedAt": "2026-08-30T07:57:50.196Z",
+      "stdout": "logs/typecheck.stdout.log",
+      "stderr": "logs/typecheck.stderr.log"
+    },
+    {
+      "slot": "build",
+      "command": "C:\\tmp\\ashiba-benchmark-v3-node24\\node-v24.18.0-win-x64\\npm.cmd run build",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T07:57:50.196Z",
+      "finishedAt": "2026-08-30T07:57:51.421Z",
+      "stdout": "logs/build.stdout.log",
+      "stderr": "logs/build.stderr.log"
+    },
+    {
+      "slot": "test",
+      "command": "C:\\tmp\\ashiba-benchmark-v3-node24\\node-v24.18.0-win-x64\\npm.cmd test",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T07:57:51.421Z",
+      "finishedAt": "2026-08-30T07:57:53.174Z",
+      "stdout": "logs/test.stdout.log",
+      "stderr": "logs/test.stderr.log"
+    }
+  ]
+}

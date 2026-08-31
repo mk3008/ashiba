@@ -1,0 +1,24 @@
+{
+  "cell": "AF-V-P-r2",
+  "attempt": "repair1",
+  "candidateRepairIndex": 1,
+  "outcome": "F",
+  "stoppedBeforeRunner": true,
+  "failureClassification": "tool/API misuse",
+  "observedFailure": {
+    "stage": "prisma contract emit",
+    "code": "CLI.CONFIG_UNKNOWN_SECTION",
+    "summary": "The CLI marker wrapper was added, but the family config had to be nested under the documented orm top-level section."
+  },
+  "checks": {
+    "contractEmit": "F",
+    "typecheck": "not-run",
+    "build": "not-run",
+    "candidateTests": "not-run",
+    "runnerOracle": "not-run"
+  },
+  "evidence": {
+    "contractEmitLogSha256": "87f28110d992cb0e3c66b8099e6a32f341212181df205daf9babe0fb9cfd8f09"
+  },
+  "repairEligibility": "bounded candidate repair 2 is allowed; repair 1 source and failure are preserved before repair"
+}

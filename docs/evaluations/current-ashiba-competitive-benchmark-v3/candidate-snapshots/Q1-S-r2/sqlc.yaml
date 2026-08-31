@@ -1,0 +1,15 @@
+version: "2"
+plugins:
+  - name: ts
+    wasm:
+      url: "https://downloads.sqlc.dev/plugin/sqlc-gen-typescript_0.1.3.wasm"
+sql:
+  - engine: "postgresql"
+    schema: "../packet/schema.sql"
+    queries: "sqlc/query.sql"
+    codegen:
+      - out: "src/generated"
+        plugin: ts
+        options:
+          runtime: node
+          driver: pg

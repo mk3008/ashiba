@@ -1,0 +1,383 @@
+{
+  "harness": "sd-schema-drift-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "SD",
+  "arm": "G",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-G-r1\\candidate\\dist\\application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-G-r1\\candidate",
+  "candidateSourceManifest": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c"
+    },
+    {
+      "path": "package.json",
+      "bytes": 264,
+      "sha256": "50f48a189329085f135e949e4fa6708e3600749c62ab0262bda6a830ac41b854"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 9543,
+      "sha256": "567450f39a1279fec78e5ccd51fad9a9da9be1ee52a624d774441cca7960de0f"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 343,
+      "sha256": "34cec5f55a47a1f2035c85653a0067f860c1e7798548adbf68ed1d7d2c0d5308"
+    }
+  ],
+  "baselineSourceHash": "f7d308f3f341927c2473feaa009b0f5cd49f0219fdc0f0c9ad641f1c6aac3318",
+  "staticInspection": {
+    "pass": true,
+    "findings": []
+  },
+  "commands": {
+    "typecheck": "npm run typecheck",
+    "test": "npm test"
+  },
+  "mutations": [
+    {
+      "mutation": "column-rename",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1147,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 367,
+            "stdout": "\n> test\n> node --test\n\nTAP version 13\n1..0\n# tests 0\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 8.0651\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "fail",
+          "detail": {
+            "name": "error",
+            "code": "42703",
+            "message": "column \"title\" does not exist"
+          }
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:31.610Z",
+      "sourceHashBefore": "f7d308f3f341927c2473feaa009b0f5cd49f0219fdc0f0c9ad641f1c6aac3318",
+      "schema": "ashiba_v3_f6ce09e12c36d3db",
+      "firstDetectionStage": "application-execution",
+      "finalDatabaseState": {
+        "status": "unavailable",
+        "error": {
+          "name": "error",
+          "code": "42703",
+          "message": "column \"title\" does not exist"
+        }
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "f7d308f3f341927c2473feaa009b0f5cd49f0219fdc0f0c9ad641f1c6aac3318",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T13:10:33.392Z"
+    },
+    {
+      "mutation": "nullability-tighten",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1271,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 433,
+            "stdout": "\n> test\n> node --test\n\nTAP version 13\n1..0\n# tests 0\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 8.885\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "pass",
+          "detail": "get and list resolved after database-only mutation"
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:33.392Z",
+      "sourceHashBefore": "f7d308f3f341927c2473feaa009b0f5cd49f0219fdc0f0c9ad641f1c6aac3318",
+      "schema": "ashiba_v3_00cb1a5a09937a9e",
+      "firstDetectionStage": "not-detected-in-measured-stages",
+      "finalDatabaseState": {
+        "tickets": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": "runner-compatible",
+            "priority": 5,
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "ticketAudit": [],
+        "accounts": [
+          {
+            "account_id": "7001",
+            "balance_cents": "10000"
+          },
+          {
+            "account_id": "7002",
+            "balance_cents": "5000"
+          }
+        ],
+        "transferAudit": [],
+        "workItems": [
+          {
+            "id": "8001",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8002",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8003",
+            "state": "queued",
+            "claimed_by": null
+          }
+        ]
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "f7d308f3f341927c2473feaa009b0f5cd49f0219fdc0f0c9ad641f1c6aac3318",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T13:10:35.210Z"
+    },
+    {
+      "mutation": "integer-to-bigint",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1164,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 513,
+            "stdout": "\n> test\n> node --test\n\nTAP version 13\n1..0\n# tests 0\n# suites 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 10.9482\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "fail",
+          "detail": {
+            "name": "Error",
+            "code": "ERR_MODULE_NOT_FOUND",
+            "message": "Cannot find module 'C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-G-r1\\candidate\\node_modules\\pg\\esm\\index.mjs' imported from C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-G-r1\\candidate\\dist\\application.js"
+          }
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:35.210Z",
+      "sourceHashBefore": "f7d308f3f341927c2473feaa009b0f5cd49f0219fdc0f0c9ad641f1c6aac3318",
+      "schema": "ashiba_v3_4b14c7f8d0a126a6",
+      "firstDetectionStage": "application-execution",
+      "finalDatabaseState": {
+        "tickets": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": "5",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": "3",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": "5",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": "1",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "ticketAudit": [],
+        "accounts": [
+          {
+            "account_id": "7001",
+            "balance_cents": "10000"
+          },
+          {
+            "account_id": "7002",
+            "balance_cents": "5000"
+          }
+        ],
+        "transferAudit": [],
+        "workItems": [
+          {
+            "id": "8001",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8002",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8003",
+            "state": "queued",
+            "claimed_by": null
+          }
+        ]
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "f7d308f3f341927c2473feaa009b0f5cd49f0219fdc0f0c9ad641f1c6aac3318",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T13:10:36.997Z"
+    }
+  ],
+  "startedAt": "2026-08-30T13:10:31.610Z",
+  "status": "P",
+  "finishedAt": "2026-08-30T13:10:36.997Z"
+}

@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Plain native pg candidate path; initial Q1 source/execution and EXPLAIN evidence contract not met.",
+  "decidedAt": "2026-08-30T10:46:30.349Z",
+  "decidedBy": "coordinator-required"
+}

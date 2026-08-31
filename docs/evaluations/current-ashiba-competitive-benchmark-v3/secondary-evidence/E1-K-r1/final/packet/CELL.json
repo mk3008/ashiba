@@ -1,0 +1,13 @@
+{
+  "cell": "E1-K-r1",
+  "control": "E1",
+  "arm": "K",
+  "replicate": 1,
+  "protocol": "secondary-controls-v1",
+  "baselineManifest": "../baseline-manifest.json",
+  "forbiddenPatterns": [
+    "from\\s+['\"]kysely['\"]",
+    "require\\(['\"]kysely['\"]\\)",
+    "['\"]kysely['\"]\\s*:"
+  ]
+}

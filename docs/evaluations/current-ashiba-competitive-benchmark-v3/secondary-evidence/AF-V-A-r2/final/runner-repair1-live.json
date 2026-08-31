@@ -1,0 +1,1847 @@
+{
+  "harness": "af-controls-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "AF-V",
+  "arm": "A",
+  "replicate": 2,
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r2\\candidate\\dist\\application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r2\\candidate",
+  "primaryRunner": "file:///C:/Users/mssgm/github/ashiba/worktrees/current-ashiba-competitive-benchmark-v3/docs/evaluations/current-ashiba-competitive-benchmark-v3/fixtures/runner.mjs",
+  "baselineIntegrity": "pass",
+  "startedAt": "2026-08-30T20:56:18.939Z",
+  "primaryG1": {
+    "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+    "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r2\\candidate\\dist\\application.js",
+    "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r2\\candidate",
+    "workloads": [
+      "G1"
+    ],
+    "source": {
+      "root": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r2\\candidate",
+      "files": [
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/15/d5/bdaff8d066149ea21b35677b08d72c4540d16f31c9e67ee8f85813144f13ab0322cc693704d5a00c0624e56cc35a5ef04242e562d11ee177cb9d0d23fbba",
+          "kind": "file",
+          "bytes": 7763,
+          "sha256": "3564e201a8a4e763fc2ca255aaef7d4e4e954474835b67d6e304727c8d3f8b3b"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/22/9d/844029e0a3024b18e7c2c241613d753bfe58e5867e91c659b2e1761f2f663ebf244ce7dfbcb91db1a9158a75899b5e6c4214e0262b106e49409d177e2a2e",
+          "kind": "file",
+          "bytes": 50700,
+          "sha256": "5fb018ddea5c67e72d7c5fedd6987ab4d676e00b48d2f8dedd47e8e61ace6bb0"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/2c/a6/14d620172575200179fd5118e2bbe3168725171ecbdfa7b99cb989bd75250a2b4fc28edad4c050310fcdbf98259bb4bb068c521a774c08b28778ceb4c011",
+          "kind": "file",
+          "bytes": 4560,
+          "sha256": "68053b675707b7f3a9a492e9909c3dce2652ac71238daa8ebf4d19397cc33ef7"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/36/86/8cb738713abb9b78bffb519b8d4eb7a307830f009d11a7166a5d07f6a97b959533ee1ba63ca78bbd74a45ab9ee328e60bb661cd53b6fd8cb29f6e739eb3d",
+          "kind": "file",
+          "bytes": 9641,
+          "sha256": "e47b5eb03f775183d4b7d051954f63025b424abec4131b9abf8d79e4962b30c5"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/51/c8/dc24e5a49eb36417a3cb5fcdea70733a28781528d915eb663c6b9b980d5bfdc9d19057000730aa877498ded554d6a658c6d1662908386b09d00e607e135a",
+          "kind": "file",
+          "bytes": 8421,
+          "sha256": "8a44725d892987552374b0ea067ee0f3dc72a748ed703fdeb092dbea0eeb60ec"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/56/8e/f3ffaaeb418c69351ca5a784e5a1bd9e9736e1f8dfcc3906f1155582c52ee8131ea3179dc64c91712b6596a4ab814649a28a7e0cb7ec687c50e3c74f51d0",
+          "kind": "file",
+          "bytes": 12701,
+          "sha256": "cc05e835552704f9932af131c6e306d2103be81cefb3dcf22e97a8333a795d4c"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/56/96/6b52a53903af5e4325b6739080d63b4b79c0ac37653f6c3e958a5ac50d6ab9fb95081153bb9dacd2dd311c1dfd73b8f60efeca86bd4bd6eb683ce915d9b8",
+          "kind": "file",
+          "bytes": 4075,
+          "sha256": "f97a7ea54e808bd15d4f8cd23baccce0c320cfaf0f32582b4087dc74f3777b44"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/58/2b/5a6d2eadddcf129290c15256f59233acee5ebac6c19d2a920f66c838c11f81dfebbd500ba6da8752b05f6d9efc60f348786712d6332e294633ac148a90a7",
+          "kind": "file",
+          "bytes": 2722,
+          "sha256": "eff44e04cf96629af61d0ff067bb208fdcc2ae227c215ed9761ae4e4e25e8d57"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/5f/05/8319c2d11825c047c17f00ce5b1bb43e0375a6dace907848e538a64b947dd461c82e8aa0962b259755a8394cb4c88d1ee8389518f247000da66058fc8b7a",
+          "kind": "file",
+          "bytes": 10650,
+          "sha256": "d3ddebca7ac378dd71bf737d5ae34737dc99cd45c477810a5135617a9dc6ecb0"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/7d/a8/869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135",
+          "kind": "file",
+          "bytes": 850574,
+          "sha256": "de5e83d86e2b9fd2c214d3cc7d6f192a1607149d7cb323911919e29570dabec3"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/80/ab/4f9057503d4dc392ca2854b8bd2ec8d9c6bb015192296beeda571f8b579a4d8742b33f86657ae776a68f82a27af16ee5c6049e877deafa85d829201a416b",
+          "kind": "file",
+          "bytes": 17620,
+          "sha256": "641da8bff29558f0db428bc957c73d477a489e5876da584bed0e83629133a25a"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/8e/5d/6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b",
+          "kind": "file",
+          "bytes": 7946423,
+          "sha256": "fcb441e02cd556c5ca488083cd09241e3aeac631154bccd0c69878696e4cb3b6"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/8f/7e/f949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965",
+          "kind": "file",
+          "bytes": 53174,
+          "sha256": "929cff2e7117fb27784359afa49d38306838d5523da55b06ad5fcb9a4812357a"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/a9/30/0096b12c97cb383a211063af700ef70c21d40deb0773e688d088ecba61132eca7c5e9ce3743b9a02a4923a96c85ceac720018f2abc9d8e9ffa7e09763418",
+          "kind": "file",
+          "bytes": 19003,
+          "sha256": "b869e73489ebac52985c845dd97ef39b8dfca473f63ff3a3f966482eabe4281d"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/b0/82/d7bad2d58c22e3703b8e9af857e5ed99e1c4b9a86ffa06edd592917075fffadf712518ba4487d6e09ae239238b2a2aa9227d0886ca209cc751ddb6b2bbb6",
+          "kind": "file",
+          "bytes": 71883,
+          "sha256": "62623fb3ae2f0dd1821ce07fdb42a3fd6cdcc00ead37f6ac70eaaf109412bafe"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/b2/e0/e68cb55083bf2730ad94678e788401be3805be1d03d9ea7fbe4cd0d45fe2f4fae5252f2c27a3124a0e8bb9d599becd30a3ac297436ae89f42e613fdbcafd",
+          "kind": "file",
+          "bytes": 5159,
+          "sha256": "ebcf85ed9e015dc92068ad38c7cfa48bd0fba8341cb6a731fef6e37691772e4f"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/b8/fa/9bb104f6dcd2d8fe7b96e25065e3d11bc430d1c9f38652659b883fda98b39c805e9ed6c873238ef2850117c4562d92ddced2d85a085e4dfa63f5ec6c4912",
+          "kind": "file",
+          "bytes": 8621,
+          "sha256": "e5a4336bfbe4892c4b2fbbdf93aac05d2f05c79baff803838226ae49356e2a7a"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/e7/ee/47a979ec64f13ae4825948c919b544404597a57a5da85d410ef2b1fcdd54bf8711f9befd6e1eab8f839c19b3cc8c01f76ff7bd4853e91c3d47338bb35505",
+          "kind": "file",
+          "bytes": 3143,
+          "sha256": "36624a4e0a6b80bc06038e153f463fa52b23883818f3df3b6362326bb15fce75"
+        },
+        {
+          "path": ".npm-cache/_cacache/content-v2/sha512/f5/98/5728cfebc37e74375a2fb961db1b19c687f48d278727c4788cd2bc44e15378d70b20f0ff335a7f61bff6ee2b4d113f85af94ecabfd10438a9b72c556e465",
+          "kind": "file",
+          "bytes": 5261,
+          "sha256": "25602210f2520163f370f1014d99eb6aa43dab88c8d058a6514b3cb210bd7084"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/17/fa/e9d0409c4a453fa0e1ec562f099edf0c0ee408a36fa2c7800fc3ddcb7d69",
+          "kind": "file",
+          "bytes": 706,
+          "sha256": "74aec470829fe7e7dc6b71afdab84a6715515a34252eea7c856016d4e50e96d0"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/2c/1e/91ad3155089bbff8af3021b9acd58bd8222b57c1108a8bafc4a5251e152c",
+          "kind": "file",
+          "bytes": 671,
+          "sha256": "728cb227fd432d1c2ac824399458818765f7260cdcd05aa578c608810f32b7cc"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/4d/7d/74be32029cceffff84e7c429799d51cf0f7435c9eec95ba3daac65b4562c",
+          "kind": "file",
+          "bytes": 685,
+          "sha256": "5d10b6bd77b5a63b5719933413cae943ae36a00863f2f12969ed1d00d6c904f1"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/4f/38/6541b6b60a29318c22cbcd32071e06cc988fd1d4918f0fb52f4ae534498b",
+          "kind": "file",
+          "bytes": 313,
+          "sha256": "31c71fea17e92ede15b252d37a1f0f90de2383964ae10a6bc85a87ceaa95ab3e"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/4f/4e/20c89d4c9d8a8a6e0407099b875826862a3a5ffca2d67d2b75129ab3421d",
+          "kind": "file",
+          "bytes": 690,
+          "sha256": "da2e4673c07ce2338546c6b549538aae87ff2eb052ff810518294a714ef7643f"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/5a/0d/7e16ea920209f28606999566383d651eaf632b4842837df764c5cc476e83",
+          "kind": "file",
+          "bytes": 649,
+          "sha256": "468a3f58888c0da66614f3d152121f2d45901bc5c9fea1429bade9fecf393b68"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/67/d5/bf35408a99ca3a6b7d2ecdddc96187fa505b46711c6d4ef8dffa8b02f1c0",
+          "kind": "file",
+          "bytes": 678,
+          "sha256": "8e18ff9fc9d40a8d37a8c7103fe028199d780d69153e159e7939898766d4edec"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/6a/b2/cff74a8452b6159ec5df4cd310e05e05bfaa99de31da7de4b5a7a7a849d9",
+          "kind": "file",
+          "bytes": 681,
+          "sha256": "e340bc01a178f1bb193bee89fabee3928bf604eceedfbacd55588a0e58830523"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/6e/27/e0e109737591117c80b7bfe42acbf7883d2aeeb26d019d11537373ec6793",
+          "kind": "file",
+          "bytes": 662,
+          "sha256": "48551f4959981768525364167fe1542ac38213086af8203009723e79c86c318e"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/86/0c/8449635a499c1c1f44f2b6380cea2715c6e3ebe03e524b37d6fe263a4ebb",
+          "kind": "file",
+          "bytes": 690,
+          "sha256": "1a9e3f9511d2a4063ce7c2b82bf9f494bf97961f997c08e5bc50b4202efc3aaa"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/b0/67/37231a71c60a62030abda7158f45c20266623bd2420141def58a58121c2c",
+          "kind": "file",
+          "bytes": 720,
+          "sha256": "248771093f48abc590c6123a41a7df761f9db7267397c1b4845b62fe6dd02b81"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/b0/fc/92a989cf347ec24035994b934b7bb07a131b9fe567752d4994a03f7ddc2a",
+          "kind": "file",
+          "bytes": 687,
+          "sha256": "63f4196352c65e4b823371e9c21c19039bbb94c3b426be6e812955be7e210d31"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/be/b6/fa4dbd3ad4b02fca6f5793d20843c1561fcc2f01d54c0df79a799a4195a2",
+          "kind": "file",
+          "bytes": 658,
+          "sha256": "348bcce78ee7b5cb28a1bcdcac54a5bd7815319c8449f65cbbb9125dcf66c004"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/c5/31/7bec4fadfbd057e2b2e801050a0987f7c34b96e43ae5cd18fe029fee427e",
+          "kind": "file",
+          "bytes": 662,
+          "sha256": "726ab09f37e074e9dea40ada2c5395b57e7b0aa1726aa6a2fafe3c2c0790d695"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/c8/61/53f02412ff2fc3a3b5ec4806ccf1e7aab0888801d6f232a9311384b37a9b",
+          "kind": "file",
+          "bytes": 668,
+          "sha256": "d4bfc208fa7caea33d075a5a42da32e0ea8e8231599874d451abf29d6064e0f7"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/d8/68/2ccc4f5419612d6589707007cc9e166f10f83934c1d58cf18fc54f4421fd",
+          "kind": "file",
+          "bytes": 694,
+          "sha256": "5a9050d56edb1380e8163eca943d74184cd4f8e4e16a4ab99110a3a13054abd7"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/f1/44/cf52860ef2ac0b2a06d907c20d37c3a2182e836b3062f58eb27077317544",
+          "kind": "file",
+          "bytes": 666,
+          "sha256": "9754a33422c1aaaae803a126b045007ca4e31eae79f2dca80fcb2f398af21f54"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/f1/ce/129ef407a2da10de5334e157bcbcdc6862247afab71c3d8d823885a3d9f5",
+          "kind": "file",
+          "bytes": 668,
+          "sha256": "b8b7d40280e2f2abc23ef148690eb443fb8fdccad7e810881d5a3835e1cb687f"
+        },
+        {
+          "path": ".npm-cache/_cacache/index-v5/fc/63/3196c1979679042290850577369860b49f1391c279c79982941dcd31991b",
+          "kind": "file",
+          "bytes": 694,
+          "sha256": "e9522dfb695d39c756ec56b0daf321b57dd625f7c042959e2febea4f83c3b893"
+        },
+        {
+          "path": ".npm-cache/_logs/2026-08-30T14_11_43_453Z-debug-0.log",
+          "kind": "file",
+          "bytes": 9933,
+          "sha256": "e8350127c8ad1beb24a782397ab87d8d2d0d489850d7ad9eab8e580cfa7ea57e"
+        },
+        {
+          "path": ".npm-cache/_update-notifier-last-checked",
+          "kind": "file",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "dist/application.js",
+          "kind": "file",
+          "bytes": 1514,
+          "sha256": "27f17e26e4fc11e904ce0d5d8fc4b0f08b546fff7585d719f3f748eedcdba341"
+        },
+        {
+          "path": "dist/platform/pool.js",
+          "kind": "file",
+          "bytes": 422,
+          "sha256": "5b19984486981150cee4f4c7af80735e77af556befe0cab72a5e7e8d3d9a7fde"
+        },
+        {
+          "path": "dist/platform/transaction.js",
+          "kind": "file",
+          "bytes": 703,
+          "sha256": "b3efa652875fb549f19087659f55b39c806aa047889ca2e3ddb9f5e977763f0e"
+        },
+        {
+          "path": "dist/tickets/application/ticket-use-cases.js",
+          "kind": "file",
+          "bytes": 4962,
+          "sha256": "99bf4e2ed478c8a3bf333295dd9b791c5d510ab1d50803cd1e9cb9a6b2695b21"
+        },
+        {
+          "path": "dist/tickets/dto.js",
+          "kind": "file",
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "dist/tickets/query/ticket-read-model.js",
+          "kind": "file",
+          "bytes": 809,
+          "sha256": "3f2acc98f0cb6bff24c2e4ba20594aef332bac227e315453f116e882773dba56"
+        },
+        {
+          "path": "dist/tickets/sql/tickets.js",
+          "kind": "file",
+          "bytes": 2073,
+          "sha256": "d4f553887185e4078d48ade6b8f2b470baf753dc7e5caeb63c800c4f818f86c1"
+        },
+        {
+          "path": "package-lock.json",
+          "kind": "file",
+          "bytes": 7783,
+          "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+        },
+        {
+          "path": "package.json",
+          "kind": "file",
+          "bytes": 277,
+          "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+        },
+        {
+          "path": "README.md",
+          "kind": "file",
+          "bytes": 455,
+          "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22"
+        },
+        {
+          "path": "src/application.ts",
+          "kind": "file",
+          "bytes": 2097,
+          "sha256": "dafdd309edac7a2d96d9039498f241500c41fce13375fa5a7d1f31d9e1b739f8"
+        },
+        {
+          "path": "src/platform/pool.ts",
+          "kind": "file",
+          "bytes": 776,
+          "sha256": "2554df0bc7857c04a3033eff03143ce1a70e30dc25d848603cf4a9682b74b7de"
+        },
+        {
+          "path": "src/platform/transaction.ts",
+          "kind": "file",
+          "bytes": 891,
+          "sha256": "6b1789216dadbe492d4d00175143a602c5db6c8d0190bb09b38a6d60c1614258"
+        },
+        {
+          "path": "src/tickets/application/ticket-use-cases.ts",
+          "kind": "file",
+          "bytes": 5913,
+          "sha256": "8b96c22598bbffc244f193ba3b9ccc12c9640fc4bb2a3c3cca36e065783d9190"
+        },
+        {
+          "path": "src/tickets/dto.ts",
+          "kind": "file",
+          "bytes": 298,
+          "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+        },
+        {
+          "path": "src/tickets/query/ticket-read-model.ts",
+          "kind": "file",
+          "bytes": 1132,
+          "sha256": "9508a1d31311cb48e9f02ad50dae408ab8992de123eacc96c474d901912cc6d7"
+        },
+        {
+          "path": "src/tickets/sql/.gitkeep",
+          "kind": "file",
+          "bytes": 1,
+          "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "path": "src/tickets/sql/tickets.ts",
+          "kind": "file",
+          "bytes": 2281,
+          "sha256": "022b1abf40fba9d678d47c843338ec5743f27880a5ca909d0144d89414bce0c5"
+        },
+        {
+          "path": "tests/tickets.integration.test.ts",
+          "kind": "file",
+          "bytes": 143,
+          "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+        },
+        {
+          "path": "tsconfig.json",
+          "kind": "file",
+          "bytes": 262,
+          "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+        }
+      ],
+      "findings": [],
+      "pass": true
+    },
+    "checks": [
+      {
+        "id": "G1-list-order",
+        "status": "pass",
+        "detail": "priority desc then stable id asc"
+      },
+      {
+        "id": "G1-sort-id-asc",
+        "status": "pass",
+        "detail": "id asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-id-desc",
+        "status": "pass",
+        "detail": "id desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-priority-asc",
+        "status": "pass",
+        "detail": "priority asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-priority-desc",
+        "status": "pass",
+        "detail": "priority desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-createdAt-asc",
+        "status": "pass",
+        "detail": "createdAt asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-createdAt-desc",
+        "status": "pass",
+        "detail": "createdAt desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-pagination-offset-limit",
+        "status": "pass",
+        "detail": "offset and limit apply after the stable ordering"
+      },
+      {
+        "id": "G1-filter-null-assignee",
+        "status": "pass",
+        "detail": "null assignee filter"
+      },
+      {
+        "id": "G1-invalid-sort",
+        "status": "pass",
+        "detail": "unreviewed sort rejects"
+      },
+      {
+        "id": "G1-invalid-pagination",
+        "status": "pass",
+        "detail": "invalid pagination rejects"
+      },
+      {
+        "id": "G1-missing-get-id",
+        "status": "pass",
+        "detail": "missing get identifier rejects"
+      },
+      {
+        "id": "G1-get",
+        "status": "pass",
+        "detail": "existing ticket is returned"
+      },
+      {
+        "id": "G1-get-null",
+        "status": "pass",
+        "detail": "missing ticket returns null"
+      },
+      {
+        "id": "G1-hostile-value",
+        "status": "pass",
+        "detail": "hostile text remains a value"
+      },
+      {
+        "id": "G1-assign",
+        "status": "pass",
+        "detail": "assignment commits"
+      },
+      {
+        "id": "G1-assign-trigger-rollback",
+        "status": "pass",
+        "detail": "runner-owned post-audit trigger rolls back assignment"
+      },
+      {
+        "id": "G1-close",
+        "status": "pass",
+        "detail": "close resolves with no value"
+      },
+      {
+        "id": "G1-close-idempotent",
+        "status": "pass",
+        "detail": "close is idempotent"
+      },
+      {
+        "id": "G1-closed-rejection",
+        "status": "pass",
+        "detail": "list rejects after close"
+      }
+    ],
+    "events": [
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T20:56:19.131Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "durationMs": 11
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T20:56:19.142Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T20:56:19.143Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T20:56:19.144Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T20:56:19.145Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "createdAt",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T20:56:19.146Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "createdAt",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T20:56:19.147Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "asc",
+          "offset": 1,
+          "limit": 2
+        },
+        "startedAt": "2026-08-30T20:56:19.148Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {
+          "status": "open",
+          "assignee": null,
+          "sort": "id",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T20:56:19.148Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "title",
+          "limit": 10,
+          "offset": 0
+        },
+        "startedAt": "2026-08-30T20:56:19.149Z",
+        "status": "rejected",
+        "error": {
+          "name": "ApplicationError",
+          "code": "VALIDATION",
+          "message": "VALIDATION"
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "offset": 0,
+          "limit": 0
+        },
+        "startedAt": "2026-08-30T20:56:19.149Z",
+        "status": "rejected",
+        "error": {
+          "name": "ApplicationError",
+          "code": "VALIDATION",
+          "message": "VALIDATION"
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "get",
+        "input": {},
+        "startedAt": "2026-08-30T20:56:19.149Z",
+        "status": "rejected",
+        "error": {
+          "name": "ApplicationError",
+          "code": "VALIDATION",
+          "message": "VALIDATION"
+        },
+        "durationMs": 1
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "101"
+        },
+        "startedAt": "2026-08-30T20:56:19.150Z",
+        "status": "resolved",
+        "output": {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "createdAt": "2026-01-01T09:00:00.000Z",
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "999"
+        },
+        "startedAt": "2026-08-30T20:56:19.150Z",
+        "status": "resolved",
+        "output": null,
+        "durationMs": 1
+      },
+      {
+        "operation": "create",
+        "input": {
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "startedAt": "2026-08-30T20:56:19.151Z",
+        "status": "resolved",
+        "output": {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "createdAt": "2026-08-30T20:56:19.156Z",
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "durationMs": 2
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "1"
+        },
+        "startedAt": "2026-08-30T20:56:19.153Z",
+        "status": "resolved",
+        "output": {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "createdAt": "2026-08-30T20:56:19.156Z",
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "assign",
+        "input": {
+          "id": "103",
+          "assignee": "carol"
+        },
+        "startedAt": "2026-08-30T20:56:19.153Z",
+        "status": "resolved",
+        "output": {
+          "id": "103",
+          "assignee": "carol"
+        },
+        "durationMs": 4
+      },
+      {
+        "operation": "assign",
+        "input": {
+          "id": "102",
+          "assignee": "injected-worker"
+        },
+        "startedAt": "2026-08-30T20:56:19.179Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "P0001",
+          "message": "runner-injected failure: assign_audit"
+        },
+        "durationMs": 2
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T20:56:19.200Z",
+        "status": "resolved",
+        "durationMs": 1
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T20:56:19.201Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {},
+        "startedAt": "2026-08-30T20:56:19.201Z",
+        "status": "rejected",
+        "error": {
+          "name": "ApplicationError",
+          "code": "APPLICATION_CLOSED",
+          "message": "APPLICATION_CLOSED"
+        },
+        "durationMs": 0
+      }
+    ],
+    "cleanup": {
+      "status": "pass",
+      "schema": "pass",
+      "role": "pass",
+      "connection": "pass"
+    },
+    "startedAt": "2026-08-30T20:56:19.048Z",
+    "schema": "ashiba_v3_5e2225f1feed4945",
+    "candidateRole": "ashiba_v3_candidate_750d88e2583cde66",
+    "finalDatabaseState": {
+      "tickets": [
+        {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "102",
+          "title": "Export is slow",
+          "status": "pending",
+          "assignee": "bob",
+          "priority": 3,
+          "metadata": {
+            "channel": "web"
+          }
+        },
+        {
+          "id": "103",
+          "title": "Password reset",
+          "status": "open",
+          "assignee": "carol",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "104",
+          "title": "Close account",
+          "status": "closed",
+          "assignee": "alice",
+          "priority": 1,
+          "metadata": {
+            "channel": "web"
+          }
+        }
+      ],
+      "ticketAudit": [
+        {
+          "ticket_id": "103",
+          "action": "assigned",
+          "detail": "{\"assignee\":\"carol\"}"
+        }
+      ],
+      "accounts": [
+        {
+          "account_id": "7001",
+          "balance_cents": "10000"
+        },
+        {
+          "account_id": "7002",
+          "balance_cents": "5000"
+        }
+      ],
+      "transferAudit": [],
+      "workItems": [
+        {
+          "id": "8001",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8002",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8003",
+          "state": "queued",
+          "claimed_by": null
+        }
+      ]
+    },
+    "status": "P",
+    "preCleanupRecord": {
+      "status": "written",
+      "path": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r2\\evidence\\primary-g1.json.pre-cleanup.json",
+      "writtenAt": "2026-08-30T20:56:19.212Z"
+    },
+    "finishedAt": "2026-08-30T20:56:19.225Z"
+  },
+  "candidateSourceManifestBefore": [
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/15/d5/bdaff8d066149ea21b35677b08d72c4540d16f31c9e67ee8f85813144f13ab0322cc693704d5a00c0624e56cc35a5ef04242e562d11ee177cb9d0d23fbba",
+      "bytes": 4280,
+      "sha256": "ff794c956186430afd600b5bc4500f3f0faf34b62be6ff98494f4c7f4a6d8597"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/22/9d/844029e0a3024b18e7c2c241613d753bfe58e5867e91c659b2e1761f2f663ebf244ce7dfbcb91db1a9158a75899b5e6c4214e0262b106e49409d177e2a2e",
+      "bytes": 27821,
+      "sha256": "d9db7902694dbe59fd5ca21d6521b054cf030aa9360eba7a2f301ad1af10f4ac"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/2c/a6/14d620172575200179fd5118e2bbe3168725171ecbdfa7b99cb989bd75250a2b4fc28edad4c050310fcdbf98259bb4bb068c521a774c08b28778ceb4c011",
+      "bytes": 2529,
+      "sha256": "bd22a01d43c799be7bb53dfa9e775b132045e39525e51efb977528a00041ba48"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/36/86/8cb738713abb9b78bffb519b8d4eb7a307830f009d11a7166a5d07f6a97b959533ee1ba63ca78bbd74a45ab9ee328e60bb661cd53b6fd8cb29f6e739eb3d",
+      "bytes": 5316,
+      "sha256": "09f472dfaf8eaee4d735f25e07ebbb6d897f012c3859ac1f0c49b29f4ab0e578"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/51/c8/dc24e5a49eb36417a3cb5fcdea70733a28781528d915eb663c6b9b980d5bfdc9d19057000730aa877498ded554d6a658c6d1662908386b09d00e607e135a",
+      "bytes": 4668,
+      "sha256": "e0061e7f042fc5ff6dcda8afb66619757d92ab1ff514a28a5904f2ebde27bf54"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/56/8e/f3ffaaeb418c69351ca5a784e5a1bd9e9736e1f8dfcc3906f1155582c52ee8131ea3179dc64c91712b6596a4ab814649a28a7e0cb7ec687c50e3c74f51d0",
+      "bytes": 6938,
+      "sha256": "bffbb359f525d8ef6a0ce72f185feb109018a6c763aafc4f7a1b20fde66b98da"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/56/96/6b52a53903af5e4325b6739080d63b4b79c0ac37653f6c3e958a5ac50d6ab9fb95081153bb9dacd2dd311c1dfd73b8f60efeca86bd4bd6eb683ce915d9b8",
+      "bytes": 2213,
+      "sha256": "dbf1035c777631d4b0a4b5c035b1f6247dd923db6b2ea115b93b1eabb172b3a0"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/58/2b/5a6d2eadddcf129290c15256f59233acee5ebac6c19d2a920f66c838c11f81dfebbd500ba6da8752b05f6d9efc60f348786712d6332e294633ac148a90a7",
+      "bytes": 1508,
+      "sha256": "f010d48974a96814e841edbb6fc6096385574610714d2a50e99811170c365e92"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/5f/05/8319c2d11825c047c17f00ce5b1bb43e0375a6dace907848e538a64b947dd461c82e8aa0962b259755a8394cb4c88d1ee8389518f247000da66058fc8b7a",
+      "bytes": 5825,
+      "sha256": "314e8be01b0c5217f51b51a8d334ddbb41d84de437e1296e2608b97dc1dfc120"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/7d/a8/869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135",
+      "bytes": 468496,
+      "sha256": "1a8fb7b2f30b4589cb454f09c6935d7381aea673f2bbee086fb2a1d1b0f1adc3"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/80/ab/4f9057503d4dc392ca2854b8bd2ec8d9c6bb015192296beeda571f8b579a4d8742b33f86657ae776a68f82a27af16ee5c6049e877deafa85d829201a416b",
+      "bytes": 9579,
+      "sha256": "0b0b8729c09d5eaa059313c9c3d11efc8907441386bbf86ccc57e1298c6ce71a"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/8e/5d/6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b",
+      "bytes": 4377468,
+      "sha256": "10e108c9cf7d5f2879053dff18515fb405abf2ccef63eaaf017d9c571687a1d3"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/8f/7e/f949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965",
+      "bytes": 29207,
+      "sha256": "07a721cb2cd0dd798c24757de34d14e8b640ff8fddef85d662e00b392562a1f2"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/a9/30/0096b12c97cb383a211063af700ef70c21d40deb0773e688d088ecba61132eca7c5e9ce3743b9a02a4923a96c85ceac720018f2abc9d8e9ffa7e09763418",
+      "bytes": 10344,
+      "sha256": "c4804fd058140c32f8fda78883ad45dee3eaa4fd9e9127b6eb659fefe51981bd"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/b0/82/d7bad2d58c22e3703b8e9af857e5ed99e1c4b9a86ffa06edd592917075fffadf712518ba4487d6e09ae239238b2a2aa9227d0886ca209cc751ddb6b2bbb6",
+      "bytes": 39412,
+      "sha256": "37fd174ff80805dff9faadd44cc0c3fe854096ba8823002348c94fabcab7ddfc"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/b2/e0/e68cb55083bf2730ad94678e788401be3805be1d03d9ea7fbe4cd0d45fe2f4fae5252f2c27a3124a0e8bb9d599becd30a3ac297436ae89f42e613fdbcafd",
+      "bytes": 2836,
+      "sha256": "a67a8d90e7b8f64041a6f425b102b27a3e86d5854ace7e9414a890912f3adb59"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/b8/fa/9bb104f6dcd2d8fe7b96e25065e3d11bc430d1c9f38652659b883fda98b39c805e9ed6c873238ef2850117c4562d92ddced2d85a085e4dfa63f5ec6c4912",
+      "bytes": 4703,
+      "sha256": "64b95657af62120d5b8662224b298cc610a74280e515b33ee485e41247bdcc4d"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/e7/ee/47a979ec64f13ae4825948c919b544404597a57a5da85d410ef2b1fcdd54bf8711f9befd6e1eab8f839c19b3cc8c01f76ff7bd4853e91c3d47338bb35505",
+      "bytes": 1724,
+      "sha256": "0395e34ecb9945b0003132af6e11463ec7ec8f17fb5cbdbccc5a822bd6807d96"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/f5/98/5728cfebc37e74375a2fb961db1b19c687f48d278727c4788cd2bc44e15378d70b20f0ff335a7f61bff6ee2b4d113f85af94ecabfd10438a9b72c556e465",
+      "bytes": 2926,
+      "sha256": "e67563626b30aa7d22caf930e38529bb137476146a11eaaa0bb1e07c0a2413b1"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/17/fa/e9d0409c4a453fa0e1ec562f099edf0c0ee408a36fa2c7800fc3ddcb7d69",
+      "bytes": 706,
+      "sha256": "74aec470829fe7e7dc6b71afdab84a6715515a34252eea7c856016d4e50e96d0"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/2c/1e/91ad3155089bbff8af3021b9acd58bd8222b57c1108a8bafc4a5251e152c",
+      "bytes": 671,
+      "sha256": "728cb227fd432d1c2ac824399458818765f7260cdcd05aa578c608810f32b7cc"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/4d/7d/74be32029cceffff84e7c429799d51cf0f7435c9eec95ba3daac65b4562c",
+      "bytes": 685,
+      "sha256": "5d10b6bd77b5a63b5719933413cae943ae36a00863f2f12969ed1d00d6c904f1"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/4f/38/6541b6b60a29318c22cbcd32071e06cc988fd1d4918f0fb52f4ae534498b",
+      "bytes": 313,
+      "sha256": "31c71fea17e92ede15b252d37a1f0f90de2383964ae10a6bc85a87ceaa95ab3e"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/4f/4e/20c89d4c9d8a8a6e0407099b875826862a3a5ffca2d67d2b75129ab3421d",
+      "bytes": 690,
+      "sha256": "da2e4673c07ce2338546c6b549538aae87ff2eb052ff810518294a714ef7643f"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/5a/0d/7e16ea920209f28606999566383d651eaf632b4842837df764c5cc476e83",
+      "bytes": 649,
+      "sha256": "468a3f58888c0da66614f3d152121f2d45901bc5c9fea1429bade9fecf393b68"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/67/d5/bf35408a99ca3a6b7d2ecdddc96187fa505b46711c6d4ef8dffa8b02f1c0",
+      "bytes": 678,
+      "sha256": "8e18ff9fc9d40a8d37a8c7103fe028199d780d69153e159e7939898766d4edec"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/6a/b2/cff74a8452b6159ec5df4cd310e05e05bfaa99de31da7de4b5a7a7a849d9",
+      "bytes": 681,
+      "sha256": "e340bc01a178f1bb193bee89fabee3928bf604eceedfbacd55588a0e58830523"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/6e/27/e0e109737591117c80b7bfe42acbf7883d2aeeb26d019d11537373ec6793",
+      "bytes": 662,
+      "sha256": "48551f4959981768525364167fe1542ac38213086af8203009723e79c86c318e"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/86/0c/8449635a499c1c1f44f2b6380cea2715c6e3ebe03e524b37d6fe263a4ebb",
+      "bytes": 690,
+      "sha256": "1a9e3f9511d2a4063ce7c2b82bf9f494bf97961f997c08e5bc50b4202efc3aaa"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/b0/67/37231a71c60a62030abda7158f45c20266623bd2420141def58a58121c2c",
+      "bytes": 720,
+      "sha256": "248771093f48abc590c6123a41a7df761f9db7267397c1b4845b62fe6dd02b81"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/b0/fc/92a989cf347ec24035994b934b7bb07a131b9fe567752d4994a03f7ddc2a",
+      "bytes": 687,
+      "sha256": "63f4196352c65e4b823371e9c21c19039bbb94c3b426be6e812955be7e210d31"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/be/b6/fa4dbd3ad4b02fca6f5793d20843c1561fcc2f01d54c0df79a799a4195a2",
+      "bytes": 658,
+      "sha256": "348bcce78ee7b5cb28a1bcdcac54a5bd7815319c8449f65cbbb9125dcf66c004"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/c5/31/7bec4fadfbd057e2b2e801050a0987f7c34b96e43ae5cd18fe029fee427e",
+      "bytes": 662,
+      "sha256": "726ab09f37e074e9dea40ada2c5395b57e7b0aa1726aa6a2fafe3c2c0790d695"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/c8/61/53f02412ff2fc3a3b5ec4806ccf1e7aab0888801d6f232a9311384b37a9b",
+      "bytes": 668,
+      "sha256": "d4bfc208fa7caea33d075a5a42da32e0ea8e8231599874d451abf29d6064e0f7"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/d8/68/2ccc4f5419612d6589707007cc9e166f10f83934c1d58cf18fc54f4421fd",
+      "bytes": 694,
+      "sha256": "5a9050d56edb1380e8163eca943d74184cd4f8e4e16a4ab99110a3a13054abd7"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/f1/44/cf52860ef2ac0b2a06d907c20d37c3a2182e836b3062f58eb27077317544",
+      "bytes": 666,
+      "sha256": "9754a33422c1aaaae803a126b045007ca4e31eae79f2dca80fcb2f398af21f54"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/f1/ce/129ef407a2da10de5334e157bcbcdc6862247afab71c3d8d823885a3d9f5",
+      "bytes": 668,
+      "sha256": "b8b7d40280e2f2abc23ef148690eb443fb8fdccad7e810881d5a3835e1cb687f"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/fc/63/3196c1979679042290850577369860b49f1391c279c79982941dcd31991b",
+      "bytes": 694,
+      "sha256": "e9522dfb695d39c756ec56b0daf321b57dd625f7c042959e2febea4f83c3b893"
+    },
+    {
+      "path": ".npm-cache/_logs/2026-08-30T14_11_43_453Z-debug-0.log",
+      "bytes": 9933,
+      "sha256": "e8350127c8ad1beb24a782397ab87d8d2d0d489850d7ad9eab8e580cfa7ea57e"
+    },
+    {
+      "path": ".npm-cache/_update-notifier-last-checked",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 277,
+      "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+    },
+    {
+      "path": "README.md",
+      "bytes": 455,
+      "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 2097,
+      "sha256": "dafdd309edac7a2d96d9039498f241500c41fce13375fa5a7d1f31d9e1b739f8"
+    },
+    {
+      "path": "src/platform/pool.ts",
+      "bytes": 776,
+      "sha256": "2554df0bc7857c04a3033eff03143ce1a70e30dc25d848603cf4a9682b74b7de"
+    },
+    {
+      "path": "src/platform/transaction.ts",
+      "bytes": 891,
+      "sha256": "6b1789216dadbe492d4d00175143a602c5db6c8d0190bb09b38a6d60c1614258"
+    },
+    {
+      "path": "src/tickets/application/ticket-use-cases.ts",
+      "bytes": 5913,
+      "sha256": "8b96c22598bbffc244f193ba3b9ccc12c9640fc4bb2a3c3cca36e065783d9190"
+    },
+    {
+      "path": "src/tickets/dto.ts",
+      "bytes": 298,
+      "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+    },
+    {
+      "path": "src/tickets/query/ticket-read-model.ts",
+      "bytes": 1132,
+      "sha256": "9508a1d31311cb48e9f02ad50dae408ab8992de123eacc96c474d901912cc6d7"
+    },
+    {
+      "path": "src/tickets/sql/.gitkeep",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "src/tickets/sql/tickets.ts",
+      "bytes": 2281,
+      "sha256": "022b1abf40fba9d678d47c843338ec5743f27880a5ca909d0144d89414bce0c5"
+    },
+    {
+      "path": "tests/tickets.integration.test.ts",
+      "bytes": 143,
+      "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 262,
+      "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+    }
+  ],
+  "candidateSourceManifestAfter": [
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/15/d5/bdaff8d066149ea21b35677b08d72c4540d16f31c9e67ee8f85813144f13ab0322cc693704d5a00c0624e56cc35a5ef04242e562d11ee177cb9d0d23fbba",
+      "bytes": 4280,
+      "sha256": "ff794c956186430afd600b5bc4500f3f0faf34b62be6ff98494f4c7f4a6d8597"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/22/9d/844029e0a3024b18e7c2c241613d753bfe58e5867e91c659b2e1761f2f663ebf244ce7dfbcb91db1a9158a75899b5e6c4214e0262b106e49409d177e2a2e",
+      "bytes": 27821,
+      "sha256": "d9db7902694dbe59fd5ca21d6521b054cf030aa9360eba7a2f301ad1af10f4ac"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/2c/a6/14d620172575200179fd5118e2bbe3168725171ecbdfa7b99cb989bd75250a2b4fc28edad4c050310fcdbf98259bb4bb068c521a774c08b28778ceb4c011",
+      "bytes": 2529,
+      "sha256": "bd22a01d43c799be7bb53dfa9e775b132045e39525e51efb977528a00041ba48"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/36/86/8cb738713abb9b78bffb519b8d4eb7a307830f009d11a7166a5d07f6a97b959533ee1ba63ca78bbd74a45ab9ee328e60bb661cd53b6fd8cb29f6e739eb3d",
+      "bytes": 5316,
+      "sha256": "09f472dfaf8eaee4d735f25e07ebbb6d897f012c3859ac1f0c49b29f4ab0e578"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/51/c8/dc24e5a49eb36417a3cb5fcdea70733a28781528d915eb663c6b9b980d5bfdc9d19057000730aa877498ded554d6a658c6d1662908386b09d00e607e135a",
+      "bytes": 4668,
+      "sha256": "e0061e7f042fc5ff6dcda8afb66619757d92ab1ff514a28a5904f2ebde27bf54"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/56/8e/f3ffaaeb418c69351ca5a784e5a1bd9e9736e1f8dfcc3906f1155582c52ee8131ea3179dc64c91712b6596a4ab814649a28a7e0cb7ec687c50e3c74f51d0",
+      "bytes": 6938,
+      "sha256": "bffbb359f525d8ef6a0ce72f185feb109018a6c763aafc4f7a1b20fde66b98da"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/56/96/6b52a53903af5e4325b6739080d63b4b79c0ac37653f6c3e958a5ac50d6ab9fb95081153bb9dacd2dd311c1dfd73b8f60efeca86bd4bd6eb683ce915d9b8",
+      "bytes": 2213,
+      "sha256": "dbf1035c777631d4b0a4b5c035b1f6247dd923db6b2ea115b93b1eabb172b3a0"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/58/2b/5a6d2eadddcf129290c15256f59233acee5ebac6c19d2a920f66c838c11f81dfebbd500ba6da8752b05f6d9efc60f348786712d6332e294633ac148a90a7",
+      "bytes": 1508,
+      "sha256": "f010d48974a96814e841edbb6fc6096385574610714d2a50e99811170c365e92"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/5f/05/8319c2d11825c047c17f00ce5b1bb43e0375a6dace907848e538a64b947dd461c82e8aa0962b259755a8394cb4c88d1ee8389518f247000da66058fc8b7a",
+      "bytes": 5825,
+      "sha256": "314e8be01b0c5217f51b51a8d334ddbb41d84de437e1296e2608b97dc1dfc120"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/7d/a8/869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135",
+      "bytes": 468496,
+      "sha256": "1a8fb7b2f30b4589cb454f09c6935d7381aea673f2bbee086fb2a1d1b0f1adc3"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/80/ab/4f9057503d4dc392ca2854b8bd2ec8d9c6bb015192296beeda571f8b579a4d8742b33f86657ae776a68f82a27af16ee5c6049e877deafa85d829201a416b",
+      "bytes": 9579,
+      "sha256": "0b0b8729c09d5eaa059313c9c3d11efc8907441386bbf86ccc57e1298c6ce71a"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/8e/5d/6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b",
+      "bytes": 4377468,
+      "sha256": "10e108c9cf7d5f2879053dff18515fb405abf2ccef63eaaf017d9c571687a1d3"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/8f/7e/f949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965",
+      "bytes": 29207,
+      "sha256": "07a721cb2cd0dd798c24757de34d14e8b640ff8fddef85d662e00b392562a1f2"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/a9/30/0096b12c97cb383a211063af700ef70c21d40deb0773e688d088ecba61132eca7c5e9ce3743b9a02a4923a96c85ceac720018f2abc9d8e9ffa7e09763418",
+      "bytes": 10344,
+      "sha256": "c4804fd058140c32f8fda78883ad45dee3eaa4fd9e9127b6eb659fefe51981bd"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/b0/82/d7bad2d58c22e3703b8e9af857e5ed99e1c4b9a86ffa06edd592917075fffadf712518ba4487d6e09ae239238b2a2aa9227d0886ca209cc751ddb6b2bbb6",
+      "bytes": 39412,
+      "sha256": "37fd174ff80805dff9faadd44cc0c3fe854096ba8823002348c94fabcab7ddfc"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/b2/e0/e68cb55083bf2730ad94678e788401be3805be1d03d9ea7fbe4cd0d45fe2f4fae5252f2c27a3124a0e8bb9d599becd30a3ac297436ae89f42e613fdbcafd",
+      "bytes": 2836,
+      "sha256": "a67a8d90e7b8f64041a6f425b102b27a3e86d5854ace7e9414a890912f3adb59"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/b8/fa/9bb104f6dcd2d8fe7b96e25065e3d11bc430d1c9f38652659b883fda98b39c805e9ed6c873238ef2850117c4562d92ddced2d85a085e4dfa63f5ec6c4912",
+      "bytes": 4703,
+      "sha256": "64b95657af62120d5b8662224b298cc610a74280e515b33ee485e41247bdcc4d"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/e7/ee/47a979ec64f13ae4825948c919b544404597a57a5da85d410ef2b1fcdd54bf8711f9befd6e1eab8f839c19b3cc8c01f76ff7bd4853e91c3d47338bb35505",
+      "bytes": 1724,
+      "sha256": "0395e34ecb9945b0003132af6e11463ec7ec8f17fb5cbdbccc5a822bd6807d96"
+    },
+    {
+      "path": ".npm-cache/_cacache/content-v2/sha512/f5/98/5728cfebc37e74375a2fb961db1b19c687f48d278727c4788cd2bc44e15378d70b20f0ff335a7f61bff6ee2b4d113f85af94ecabfd10438a9b72c556e465",
+      "bytes": 2926,
+      "sha256": "e67563626b30aa7d22caf930e38529bb137476146a11eaaa0bb1e07c0a2413b1"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/17/fa/e9d0409c4a453fa0e1ec562f099edf0c0ee408a36fa2c7800fc3ddcb7d69",
+      "bytes": 706,
+      "sha256": "74aec470829fe7e7dc6b71afdab84a6715515a34252eea7c856016d4e50e96d0"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/2c/1e/91ad3155089bbff8af3021b9acd58bd8222b57c1108a8bafc4a5251e152c",
+      "bytes": 671,
+      "sha256": "728cb227fd432d1c2ac824399458818765f7260cdcd05aa578c608810f32b7cc"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/4d/7d/74be32029cceffff84e7c429799d51cf0f7435c9eec95ba3daac65b4562c",
+      "bytes": 685,
+      "sha256": "5d10b6bd77b5a63b5719933413cae943ae36a00863f2f12969ed1d00d6c904f1"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/4f/38/6541b6b60a29318c22cbcd32071e06cc988fd1d4918f0fb52f4ae534498b",
+      "bytes": 313,
+      "sha256": "31c71fea17e92ede15b252d37a1f0f90de2383964ae10a6bc85a87ceaa95ab3e"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/4f/4e/20c89d4c9d8a8a6e0407099b875826862a3a5ffca2d67d2b75129ab3421d",
+      "bytes": 690,
+      "sha256": "da2e4673c07ce2338546c6b549538aae87ff2eb052ff810518294a714ef7643f"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/5a/0d/7e16ea920209f28606999566383d651eaf632b4842837df764c5cc476e83",
+      "bytes": 649,
+      "sha256": "468a3f58888c0da66614f3d152121f2d45901bc5c9fea1429bade9fecf393b68"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/67/d5/bf35408a99ca3a6b7d2ecdddc96187fa505b46711c6d4ef8dffa8b02f1c0",
+      "bytes": 678,
+      "sha256": "8e18ff9fc9d40a8d37a8c7103fe028199d780d69153e159e7939898766d4edec"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/6a/b2/cff74a8452b6159ec5df4cd310e05e05bfaa99de31da7de4b5a7a7a849d9",
+      "bytes": 681,
+      "sha256": "e340bc01a178f1bb193bee89fabee3928bf604eceedfbacd55588a0e58830523"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/6e/27/e0e109737591117c80b7bfe42acbf7883d2aeeb26d019d11537373ec6793",
+      "bytes": 662,
+      "sha256": "48551f4959981768525364167fe1542ac38213086af8203009723e79c86c318e"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/86/0c/8449635a499c1c1f44f2b6380cea2715c6e3ebe03e524b37d6fe263a4ebb",
+      "bytes": 690,
+      "sha256": "1a9e3f9511d2a4063ce7c2b82bf9f494bf97961f997c08e5bc50b4202efc3aaa"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/b0/67/37231a71c60a62030abda7158f45c20266623bd2420141def58a58121c2c",
+      "bytes": 720,
+      "sha256": "248771093f48abc590c6123a41a7df761f9db7267397c1b4845b62fe6dd02b81"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/b0/fc/92a989cf347ec24035994b934b7bb07a131b9fe567752d4994a03f7ddc2a",
+      "bytes": 687,
+      "sha256": "63f4196352c65e4b823371e9c21c19039bbb94c3b426be6e812955be7e210d31"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/be/b6/fa4dbd3ad4b02fca6f5793d20843c1561fcc2f01d54c0df79a799a4195a2",
+      "bytes": 658,
+      "sha256": "348bcce78ee7b5cb28a1bcdcac54a5bd7815319c8449f65cbbb9125dcf66c004"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/c5/31/7bec4fadfbd057e2b2e801050a0987f7c34b96e43ae5cd18fe029fee427e",
+      "bytes": 662,
+      "sha256": "726ab09f37e074e9dea40ada2c5395b57e7b0aa1726aa6a2fafe3c2c0790d695"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/c8/61/53f02412ff2fc3a3b5ec4806ccf1e7aab0888801d6f232a9311384b37a9b",
+      "bytes": 668,
+      "sha256": "d4bfc208fa7caea33d075a5a42da32e0ea8e8231599874d451abf29d6064e0f7"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/d8/68/2ccc4f5419612d6589707007cc9e166f10f83934c1d58cf18fc54f4421fd",
+      "bytes": 694,
+      "sha256": "5a9050d56edb1380e8163eca943d74184cd4f8e4e16a4ab99110a3a13054abd7"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/f1/44/cf52860ef2ac0b2a06d907c20d37c3a2182e836b3062f58eb27077317544",
+      "bytes": 666,
+      "sha256": "9754a33422c1aaaae803a126b045007ca4e31eae79f2dca80fcb2f398af21f54"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/f1/ce/129ef407a2da10de5334e157bcbcdc6862247afab71c3d8d823885a3d9f5",
+      "bytes": 668,
+      "sha256": "b8b7d40280e2f2abc23ef148690eb443fb8fdccad7e810881d5a3835e1cb687f"
+    },
+    {
+      "path": ".npm-cache/_cacache/index-v5/fc/63/3196c1979679042290850577369860b49f1391c279c79982941dcd31991b",
+      "bytes": 694,
+      "sha256": "e9522dfb695d39c756ec56b0daf321b57dd625f7c042959e2febea4f83c3b893"
+    },
+    {
+      "path": ".npm-cache/_logs/2026-08-30T14_11_43_453Z-debug-0.log",
+      "bytes": 9933,
+      "sha256": "e8350127c8ad1beb24a782397ab87d8d2d0d489850d7ad9eab8e580cfa7ea57e"
+    },
+    {
+      "path": ".npm-cache/_update-notifier-last-checked",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 277,
+      "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+    },
+    {
+      "path": "README.md",
+      "bytes": 455,
+      "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 2097,
+      "sha256": "dafdd309edac7a2d96d9039498f241500c41fce13375fa5a7d1f31d9e1b739f8"
+    },
+    {
+      "path": "src/platform/pool.ts",
+      "bytes": 776,
+      "sha256": "2554df0bc7857c04a3033eff03143ce1a70e30dc25d848603cf4a9682b74b7de"
+    },
+    {
+      "path": "src/platform/transaction.ts",
+      "bytes": 891,
+      "sha256": "6b1789216dadbe492d4d00175143a602c5db6c8d0190bb09b38a6d60c1614258"
+    },
+    {
+      "path": "src/tickets/application/ticket-use-cases.ts",
+      "bytes": 5913,
+      "sha256": "8b96c22598bbffc244f193ba3b9ccc12c9640fc4bb2a3c3cca36e065783d9190"
+    },
+    {
+      "path": "src/tickets/dto.ts",
+      "bytes": 298,
+      "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+    },
+    {
+      "path": "src/tickets/query/ticket-read-model.ts",
+      "bytes": 1132,
+      "sha256": "9508a1d31311cb48e9f02ad50dae408ab8992de123eacc96c474d901912cc6d7"
+    },
+    {
+      "path": "src/tickets/sql/.gitkeep",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "src/tickets/sql/tickets.ts",
+      "bytes": 2281,
+      "sha256": "022b1abf40fba9d678d47c843338ec5743f27880a5ca909d0144d89414bce0c5"
+    },
+    {
+      "path": "tests/tickets.integration.test.ts",
+      "bytes": 143,
+      "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 262,
+      "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+    }
+  ],
+  "sourceUnchangedDuringRunner": true,
+  "architectureDelta": {
+    "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+    "candidateHash": "3dc17b1633af8ae71d3e68e35243f577476218623bb37d819cd6021f97878fd6",
+    "changedExistingFiles": [
+      "src/application.ts",
+      "src/platform/pool.ts",
+      "src/platform/transaction.ts",
+      "src/tickets/application/ticket-use-cases.ts",
+      "src/tickets/query/ticket-read-model.ts"
+    ],
+    "missingExistingFiles": [],
+    "movedOrRenamedExistingFiles": [],
+    "newFiles": [
+      ".npm-cache/_cacache/content-v2/sha512/15/d5/bdaff8d066149ea21b35677b08d72c4540d16f31c9e67ee8f85813144f13ab0322cc693704d5a00c0624e56cc35a5ef04242e562d11ee177cb9d0d23fbba",
+      ".npm-cache/_cacache/content-v2/sha512/22/9d/844029e0a3024b18e7c2c241613d753bfe58e5867e91c659b2e1761f2f663ebf244ce7dfbcb91db1a9158a75899b5e6c4214e0262b106e49409d177e2a2e",
+      ".npm-cache/_cacache/content-v2/sha512/2c/a6/14d620172575200179fd5118e2bbe3168725171ecbdfa7b99cb989bd75250a2b4fc28edad4c050310fcdbf98259bb4bb068c521a774c08b28778ceb4c011",
+      ".npm-cache/_cacache/content-v2/sha512/36/86/8cb738713abb9b78bffb519b8d4eb7a307830f009d11a7166a5d07f6a97b959533ee1ba63ca78bbd74a45ab9ee328e60bb661cd53b6fd8cb29f6e739eb3d",
+      ".npm-cache/_cacache/content-v2/sha512/51/c8/dc24e5a49eb36417a3cb5fcdea70733a28781528d915eb663c6b9b980d5bfdc9d19057000730aa877498ded554d6a658c6d1662908386b09d00e607e135a",
+      ".npm-cache/_cacache/content-v2/sha512/56/8e/f3ffaaeb418c69351ca5a784e5a1bd9e9736e1f8dfcc3906f1155582c52ee8131ea3179dc64c91712b6596a4ab814649a28a7e0cb7ec687c50e3c74f51d0",
+      ".npm-cache/_cacache/content-v2/sha512/56/96/6b52a53903af5e4325b6739080d63b4b79c0ac37653f6c3e958a5ac50d6ab9fb95081153bb9dacd2dd311c1dfd73b8f60efeca86bd4bd6eb683ce915d9b8",
+      ".npm-cache/_cacache/content-v2/sha512/58/2b/5a6d2eadddcf129290c15256f59233acee5ebac6c19d2a920f66c838c11f81dfebbd500ba6da8752b05f6d9efc60f348786712d6332e294633ac148a90a7",
+      ".npm-cache/_cacache/content-v2/sha512/5f/05/8319c2d11825c047c17f00ce5b1bb43e0375a6dace907848e538a64b947dd461c82e8aa0962b259755a8394cb4c88d1ee8389518f247000da66058fc8b7a",
+      ".npm-cache/_cacache/content-v2/sha512/7d/a8/869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135",
+      ".npm-cache/_cacache/content-v2/sha512/80/ab/4f9057503d4dc392ca2854b8bd2ec8d9c6bb015192296beeda571f8b579a4d8742b33f86657ae776a68f82a27af16ee5c6049e877deafa85d829201a416b",
+      ".npm-cache/_cacache/content-v2/sha512/8e/5d/6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b",
+      ".npm-cache/_cacache/content-v2/sha512/8f/7e/f949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965",
+      ".npm-cache/_cacache/content-v2/sha512/a9/30/0096b12c97cb383a211063af700ef70c21d40deb0773e688d088ecba61132eca7c5e9ce3743b9a02a4923a96c85ceac720018f2abc9d8e9ffa7e09763418",
+      ".npm-cache/_cacache/content-v2/sha512/b0/82/d7bad2d58c22e3703b8e9af857e5ed99e1c4b9a86ffa06edd592917075fffadf712518ba4487d6e09ae239238b2a2aa9227d0886ca209cc751ddb6b2bbb6",
+      ".npm-cache/_cacache/content-v2/sha512/b2/e0/e68cb55083bf2730ad94678e788401be3805be1d03d9ea7fbe4cd0d45fe2f4fae5252f2c27a3124a0e8bb9d599becd30a3ac297436ae89f42e613fdbcafd",
+      ".npm-cache/_cacache/content-v2/sha512/b8/fa/9bb104f6dcd2d8fe7b96e25065e3d11bc430d1c9f38652659b883fda98b39c805e9ed6c873238ef2850117c4562d92ddced2d85a085e4dfa63f5ec6c4912",
+      ".npm-cache/_cacache/content-v2/sha512/e7/ee/47a979ec64f13ae4825948c919b544404597a57a5da85d410ef2b1fcdd54bf8711f9befd6e1eab8f839c19b3cc8c01f76ff7bd4853e91c3d47338bb35505",
+      ".npm-cache/_cacache/content-v2/sha512/f5/98/5728cfebc37e74375a2fb961db1b19c687f48d278727c4788cd2bc44e15378d70b20f0ff335a7f61bff6ee2b4d113f85af94ecabfd10438a9b72c556e465",
+      ".npm-cache/_cacache/index-v5/17/fa/e9d0409c4a453fa0e1ec562f099edf0c0ee408a36fa2c7800fc3ddcb7d69",
+      ".npm-cache/_cacache/index-v5/2c/1e/91ad3155089bbff8af3021b9acd58bd8222b57c1108a8bafc4a5251e152c",
+      ".npm-cache/_cacache/index-v5/4d/7d/74be32029cceffff84e7c429799d51cf0f7435c9eec95ba3daac65b4562c",
+      ".npm-cache/_cacache/index-v5/4f/38/6541b6b60a29318c22cbcd32071e06cc988fd1d4918f0fb52f4ae534498b",
+      ".npm-cache/_cacache/index-v5/4f/4e/20c89d4c9d8a8a6e0407099b875826862a3a5ffca2d67d2b75129ab3421d",
+      ".npm-cache/_cacache/index-v5/5a/0d/7e16ea920209f28606999566383d651eaf632b4842837df764c5cc476e83",
+      ".npm-cache/_cacache/index-v5/67/d5/bf35408a99ca3a6b7d2ecdddc96187fa505b46711c6d4ef8dffa8b02f1c0",
+      ".npm-cache/_cacache/index-v5/6a/b2/cff74a8452b6159ec5df4cd310e05e05bfaa99de31da7de4b5a7a7a849d9",
+      ".npm-cache/_cacache/index-v5/6e/27/e0e109737591117c80b7bfe42acbf7883d2aeeb26d019d11537373ec6793",
+      ".npm-cache/_cacache/index-v5/86/0c/8449635a499c1c1f44f2b6380cea2715c6e3ebe03e524b37d6fe263a4ebb",
+      ".npm-cache/_cacache/index-v5/b0/67/37231a71c60a62030abda7158f45c20266623bd2420141def58a58121c2c",
+      ".npm-cache/_cacache/index-v5/b0/fc/92a989cf347ec24035994b934b7bb07a131b9fe567752d4994a03f7ddc2a",
+      ".npm-cache/_cacache/index-v5/be/b6/fa4dbd3ad4b02fca6f5793d20843c1561fcc2f01d54c0df79a799a4195a2",
+      ".npm-cache/_cacache/index-v5/c5/31/7bec4fadfbd057e2b2e801050a0987f7c34b96e43ae5cd18fe029fee427e",
+      ".npm-cache/_cacache/index-v5/c8/61/53f02412ff2fc3a3b5ec4806ccf1e7aab0888801d6f232a9311384b37a9b",
+      ".npm-cache/_cacache/index-v5/d8/68/2ccc4f5419612d6589707007cc9e166f10f83934c1d58cf18fc54f4421fd",
+      ".npm-cache/_cacache/index-v5/f1/44/cf52860ef2ac0b2a06d907c20d37c3a2182e836b3062f58eb27077317544",
+      ".npm-cache/_cacache/index-v5/f1/ce/129ef407a2da10de5334e157bcbcdc6862247afab71c3d8d823885a3d9f5",
+      ".npm-cache/_cacache/index-v5/fc/63/3196c1979679042290850577369860b49f1391c279c79982941dcd31991b",
+      ".npm-cache/_logs/2026-08-30T14_11_43_453Z-debug-0.log",
+      ".npm-cache/_update-notifier-last-checked",
+      "package-lock.json",
+      "package.json",
+      "src/tickets/sql/tickets.ts"
+    ],
+    "newGlobalFiles": [],
+    "newConfigFiles": [],
+    "newGeneratedDirectories": [],
+    "changedPoolSeam": true,
+    "changedTransactionSeam": true,
+    "changedDtoSeam": false,
+    "changedTestSeam": false,
+    "featureLocalSql": "not-applicable",
+    "requiredGuarantees": [
+      "named-parameter compiler/binder validates missing and unused values"
+    ]
+  },
+  "deltaComplete": true,
+  "status": "P",
+  "finishedAt": "2026-08-30T20:56:19.249Z"
+}

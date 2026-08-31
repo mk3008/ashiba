@@ -1,0 +1,8 @@
+{
+  "cell": "SD-K-r1",
+  "control": "SD",
+  "arm": "K",
+  "replicate": 1,
+  "protocol": "secondary-controls-v1",
+  "baselineSourceManifest": "../baseline-source-manifest.json"
+}

@@ -1,0 +1,245 @@
+{
+  "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-A-r1\\candidate\\dist\\application.js",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-A-r1\\candidate",
+  "workloads": [
+    "T1"
+  ],
+  "source": {
+    "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-A-r1\\candidate",
+    "files": [
+      {
+        "path": "dist/application.js",
+        "kind": "file",
+        "bytes": 4322,
+        "sha256": "39ef414204f21eeb1b02ab4db926f9093087570cb9a41c18b7ea66fa7afc4dcf"
+      },
+      {
+        "path": "package-lock.json",
+        "kind": "file",
+        "bytes": 7783,
+        "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+      },
+      {
+        "path": "package.json",
+        "kind": "file",
+        "bytes": 277,
+        "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+      },
+      {
+        "path": "src/application.ts",
+        "kind": "file",
+        "bytes": 4597,
+        "sha256": "4b5830b16a47133ff2488d5c08257befa58635dd2f81c3ed2f5f129c0c10a5a9"
+      }
+    ],
+    "findings": [],
+    "pass": true
+  },
+  "checks": [
+    {
+      "id": "T1-success",
+      "status": "pass",
+      "detail": "debit, credit, and audit commit together"
+    },
+    {
+      "id": "T1-insufficient-rollback",
+      "status": "pass",
+      "detail": "insufficient funds do not mutate state"
+    },
+    {
+      "id": "T1-trigger-rollback",
+      "status": "pass",
+      "detail": "runner-owned post-debit trigger rolls back transfer"
+    },
+    {
+      "id": "T1-close",
+      "status": "pass",
+      "detail": "close resolves with no value"
+    },
+    {
+      "id": "T1-close-idempotent",
+      "status": "pass",
+      "detail": "close is idempotent"
+    },
+    {
+      "id": "T1-closed-rejection",
+      "status": "pass",
+      "detail": "transfer rejects after close"
+    }
+  ],
+  "events": [
+    {
+      "operation": "transfer",
+      "input": {
+        "fromAccountId": "7001",
+        "toAccountId": "7002",
+        "amountCents": "1250",
+        "note": "runner control"
+      },
+      "startedAt": "2026-08-30T08:58:18.043Z",
+      "status": "resolved",
+      "output": {
+        "status": "ok",
+        "applied": true
+      },
+      "durationMs": 16
+    },
+    {
+      "operation": "transfer",
+      "input": {
+        "fromAccountId": "7002",
+        "toAccountId": "7001",
+        "amountCents": "999999",
+        "note": "insufficient"
+      },
+      "startedAt": "2026-08-30T08:58:18.072Z",
+      "status": "rejected",
+      "error": {
+        "name": "ApplicationError",
+        "code": "INSUFFICIENT_FUNDS",
+        "message": "Insufficient funds"
+      },
+      "durationMs": 3
+    },
+    {
+      "operation": "transfer",
+      "input": {
+        "fromAccountId": "7001",
+        "toAccountId": "7002",
+        "amountCents": "100",
+        "note": "db-trigger failure"
+      },
+      "startedAt": "2026-08-30T08:58:18.093Z",
+      "status": "rejected",
+      "error": {
+        "name": "error",
+        "code": "P0001",
+        "message": "runner-injected failure: transfer_audit"
+      },
+      "durationMs": 4
+    },
+    {
+      "operation": "close",
+      "input": {},
+      "startedAt": "2026-08-30T08:58:18.115Z",
+      "status": "resolved",
+      "durationMs": 0
+    },
+    {
+      "operation": "close",
+      "input": {},
+      "startedAt": "2026-08-30T08:58:18.115Z",
+      "status": "resolved",
+      "durationMs": 0
+    },
+    {
+      "operation": "transfer",
+      "input": {},
+      "startedAt": "2026-08-30T08:58:18.115Z",
+      "status": "rejected",
+      "error": {
+        "name": "ApplicationError",
+        "code": "APPLICATION_CLOSED",
+        "message": "Application is closed"
+      },
+      "durationMs": 0
+    }
+  ],
+  "cleanup": {
+    "status": "pass",
+    "schema": "pass",
+    "role": "pass",
+    "connection": "pass"
+  },
+  "startedAt": "2026-08-30T08:58:17.972Z",
+  "schema": "ashiba_v3_45b935644ca7cab4",
+  "candidateRole": "ashiba_v3_candidate_998035fff686eb79",
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "8750"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "6250"
+      }
+    ],
+    "transferAudit": [
+      {
+        "from_account_id": "7001",
+        "to_account_id": "7002",
+        "amount_cents": "1250",
+        "note": "runner control"
+      }
+    ],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8002",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  },
+  "status": "P",
+  "preCleanupRecord": {
+    "status": "written",
+    "path": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-A-r1\\evidence\\runner-repair1.json.pre-cleanup.json",
+    "writtenAt": "2026-08-30T08:58:18.126Z"
+  },
+  "finishedAt": "2026-08-30T08:58:18.138Z"
+}

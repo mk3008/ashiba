@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Ashiba compile/bind and native pg remain the candidate path; repair accepts valid nonempty worker IDs.",
+  "decidedAt": "2026-08-30T10:01:57.604Z",
+  "decidedBy": "coordinator-required"
+}

@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Ashiba tarball compile/bind and native pg remained candidate path; final permitted repair did not satisfy frozen Q1 source/execution and EXPLAIN evidence contract.",
+  "decidedAt": "2026-08-30T10:26:06.113Z",
+  "decidedBy": "coordinator-required"
+}

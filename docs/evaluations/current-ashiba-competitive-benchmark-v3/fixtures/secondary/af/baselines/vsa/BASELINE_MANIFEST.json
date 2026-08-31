@@ -1,0 +1,16 @@
+{
+  "protocol": "af-controls-v1",
+  "architecture": "vsa",
+  "files": [
+    { "path": "README.md", "bytes": 455, "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22" },
+    { "path": "src/application.ts", "bytes": 265, "sha256": "bd95fd31c0b0b5da95b289d84129c942d073f84319838ec0866cd7b9f5b4f46c" },
+    { "path": "src/platform/pool.ts", "bytes": 186, "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a" },
+    { "path": "src/platform/transaction.ts", "bytes": 200, "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34" },
+    { "path": "src/tickets/application/ticket-use-cases.ts", "bytes": 138, "sha256": "4ae25cabc89153df617e8fe68f8b7e68fd52b173ae0b8914a7141549ed60da16" },
+    { "path": "src/tickets/dto.ts", "bytes": 298, "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64" },
+    { "path": "src/tickets/query/ticket-read-model.ts", "bytes": 138, "sha256": "48303b161702398b6489f6aacddf92663860ed3b631b4185827ca0a54e9a94fe" },
+    { "path": "src/tickets/sql/.gitkeep", "bytes": 1, "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b" },
+    { "path": "tests/tickets.integration.test.ts", "bytes": 143, "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db" },
+    { "path": "tsconfig.json", "bytes": 262, "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085" }
+  ]
+}

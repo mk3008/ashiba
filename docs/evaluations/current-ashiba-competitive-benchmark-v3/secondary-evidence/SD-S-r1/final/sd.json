@@ -1,0 +1,409 @@
+{
+  "harness": "sd-schema-drift-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "SD",
+  "arm": "S",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-S-r1\\candidate\\dist\\application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\SD-S-r1\\candidate",
+  "candidateSourceManifest": [
+    {
+      "path": "GENERATION.md",
+      "bytes": 711,
+      "sha256": "ac79243dc22f9d19b4f889e8ed0013a16ec3997a3050157b0f3973a82f336cb7"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 397,
+      "sha256": "70dca0312eea452ad65943a82f99e87ebf881cc2b20b9ef5201f546b85d0966e"
+    },
+    {
+      "path": "scripts/generate-sqlc.ps1",
+      "bytes": 1095,
+      "sha256": "73a3493be2d4559d5b0366ee4789ec0e92eb8e2746fb5065732bac4c6120b3fc"
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 576,
+      "sha256": "f3b2bdea78d2b8ff221a31a26fab943a5fab1b9a328e587574865d016c99cce7"
+    },
+    {
+      "path": "sqlc/queries.sql",
+      "bytes": 3820,
+      "sha256": "951860a46235e7234523d82c31c376133af2e6bb59b2488b1f8bfd801b185d11"
+    },
+    {
+      "path": "src/application.test.ts",
+      "bytes": 1265,
+      "sha256": "1c45082940f7f2dd1110127a8c5abd5b783ac5add9d8f469ddae202d688a5526"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 9316,
+      "sha256": "7404cdadfdd958e0496fd13c6de5b567614ab9ac849e802352d6d404f5ccfa3b"
+    },
+    {
+      "path": "src/generated/queries_sql.ts",
+      "bytes": 12371,
+      "sha256": "67f342e821ac194802820f6f696ba6fa60929c263f7dce9a12de9ad1a61b071a"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 330,
+      "sha256": "e4e1699bea2b68430e903e48afcd184001cdc81e1728c71a67dc12f645288c23"
+    }
+  ],
+  "baselineSourceHash": "eeb7e74b8bce18447d530e0033d8bdb89e90d5e805bddf21c7901e6cedb2003c",
+  "staticInspection": {
+    "pass": true,
+    "findings": []
+  },
+  "commands": {
+    "typecheck": "npm run typecheck",
+    "test": "npm test"
+  },
+  "mutations": [
+    {
+      "mutation": "column-rename",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1274,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1624,
+            "stdout": "\n> test\n> npm run build && node --test dist/application.test.js\n\n\n> build\n> tsc\n\nTAP version 13\n# Subtest: list defaults and explicit null assignee filtering remain distinct\nok 1 - list defaults and explicit null assignee filtering remain distinct\n  ---\n  duration_ms: 1.1698\n  ...\n# Subtest: invalid pagination and identifiers use application validation errors\nok 2 - invalid pagination and identifiers use application validation errors\n  ---\n  duration_ms: 0.355\n  ...\n# Subtest: close is idempotent and rejects future operations before connecting\nok 3 - close is idempotent and rejects future operations before connecting\n  ---\n  duration_ms: 0.5\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 96.8066\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "fail",
+          "detail": {
+            "name": "error",
+            "code": "42703",
+            "message": "column \"title\" does not exist"
+          }
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:10.561Z",
+      "sourceHashBefore": "eeb7e74b8bce18447d530e0033d8bdb89e90d5e805bddf21c7901e6cedb2003c",
+      "schema": "ashiba_v3_cfaceeb986001d49",
+      "firstDetectionStage": "application-execution",
+      "finalDatabaseState": {
+        "status": "unavailable",
+        "error": {
+          "name": "error",
+          "code": "42703",
+          "message": "column \"title\" does not exist"
+        }
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "eeb7e74b8bce18447d530e0033d8bdb89e90d5e805bddf21c7901e6cedb2003c",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T13:10:13.744Z"
+    },
+    {
+      "mutation": "nullability-tighten",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1092,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1605,
+            "stdout": "\n> test\n> npm run build && node --test dist/application.test.js\n\n\n> build\n> tsc\n\nTAP version 13\n# Subtest: list defaults and explicit null assignee filtering remain distinct\nok 1 - list defaults and explicit null assignee filtering remain distinct\n  ---\n  duration_ms: 0.9382\n  ...\n# Subtest: invalid pagination and identifiers use application validation errors\nok 2 - invalid pagination and identifiers use application validation errors\n  ---\n  duration_ms: 0.3525\n  ...\n# Subtest: close is idempotent and rejects future operations before connecting\nok 3 - close is idempotent and rejects future operations before connecting\n  ---\n  duration_ms: 0.545\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 93.9989\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "pass",
+          "detail": "get and list resolved after database-only mutation"
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:13.744Z",
+      "sourceHashBefore": "eeb7e74b8bce18447d530e0033d8bdb89e90d5e805bddf21c7901e6cedb2003c",
+      "schema": "ashiba_v3_39766ca531629199",
+      "firstDetectionStage": "not-detected-in-measured-stages",
+      "finalDatabaseState": {
+        "tickets": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": "runner-compatible",
+            "priority": 5,
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "ticketAudit": [],
+        "accounts": [
+          {
+            "account_id": "7001",
+            "balance_cents": "10000"
+          },
+          {
+            "account_id": "7002",
+            "balance_cents": "5000"
+          }
+        ],
+        "transferAudit": [],
+        "workItems": [
+          {
+            "id": "8001",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8002",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8003",
+            "state": "queued",
+            "claimed_by": null
+          }
+        ]
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "eeb7e74b8bce18447d530e0033d8bdb89e90d5e805bddf21c7901e6cedb2003c",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T13:10:16.544Z"
+    },
+    {
+      "mutation": "integer-to-bigint",
+      "observations": [
+        {
+          "stage": "baseline-application-execution",
+          "status": "pass",
+          "detail": "pass"
+        },
+        {
+          "stage": "typecheck",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1473,
+            "stdout": "\n> typecheck\n> tsc --noEmit\n\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "treatment-command",
+          "status": "not-run",
+          "detail": {
+            "status": "not-run"
+          }
+        },
+        {
+          "stage": "candidate-test",
+          "status": "pass",
+          "detail": {
+            "status": "pass",
+            "exitCode": 0,
+            "signal": null,
+            "durationMs": 1694,
+            "stdout": "\n> test\n> npm run build && node --test dist/application.test.js\n\n\n> build\n> tsc\n\nTAP version 13\n# Subtest: list defaults and explicit null assignee filtering remain distinct\nok 1 - list defaults and explicit null assignee filtering remain distinct\n  ---\n  duration_ms: 0.9114\n  ...\n# Subtest: invalid pagination and identifiers use application validation errors\nok 2 - invalid pagination and identifiers use application validation errors\n  ---\n  duration_ms: 0.3594\n  ...\n# Subtest: close is idempotent and rejects future operations before connecting\nok 3 - close is idempotent and rejects future operations before connecting\n  ---\n  duration_ms: 0.4353\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 89.0486\n",
+            "stderr": ""
+          }
+        },
+        {
+          "stage": "application-execution",
+          "status": "pass",
+          "detail": "get and list resolved after database-only mutation"
+        }
+      ],
+      "startedAt": "2026-08-30T13:10:16.544Z",
+      "sourceHashBefore": "eeb7e74b8bce18447d530e0033d8bdb89e90d5e805bddf21c7901e6cedb2003c",
+      "schema": "ashiba_v3_5e31486ab540bc14",
+      "firstDetectionStage": "not-detected-in-measured-stages",
+      "finalDatabaseState": {
+        "tickets": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": "5",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": "3",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": "5",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": "1",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "ticketAudit": [],
+        "accounts": [
+          {
+            "account_id": "7001",
+            "balance_cents": "10000"
+          },
+          {
+            "account_id": "7002",
+            "balance_cents": "5000"
+          }
+        ],
+        "transferAudit": [],
+        "workItems": [
+          {
+            "id": "8001",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8002",
+            "state": "queued",
+            "claimed_by": null
+          },
+          {
+            "id": "8003",
+            "state": "queued",
+            "claimed_by": null
+          }
+        ]
+      },
+      "cleanup": {
+        "status": "pass",
+        "schema": "pass",
+        "role": "pass",
+        "connection": "pass"
+      },
+      "sourceHashAfter": "eeb7e74b8bce18447d530e0033d8bdb89e90d5e805bddf21c7901e6cedb2003c",
+      "sourceUnchanged": true,
+      "finishedAt": "2026-08-30T13:10:19.820Z"
+    }
+  ],
+  "startedAt": "2026-08-30T13:10:10.560Z",
+  "status": "P",
+  "finishedAt": "2026-08-30T13:10:19.820Z"
+}

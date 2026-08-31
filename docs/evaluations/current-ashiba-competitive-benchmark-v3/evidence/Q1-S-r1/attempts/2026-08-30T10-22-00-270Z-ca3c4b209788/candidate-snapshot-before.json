@@ -1,0 +1,59 @@
+{
+  "root": "candidate-source-before-cleanup",
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 2469,
+    "sha256": "ef0c3c2fa61410bf352192c5d1f78f0a988013cc6519bb4e20e8c06775eb3ac1"
+  },
+  "copied": [
+    {
+      "path": "ACCEPTANCE.md",
+      "sourceSha256": "5992f519a9c8117590a3ec5a96ff2f1ba89f09fffe569009de69d6037277e090",
+      "snapshotSha256": "5992f519a9c8117590a3ec5a96ff2f1ba89f09fffe569009de69d6037277e090",
+      "redacted": false
+    },
+    {
+      "path": "dist/application.js",
+      "sourceSha256": "ef0c3c2fa61410bf352192c5d1f78f0a988013cc6519bb4e20e8c06775eb3ac1",
+      "snapshotSha256": "ef0c3c2fa61410bf352192c5d1f78f0a988013cc6519bb4e20e8c06775eb3ac1",
+      "redacted": false
+    },
+    {
+      "path": "GENERATED_SQLC.md",
+      "sourceSha256": "8ff6816bacd1bff54e8c7616084e209860780e0a31a420447353b32b0ceaed9a",
+      "snapshotSha256": "8ff6816bacd1bff54e8c7616084e209860780e0a31a420447353b32b0ceaed9a",
+      "redacted": false
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "snapshotSha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "redacted": false
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "b67fbc036c013bcd0d111d94b9921dc8c49b97f8c2dcc719372769c0c462b841",
+      "snapshotSha256": "b67fbc036c013bcd0d111d94b9921dc8c49b97f8c2dcc719372769c0c462b841",
+      "redacted": false
+    },
+    {
+      "path": "src/application.ts",
+      "sourceSha256": "d9223fb92ca09adbea6cb17c47039456479321d9e8d2f650dbe92c6832e3c156",
+      "snapshotSha256": "d9223fb92ca09adbea6cb17c47039456479321d9e8d2f650dbe92c6832e3c156",
+      "redacted": false
+    },
+    {
+      "path": "src/generated/query_sql.ts",
+      "sourceSha256": "d76c6880ebf539034e7fcfd63cc42e22148afa9a0616043cf46c7fc766f590b2",
+      "snapshotSha256": "d76c6880ebf539034e7fcfd63cc42e22148afa9a0616043cf46c7fc766f590b2",
+      "redacted": false
+    },
+    {
+      "path": "tsconfig.json",
+      "sourceSha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6",
+      "snapshotSha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6",
+      "redacted": false
+    }
+  ],
+  "excluded": []
+}

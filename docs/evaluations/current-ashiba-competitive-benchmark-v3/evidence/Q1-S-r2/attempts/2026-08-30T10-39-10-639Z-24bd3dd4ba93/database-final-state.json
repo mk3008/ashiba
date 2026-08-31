@@ -1,0 +1,122 @@
+{
+  "status": "captured",
+  "source": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-S-r2\\evidence\\runner.json",
+  "sourceSha256": "941af1a62eade498cad42546a7d80f5628900dca5e8113c766a339ee3beeb996",
+  "value": {
+    "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+    "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-S-r2\\candidate\\dist\\application.js",
+    "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-S-r2\\candidate",
+    "workloads": [
+      "Q1"
+    ],
+    "source": {
+      "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-S-r2\\candidate",
+      "files": [
+        {
+          "path": "dist/application.d.ts",
+          "kind": "file",
+          "bytes": 778,
+          "sha256": "bc980caa40a9392fe8a0af27846aa641e363924bf3aeb358a8c2de324d6a1185"
+        },
+        {
+          "path": "dist/application.js",
+          "kind": "file",
+          "bytes": 2045,
+          "sha256": "922bb6c5526dc44f89d4474c6f8703fd3dcea30105a6f350685aaaf3a2d5aba6"
+        },
+        {
+          "path": "dist/generated/query_sql.d.ts",
+          "kind": "file",
+          "bytes": 1860,
+          "sha256": "364bc0420f94ff084af56d9e501aa735c8c615baa7da1f8e0e972ba8d45bc635"
+        },
+        {
+          "path": "dist/generated/query_sql.js",
+          "kind": "file",
+          "bytes": 1643,
+          "sha256": "13f8095d849c5bdd4c12436315262436b9148f480e93a6fb3760bc456affd1d6"
+        },
+        {
+          "path": "GENERATION.md",
+          "kind": "file",
+          "bytes": 517,
+          "sha256": "737824b26aaae0264c895c0e8c1067e4fbdc117ab2a1fbb75f4b54093f8f279d"
+        },
+        {
+          "path": "package-lock.json",
+          "kind": "file",
+          "bytes": 7321,
+          "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+        },
+        {
+          "path": "package.json",
+          "kind": "file",
+          "bytes": 337,
+          "sha256": "c2bd1c8d548d9c3782fd2fe91c5ef646ee6cd29892a315922e2d7ad93970474d"
+        },
+        {
+          "path": "sqlc.yaml",
+          "kind": "file",
+          "bytes": 336,
+          "sha256": "0605a1a4c3dcf35d3864e2b2b20516061514d2d5f2d8a0b73a778b428d5673c7"
+        },
+        {
+          "path": "sqlc/query.sql",
+          "kind": "file",
+          "bytes": 1318,
+          "sha256": "ea8287aad0c653f01f87b1317ed5a02976a49fb8ae261056a1ac0569ea6674f3"
+        },
+        {
+          "path": "sqlc/schema.sql",
+          "kind": "file",
+          "bytes": 503,
+          "sha256": "26a493ebcbfab4c3710905cb0db03399daed255cb6f471ab065b22d73d6e4175"
+        },
+        {
+          "path": "src/application.ts",
+          "kind": "file",
+          "bytes": 2759,
+          "sha256": "faa5c19ad91866b45675ddfbd2b43017f0ec886cf012c88580f2782216d010a4"
+        },
+        {
+          "path": "src/generated/query_sql.ts",
+          "kind": "file",
+          "bytes": 2066,
+          "sha256": "c11508c1e23c3eba9ab95cc4614063ef7a492ccf6b547f308a1fd7c474789d3f"
+        },
+        {
+          "path": "tsconfig.json",
+          "kind": "file",
+          "bytes": 328,
+          "sha256": "ebefcb04588a4adc687ded1d2e70b2e960742c5bdd397b62d496770b41d72b69"
+        }
+      ],
+      "findings": [
+        {
+          "id": "runner-ddl",
+          "path": "sqlc/schema.sql"
+        }
+      ],
+      "pass": false
+    },
+    "checks": [
+      {
+        "id": "static-inspection",
+        "status": "fail",
+        "detail": [
+          {
+            "id": "runner-ddl",
+            "path": "sqlc/schema.sql"
+          }
+        ]
+      }
+    ],
+    "events": [],
+    "cleanup": {
+      "status": "not-run"
+    },
+    "startedAt": "2026-08-30T10:39:19.519Z",
+    "status": "F",
+    "finishedAt": "2026-08-30T10:39:19.519Z"
+  }
+}

@@ -1,0 +1,802 @@
+{
+  "harness": "af-controls-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "AF-V",
+  "arm": "A",
+  "replicate": 1,
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r1\\candidate\\dist\\application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r1\\candidate",
+  "primaryRunner": "file:///C:/Users/mssgm/github/ashiba/worktrees/current-ashiba-competitive-benchmark-v3/docs/evaluations/current-ashiba-competitive-benchmark-v3/fixtures/runner.mjs",
+  "baselineIntegrity": "pass",
+  "startedAt": "2026-08-30T11:19:14.841Z",
+  "primaryG1": {
+    "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+    "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r1\\candidate\\dist\\application.js",
+    "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r1\\candidate",
+    "workloads": [
+      "G1"
+    ],
+    "source": {
+      "root": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r1\\candidate",
+      "files": [
+        {
+          "path": "dist/application.js",
+          "kind": "file",
+          "bytes": 1613,
+          "sha256": "305580430c7205b0391715a6b3a048c07d69b919f358358f706a41ba6a0a6f8e"
+        },
+        {
+          "path": "dist/tickets/application/ticket-use-cases.js",
+          "kind": "file",
+          "bytes": 8548,
+          "sha256": "df59db119d614027a404953b5c3481e1b91a4bed044a568a80855b3aa42da5b3"
+        },
+        {
+          "path": "dist/tickets/dto.js",
+          "kind": "file",
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "dist/tickets/query/ticket-read-model.js",
+          "kind": "file",
+          "bytes": 2526,
+          "sha256": "db95fcb4e693ea4d5eca39b9e5ae07b1bc9e4d9444f43962bb1d77fc0f5a017d"
+        },
+        {
+          "path": "package-lock.json",
+          "kind": "file",
+          "bytes": 7783,
+          "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+        },
+        {
+          "path": "package.json",
+          "kind": "file",
+          "bytes": 277,
+          "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+        },
+        {
+          "path": "README.md",
+          "kind": "file",
+          "bytes": 455,
+          "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22"
+        },
+        {
+          "path": "src/application.ts",
+          "kind": "file",
+          "bytes": 2206,
+          "sha256": "2b1b5e193f475f09ae003a7b63af85dda008fc0afea7ba3d0b44629889f5cd20"
+        },
+        {
+          "path": "src/platform/pool.ts",
+          "kind": "file",
+          "bytes": 186,
+          "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+        },
+        {
+          "path": "src/platform/transaction.ts",
+          "kind": "file",
+          "bytes": 200,
+          "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+        },
+        {
+          "path": "src/tickets/application/ticket-use-cases.ts",
+          "kind": "file",
+          "bytes": 10045,
+          "sha256": "e1ca7f99bf636a42f251ebe64b43794a9b673b5801501a514f9dcdfd06f00995"
+        },
+        {
+          "path": "src/tickets/dto.ts",
+          "kind": "file",
+          "bytes": 298,
+          "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+        },
+        {
+          "path": "src/tickets/query/ticket-read-model.ts",
+          "kind": "file",
+          "bytes": 2650,
+          "sha256": "6cb9012b54b226e4652dcad8c4073cbe046b34a9606a4cc7ef1f2e62e2d43ee1"
+        },
+        {
+          "path": "src/tickets/sql/.gitkeep",
+          "kind": "file",
+          "bytes": 1,
+          "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "path": "tests/tickets.integration.test.ts",
+          "kind": "file",
+          "bytes": 143,
+          "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+        }
+      ],
+      "findings": [],
+      "pass": true
+    },
+    "checks": [
+      {
+        "id": "G1-list-order",
+        "status": "fail",
+        "detail": "priority desc then stable id asc"
+      },
+      {
+        "id": "G1-sort-id-asc",
+        "status": "fail",
+        "detail": "id asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-id-desc",
+        "status": "fail",
+        "detail": "id desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-priority-asc",
+        "status": "fail",
+        "detail": "priority asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-priority-desc",
+        "status": "fail",
+        "detail": "priority desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-createdAt-asc",
+        "status": "fail",
+        "detail": "createdAt asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-createdAt-desc",
+        "status": "fail",
+        "detail": "createdAt desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-pagination-offset-limit",
+        "status": "fail",
+        "detail": "offset and limit apply after the stable ordering"
+      },
+      {
+        "id": "G1-filter-null-assignee",
+        "status": "fail",
+        "detail": "null assignee filter"
+      },
+      {
+        "id": "G1-invalid-sort",
+        "status": "pass",
+        "detail": "unreviewed sort rejects"
+      },
+      {
+        "id": "G1-invalid-pagination",
+        "status": "pass",
+        "detail": "invalid pagination rejects"
+      },
+      {
+        "id": "G1-missing-get-id",
+        "status": "pass",
+        "detail": "missing get identifier rejects"
+      },
+      {
+        "id": "G1-get",
+        "status": "pass",
+        "detail": "existing ticket is returned"
+      },
+      {
+        "id": "G1-get-null",
+        "status": "pass",
+        "detail": "missing ticket returns null"
+      },
+      {
+        "id": "G1-hostile-value",
+        "status": "pass",
+        "detail": "hostile text remains a value"
+      },
+      {
+        "id": "G1-assign",
+        "status": "pass",
+        "detail": "assignment commits"
+      },
+      {
+        "id": "G1-assign-trigger-rollback",
+        "status": "pass",
+        "detail": "runner-owned post-audit trigger rolls back assignment"
+      },
+      {
+        "id": "G1-close",
+        "status": "pass",
+        "detail": "close resolves with no value"
+      },
+      {
+        "id": "G1-close-idempotent",
+        "status": "pass",
+        "detail": "close is idempotent"
+      },
+      {
+        "id": "G1-closed-rejection",
+        "status": "pass",
+        "detail": "list rejects after close"
+      }
+    ],
+    "events": [
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T11:19:15.022Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 12
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T11:19:15.034Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 7
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T11:19:15.041Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 6
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T11:19:15.047Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 6
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T11:19:15.054Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 6
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "createdAt",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T11:19:15.060Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 6
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "createdAt",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T11:19:15.066Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 6
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "asc",
+          "offset": 1,
+          "limit": 2
+        },
+        "startedAt": "2026-08-30T11:19:15.072Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 6
+      },
+      {
+        "operation": "list",
+        "input": {
+          "status": "open",
+          "assignee": null,
+          "sort": "id",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T11:19:15.078Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "42P08",
+          "message": "could not determine data type of parameter $1"
+        },
+        "durationMs": 6
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "title",
+          "limit": 10,
+          "offset": 0
+        },
+        "startedAt": "2026-08-30T11:19:15.084Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "VALIDATION",
+          "message": "sort is invalid"
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "offset": 0,
+          "limit": 0
+        },
+        "startedAt": "2026-08-30T11:19:15.084Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "VALIDATION",
+          "message": "limit is out of range"
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "get",
+        "input": {},
+        "startedAt": "2026-08-30T11:19:15.084Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "VALIDATION",
+          "message": "id must be a string"
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "101"
+        },
+        "startedAt": "2026-08-30T11:19:15.084Z",
+        "status": "resolved",
+        "output": {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "createdAt": "2026-01-01T09:00:00.000Z",
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        "durationMs": 7
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "999"
+        },
+        "startedAt": "2026-08-30T11:19:15.091Z",
+        "status": "resolved",
+        "output": null,
+        "durationMs": 1
+      },
+      {
+        "operation": "create",
+        "input": {
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "startedAt": "2026-08-30T11:19:15.092Z",
+        "status": "resolved",
+        "output": {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "createdAt": "2026-08-30T11:19:15.093Z",
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "durationMs": 10
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "1"
+        },
+        "startedAt": "2026-08-30T11:19:15.102Z",
+        "status": "resolved",
+        "output": {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "createdAt": "2026-08-30T11:19:15.093Z",
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "durationMs": 1
+      },
+      {
+        "operation": "assign",
+        "input": {
+          "id": "103",
+          "assignee": "carol"
+        },
+        "startedAt": "2026-08-30T11:19:15.103Z",
+        "status": "resolved",
+        "output": {
+          "id": "103",
+          "assignee": "carol"
+        },
+        "durationMs": 5
+      },
+      {
+        "operation": "assign",
+        "input": {
+          "id": "102",
+          "assignee": "injected-worker"
+        },
+        "startedAt": "2026-08-30T11:19:15.127Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "P0001",
+          "message": "runner-injected failure: assign_audit"
+        },
+        "durationMs": 3
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T11:19:15.148Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T11:19:15.148Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {},
+        "startedAt": "2026-08-30T11:19:15.148Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "APPLICATION_CLOSED",
+          "message": "application is closed"
+        },
+        "durationMs": 0
+      }
+    ],
+    "cleanup": {
+      "status": "pass",
+      "schema": "pass",
+      "role": "pass",
+      "connection": "pass"
+    },
+    "startedAt": "2026-08-30T11:19:14.849Z",
+    "schema": "ashiba_v3_8ef4bde827abfa67",
+    "candidateRole": "ashiba_v3_candidate_1343efae4db75426",
+    "finalDatabaseState": {
+      "tickets": [
+        {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "102",
+          "title": "Export is slow",
+          "status": "pending",
+          "assignee": "bob",
+          "priority": 3,
+          "metadata": {
+            "channel": "web"
+          }
+        },
+        {
+          "id": "103",
+          "title": "Password reset",
+          "status": "open",
+          "assignee": "carol",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "104",
+          "title": "Close account",
+          "status": "closed",
+          "assignee": "alice",
+          "priority": 1,
+          "metadata": {
+            "channel": "web"
+          }
+        }
+      ],
+      "ticketAudit": [
+        {
+          "ticket_id": "103",
+          "action": "assigned",
+          "detail": "{\"assignee\":\"carol\"}"
+        }
+      ],
+      "accounts": [
+        {
+          "account_id": "7001",
+          "balance_cents": "10000"
+        },
+        {
+          "account_id": "7002",
+          "balance_cents": "5000"
+        }
+      ],
+      "transferAudit": [],
+      "workItems": [
+        {
+          "id": "8001",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8002",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8003",
+          "state": "queued",
+          "claimed_by": null
+        }
+      ]
+    },
+    "status": "F",
+    "preCleanupRecord": {
+      "status": "written",
+      "path": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-V-A-r1\\evidence\\primary-g1.json.pre-cleanup.json",
+      "writtenAt": "2026-08-30T11:19:15.158Z"
+    },
+    "finishedAt": "2026-08-30T11:19:15.191Z"
+  },
+  "candidateSourceManifestBefore": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 277,
+      "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+    },
+    {
+      "path": "README.md",
+      "bytes": 455,
+      "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 2206,
+      "sha256": "2b1b5e193f475f09ae003a7b63af85dda008fc0afea7ba3d0b44629889f5cd20"
+    },
+    {
+      "path": "src/platform/pool.ts",
+      "bytes": 186,
+      "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+    },
+    {
+      "path": "src/platform/transaction.ts",
+      "bytes": 200,
+      "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+    },
+    {
+      "path": "src/tickets/application/ticket-use-cases.ts",
+      "bytes": 10045,
+      "sha256": "e1ca7f99bf636a42f251ebe64b43794a9b673b5801501a514f9dcdfd06f00995"
+    },
+    {
+      "path": "src/tickets/dto.ts",
+      "bytes": 298,
+      "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+    },
+    {
+      "path": "src/tickets/query/ticket-read-model.ts",
+      "bytes": 2650,
+      "sha256": "6cb9012b54b226e4652dcad8c4073cbe046b34a9606a4cc7ef1f2e62e2d43ee1"
+    },
+    {
+      "path": "src/tickets/sql/.gitkeep",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "tests/tickets.integration.test.ts",
+      "bytes": 143,
+      "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+    }
+  ],
+  "candidateSourceManifestAfter": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 277,
+      "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+    },
+    {
+      "path": "README.md",
+      "bytes": 455,
+      "sha256": "95743bfcfdba436ebda420f6e7969cbacad5bab58cd42a11743a741812ecad22"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 2206,
+      "sha256": "2b1b5e193f475f09ae003a7b63af85dda008fc0afea7ba3d0b44629889f5cd20"
+    },
+    {
+      "path": "src/platform/pool.ts",
+      "bytes": 186,
+      "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+    },
+    {
+      "path": "src/platform/transaction.ts",
+      "bytes": 200,
+      "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+    },
+    {
+      "path": "src/tickets/application/ticket-use-cases.ts",
+      "bytes": 10045,
+      "sha256": "e1ca7f99bf636a42f251ebe64b43794a9b673b5801501a514f9dcdfd06f00995"
+    },
+    {
+      "path": "src/tickets/dto.ts",
+      "bytes": 298,
+      "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+    },
+    {
+      "path": "src/tickets/query/ticket-read-model.ts",
+      "bytes": 2650,
+      "sha256": "6cb9012b54b226e4652dcad8c4073cbe046b34a9606a4cc7ef1f2e62e2d43ee1"
+    },
+    {
+      "path": "src/tickets/sql/.gitkeep",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "tests/tickets.integration.test.ts",
+      "bytes": 143,
+      "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+    }
+  ],
+  "sourceUnchangedDuringRunner": true,
+  "architectureDelta": {
+    "baselineHash": "164594c5de3a57e867183111f6ecaedd110423e59061cbcc7ab824a9fb30d724",
+    "candidateHash": "3fb4d0027629e9f8f318f7e84728a119b45205ddb4c393e5a8c49a0380254148",
+    "changedExistingFiles": [
+      "src/application.ts",
+      "src/tickets/application/ticket-use-cases.ts",
+      "src/tickets/query/ticket-read-model.ts"
+    ],
+    "missingExistingFiles": [
+      "tsconfig.json"
+    ],
+    "movedOrRenamedExistingFiles": [],
+    "newFiles": [
+      "package-lock.json",
+      "package.json"
+    ],
+    "newGlobalFiles": [],
+    "newConfigFiles": [],
+    "newGeneratedDirectories": [],
+    "changedPoolSeam": false,
+    "changedTransactionSeam": false,
+    "changedDtoSeam": false,
+    "changedTestSeam": false,
+    "featureLocalSql": "not-applicable",
+    "requiredGuarantees": [
+      "named-parameter compiler/binder validates missing and unused values"
+    ]
+  },
+  "deltaComplete": true,
+  "status": "F",
+  "finishedAt": "2026-08-30T11:19:15.196Z"
+}

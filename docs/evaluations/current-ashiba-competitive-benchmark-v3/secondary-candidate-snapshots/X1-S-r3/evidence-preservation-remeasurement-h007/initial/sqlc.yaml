@@ -1,0 +1,14 @@
+version: "2"
+plugins:
+  - name: ts
+    wasm:`r`n      path: C:\tmp\ashiba-benchmark-v3-secondary-h007-preservation-r3\X1-S-r3\toolchain\sqlc-gen-typescript_0.1.3.wasm
+sql:
+  - engine: postgresql
+    queries: query.sql
+    schema: schema.sql
+    codegen:
+      - plugin: ts
+        out: src/generated
+        options:
+          runtime: node
+          driver: pg

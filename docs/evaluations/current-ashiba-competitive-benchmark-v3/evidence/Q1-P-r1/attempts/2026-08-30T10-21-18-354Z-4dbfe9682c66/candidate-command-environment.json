@@ -1,0 +1,15 @@
+{
+  "inherited": false,
+  "platformBootstrap": [
+    "COMSPEC",
+    "PATH",
+    "PATHEXT",
+    "SYSTEMROOT",
+    "SystemRoot",
+    "TEMP",
+    "TMP",
+    "WINDIR"
+  ],
+  "explicitlyAllowed": [],
+  "valuesRecorded": false
+}

@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Prisma 8 RC @prisma/orm-postgres runtime raw SQL plans and Prisma transaction are the main data-access path; no native pg-only bypass.",
+  "decidedAt": "2026-08-30T07:51:02.058Z",
+  "decidedBy": "coordinator-required"
+}

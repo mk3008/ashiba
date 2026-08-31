@@ -1,0 +1,17 @@
+version: "2"
+plugins:
+  - name: ts
+    wasm:
+      url: https://downloads.sqlc.dev/plugin/sqlc-gen-typescript_0.1.2.wasm
+      sha256: f8b59cdd78b35fae157a95c5813cb09b1ebdd9a31acf2d7015465539986ccd2b
+sql:
+  - engine: postgresql
+    # A temporary, ignored generator input made from the frozen packet schema.
+    schema: sqlc-input-schema.sql
+    queries: queries/claim.sql
+    codegen:
+      - out: src/generated
+        plugin: ts
+        options:
+          runtime: node
+          driver: pg

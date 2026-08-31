@@ -1,0 +1,20 @@
+{
+  "control": "X1",
+  "correction": "H-007",
+  "aggregate": false,
+  "packetCellLabel": "X1-<arm>-r1",
+  "correctionRunLabel": "X1-<arm>-r2",
+  "node": "24.18.0",
+  "npm": "11.16.0",
+  "results": [
+    { "arm": "A", "final": "P", "candidateRepairs": 1, "finalRunner": "X1-A-r2/corrected-h007/runner-evidence/runner-repair1.json", "initialFailure": "type-system" },
+    { "arm": "P", "final": "F", "candidateRepairs": 0, "finalRunner": "X1-P-r2/corrected-h007/runner-evidence/runner-initial.json", "initialFailure": "candidate-entrypoint-missing" },
+    { "arm": "S", "final": "P", "candidateRepairs": 1, "finalRunner": "X1-S-r2/corrected-h007/runner-evidence/runner-repair1.json", "initialFailure": "sqlc-plugin-config" },
+    { "arm": "D", "final": "P", "candidateRepairs": 1, "finalRunner": "X1-D-r2/corrected-h007/runner-evidence/runner-repair1.json", "initialFailure": "database-specific-array-parameter" },
+    { "arm": "K", "final": "P", "candidateRepairs": 0, "finalRunner": "X1-K-r2/corrected-h007/runner-evidence/runner.json", "initialFailure": null },
+    { "arm": "G", "final": "P", "candidateRepairs": 0, "finalRunner": "X1-G-r2/corrected-h007/runner-evidence/runner.json", "initialFailure": null }
+  ],
+  "environmentRepairs": 0,
+  "harnessRepairs": 0,
+  "cleanup": "all runner-created schema/role fixtures report pass"
+}

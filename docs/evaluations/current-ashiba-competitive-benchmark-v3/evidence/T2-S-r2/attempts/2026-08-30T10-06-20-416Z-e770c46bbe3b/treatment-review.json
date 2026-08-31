@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Actual sqlc generated query/types are the candidate main data path; no candidate-owned DDL is present.",
+  "decidedAt": "2026-08-30T10:06:36.850Z",
+  "decidedBy": "coordinator-required"
+}

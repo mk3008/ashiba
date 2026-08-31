@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Kysely is the candidate main query and transaction data path.",
+  "decidedAt": "2026-08-30T09:27:46.481Z",
+  "decidedBy": "coordinator-required"
+}

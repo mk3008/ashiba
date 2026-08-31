@@ -1,0 +1,325 @@
+{
+  "harness": "x1-open-composition-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "X1",
+  "arm": "P",
+  "replicate": 1,
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-P-r1\\candidate\\dist\\report-application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-P-r1\\candidate",
+  "checks": [
+    {
+      "id": "static-isolation",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "id": "status-count-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "status-count-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "status-count-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "status-assignee-priority-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "status-assignee-priority-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "status-assignee-priority-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "hostile-tag-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "hostile-tag-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "hostile-tag-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "unknown-dimension",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "Invalid report request"
+      }
+    },
+    {
+      "id": "tag-without-join",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "Invalid report request"
+      }
+    },
+    {
+      "id": "invalid-status",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "Invalid report request"
+      }
+    },
+    {
+      "id": "close-idempotent",
+      "status": "pass",
+      "detail": "close resolved twice"
+    }
+  ],
+  "requests": [
+    {
+      "id": "status-count",
+      "input": {
+        "dimensions": [
+          "status"
+        ],
+        "metric": "count",
+        "includeTagJoin": false
+      },
+      "expectedRows": [
+        {
+          "status": "closed",
+          "metric": 1
+        },
+        {
+          "status": "open",
+          "metric": 2
+        },
+        {
+          "status": "pending",
+          "metric": 1
+        }
+      ],
+      "result": {
+        "rows": [
+          {
+            "status": "closed",
+            "metric": 1
+          },
+          {
+            "status": "open",
+            "metric": 2
+          },
+          {
+            "status": "pending",
+            "metric": 1
+          }
+        ],
+        "sourceSql": "SELECT \"tickets\".\"status\"::text AS \"status\", COUNT(\"tickets\".\"id\")::integer AS \"metric\" FROM \"tickets\" GROUP BY \"tickets\".\"status\"::text ORDER BY \"status\" ASC NULLS LAST",
+        "executedSql": "SELECT \"tickets\".\"status\"::text AS \"status\", COUNT(\"tickets\".\"id\")::integer AS \"metric\" FROM \"tickets\" GROUP BY \"tickets\".\"status\"::text ORDER BY \"status\" ASC NULLS LAST",
+        "params": []
+      },
+      "status": "pass"
+    },
+    {
+      "id": "status-assignee-priority",
+      "input": {
+        "dimensions": [
+          "status",
+          "assignee"
+        ],
+        "metric": "priorityTotal",
+        "includeTagJoin": false,
+        "statuses": [
+          "open",
+          "pending"
+        ]
+      },
+      "expectedRows": [
+        {
+          "status": "open",
+          "assignee": "alice",
+          "metric": 5
+        },
+        {
+          "status": "open",
+          "assignee": null,
+          "metric": 5
+        },
+        {
+          "status": "pending",
+          "assignee": "bob",
+          "metric": 3
+        }
+      ],
+      "result": {
+        "rows": [
+          {
+            "status": "open",
+            "assignee": "alice",
+            "metric": 5
+          },
+          {
+            "status": "open",
+            "assignee": null,
+            "metric": 5
+          },
+          {
+            "status": "pending",
+            "assignee": "bob",
+            "metric": 3
+          }
+        ],
+        "sourceSql": "SELECT \"tickets\".\"status\"::text AS \"status\", \"tickets\".\"assignee\" AS \"assignee\", SUM(\"tickets\".\"priority\")::integer AS \"metric\" FROM \"tickets\" WHERE \"tickets\".\"status\" IN ($1::ticket_status, $2::ticket_status) GROUP BY \"tickets\".\"status\"::text, \"tickets\".\"assignee\" ORDER BY \"status\" ASC NULLS LAST, \"assignee\" ASC NULLS LAST",
+        "executedSql": "SELECT \"tickets\".\"status\"::text AS \"status\", \"tickets\".\"assignee\" AS \"assignee\", SUM(\"tickets\".\"priority\")::integer AS \"metric\" FROM \"tickets\" WHERE \"tickets\".\"status\" IN ($1::ticket_status, $2::ticket_status) GROUP BY \"tickets\".\"status\"::text, \"tickets\".\"assignee\" ORDER BY \"status\" ASC NULLS LAST, \"assignee\" ASC NULLS LAST",
+        "params": [
+          "open",
+          "pending"
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "id": "hostile-tag",
+      "input": {
+        "dimensions": [
+          "tag",
+          "status"
+        ],
+        "metric": "count",
+        "includeTagJoin": true,
+        "requestedTag": "vip'; DROP TABLE tickets; --"
+      },
+      "expectedRows": [],
+      "result": {
+        "rows": [],
+        "sourceSql": "SELECT \"ticket_tags\".\"tag\" AS \"tag\", \"tickets\".\"status\"::text AS \"status\", COUNT(\"tickets\".\"id\")::integer AS \"metric\" FROM \"tickets\" INNER JOIN \"ticket_tags\" ON \"ticket_tags\".\"ticket_id\" = \"tickets\".\"id\" WHERE \"ticket_tags\".\"tag\" = $1::text GROUP BY \"ticket_tags\".\"tag\", \"tickets\".\"status\"::text ORDER BY \"tag\" ASC NULLS LAST, \"status\" ASC NULLS LAST",
+        "executedSql": "SELECT \"ticket_tags\".\"tag\" AS \"tag\", \"tickets\".\"status\"::text AS \"status\", COUNT(\"tickets\".\"id\")::integer AS \"metric\" FROM \"tickets\" INNER JOIN \"ticket_tags\" ON \"ticket_tags\".\"ticket_id\" = \"tickets\".\"id\" WHERE \"ticket_tags\".\"tag\" = $1::text GROUP BY \"ticket_tags\".\"tag\", \"tickets\".\"status\"::text ORDER BY \"tag\" ASC NULLS LAST, \"status\" ASC NULLS LAST",
+        "params": [
+          "vip'; DROP TABLE tickets; --"
+        ]
+      },
+      "status": "pass"
+    }
+  ],
+  "startedAt": "2026-08-30T13:04:44.966Z",
+  "candidateSourceManifestBefore": [
+    {
+      "path": "package-lock.json",
+      "bytes": 284626,
+      "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+    },
+    {
+      "path": "package.json",
+      "bytes": 544,
+      "sha256": "60781be702e526436f366f38875970fcfe47974a57e62467758a433bce5fbf60"
+    },
+    {
+      "path": "src/report-application.ts",
+      "bytes": 8685,
+      "sha256": "e2b6e90b6f861e8d8f37a3471637d4abeaf3d79cbe791653ab3967efb9a6e37c"
+    },
+    {
+      "path": "test/report-application.test.mjs",
+      "bytes": 1405,
+      "sha256": "8f3b466ace1ef9286ab11d665947756426660737fde27cd5271ca7c1fd234435"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 261,
+      "sha256": "5dd25fbad00aea30442e2967bf01757c89c090b8169fd61174ae1989ae9a4751"
+    }
+  ],
+  "staticInspection": {
+    "pass": true,
+    "findings": []
+  },
+  "schema": "ashiba_v3_8da94b6992a62b7f",
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "10000"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "5000"
+      }
+    ],
+    "transferAudit": [],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8002",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  }
+}

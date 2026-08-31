@@ -1,0 +1,29 @@
+{
+  "cell": "SD-K-r1",
+  "control": "SD",
+  "arm": "K",
+  "sourceSnapshot": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\current-ashiba-competitive-benchmark-v3\\docs\\evaluations\\current-ashiba-competitive-benchmark-v3\\candidate-snapshots\\G1-K-r2",
+  "files": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7683,
+      "sha256": "7e75808f25529929668c2499b166eceec288c1e782e7036aa6f59da06a6d8da3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 261,
+      "sha256": "731f7434ac48673b0abab4ceec34484ea34f01426a42e334b9ef84e36b140c4c"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 8381,
+      "sha256": "8b62ba5a2ad2d41680faf611cb98224b64283c4276423c27a1d20017392be928"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "3cf69bdc71fc8cf38001eb1c29032652d147a8e1d23f7e27ee2a4b1e6c0af90c"
+    }
+  ],
+  "sha256": "cf27db7ae721569e56074168e5cd2ada825d27d8cfd526cdc261529d87ef2d68"
+}

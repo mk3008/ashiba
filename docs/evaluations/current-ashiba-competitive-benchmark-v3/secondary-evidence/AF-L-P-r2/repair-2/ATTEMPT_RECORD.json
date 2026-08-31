@@ -1,0 +1,12 @@
+{
+  "cell": "AF-L-P-r2",
+  "attempt": "repair-2",
+  "preservedAt": "2026-08-30T21:21:06.1332118Z",
+  "action": "run Prisma CLI contract emit from its published entrypoint",
+  "contractEmitExit": 2,
+  "result": "F",
+  "repairClassification": "tool/API misuse",
+  "reason": "CLI required definePrismaConfig rather than facade defineConfig",
+  "repairCap": "reached: initial plus two candidate repairs",
+  "preservation": "source-and-logs-copied-before-final-verification"
+}

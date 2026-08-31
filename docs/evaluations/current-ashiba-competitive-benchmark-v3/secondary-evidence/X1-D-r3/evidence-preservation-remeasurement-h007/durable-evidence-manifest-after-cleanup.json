@@ -1,0 +1,105 @@
+{
+  "root": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\current-ashiba-competitive-benchmark-v3\\docs\\evaluations\\current-ashiba-competitive-benchmark-v3\\secondary-evidence\\X1-D-r3\\evidence-preservation-remeasurement-h007",
+  "files": [
+    {
+      "path": "attempt-initial.json",
+      "bytes": 923,
+      "sha256": "138c0cae73c766ea75caab7d818958df8e5003ce0e6488f28112c66a8c6ab6dd"
+    },
+    {
+      "path": "candidate-snapshot-manifest-initial.json",
+      "bytes": 888,
+      "sha256": "41f5cdbfb8321ab720f5c5044d4eb2d99daa4caf557753a18531aa6872db41d1"
+    },
+    {
+      "path": "candidate-source-manifest-initial.json",
+      "bytes": 732,
+      "sha256": "3700b2421e50ac0564c414994116e9ee24648edb6f49bdd3865f6f0fa685b3dd"
+    },
+    {
+      "path": "cleanup-status.json",
+      "bytes": 292,
+      "sha256": "17c161b3edb91ad2ecd98682f9f6fac3c2f089642f3d90e99078b898b6789d2a"
+    },
+    {
+      "path": "command-logs/npm-ci-initial.log",
+      "bytes": 470,
+      "sha256": "8277a7a65bf4c7a18cf4d1a1ffee9d17ef444942e5afe3c85a4386758282eb66"
+    },
+    {
+      "path": "command-logs/static-isolation-initial.log",
+      "bytes": 55,
+      "sha256": "bac21fee443a64ca7e6aa6826857efb1921844f3506391c4bc1e41abc5c75f02"
+    },
+    {
+      "path": "command-logs/typecheck-initial.log",
+      "bytes": 64,
+      "sha256": "0c89f3ae25f363cbf8b2e28c20614f5c6cd75592a628af0a5cc4ff51e2c6530a"
+    },
+    {
+      "path": "durable-candidate-snapshot-manifest-pre-cleanup.json",
+      "bytes": 909,
+      "sha256": "e925e0ff9580b52268f777ddf4947217893038685966f07c09bbe0de30066d2b"
+    },
+    {
+      "path": "durable-evidence-manifest-pre-cleanup.json",
+      "bytes": 2911,
+      "sha256": "e0f3d26473db904fbee5b3652af6a36eaa6d716b0eaede3c5158189663d7c15b"
+    },
+    {
+      "path": "packet/ARM_ASSIGNMENT.md",
+      "bytes": 245,
+      "sha256": "bbcc3ae9a75d47e00c05e008017c155736a22c63ee1fa960a61071460687934a"
+    },
+    {
+      "path": "packet/CELL.json",
+      "bytes": 114,
+      "sha256": "5253849f4e369e81163386d50736712c9e4b2c09fae93a0ed91ec500f5900b43"
+    },
+    {
+      "path": "packet/COMMON_API.md",
+      "bytes": 5781,
+      "sha256": "6ade3d709f9a091e44d2ffcdb151491b5c5d1bc79c9f0c210566907b3b1b7128"
+    },
+    {
+      "path": "packet/COMMON_ASSIGNMENT.md",
+      "bytes": 750,
+      "sha256": "5cc995f358d664a69dae1ff30f369a8ba2d70becf24caa3fac61a4a11cba2af6"
+    },
+    {
+      "path": "packet/OFFICIAL_SOURCES.md",
+      "bytes": 2280,
+      "sha256": "6cb1007848457b458928b90c362730ac66f807a00279d16cb0bba757b10cd690"
+    },
+    {
+      "path": "packet/official-doc-snapshots-v1.zip",
+      "bytes": 318135,
+      "sha256": "8b86cf5abc883f57975b78fa06e3bd3d614486449e1e8b395bad1700695b8c57"
+    },
+    {
+      "path": "packet/RUNNER_API.md",
+      "bytes": 1526,
+      "sha256": "6ec233f0cfc2b67d05bb1cbf6eb86962ee180f8337f9094553a7892e7d85d9ec"
+    },
+    {
+      "path": "packet/schema.sql",
+      "bytes": 2886,
+      "sha256": "b0640163e0074fd25f6c0e3ea94d9f775c6d5ce3b069daecd7cd107fa532defc"
+    },
+    {
+      "path": "packet/seed.sql",
+      "bytes": 1856,
+      "sha256": "a4b8536cb314738010219d66324022b0626770ae60f1310abfb7225ec3165c19"
+    },
+    {
+      "path": "packet/X1_ASSIGNMENT.md",
+      "bytes": 1134,
+      "sha256": "984a6740f975656e4112c5064d8f9c6a0265cfab64df93decef2b86d1b2bb776"
+    },
+    {
+      "path": "source-snapshot-hash-verification.json",
+      "bytes": 113,
+      "sha256": "65e0e2051aa5239a2bf6acc600c731e35d3bf30e5ba3ede0448441b2db21c422"
+    }
+  ]
+}

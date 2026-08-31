@@ -1,0 +1,20 @@
+{
+  "cell": "AF-L-D-r2",
+  "control": "AF-L",
+  "arm": "D",
+  "replicate": 2,
+  "finalStatus": "P",
+  "firstCandidateTypecheck": "F",
+  "candidateRepairsUsed": 1,
+  "candidateRepairCap": 2,
+  "environmentRepairs": 1,
+  "finalTypecheck": "P",
+  "finalBuild": "P",
+  "finalG1Oracle": "P",
+  "finalStaticInspection": "P",
+  "architectureDelta": "complete",
+  "runnerOwnedPostgreSqlCleanup": "P",
+  "evidenceFinalizedBeforeExternalCleanup": true,
+  "candidateDirectory": "C:/tmp/ashiba-benchmark-v3-secondary-reliable/AF-L-D-r2/candidate",
+  "finalEvidence": "attempts/01-repair-1"
+}

@@ -1,0 +1,61 @@
+{
+  "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\Q1-P-r1\\candidate",
+  "fileCount": 7,
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 4877,
+    "sha256": "7912c7518c843dbc0e16f998a02b5045d5850f1cb50147c38396c3cb4be9ba03"
+  },
+  "files": [
+    {
+      "path": "dist/application.js",
+      "bytes": 4877,
+      "sha256": "7912c7518c843dbc0e16f998a02b5045d5850f1cb50147c38396c3cb4be9ba03",
+      "lockfile": false,
+      "excludedFromSnapshot": false,
+      "includedBecause": "declared-entrypoint"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 284626,
+      "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c",
+      "lockfile": true,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package.json",
+      "bytes": 288,
+      "sha256": "b1b96528fd323d45b9a2f1c83881ff970b114c7e358747a2ce926a03d1483acc",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "PLAN.md",
+      "bytes": 1472,
+      "sha256": "c6d27dc073563b17710412dd1de6f5242ac076740a83fd6375fe13487a65185f",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "RUN_REPORT.md",
+      "bytes": 1061,
+      "sha256": "46ec1e8de92a370653ebb7a50ffe96a97684de48cd3e5209d53afb4a246cbbd4",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 5814,
+      "sha256": "4641eb5eef109bf51d938e972669032be59c06879c856df1373cfdfe2ee750ca",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 373,
+      "sha256": "bcfa075e16f8da75f54c42a71c2050b448cfe1efd69610cbd557c70636697f0e",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    }
+  ]
+}

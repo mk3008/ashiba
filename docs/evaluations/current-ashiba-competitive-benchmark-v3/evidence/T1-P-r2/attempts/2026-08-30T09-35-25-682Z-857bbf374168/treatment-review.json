@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Prisma 8 RC normal client and transaction path are used; PostgreSQL-specific raw SQL is explicitly confined to the atomic multi-statement operation.",
+  "decidedAt": "2026-08-30T09:35:46.410Z",
+  "decidedBy": "coordinator-required"
+}

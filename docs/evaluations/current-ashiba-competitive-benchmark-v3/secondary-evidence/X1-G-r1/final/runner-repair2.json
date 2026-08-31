@@ -1,0 +1,368 @@
+{
+  "harness": "x1-open-composition-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "X1",
+  "arm": "G",
+  "replicate": 1,
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-G-r1\\candidate\\dist\\report-application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-G-r1\\candidate",
+  "checks": [
+    {
+      "id": "static-isolation",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "id": "status-count-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "status-count-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "status-count-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "status-assignee-priority-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "status-assignee-priority-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "status-assignee-priority-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "hostile-tag-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "hostile-tag-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "hostile-tag-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "unknown-dimension",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "unknown report dimension"
+      }
+    },
+    {
+      "id": "tag-without-join",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "tag requires includeTagJoin"
+      }
+    },
+    {
+      "id": "invalid-status",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "statuses must contain only known ticket statuses"
+      }
+    },
+    {
+      "id": "close-idempotent",
+      "status": "pass",
+      "detail": "close resolved twice"
+    },
+    {
+      "id": "source-unchanged",
+      "status": "pass",
+      "detail": "runner must not alter candidate source"
+    }
+  ],
+  "requests": [
+    {
+      "id": "status-count",
+      "input": {
+        "dimensions": [
+          "status"
+        ],
+        "metric": "count",
+        "includeTagJoin": false
+      },
+      "expectedRows": [
+        {
+          "status": "closed",
+          "metric": 1
+        },
+        {
+          "status": "open",
+          "metric": 2
+        },
+        {
+          "status": "pending",
+          "metric": 1
+        }
+      ],
+      "result": {
+        "rows": [
+          {
+            "status": "closed",
+            "metric": 1
+          },
+          {
+            "status": "open",
+            "metric": 2
+          },
+          {
+            "status": "pending",
+            "metric": 1
+          }
+        ],
+        "sourceSql": "SELECT t.status::text AS \"status\", COUNT(*)::integer AS \"metric\"\nFROM tickets AS t\nGROUP BY t.status\nORDER BY t.status::text ASC NULLS LAST",
+        "executedSql": "SELECT t.status::text AS \"status\", COUNT(*)::integer AS \"metric\"\nFROM tickets AS t\nGROUP BY t.status\nORDER BY t.status::text ASC NULLS LAST",
+        "params": []
+      },
+      "status": "pass"
+    },
+    {
+      "id": "status-assignee-priority",
+      "input": {
+        "dimensions": [
+          "status",
+          "assignee"
+        ],
+        "metric": "priorityTotal",
+        "includeTagJoin": false,
+        "statuses": [
+          "open",
+          "pending"
+        ]
+      },
+      "expectedRows": [
+        {
+          "status": "open",
+          "assignee": "alice",
+          "metric": 5
+        },
+        {
+          "status": "open",
+          "assignee": null,
+          "metric": 5
+        },
+        {
+          "status": "pending",
+          "assignee": "bob",
+          "metric": 3
+        }
+      ],
+      "result": {
+        "rows": [
+          {
+            "status": "open",
+            "assignee": "alice",
+            "metric": 5
+          },
+          {
+            "status": "open",
+            "assignee": null,
+            "metric": 5
+          },
+          {
+            "status": "pending",
+            "assignee": "bob",
+            "metric": 3
+          }
+        ],
+        "sourceSql": "SELECT t.status::text AS \"status\", t.assignee AS \"assignee\", SUM(t.priority)::integer AS \"metric\"\nFROM tickets AS t\nWHERE t.status::text = ANY($1::text[])\nGROUP BY t.status, t.assignee\nORDER BY t.status::text ASC NULLS LAST, t.assignee ASC NULLS LAST",
+        "executedSql": "SELECT t.status::text AS \"status\", t.assignee AS \"assignee\", SUM(t.priority)::integer AS \"metric\"\nFROM tickets AS t\nWHERE t.status::text = ANY($1::text[])\nGROUP BY t.status, t.assignee\nORDER BY t.status::text ASC NULLS LAST, t.assignee ASC NULLS LAST",
+        "params": [
+          [
+            "open",
+            "pending"
+          ]
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "id": "hostile-tag",
+      "input": {
+        "dimensions": [
+          "tag",
+          "status"
+        ],
+        "metric": "count",
+        "includeTagJoin": true,
+        "requestedTag": "vip'; DROP TABLE tickets; --"
+      },
+      "expectedRows": [],
+      "result": {
+        "rows": [],
+        "sourceSql": "SELECT tt.tag AS \"tag\", t.status::text AS \"status\", COUNT(*)::integer AS \"metric\"\nFROM tickets AS t\nINNER JOIN ticket_tags AS tt ON tt.ticket_id = t.id\nWHERE tt.tag = $1\nGROUP BY tt.tag, t.status\nORDER BY tt.tag ASC NULLS LAST, t.status::text ASC NULLS LAST",
+        "executedSql": "SELECT tt.tag AS \"tag\", t.status::text AS \"status\", COUNT(*)::integer AS \"metric\"\nFROM tickets AS t\nINNER JOIN ticket_tags AS tt ON tt.ticket_id = t.id\nWHERE tt.tag = $1\nGROUP BY tt.tag, t.status\nORDER BY tt.tag ASC NULLS LAST, t.status::text ASC NULLS LAST",
+        "params": [
+          "vip'; DROP TABLE tickets; --"
+        ]
+      },
+      "status": "pass"
+    }
+  ],
+  "startedAt": "2026-08-30T13:16:25.348Z",
+  "candidateSourceManifestBefore": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c"
+    },
+    {
+      "path": "package.json",
+      "bytes": 243,
+      "sha256": "42658bb57d946999e85509b116f38b9c8860a9cc7d39c81d88575304400118c7"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 5342,
+      "sha256": "19d29c0ce249f2872001a5ab52923a0cbb9f017f995a4f62a2a9c7f589020dd2"
+    },
+    {
+      "path": "src/report-application.ts",
+      "bytes": 181,
+      "sha256": "2f9d6027ddd3d8afba928a0454e4fac107c71545ece2a225bc9290b3a27f98c3"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6"
+    }
+  ],
+  "staticInspection": {
+    "pass": true,
+    "findings": []
+  },
+  "schema": "ashiba_v3_eba97dc6a2cad46a",
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "10000"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "5000"
+      }
+    ],
+    "transferAudit": [],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8002",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  },
+  "cleanup": {
+    "status": "pass",
+    "schema": "pass",
+    "role": "pass",
+    "connection": "pass"
+  },
+  "candidateSourceManifestAfter": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c"
+    },
+    {
+      "path": "package.json",
+      "bytes": 243,
+      "sha256": "42658bb57d946999e85509b116f38b9c8860a9cc7d39c81d88575304400118c7"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 5342,
+      "sha256": "19d29c0ce249f2872001a5ab52923a0cbb9f017f995a4f62a2a9c7f589020dd2"
+    },
+    {
+      "path": "src/report-application.ts",
+      "bytes": 181,
+      "sha256": "2f9d6027ddd3d8afba928a0454e4fac107c71545ece2a225bc9290b3a27f98c3"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6"
+    }
+  ],
+  "sourceUnchangedDuringRunner": true,
+  "status": "P",
+  "finishedAt": "2026-08-30T13:16:25.488Z"
+}

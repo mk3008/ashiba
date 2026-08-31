@@ -1,0 +1,278 @@
+{
+  "status": "captured",
+  "source": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-K-r1\\evidence\\runner.json",
+  "sourceSha256": "c233b35f7943632c01a6f86383116a784c32589ff870f57e10010edb1883d429",
+  "value": {
+    "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+    "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-K-r1\\candidate\\dist\\application.js",
+    "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-K-r1\\candidate",
+    "workloads": [
+      "T2"
+    ],
+    "source": {
+      "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-K-r1\\candidate",
+      "files": [
+        {
+          "path": "dist/application.js",
+          "kind": "file",
+          "bytes": 2078,
+          "sha256": "a776229b1f4d41853312cc78df56c10802a96b454fb71eaa5a4bbe8d5acd468e"
+        },
+        {
+          "path": "package-lock.json",
+          "kind": "file",
+          "bytes": 7683,
+          "sha256": "7e75808f25529929668c2499b166eceec288c1e782e7036aa6f59da06a6d8da3"
+        },
+        {
+          "path": "package.json",
+          "kind": "file",
+          "bytes": 300,
+          "sha256": "50581151e0a955f1b3f43e7da6a9f3e7491fb6c1a279a3b5417240e3ca535b60"
+        },
+        {
+          "path": "src/application.ts",
+          "kind": "file",
+          "bytes": 2508,
+          "sha256": "d2713d854cb5f562a47dd1ecc9ac40a0e8ced4eb36e42b5322dcbd60c03650ef"
+        },
+        {
+          "path": "tsconfig.json",
+          "kind": "file",
+          "bytes": 265,
+          "sha256": "4459d2b3faae9a86ba4b4b110c9bd157bde60ee8a34faa6dfe2835d803f9afe8"
+        }
+      ],
+      "findings": [],
+      "pass": true
+    },
+    "checks": [
+      {
+        "id": "T2-distinct-claims",
+        "status": "pass",
+        "detail": "concurrent workers claim distinct queued rows"
+      },
+      {
+        "id": "T2-final-state",
+        "status": "pass",
+        "detail": "claims are committed"
+      },
+      {
+        "id": "T2-trigger-rollback",
+        "status": "pass",
+        "detail": "runner trigger restores failed claim"
+      },
+      {
+        "id": "T2-worker-a-close",
+        "status": "pass",
+        "detail": "close resolves with no value"
+      },
+      {
+        "id": "T2-worker-a-close-idempotent",
+        "status": "pass",
+        "detail": "close is idempotent"
+      },
+      {
+        "id": "T2-worker-a-closed-rejection",
+        "status": "pass",
+        "detail": "claim rejects after close"
+      },
+      {
+        "id": "T2-worker-b-close",
+        "status": "pass",
+        "detail": "close resolves with no value"
+      },
+      {
+        "id": "T2-worker-b-close-idempotent",
+        "status": "pass",
+        "detail": "close is idempotent"
+      },
+      {
+        "id": "T2-worker-b-closed-rejection",
+        "status": "pass",
+        "detail": "claim rejects after close"
+      }
+    ],
+    "events": [
+      {
+        "operation": "claim",
+        "input": {
+          "workerId": "worker-b"
+        },
+        "startedAt": "2026-08-30T09:48:35.187Z",
+        "status": "resolved",
+        "output": {
+          "claimedWorkId": "8001"
+        },
+        "durationMs": 26
+      },
+      {
+        "operation": "claim",
+        "input": {
+          "workerId": "worker-a"
+        },
+        "startedAt": "2026-08-30T09:48:35.187Z",
+        "status": "resolved",
+        "output": {
+          "claimedWorkId": "8002"
+        },
+        "durationMs": 27
+      },
+      {
+        "operation": "claim",
+        "input": {
+          "workerId": "worker-failure"
+        },
+        "startedAt": "2026-08-30T09:48:35.234Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "P0001",
+          "message": "runner-injected failure: claim_update"
+        },
+        "durationMs": 4
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T09:48:35.256Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T09:48:35.256Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "claim",
+        "input": {},
+        "startedAt": "2026-08-30T09:48:35.256Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "APPLICATION_CLOSED",
+          "message": "application is closed"
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T09:48:35.256Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T09:48:35.256Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "claim",
+        "input": {},
+        "startedAt": "2026-08-30T09:48:35.256Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "APPLICATION_CLOSED",
+          "message": "application is closed"
+        },
+        "durationMs": 0
+      }
+    ],
+    "cleanup": {
+      "status": "pass",
+      "schema": "pass",
+      "role": "pass",
+      "connection": "pass"
+    },
+    "startedAt": "2026-08-30T09:48:34.994Z",
+    "schema": "ashiba_v3_1bfae461e8659ecf",
+    "candidateRole": "ashiba_v3_candidate_4ebf9f675e758305",
+    "finalDatabaseState": {
+      "tickets": [
+        {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "102",
+          "title": "Export is slow",
+          "status": "pending",
+          "assignee": "bob",
+          "priority": 3,
+          "metadata": {
+            "channel": "web"
+          }
+        },
+        {
+          "id": "103",
+          "title": "Password reset",
+          "status": "open",
+          "assignee": null,
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "104",
+          "title": "Close account",
+          "status": "closed",
+          "assignee": "alice",
+          "priority": 1,
+          "metadata": {
+            "channel": "web"
+          }
+        }
+      ],
+      "ticketAudit": [],
+      "accounts": [
+        {
+          "account_id": "7001",
+          "balance_cents": "10000"
+        },
+        {
+          "account_id": "7002",
+          "balance_cents": "5000"
+        }
+      ],
+      "transferAudit": [],
+      "workItems": [
+        {
+          "id": "8001",
+          "state": "claimed",
+          "claimed_by": "worker-b"
+        },
+        {
+          "id": "8002",
+          "state": "claimed",
+          "claimed_by": "worker-a"
+        },
+        {
+          "id": "8003",
+          "state": "queued",
+          "claimed_by": null
+        }
+      ]
+    },
+    "status": "P",
+    "preCleanupRecord": {
+      "status": "written",
+      "path": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-K-r1\\evidence\\runner.json.pre-cleanup.json",
+      "writtenAt": "2026-08-30T09:48:35.267Z"
+    },
+    "finishedAt": "2026-08-30T09:48:35.279Z"
+  }
+}

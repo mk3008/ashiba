@@ -1,0 +1,21 @@
+{
+  "name": "benchmark-v3-arm-a-packet",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.18.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@ashiba-ts/named-parameters": "file:../artifacts/ashiba-ts-named-parameters-0.1.0.tgz",
+    "pg": "8.23.0"
+  },
+  "devDependencies": {
+    "@types/pg": "8.15.6",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "algorithm": "sha256",
+  "createdAt": "2026-08-30T10:24:24.459Z",
+  "files": [
+    {
+      "path": "attempt.json",
+      "bytes": 453,
+      "sha256": "be5eb2ab9bdd3231e3ba0de063cc2840c605ac55a5f37a9b7e9edfb2fe95fff4"
+    },
+    {
+      "path": "candidate-command-environment.json",
+      "bytes": 223,
+      "sha256": "718ae170b2c7105fc27a10f9e36e1b0ecb24b682248eeda5a3c89cc172520397"
+    },
+    {
+      "path": "candidate-snapshot-after.json",
+      "bytes": 2281,
+      "sha256": "65bfc5886b7da508f3f0ee2d7c277540441cc13134ee342c3589446f7e332657"
+    },
+    {
+      "path": "candidate-snapshot-before.json",
+      "bytes": 2281,
+      "sha256": "65bfc5886b7da508f3f0ee2d7c277540441cc13134ee342c3589446f7e332657"
+    },
+    {
+      "path": "candidate-source-before-cleanup/ACCEPTANCE.md",
+      "bytes": 1089,
+      "sha256": "5992f519a9c8117590a3ec5a96ff2f1ba89f09fffe569009de69d6037277e090"
+    },
+    {
+      "path": "candidate-source-before-cleanup/dist/application.js",
+      "bytes": 2845,
+      "sha256": "e71f62a1c822869e0a2c4fb294bde31a860d8d50ef942615f016605c27c85495"
+    },
+    {
+      "path": "candidate-source-before-cleanup/GENERATED_SQLC.md",
+      "bytes": 599,
+      "sha256": "8ff6816bacd1bff54e8c7616084e209860780e0a31a420447353b32b0ceaed9a"
+    },
+    {
+      "path": "candidate-source-before-cleanup/package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "candidate-source-before-cleanup/package.json",
+      "bytes": 320,
+      "sha256": "b67fbc036c013bcd0d111d94b9921dc8c49b97f8c2dcc719372769c0c462b841"
+    },
+    {
+      "path": "candidate-source-before-cleanup/src/application.ts",
+      "bytes": 3574,
+      "sha256": "208f9fa2001e38ff2d3f14f2d45a7f359de0815dc48748221ebd28abcb5b53f1"
+    },
+    {
+      "path": "candidate-source-before-cleanup/src/generated/query_sql.ts",
+      "bytes": 2506,
+      "sha256": "d76c6880ebf539034e7fcfd63cc42e22148afa9a0616043cf46c7fc766f590b2"
+    },
+    {
+      "path": "candidate-source-before-cleanup/tsconfig.json",
+      "bytes": 265,
+      "sha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6"
+    },
+    {
+      "path": "candidate-source-before-execution/ACCEPTANCE.md",
+      "bytes": 1089,
+      "sha256": "5992f519a9c8117590a3ec5a96ff2f1ba89f09fffe569009de69d6037277e090"
+    },
+    {
+      "path": "candidate-source-before-execution/dist/application.js",
+      "bytes": 2845,
+      "sha256": "e71f62a1c822869e0a2c4fb294bde31a860d8d50ef942615f016605c27c85495"
+    },
+    {
+      "path": "candidate-source-before-execution/GENERATED_SQLC.md",
+      "bytes": 599,
+      "sha256": "8ff6816bacd1bff54e8c7616084e209860780e0a31a420447353b32b0ceaed9a"
+    },
+    {
+      "path": "candidate-source-before-execution/package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "candidate-source-before-execution/package.json",
+      "bytes": 320,
+      "sha256": "b67fbc036c013bcd0d111d94b9921dc8c49b97f8c2dcc719372769c0c462b841"
+    },
+    {
+      "path": "candidate-source-before-execution/src/application.ts",
+      "bytes": 3574,
+      "sha256": "208f9fa2001e38ff2d3f14f2d45a7f359de0815dc48748221ebd28abcb5b53f1"
+    },
+    {
+      "path": "candidate-source-before-execution/src/generated/query_sql.ts",
+      "bytes": 2506,
+      "sha256": "d76c6880ebf539034e7fcfd63cc42e22148afa9a0616043cf46c7fc766f590b2"
+    },
+    {
+      "path": "candidate-source-before-execution/tsconfig.json",
+      "bytes": 265,
+      "sha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6"
+    },
+    {
+      "path": "commands.json",
+      "bytes": 1009,
+      "sha256": "1fe5a00bc12c93f38e01f627c30ba05b7a2e67812166844b6fe90471b9083317"
+    },
+    {
+      "path": "database-final-state.json",
+      "bytes": 24310,
+      "sha256": "8b35c723abff42e304c70abe07be84207894616b221865bc4fd167e31747c3e3"
+    },
+    {
+      "path": "finalization.json",
+      "bytes": 212,
+      "sha256": "4ae0cfcd422482f1af3034f29c28ffe7e9ca3f5d359db344b9b617b2881d4646"
+    },
+    {
+      "path": "first-pass.json",
+      "bytes": 448,
+      "sha256": "65f9c57d732a819cb8343ad657ab44defd959b95e862e552f5803026172266b1"
+    },
+    {
+      "path": "logs/build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/build.stdout.log",
+      "bytes": 16,
+      "sha256": "8fe4571ad4e1c8d99b7bc7e6576a20f57e5d161cc24c4d631421068c0431e2c1"
+    },
+    {
+      "path": "logs/test.stderr.log",
+      "bytes": 226,
+      "sha256": "4570f2361d2245c0b2d93e609e31adbf669dab5958d0aa1c4107b2107ead9d39"
+    },
+    {
+      "path": "logs/test.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/typecheck.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/typecheck.stdout.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "packet-hashes.json",
+      "bytes": 370,
+      "sha256": "dc123c73749825aa01c3362083dc958f4b802a5255a08b5d681110734dce1295"
+    },
+    {
+      "path": "runner-result.json",
+      "bytes": 24373,
+      "sha256": "18a832df4ee80fab35c0e8ee0c5eadeff64ff1a084b11a964d438e8b92587e87"
+    },
+    {
+      "path": "source-manifest-after.json",
+      "bytes": 2027,
+      "sha256": "81cff537de82b6fca330b50add31f942e6ffc262a5b1f85276d0a05873935ba9"
+    },
+    {
+      "path": "source-manifest-before.json",
+      "bytes": 2027,
+      "sha256": "81cff537de82b6fca330b50add31f942e6ffc262a5b1f85276d0a05873935ba9"
+    },
+    {
+      "path": "treatment-review.json",
+      "bytes": 288,
+      "sha256": "8b0187cd21e8c0f6bc74e379a71e779ce4eca2d01e336e8de4f27b74fe04f4e3"
+    }
+  ]
+}

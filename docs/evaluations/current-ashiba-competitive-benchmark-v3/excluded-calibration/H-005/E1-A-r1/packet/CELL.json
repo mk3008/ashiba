@@ -1,0 +1,13 @@
+{
+  "cell": "E1-A-r1",
+  "control": "E1",
+  "arm": "A",
+  "replicate": 1,
+  "protocol": "secondary-controls-v1",
+  "baselineManifest": "../baseline-manifest.json",
+  "forbiddenPatterns": [
+    "from\\s+['\"]@ashiba-ts/named-parameters['\"]",
+    "require\\(['\"]@ashiba-ts/named-parameters['\"]\\)",
+    "['\"]@ashiba-ts/named-parameters['\"]\\s*:"
+  ]
+}

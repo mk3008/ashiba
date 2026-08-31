@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Plain native pg is the sole data-access path; static inspection found no Ashiba, ORM, query-builder, or sqlc dependency use.",
+  "decidedAt": "2026-08-30T08:03:19.689Z",
+  "decidedBy": "coordinator-required"
+}

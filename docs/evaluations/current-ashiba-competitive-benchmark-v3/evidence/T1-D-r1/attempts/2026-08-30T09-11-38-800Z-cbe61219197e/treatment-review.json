@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Drizzle query-builder and transaction APIs are the main data-access path.",
+  "decidedAt": "2026-08-30T09:12:46.592Z",
+  "decidedBy": "coordinator-required"
+}

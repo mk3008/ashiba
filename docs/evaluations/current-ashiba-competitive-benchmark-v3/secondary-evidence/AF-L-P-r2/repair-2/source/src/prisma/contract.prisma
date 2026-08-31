@@ -1,0 +1,21 @@
+model Ticket {
+  id        BigInt   @id @default(autoincrement())
+  title     String
+  status    String
+  assignee  String?
+  priority  Int
+  createdAt DateTime @map("created_at")
+  metadata  Json
+
+  @@map("tickets")
+}
+
+model TicketAudit {
+  auditId   BigInt   @id @default(autoincrement()) @map("audit_id")
+  ticketId  BigInt   @map("ticket_id")
+  action    String
+  detail    String
+  createdAt DateTime @map("created_at")
+
+  @@map("ticket_audit")
+}

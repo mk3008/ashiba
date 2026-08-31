@@ -1,0 +1,28 @@
+{
+  "cell": "AF-V-P-r2",
+  "attempt": "initial",
+  "candidateRepairIndex": 0,
+  "outcome": "F",
+  "startedAt": "2026-08-30T21:39:57.083Z",
+  "stoppedBeforeRunner": true,
+  "failureClassification": "tool/API misuse",
+  "observedFailure": {
+    "stage": "prisma contract emit",
+    "code": "CLI.CONFIG_MISSING_MARKER",
+    "summary": "Prisma 8 RC CLI rejected the façade-produced config because its CLI marker was absent."
+  },
+  "checks": {
+    "contractEmit": "F",
+    "typecheck": "F",
+    "build": "F",
+    "candidateTests": "F",
+    "runnerOracle": "not-run"
+  },
+  "evidence": {
+    "contractEmitLogSha256": "be74223dcf87ee3f09dc83781d3a1fdeb349f3848a2078668ed446b00029f5c7",
+    "typecheckLogSha256": "323869565c262e85d1d58439d4d4939dabebaea694c20d63eaaeb90d0ef161d0",
+    "buildLogSha256": "323869565c262e85d1d58439d4d4939dabebaea694c20d63eaaeb90d0ef161d0",
+    "candidateTestLogSha256": "cc5c9788029abdb894c4a48c5b3e0ff096119423659f3071f94bdc73da3c1446"
+  },
+  "repairEligibility": "bounded candidate repair 1 is allowed; exact failure is preserved before repair"
+}

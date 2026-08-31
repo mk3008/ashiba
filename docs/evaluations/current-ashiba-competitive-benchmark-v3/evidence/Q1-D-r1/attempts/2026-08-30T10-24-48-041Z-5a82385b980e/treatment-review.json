@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Drizzle node-postgres query/sql API is the candidate main data-access path; no direct native pg replacement.",
+  "decidedAt": "2026-08-30T10:25:05.738Z",
+  "decidedBy": "coordinator-required"
+}

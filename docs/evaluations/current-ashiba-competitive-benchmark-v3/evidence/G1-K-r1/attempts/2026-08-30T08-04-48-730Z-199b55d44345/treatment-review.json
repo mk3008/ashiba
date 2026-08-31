@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Kysely query-builder and transaction APIs remain the main data-access path after the null-assignee repair.",
+  "decidedAt": "2026-08-30T08:05:08.658Z",
+  "decidedBy": "coordinator-required"
+}

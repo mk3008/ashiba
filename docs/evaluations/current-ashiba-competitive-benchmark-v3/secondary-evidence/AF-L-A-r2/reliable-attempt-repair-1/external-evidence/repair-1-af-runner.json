@@ -1,0 +1,1148 @@
+{
+  "harness": "af-controls-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "AF-L",
+  "arm": "A",
+  "replicate": 2,
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-A-r2-reliable\\candidate\\dist\\application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-A-r2-reliable\\candidate",
+  "primaryRunner": "file:///C:/Users/mssgm/github/ashiba/worktrees/current-ashiba-competitive-benchmark-v3/docs/evaluations/current-ashiba-competitive-benchmark-v3/fixtures/runner.mjs",
+  "baselineIntegrity": "pass",
+  "startedAt": "2026-08-30T21:11:14.242Z",
+  "primaryG1": {
+    "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+    "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-A-r2-reliable\\candidate\\dist\\application.js",
+    "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-A-r2-reliable\\candidate",
+    "workloads": [
+      "G1"
+    ],
+    "source": {
+      "root": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-A-r2-reliable\\candidate",
+      "files": [
+        {
+          "path": "dist/application.js",
+          "kind": "file",
+          "bytes": 401,
+          "sha256": "959ef1e1946e20c9a286029725252da6705f5a4337c3255059ff9d69a84a626a"
+        },
+        {
+          "path": "dist/application/ticket-service.js",
+          "kind": "file",
+          "bytes": 4640,
+          "sha256": "93fdd134557fc36e526f77dc18ec5efaa42a79a8cafeee5fd80c108f9a100d56"
+        },
+        {
+          "path": "dist/contracts/ticket-dto.js",
+          "kind": "file",
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "dist/data-access/ticket-data-access.js",
+          "kind": "file",
+          "bytes": 3875,
+          "sha256": "34d28fd34cd2f886ab4150b220c74d2c94b6d66c34f105ab7f111a65cc40c7c9"
+        },
+        {
+          "path": "dist/platform/pool.js",
+          "kind": "file",
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "dist/platform/transaction.js",
+          "kind": "file",
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "dist/presentation/ticket-controller.js",
+          "kind": "file",
+          "bytes": 137,
+          "sha256": "90692bc33b9d6c3cdc7b9ae624015d5ad704f3105e9a2328dbc86a97a6296331"
+        },
+        {
+          "path": "package-lock.json",
+          "kind": "file",
+          "bytes": 7783,
+          "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+        },
+        {
+          "path": "package.json",
+          "kind": "file",
+          "bytes": 277,
+          "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+        },
+        {
+          "path": "README.md",
+          "kind": "file",
+          "bytes": 437,
+          "sha256": "bc212ee12405c2fcf2f7f44833d8a34d7419ce1256569ab84d5569b613f1bb2f"
+        },
+        {
+          "path": "src/application.ts",
+          "kind": "file",
+          "bytes": 442,
+          "sha256": "fb9144157981f4593f3a57b94973f737f00b6d69d2f1d27d3ac658cc0d156425"
+        },
+        {
+          "path": "src/application/ticket-service.ts",
+          "kind": "file",
+          "bytes": 4713,
+          "sha256": "54e80f98419f1121fe21bb8572e9b91553cbd5e0f518600c346deacd77933860"
+        },
+        {
+          "path": "src/contracts/ticket-dto.ts",
+          "kind": "file",
+          "bytes": 298,
+          "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+        },
+        {
+          "path": "src/data-access/ticket-data-access.ts",
+          "kind": "file",
+          "bytes": 4822,
+          "sha256": "fafdd11028267584e337d43379a0a78703a394df19d27541628db0266bda499b"
+        },
+        {
+          "path": "src/platform/pool.ts",
+          "kind": "file",
+          "bytes": 186,
+          "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+        },
+        {
+          "path": "src/platform/transaction.ts",
+          "kind": "file",
+          "bytes": 200,
+          "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+        },
+        {
+          "path": "src/presentation/ticket-controller.ts",
+          "kind": "file",
+          "bytes": 137,
+          "sha256": "90692bc33b9d6c3cdc7b9ae624015d5ad704f3105e9a2328dbc86a97a6296331"
+        },
+        {
+          "path": "tests/tickets.integration.test.ts",
+          "kind": "file",
+          "bytes": 143,
+          "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+        },
+        {
+          "path": "tsconfig.json",
+          "kind": "file",
+          "bytes": 262,
+          "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+        }
+      ],
+      "findings": [],
+      "pass": true
+    },
+    "checks": [
+      {
+        "id": "G1-list-order",
+        "status": "pass",
+        "detail": "priority desc then stable id asc"
+      },
+      {
+        "id": "G1-sort-id-asc",
+        "status": "pass",
+        "detail": "id asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-id-desc",
+        "status": "pass",
+        "detail": "id desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-priority-asc",
+        "status": "pass",
+        "detail": "priority asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-priority-desc",
+        "status": "pass",
+        "detail": "priority desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-createdAt-asc",
+        "status": "pass",
+        "detail": "createdAt asc uses the required stable ordering"
+      },
+      {
+        "id": "G1-sort-createdAt-desc",
+        "status": "pass",
+        "detail": "createdAt desc uses the required stable ordering"
+      },
+      {
+        "id": "G1-pagination-offset-limit",
+        "status": "pass",
+        "detail": "offset and limit apply after the stable ordering"
+      },
+      {
+        "id": "G1-filter-null-assignee",
+        "status": "pass",
+        "detail": "null assignee filter"
+      },
+      {
+        "id": "G1-invalid-sort",
+        "status": "pass",
+        "detail": "unreviewed sort rejects"
+      },
+      {
+        "id": "G1-invalid-pagination",
+        "status": "pass",
+        "detail": "invalid pagination rejects"
+      },
+      {
+        "id": "G1-missing-get-id",
+        "status": "pass",
+        "detail": "missing get identifier rejects"
+      },
+      {
+        "id": "G1-get",
+        "status": "pass",
+        "detail": "existing ticket is returned"
+      },
+      {
+        "id": "G1-get-null",
+        "status": "pass",
+        "detail": "missing ticket returns null"
+      },
+      {
+        "id": "G1-hostile-value",
+        "status": "pass",
+        "detail": "hostile text remains a value"
+      },
+      {
+        "id": "G1-assign",
+        "status": "pass",
+        "detail": "assignment commits"
+      },
+      {
+        "id": "G1-assign-trigger-rollback",
+        "status": "pass",
+        "detail": "runner-owned post-audit trigger rolls back assignment"
+      },
+      {
+        "id": "G1-close",
+        "status": "pass",
+        "detail": "close resolves with no value"
+      },
+      {
+        "id": "G1-close-idempotent",
+        "status": "pass",
+        "detail": "close is idempotent"
+      },
+      {
+        "id": "G1-closed-rejection",
+        "status": "pass",
+        "detail": "list rejects after close"
+      }
+    ],
+    "events": [
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T21:11:14.495Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "durationMs": 14
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T21:11:14.509Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T21:11:14.510Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T21:11:14.512Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "priority",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T21:11:14.513Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "createdAt",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T21:11:14.513Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          }
+        ],
+        "durationMs": 2
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "createdAt",
+          "direction": "desc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T21:11:14.515Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "104",
+            "title": "Close account",
+            "status": "closed",
+            "assignee": "alice",
+            "priority": 1,
+            "createdAt": "2026-01-01T12:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          },
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "101",
+            "title": "Cannot sign in",
+            "status": "open",
+            "assignee": "alice",
+            "priority": 5,
+            "createdAt": "2026-01-01T09:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "direction": "asc",
+          "offset": 1,
+          "limit": 2
+        },
+        "startedAt": "2026-08-30T21:11:14.515Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "102",
+            "title": "Export is slow",
+            "status": "pending",
+            "assignee": "bob",
+            "priority": 3,
+            "createdAt": "2026-01-01T10:00:00.000Z",
+            "metadata": {
+              "channel": "web"
+            }
+          },
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "status": "open",
+          "assignee": null,
+          "sort": "id",
+          "direction": "asc",
+          "offset": 0,
+          "limit": 10
+        },
+        "startedAt": "2026-08-30T21:11:14.516Z",
+        "status": "resolved",
+        "output": [
+          {
+            "id": "103",
+            "title": "Password reset",
+            "status": "open",
+            "assignee": null,
+            "priority": 5,
+            "createdAt": "2026-01-01T11:00:00.000Z",
+            "metadata": {
+              "channel": "email"
+            }
+          }
+        ],
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "title",
+          "limit": 10,
+          "offset": 0
+        },
+        "startedAt": "2026-08-30T21:11:14.517Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "VALIDATION",
+          "message": "sort is invalid"
+        },
+        "durationMs": 1
+      },
+      {
+        "operation": "list",
+        "input": {
+          "sort": "id",
+          "offset": 0,
+          "limit": 0
+        },
+        "startedAt": "2026-08-30T21:11:14.518Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "VALIDATION",
+          "message": "limit is invalid"
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "get",
+        "input": {},
+        "startedAt": "2026-08-30T21:11:14.518Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "VALIDATION",
+          "message": "id must be a positive integer string"
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "101"
+        },
+        "startedAt": "2026-08-30T21:11:14.518Z",
+        "status": "resolved",
+        "output": {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "createdAt": "2026-01-01T09:00:00.000Z",
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        "durationMs": 1
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "999"
+        },
+        "startedAt": "2026-08-30T21:11:14.519Z",
+        "status": "resolved",
+        "output": null,
+        "durationMs": 1
+      },
+      {
+        "operation": "create",
+        "input": {
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "startedAt": "2026-08-30T21:11:14.520Z",
+        "status": "resolved",
+        "output": {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "createdAt": "2026-08-30T21:11:14.521Z",
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "durationMs": 2
+      },
+      {
+        "operation": "get",
+        "input": {
+          "id": "1"
+        },
+        "startedAt": "2026-08-30T21:11:14.522Z",
+        "status": "resolved",
+        "output": {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "createdAt": "2026-08-30T21:11:14.521Z",
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        "durationMs": 0
+      },
+      {
+        "operation": "assign",
+        "input": {
+          "id": "103",
+          "assignee": "carol"
+        },
+        "startedAt": "2026-08-30T21:11:14.522Z",
+        "status": "resolved",
+        "output": {
+          "id": "103",
+          "assignee": "carol"
+        },
+        "durationMs": 6
+      },
+      {
+        "operation": "assign",
+        "input": {
+          "id": "102",
+          "assignee": "injected-worker"
+        },
+        "startedAt": "2026-08-30T21:11:14.553Z",
+        "status": "rejected",
+        "error": {
+          "name": "error",
+          "code": "P0001",
+          "message": "runner-injected failure: assign_audit"
+        },
+        "durationMs": 3
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T21:11:14.578Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "close",
+        "input": {},
+        "startedAt": "2026-08-30T21:11:14.578Z",
+        "status": "resolved",
+        "durationMs": 0
+      },
+      {
+        "operation": "list",
+        "input": {},
+        "startedAt": "2026-08-30T21:11:14.578Z",
+        "status": "rejected",
+        "error": {
+          "name": "Error",
+          "code": "APPLICATION_CLOSED",
+          "message": "application is closed"
+        },
+        "durationMs": 0
+      }
+    ],
+    "cleanup": {
+      "status": "pass",
+      "schema": "pass",
+      "role": "pass",
+      "connection": "pass"
+    },
+    "startedAt": "2026-08-30T21:11:14.254Z",
+    "schema": "ashiba_v3_1174f08dee10d252",
+    "candidateRole": "ashiba_v3_candidate_ca3727f9a12dc77b",
+    "finalDatabaseState": {
+      "tickets": [
+        {
+          "id": "1",
+          "title": "O'Reilly; $1 /* hostile value */",
+          "status": "open",
+          "assignee": null,
+          "priority": 2,
+          "metadata": {
+            "marker": "O'Reilly; $1 /* hostile value */"
+          }
+        },
+        {
+          "id": "101",
+          "title": "Cannot sign in",
+          "status": "open",
+          "assignee": "alice",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "102",
+          "title": "Export is slow",
+          "status": "pending",
+          "assignee": "bob",
+          "priority": 3,
+          "metadata": {
+            "channel": "web"
+          }
+        },
+        {
+          "id": "103",
+          "title": "Password reset",
+          "status": "open",
+          "assignee": "carol",
+          "priority": 5,
+          "metadata": {
+            "channel": "email"
+          }
+        },
+        {
+          "id": "104",
+          "title": "Close account",
+          "status": "closed",
+          "assignee": "alice",
+          "priority": 1,
+          "metadata": {
+            "channel": "web"
+          }
+        }
+      ],
+      "ticketAudit": [
+        {
+          "ticket_id": "103",
+          "action": "assigned",
+          "detail": "{\"assignee\":\"carol\"}"
+        }
+      ],
+      "accounts": [
+        {
+          "account_id": "7001",
+          "balance_cents": "10000"
+        },
+        {
+          "account_id": "7002",
+          "balance_cents": "5000"
+        }
+      ],
+      "transferAudit": [],
+      "workItems": [
+        {
+          "id": "8001",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8002",
+          "state": "queued",
+          "claimed_by": null
+        },
+        {
+          "id": "8003",
+          "state": "queued",
+          "claimed_by": null
+        }
+      ]
+    },
+    "status": "P",
+    "preCleanupRecord": {
+      "status": "written",
+      "path": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-A-r2-reliable\\evidence\\primary-g1.json.pre-cleanup.json",
+      "writtenAt": "2026-08-30T21:11:14.591Z"
+    },
+    "finishedAt": "2026-08-30T21:11:14.605Z"
+  },
+  "candidateSourceManifestBefore": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 277,
+      "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+    },
+    {
+      "path": "README.md",
+      "bytes": 437,
+      "sha256": "bc212ee12405c2fcf2f7f44833d8a34d7419ce1256569ab84d5569b613f1bb2f"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 442,
+      "sha256": "fb9144157981f4593f3a57b94973f737f00b6d69d2f1d27d3ac658cc0d156425"
+    },
+    {
+      "path": "src/application/ticket-service.ts",
+      "bytes": 4713,
+      "sha256": "54e80f98419f1121fe21bb8572e9b91553cbd5e0f518600c346deacd77933860"
+    },
+    {
+      "path": "src/contracts/ticket-dto.ts",
+      "bytes": 298,
+      "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+    },
+    {
+      "path": "src/data-access/ticket-data-access.ts",
+      "bytes": 4822,
+      "sha256": "fafdd11028267584e337d43379a0a78703a394df19d27541628db0266bda499b"
+    },
+    {
+      "path": "src/platform/pool.ts",
+      "bytes": 186,
+      "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+    },
+    {
+      "path": "src/platform/transaction.ts",
+      "bytes": 200,
+      "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+    },
+    {
+      "path": "src/presentation/ticket-controller.ts",
+      "bytes": 137,
+      "sha256": "90692bc33b9d6c3cdc7b9ae624015d5ad704f3105e9a2328dbc86a97a6296331"
+    },
+    {
+      "path": "tests/tickets.integration.test.ts",
+      "bytes": 143,
+      "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 262,
+      "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+    }
+  ],
+  "candidateSourceManifestAfter": [
+    {
+      "path": "package-lock.json",
+      "bytes": 7783,
+      "sha256": "f8a0db021915e5b35bf86ce5914ab91a421da10ec51239f39082ce72867ee9d3"
+    },
+    {
+      "path": "package.json",
+      "bytes": 277,
+      "sha256": "998bfa48b3397799f8de66f2ccbeccf702f0e0d45a41b685d817a5c9494c1d51"
+    },
+    {
+      "path": "README.md",
+      "bytes": 437,
+      "sha256": "bc212ee12405c2fcf2f7f44833d8a34d7419ce1256569ab84d5569b613f1bb2f"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 442,
+      "sha256": "fb9144157981f4593f3a57b94973f737f00b6d69d2f1d27d3ac658cc0d156425"
+    },
+    {
+      "path": "src/application/ticket-service.ts",
+      "bytes": 4713,
+      "sha256": "54e80f98419f1121fe21bb8572e9b91553cbd5e0f518600c346deacd77933860"
+    },
+    {
+      "path": "src/contracts/ticket-dto.ts",
+      "bytes": 298,
+      "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+    },
+    {
+      "path": "src/data-access/ticket-data-access.ts",
+      "bytes": 4822,
+      "sha256": "fafdd11028267584e337d43379a0a78703a394df19d27541628db0266bda499b"
+    },
+    {
+      "path": "src/platform/pool.ts",
+      "bytes": 186,
+      "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+    },
+    {
+      "path": "src/platform/transaction.ts",
+      "bytes": 200,
+      "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+    },
+    {
+      "path": "src/presentation/ticket-controller.ts",
+      "bytes": 137,
+      "sha256": "90692bc33b9d6c3cdc7b9ae624015d5ad704f3105e9a2328dbc86a97a6296331"
+    },
+    {
+      "path": "tests/tickets.integration.test.ts",
+      "bytes": 143,
+      "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 262,
+      "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+    }
+  ],
+  "sourceUnchangedDuringRunner": true,
+  "architectureDelta": {
+    "baselineHash": "a213c42128bd19eeff4a0e01730abe4f6427ddaead2ec0d7e09efa3e85eadbc7",
+    "candidateHash": "d4f0683edc9991212add5c00087fe7350661d2b773c9cfb647a52de3623ce85c",
+    "changedExistingFiles": [
+      "src/application.ts",
+      "src/application/ticket-service.ts",
+      "src/data-access/ticket-data-access.ts"
+    ],
+    "missingExistingFiles": [],
+    "movedOrRenamedExistingFiles": [],
+    "newFiles": [
+      "package-lock.json",
+      "package.json"
+    ],
+    "newGlobalFiles": [],
+    "newConfigFiles": [],
+    "newGeneratedDirectories": [],
+    "changedPoolSeam": false,
+    "changedTransactionSeam": false,
+    "changedDtoSeam": false,
+    "changedTestSeam": false,
+    "featureLocalSql": "not-applicable",
+    "requiredGuarantees": [
+      "named-parameter compiler/binder validates missing and unused values"
+    ]
+  },
+  "deltaComplete": true,
+  "status": "P",
+  "finishedAt": "2026-08-30T21:11:14.613Z"
+}

@@ -1,0 +1,33 @@
+{
+  "cell": "AF-L-D-r2",
+  "attempt": "repair-1",
+  "candidateRepairIndex": 1,
+  "repairFrom": "initial Drizzle bigint and identity-column type declarations",
+  "candidateSourceSnapshot": "candidate-source",
+  "typecheck": { "status": "pass", "command": "node node_modules/typescript/bin/tsc --noEmit --pretty false" },
+  "build": { "status": "pass", "command": "node node_modules/typescript/bin/tsc --pretty false" },
+  "architectureRunner": {
+    "status": "P",
+    "record": "logs/repair-1-runner.json",
+    "primaryG1": "P",
+    "primaryStaticInspection": "pass with zero findings",
+    "baselineIntegrity": "pass",
+    "sourceUnchangedDuringRunner": true,
+    "architectureDeltaComplete": true,
+    "cleanup": "pass"
+  },
+  "architectureObservation": {
+    "changedExistingFiles": ["src/application.ts"],
+    "newFiles": ["package-lock.json", "package.json"],
+    "newGlobalFiles": [],
+    "newConfigFiles": [],
+    "newGeneratedDirectories": [],
+    "featureLocalSql": "not-applicable",
+    "treatmentGuarantee": "Drizzle typed schema/query API"
+  },
+  "preservation": {
+    "candidateSourceCopied": true,
+    "runnerPreCleanupStateCopied": true,
+    "runnerOwnedCleanupPass": true
+  }
+}

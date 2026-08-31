@@ -1,0 +1,14 @@
+// Prisma's contract supplies the typed Postgres runtime. The runner owns the
+// physical schema, so ticket queries use the contract's raw lane and the
+// nonce-schema search_path instead of hard-coding a schema name.
+model Ticket {
+  id        BigInt   @id @default(autoincrement())
+  title     String
+  status    String
+  assignee  String?
+  priority  Int
+  createdAt DateTime @map("created_at")
+  metadata  Json
+
+  @@map("tickets")
+}

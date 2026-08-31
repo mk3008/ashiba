@@ -1,0 +1,406 @@
+{
+  "harness": "x1-open-composition-v1",
+  "protocol": "secondary-controls-v1",
+  "control": "X1",
+  "arm": "S",
+  "replicate": 1,
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-S-r1\\candidate\\dist\\report-application.js",
+  "sourceRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\X1-S-r1\\candidate",
+  "checks": [
+    {
+      "id": "static-isolation",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "id": "status-count-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "status-count-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "status-count-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "status-assignee-priority-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "status-assignee-priority-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "status-assignee-priority-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "hostile-tag-rows",
+      "status": "pass",
+      "detail": "runner-owned expected grouped rows"
+    },
+    {
+      "id": "hostile-tag-sql",
+      "status": "pass",
+      "detail": "candidate reports non-public source and executed SQL"
+    },
+    {
+      "id": "hostile-tag-hostile-isolation",
+      "status": "pass",
+      "detail": "hostile tag is not embedded in SQL syntax"
+    },
+    {
+      "id": "unknown-dimension",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "Unknown or duplicated dimension"
+      }
+    },
+    {
+      "id": "tag-without-join",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "tag requires includeTagJoin"
+      }
+    },
+    {
+      "id": "invalid-status",
+      "status": "pass",
+      "detail": {
+        "name": "Error",
+        "code": "VALIDATION",
+        "message": "Unknown status"
+      }
+    },
+    {
+      "id": "close-idempotent",
+      "status": "pass",
+      "detail": "close resolved twice"
+    }
+  ],
+  "requests": [
+    {
+      "id": "status-count",
+      "input": {
+        "dimensions": [
+          "status"
+        ],
+        "metric": "count",
+        "includeTagJoin": false
+      },
+      "expectedRows": [
+        {
+          "status": "closed",
+          "metric": 1
+        },
+        {
+          "status": "open",
+          "metric": 2
+        },
+        {
+          "status": "pending",
+          "metric": 1
+        }
+      ],
+      "result": {
+        "rows": [
+          {
+            "status": "closed",
+            "metric": 1
+          },
+          {
+            "status": "open",
+            "metric": 2
+          },
+          {
+            "status": "pending",
+            "metric": 1
+          }
+        ],
+        "sourceSql": "-- name: Report :many\nWITH grouped_report AS (\n  SELECT\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END AS status,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END AS assignee,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END AS tag,\n    CASE\n      WHEN $7::boolean THEN COALESCE(SUM(t.priority), 0)::bigint\n      ELSE COUNT(*)::bigint\n    END AS metric\n  FROM tickets AS t\n  LEFT JOIN ticket_tags AS tt\n    ON $8::boolean AND tt.ticket_id = t.id\n  WHERE ($9::ticket_status[] IS NULL OR t.status = ANY($9::ticket_status[]))\n    AND ($10::text IS NULL OR tt.tag = $10::text)\n  GROUP BY\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END\n)\nSELECT status, assignee, tag, metric\nFROM grouped_report\nORDER BY\n  CASE $1::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $2::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $3::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST",
+        "executedSql": "-- name: Report :many\nWITH grouped_report AS (\n  SELECT\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END AS status,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END AS assignee,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END AS tag,\n    CASE\n      WHEN $7::boolean THEN COALESCE(SUM(t.priority), 0)::bigint\n      ELSE COUNT(*)::bigint\n    END AS metric\n  FROM tickets AS t\n  LEFT JOIN ticket_tags AS tt\n    ON $8::boolean AND tt.ticket_id = t.id\n  WHERE ($9::ticket_status[] IS NULL OR t.status = ANY($9::ticket_status[]))\n    AND ($10::text IS NULL OR tt.tag = $10::text)\n  GROUP BY\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END\n)\nSELECT status, assignee, tag, metric\nFROM grouped_report\nORDER BY\n  CASE $1::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $2::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $3::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST",
+        "params": [
+          "status",
+          null,
+          null,
+          true,
+          false,
+          false,
+          false,
+          false,
+          null,
+          null
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "id": "status-assignee-priority",
+      "input": {
+        "dimensions": [
+          "status",
+          "assignee"
+        ],
+        "metric": "priorityTotal",
+        "includeTagJoin": false,
+        "statuses": [
+          "open",
+          "pending"
+        ]
+      },
+      "expectedRows": [
+        {
+          "status": "open",
+          "assignee": "alice",
+          "metric": 5
+        },
+        {
+          "status": "open",
+          "assignee": null,
+          "metric": 5
+        },
+        {
+          "status": "pending",
+          "assignee": "bob",
+          "metric": 3
+        }
+      ],
+      "result": {
+        "rows": [
+          {
+            "status": "open",
+            "assignee": "alice",
+            "metric": 5
+          },
+          {
+            "status": "open",
+            "assignee": null,
+            "metric": 5
+          },
+          {
+            "status": "pending",
+            "assignee": "bob",
+            "metric": 3
+          }
+        ],
+        "sourceSql": "-- name: Report :many\nWITH grouped_report AS (\n  SELECT\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END AS status,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END AS assignee,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END AS tag,\n    CASE\n      WHEN $7::boolean THEN COALESCE(SUM(t.priority), 0)::bigint\n      ELSE COUNT(*)::bigint\n    END AS metric\n  FROM tickets AS t\n  LEFT JOIN ticket_tags AS tt\n    ON $8::boolean AND tt.ticket_id = t.id\n  WHERE ($9::ticket_status[] IS NULL OR t.status = ANY($9::ticket_status[]))\n    AND ($10::text IS NULL OR tt.tag = $10::text)\n  GROUP BY\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END\n)\nSELECT status, assignee, tag, metric\nFROM grouped_report\nORDER BY\n  CASE $1::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $2::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $3::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST",
+        "executedSql": "-- name: Report :many\nWITH grouped_report AS (\n  SELECT\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END AS status,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END AS assignee,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END AS tag,\n    CASE\n      WHEN $7::boolean THEN COALESCE(SUM(t.priority), 0)::bigint\n      ELSE COUNT(*)::bigint\n    END AS metric\n  FROM tickets AS t\n  LEFT JOIN ticket_tags AS tt\n    ON $8::boolean AND tt.ticket_id = t.id\n  WHERE ($9::ticket_status[] IS NULL OR t.status = ANY($9::ticket_status[]))\n    AND ($10::text IS NULL OR tt.tag = $10::text)\n  GROUP BY\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END\n)\nSELECT status, assignee, tag, metric\nFROM grouped_report\nORDER BY\n  CASE $1::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $2::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $3::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST",
+        "params": [
+          "status",
+          "assignee",
+          null,
+          true,
+          true,
+          false,
+          true,
+          false,
+          [
+            "open",
+            "pending"
+          ],
+          null
+        ]
+      },
+      "status": "pass"
+    },
+    {
+      "id": "hostile-tag",
+      "input": {
+        "dimensions": [
+          "tag",
+          "status"
+        ],
+        "metric": "count",
+        "includeTagJoin": true,
+        "requestedTag": "vip'; DROP TABLE tickets; --"
+      },
+      "expectedRows": [],
+      "result": {
+        "rows": [],
+        "sourceSql": "-- name: Report :many\nWITH grouped_report AS (\n  SELECT\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END AS status,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END AS assignee,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END AS tag,\n    CASE\n      WHEN $7::boolean THEN COALESCE(SUM(t.priority), 0)::bigint\n      ELSE COUNT(*)::bigint\n    END AS metric\n  FROM tickets AS t\n  LEFT JOIN ticket_tags AS tt\n    ON $8::boolean AND tt.ticket_id = t.id\n  WHERE ($9::ticket_status[] IS NULL OR t.status = ANY($9::ticket_status[]))\n    AND ($10::text IS NULL OR tt.tag = $10::text)\n  GROUP BY\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END\n)\nSELECT status, assignee, tag, metric\nFROM grouped_report\nORDER BY\n  CASE $1::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $2::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $3::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST",
+        "executedSql": "-- name: Report :many\nWITH grouped_report AS (\n  SELECT\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END AS status,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END AS assignee,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END AS tag,\n    CASE\n      WHEN $7::boolean THEN COALESCE(SUM(t.priority), 0)::bigint\n      ELSE COUNT(*)::bigint\n    END AS metric\n  FROM tickets AS t\n  LEFT JOIN ticket_tags AS tt\n    ON $8::boolean AND tt.ticket_id = t.id\n  WHERE ($9::ticket_status[] IS NULL OR t.status = ANY($9::ticket_status[]))\n    AND ($10::text IS NULL OR tt.tag = $10::text)\n  GROUP BY\n    CASE WHEN $4::boolean THEN t.status::text ELSE NULL::text END,\n    CASE WHEN $5::boolean THEN t.assignee ELSE NULL::text END,\n    CASE WHEN $6::boolean THEN tt.tag ELSE NULL::text END\n)\nSELECT status, assignee, tag, metric\nFROM grouped_report\nORDER BY\n  CASE $1::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $2::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST,\n  CASE $3::text\n    WHEN 'status' THEN status\n    WHEN 'assignee' THEN assignee\n    WHEN 'tag' THEN tag\n    ELSE NULL::text\n  END ASC NULLS LAST",
+        "params": [
+          "tag",
+          "status",
+          null,
+          true,
+          false,
+          true,
+          false,
+          true,
+          null,
+          "vip'; DROP TABLE tickets; --"
+        ]
+      },
+      "status": "pass"
+    }
+  ],
+  "startedAt": "2026-08-30T13:04:04.176Z",
+  "candidateSourceManifestBefore": [
+    {
+      "path": ".tools/sqlc-gen-typescript_0.1.3.wasm",
+      "bytes": 72685305,
+      "sha256": "287df8f6cc06377d67ad5ba02c9e0f00c585509881434d15ea8bd9fc751a9368"
+    },
+    {
+      "path": ".tools/sqlc.exe",
+      "bytes": 57725440,
+      "sha256": "22ce316349ac153a4aacaa3912981f73980a6f84861f4c602ae6e3075ca326e4"
+    },
+    {
+      "path": ".tools/sqlc.zip",
+      "bytes": 15284588,
+      "sha256": "352711fa7dcb05dcdfefca0ad71b2c9a74fd090f8d7fc609419de4cbc725429f"
+    },
+    {
+      "path": "GENERATION.md",
+      "bytes": 342,
+      "sha256": "92c9bda6848984788d5bf818bcfc4486e17c56404d38db48dd02af1f1516d64f"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 426,
+      "sha256": "b4283cb9b63411bbe4f14a403e95be82703e27278b7462ba33a780e65a8fb422"
+    },
+    {
+      "path": "scripts/generate-sqlc.ps1",
+      "bytes": 125,
+      "sha256": "ff8105e530e64e054bf8c5309d158df34543b8f9687817410a47f0869207bf5a"
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 411,
+      "sha256": "c8a6b4eacc34ce53590a3e46d38a35c9f274ad043e9363af7962f07a5132f3a1"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 190,
+      "sha256": "d6bff01a105c4aa6cddf684b252c291f3e3bb7ccac072b7c803c101c085e4579"
+    },
+    {
+      "path": "src/db/queries.sql",
+      "bytes": 1629,
+      "sha256": "e81c9433b57bf113d263c217ec410df2b09a45bbbd463eea5f8cb40304c93e2a"
+    },
+    {
+      "path": "src/db/schema.sql",
+      "bytes": 275,
+      "sha256": "c5d91771d4190a8a43b5410f81eb81cd6b81a4fee3ee0f097c46c3c5d0f7a41b"
+    },
+    {
+      "path": "src/generated/queries_sql.ts",
+      "bytes": 2486,
+      "sha256": "daf6d2edc32416a9364021f0e6f94a550cd8619d1a607f68d35f3fe6a11d7276"
+    },
+    {
+      "path": "src/report-application.test.ts",
+      "bytes": 955,
+      "sha256": "2cfe670359e3af9757e6a1f3549c95db365d62c7140e5d4462e8dfb8cdbccbb5"
+    },
+    {
+      "path": "src/report-application.ts",
+      "bytes": 5364,
+      "sha256": "3a8c7be04e235203dc08075bc9700b24a8921e705d3eb224c18ff414cb3cb4f6"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "f05fbb2e07abfd4b4aa632bc4e9652d4213327e9264a08924581dbf0a83512b6"
+    }
+  ],
+  "staticInspection": {
+    "pass": true,
+    "findings": []
+  },
+  "schema": "ashiba_v3_e97883cd42397982",
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "10000"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "5000"
+      }
+    ],
+    "transferAudit": [],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8002",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "control": "X1",
+  "arm": "P",
+  "correction": "H-007",
+  "replicate": 2,
+  "candidateSource": [
+    {
+      "path": "package-lock.json",
+      "bytes": 284626,
+      "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+    },
+    {
+      "path": "package.json",
+      "bytes": 235,
+      "sha256": "6765ef348397969d46f26bea2cc2fefa9d6003203b7aba6ccfbf53649368f0b0"
+    }
+  ]
+}

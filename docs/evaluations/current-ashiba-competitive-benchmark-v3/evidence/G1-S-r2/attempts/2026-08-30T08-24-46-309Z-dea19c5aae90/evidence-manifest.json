@@ -1,0 +1,211 @@
+{
+  "algorithm": "sha256",
+  "createdAt": "2026-08-30T08:25:04.319Z",
+  "files": [
+    {
+      "path": "attempt.json",
+      "bytes": 453,
+      "sha256": "e84b677869d0075ceb7b70453a9856931f9c1121f90f464076a467ff65cfc6b6"
+    },
+    {
+      "path": "candidate-command-environment.json",
+      "bytes": 223,
+      "sha256": "718ae170b2c7105fc27a10f9e36e1b0ecb24b682248eeda5a3c89cc172520397"
+    },
+    {
+      "path": "candidate-snapshot-after.json",
+      "bytes": 3033,
+      "sha256": "ecc37a8659a5a55de06775eb1ccdc83a6c38c76603ff852b96c6baa97c48d454"
+    },
+    {
+      "path": "candidate-snapshot-before.json",
+      "bytes": 3033,
+      "sha256": "ecc37a8659a5a55de06775eb1ccdc83a6c38c76603ff852b96c6baa97c48d454"
+    },
+    {
+      "path": "candidate-source-before-cleanup/dist/application.js",
+      "bytes": 6550,
+      "sha256": "4aa41d3c56faf5b89dacadbc4a38ceefeb28245078fdf405ba037991f59ad221"
+    },
+    {
+      "path": "candidate-source-before-cleanup/GENERATION.md",
+      "bytes": 1365,
+      "sha256": "3711a5d05a2dcad8e5f8261c627d9764c6361857713525679e60b4d0f4affcbf"
+    },
+    {
+      "path": "candidate-source-before-cleanup/package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "candidate-source-before-cleanup/package.json",
+      "bytes": 354,
+      "sha256": "9c6cbb99b8e1cb11f08f81c6c8a72c461ea7d63aab7aa4488c013877ca01f030"
+    },
+    {
+      "path": "candidate-source-before-cleanup/queries.sql",
+      "bytes": 3656,
+      "sha256": "d176530b7ce9a7a8ac685621b17a46c51c7238cba1a10e295043f3e73f541828"
+    },
+    {
+      "path": "candidate-source-before-cleanup/sqlc.docker.yaml",
+      "bytes": 487,
+      "sha256": "5dcea8a54d2909d65fafe9d10241c5992aa9d126fc99dce7f2f2843e134d3222"
+    },
+    {
+      "path": "candidate-source-before-cleanup/sqlc.provenance.json",
+      "bytes": 658,
+      "sha256": "b6ffa6ee1263d7caae80ab7074286464477f124dd65dc9d139cea20053f4c2d8"
+    },
+    {
+      "path": "candidate-source-before-cleanup/sqlc.yaml",
+      "bytes": 513,
+      "sha256": "e5bc53863785beb434fde15266fb155a1473af994b576fa1733697b83b04ecd7"
+    },
+    {
+      "path": "candidate-source-before-cleanup/src/application.ts",
+      "bytes": 7850,
+      "sha256": "ccf3876139a4e5d138237544635392d3e31c582cbe058c9d9fb7d10b4bc15e36"
+    },
+    {
+      "path": "candidate-source-before-cleanup/src/generated/queries_sql.ts",
+      "bytes": 12239,
+      "sha256": "7bc893dc0456baa8df6dd155caa957053ef08373798cb5470a9f13f2e9c17b16"
+    },
+    {
+      "path": "candidate-source-before-cleanup/tsconfig.json",
+      "bytes": 311,
+      "sha256": "2911e5f89cf6d2dd96a1c9e4962c760d705ed98a733705389ea0f49fe8deedc4"
+    },
+    {
+      "path": "candidate-source-before-execution/dist/application.js",
+      "bytes": 6550,
+      "sha256": "4aa41d3c56faf5b89dacadbc4a38ceefeb28245078fdf405ba037991f59ad221"
+    },
+    {
+      "path": "candidate-source-before-execution/GENERATION.md",
+      "bytes": 1365,
+      "sha256": "3711a5d05a2dcad8e5f8261c627d9764c6361857713525679e60b4d0f4affcbf"
+    },
+    {
+      "path": "candidate-source-before-execution/package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "candidate-source-before-execution/package.json",
+      "bytes": 354,
+      "sha256": "9c6cbb99b8e1cb11f08f81c6c8a72c461ea7d63aab7aa4488c013877ca01f030"
+    },
+    {
+      "path": "candidate-source-before-execution/queries.sql",
+      "bytes": 3656,
+      "sha256": "d176530b7ce9a7a8ac685621b17a46c51c7238cba1a10e295043f3e73f541828"
+    },
+    {
+      "path": "candidate-source-before-execution/sqlc.docker.yaml",
+      "bytes": 487,
+      "sha256": "5dcea8a54d2909d65fafe9d10241c5992aa9d126fc99dce7f2f2843e134d3222"
+    },
+    {
+      "path": "candidate-source-before-execution/sqlc.provenance.json",
+      "bytes": 658,
+      "sha256": "b6ffa6ee1263d7caae80ab7074286464477f124dd65dc9d139cea20053f4c2d8"
+    },
+    {
+      "path": "candidate-source-before-execution/sqlc.yaml",
+      "bytes": 513,
+      "sha256": "e5bc53863785beb434fde15266fb155a1473af994b576fa1733697b83b04ecd7"
+    },
+    {
+      "path": "candidate-source-before-execution/src/application.ts",
+      "bytes": 7850,
+      "sha256": "ccf3876139a4e5d138237544635392d3e31c582cbe058c9d9fb7d10b4bc15e36"
+    },
+    {
+      "path": "candidate-source-before-execution/src/generated/queries_sql.ts",
+      "bytes": 12239,
+      "sha256": "7bc893dc0456baa8df6dd155caa957053ef08373798cb5470a9f13f2e9c17b16"
+    },
+    {
+      "path": "candidate-source-before-execution/tsconfig.json",
+      "bytes": 311,
+      "sha256": "2911e5f89cf6d2dd96a1c9e4962c760d705ed98a733705389ea0f49fe8deedc4"
+    },
+    {
+      "path": "commands.json",
+      "bytes": 1222,
+      "sha256": "1fd72188f2a80e6d697692b4c469dc9d887b477b0b12131863acccc6dc0c535b"
+    },
+    {
+      "path": "database-final-state.json",
+      "bytes": 24947,
+      "sha256": "52a6a15ad0fd2ed29c98125044def1e4834279c93da560e2ab705dadb99bfe25"
+    },
+    {
+      "path": "finalization.json",
+      "bytes": 212,
+      "sha256": "13bf426f9f6023eacd3de74a1530b614bc671a4cd37218c3766628a4bebfff4b"
+    },
+    {
+      "path": "first-pass.json",
+      "bytes": 448,
+      "sha256": "b5007def005383e8a6427c1d0c86a327c055259fd90611951bd0b2a93a4ccc34"
+    },
+    {
+      "path": "logs/build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/build.stdout.log",
+      "bytes": 33,
+      "sha256": "34fc8f532e8455212c5eeba2f44af8dd0d5a13e2138025e81ecd8272dd2f48fa"
+    },
+    {
+      "path": "logs/test.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/test.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/typecheck.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/typecheck.stdout.log",
+      "bytes": 46,
+      "sha256": "3b27c30b4de616fc6d83ef2d886be70142b2a1ba1c83e441240ea5160e0e1df9"
+    },
+    {
+      "path": "packet-hashes.json",
+      "bytes": 370,
+      "sha256": "9f73fed3d6308995affb3f1616099da4fcd3cbf7fe19aab92605a72fe00243b6"
+    },
+    {
+      "path": "runner-result.json",
+      "bytes": 25010,
+      "sha256": "f67621e23d9851b31a5785a3d62ef7aac1db2c45dc00b424eb835ea398a631df"
+    },
+    {
+      "path": "source-manifest-after.json",
+      "bytes": 2659,
+      "sha256": "93e255206547c849f5854fd8acca1cbf358db9fe5f3022f9c4973e1f37094974"
+    },
+    {
+      "path": "source-manifest-before.json",
+      "bytes": 2659,
+      "sha256": "93e255206547c849f5854fd8acca1cbf358db9fe5f3022f9c4973e1f37094974"
+    },
+    {
+      "path": "treatment-review.json",
+      "bytes": 313,
+      "sha256": "738c032727f986299f7e320728ff55a669a207312580ef6412ba4c0ff5cb1288"
+    }
+  ]
+}

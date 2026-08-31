@@ -1,0 +1,25 @@
+{
+  "source": "C:\\tmp\\ashiba-benchmark-v3-secondary-h007-preservation-r3\\X1-D-r3\\candidate",
+  "files": [
+    {
+      "path": "package-lock.json",
+      "bytes": 57528,
+      "sha256": "cac39f8ae511d3ec72426dc5c913e5f6a870899e8e0160fee9733642276cef8a"
+    },
+    {
+      "path": "package.json",
+      "bytes": 324,
+      "sha256": "c3a4c1e998a0d16dd7b987ebd683fe62e3f16e6bf2e2054110a62bc893b3cf38"
+    },
+    {
+      "path": "src/report.ts",
+      "bytes": 3592,
+      "sha256": "5101764afc32243e69e36b7e142ec8b899111eb018dabd2dcd5eb23cacc5b237"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 181,
+      "sha256": "27b347f21eca252ef0a4ecb87d715b77e93bf651ef2315b3a52ef6f3933af616"
+    }
+  ]
+}

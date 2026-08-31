@@ -1,0 +1,58 @@
+{
+  "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+  "kind": "negative-controls",
+  "status": "P",
+  "checks": [
+    {
+      "id": "negative-missing-api-rejected",
+      "status": "pass",
+      "detail": "missing public operations are rejected"
+    },
+    {
+      "id": "negative-failure-flag-rejected",
+      "status": "pass",
+      "detail": "candidate-visible failure flags are statically rejected"
+    },
+    {
+      "id": "negative-wrong-schema-rejected",
+      "status": "pass",
+      "detail": "runner rejects wrong-schema: F"
+    },
+    {
+      "id": "negative-wrong-output-rejected",
+      "status": "pass",
+      "detail": "runner rejects wrong-output: F"
+    },
+    {
+      "id": "negative-hostile-value-rejected",
+      "status": "pass",
+      "detail": "runner rejects hostile-value: F"
+    },
+    {
+      "id": "negative-invalid-sort-rejected",
+      "status": "pass",
+      "detail": "runner rejects invalid-sort: F"
+    },
+    {
+      "id": "negative-partial-transaction-rejected",
+      "status": "pass",
+      "detail": "runner rejects partial-transaction: F"
+    },
+    {
+      "id": "negative-duplicate-claim-rejected",
+      "status": "pass",
+      "detail": "runner rejects duplicate-claim: F"
+    },
+    {
+      "id": "negative-fabricated-stdout-missing-api-rejected",
+      "status": "pass",
+      "detail": "runner rejects fabricated-stdout-missing-api: F"
+    },
+    {
+      "id": "negative-admin-database-url-exfiltration-rejected",
+      "status": "pass",
+      "detail": "runner rejects admin-database-url-exfiltration: F"
+    }
+  ],
+  "finishedAt": "2026-08-30T07:09:32.814Z"
+}

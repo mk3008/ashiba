@@ -1,0 +1,38 @@
+{
+  "status": "executed-not-scored",
+  "commands": [
+    {
+      "slot": "typecheck",
+      "command": "C:\\tmp\\ashiba-benchmark-v3-node24\\node-v24.18.0-win-x64\\node.exe node_modules\\typescript\\bin\\tsc --noEmit",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T07:57:08.219Z",
+      "finishedAt": "2026-08-30T07:57:12.758Z",
+      "stdout": "logs/typecheck.stdout.log",
+      "stderr": "logs/typecheck.stderr.log"
+    },
+    {
+      "slot": "build",
+      "command": "C:\\tmp\\ashiba-benchmark-v3-node24\\node-v24.18.0-win-x64\\node.exe node_modules\\typescript\\bin\\tsc",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T07:57:12.758Z",
+      "finishedAt": "2026-08-30T07:57:13.593Z",
+      "stdout": "logs/build.stdout.log",
+      "stderr": "logs/build.stderr.log"
+    },
+    {
+      "slot": "test",
+      "command": "C:\\tmp\\ashiba-benchmark-v3-node24\\node-v24.18.0-win-x64\\node.exe --test dist\\application.test.js",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-30T07:57:13.594Z",
+      "finishedAt": "2026-08-30T07:57:14.101Z",
+      "stdout": "logs/test.stdout.log",
+      "stderr": "logs/test.stderr.log"
+    }
+  ]
+}

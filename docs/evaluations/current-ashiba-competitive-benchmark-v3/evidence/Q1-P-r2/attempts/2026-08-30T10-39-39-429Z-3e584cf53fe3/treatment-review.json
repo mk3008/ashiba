@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Prisma 8 RC normal Prisma raw SQL escape hatch is candidate main data-access path; no native pg substitution.",
+  "decidedAt": "2026-08-30T10:40:10.485Z",
+  "decidedBy": "coordinator-required"
+}

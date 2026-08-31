@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Ashiba tarball compile/bind and native pg are present; initial live concurrent-claim result failed.",
+  "decidedAt": "2026-08-30T09:59:29.121Z",
+  "decidedBy": "coordinator-required"
+}

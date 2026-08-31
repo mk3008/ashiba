@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Kysely query-builder and transaction APIs are the main data-access path; first runner attempt had an application null-assignee behavior failure.",
+  "decidedAt": "2026-08-30T08:03:59.836Z",
+  "decidedBy": "coordinator-required"
+}

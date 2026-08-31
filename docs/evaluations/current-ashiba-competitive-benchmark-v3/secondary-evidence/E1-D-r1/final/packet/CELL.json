@@ -1,0 +1,14 @@
+{
+  "cell": "E1-D-r1",
+  "control": "E1",
+  "arm": "D",
+  "replicate": 1,
+  "protocol": "secondary-controls-v1",
+  "baselineManifest": "../baseline-manifest.json",
+  "forbiddenPatterns": [
+    "from\\s+['\"]drizzle-orm['\"]",
+    "require\\(['\"]drizzle-orm['\"]\\)",
+    "['\"]drizzle-orm['\"]\\s*:",
+    "['\"]drizzle-kit['\"]\\s*:"
+  ]
+}

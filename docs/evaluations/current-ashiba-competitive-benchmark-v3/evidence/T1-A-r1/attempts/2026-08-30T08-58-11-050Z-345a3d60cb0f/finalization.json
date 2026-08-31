@@ -1,0 +1,8 @@
+{
+  "finalizedAt": "2026-08-30T08:58:26.123Z",
+  "cleanup": {
+    "status": "pending-external",
+    "recordedBeforeCleanup": true,
+    "note": "Cleanup may occur only after this final manifest is written."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "root": "candidate-source-before-cleanup",
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 7642,
+    "sha256": "a22a8464630b3bebba37096f19f2e57ae16d77e5c4c54a0af8fbb96951f848b4"
+  },
+  "copied": [
+    {
+      "path": "dist/application.js",
+      "sourceSha256": "a22a8464630b3bebba37096f19f2e57ae16d77e5c4c54a0af8fbb96951f848b4",
+      "snapshotSha256": "a22a8464630b3bebba37096f19f2e57ae16d77e5c4c54a0af8fbb96951f848b4",
+      "redacted": false
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "7e75808f25529929668c2499b166eceec288c1e782e7036aa6f59da06a6d8da3",
+      "snapshotSha256": "7e75808f25529929668c2499b166eceec288c1e782e7036aa6f59da06a6d8da3",
+      "redacted": false
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "3e002b6e6c6589858bf9ff594f1156fae9068a8148e7ff706e3459928768130d",
+      "snapshotSha256": "3e002b6e6c6589858bf9ff594f1156fae9068a8148e7ff706e3459928768130d",
+      "redacted": false
+    },
+    {
+      "path": "src/application.ts",
+      "sourceSha256": "e60fc27f3cd947a4b984309a3c93ef7988f056fb84b00aeb48c705f261bc3546",
+      "snapshotSha256": "e60fc27f3cd947a4b984309a3c93ef7988f056fb84b00aeb48c705f261bc3546",
+      "redacted": false
+    },
+    {
+      "path": "test/application.test.mjs",
+      "sourceSha256": "68e994bf01846bc228564ce42f6ae81ec01601bbb0927831fd703aca15d92e06",
+      "snapshotSha256": "68e994bf01846bc228564ce42f6ae81ec01601bbb0927831fd703aca15d92e06",
+      "redacted": false
+    },
+    {
+      "path": "tsconfig.json",
+      "sourceSha256": "aadca974973de985f24a66742c12e5a3f2f2e75741cc43fce633e3b143845dcc",
+      "snapshotSha256": "aadca974973de985f24a66742c12e5a3f2f2e75741cc43fce633e3b143845dcc",
+      "redacted": false
+    }
+  ],
+  "excluded": []
+}

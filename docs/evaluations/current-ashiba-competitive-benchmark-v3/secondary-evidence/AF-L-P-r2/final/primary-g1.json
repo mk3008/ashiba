@@ -1,0 +1,236 @@
+{
+  "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-P-r2-worker\\candidate\\dist\\application.js",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-P-r2-worker\\candidate",
+  "workloads": [
+    "G1"
+  ],
+  "source": {
+    "root": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-P-r2-worker\\candidate",
+    "files": [
+      {
+        "path": "dist/application.js",
+        "kind": "file",
+        "bytes": 182,
+        "sha256": "d17318090d8bb13772fbfc7b994a221a326ccb5e895152c309961f32ab5efeb5"
+      },
+      {
+        "path": "dist/application/ticket-service.js",
+        "kind": "file",
+        "bytes": 149,
+        "sha256": "008714b205816c1de4a4e5cc072d38d7afb1bf20c986c69cbd60084216364426"
+      },
+      {
+        "path": "dist/contracts/ticket-dto.js",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/data-access/ticket-data-access.js",
+        "kind": "file",
+        "bytes": 136,
+        "sha256": "e1b7d418296bcc67f8dd9d93eb75f4e1fbe4153d40bb1edae0f2fe71f2f8811a"
+      },
+      {
+        "path": "dist/platform/pool.js",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/platform/transaction.js",
+        "kind": "file",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "dist/presentation/ticket-controller.js",
+        "kind": "file",
+        "bytes": 137,
+        "sha256": "90692bc33b9d6c3cdc7b9ae624015d5ad704f3105e9a2328dbc86a97a6296331"
+      },
+      {
+        "path": "package-lock.json",
+        "kind": "file",
+        "bytes": 284626,
+        "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+      },
+      {
+        "path": "package.json",
+        "kind": "file",
+        "bytes": 235,
+        "sha256": "6765ef348397969d46f26bea2cc2fefa9d6003203b7aba6ccfbf53649368f0b0"
+      },
+      {
+        "path": "prisma.config.ts",
+        "kind": "file",
+        "bytes": 139,
+        "sha256": "5fc8e1b13dc568f418e05651c83bdcb852d338171ee5005768bf6aeb628e399e"
+      },
+      {
+        "path": "README.md",
+        "kind": "file",
+        "bytes": 437,
+        "sha256": "bc212ee12405c2fcf2f7f44833d8a34d7419ce1256569ab84d5569b613f1bb2f"
+      },
+      {
+        "path": "src/application.ts",
+        "kind": "file",
+        "bytes": 187,
+        "sha256": "cae70d64ba64462888b326fd70eb1889423ec78416fd83239461dc4db5bbaf82"
+      },
+      {
+        "path": "src/application/ticket-service.ts",
+        "kind": "file",
+        "bytes": 149,
+        "sha256": "008714b205816c1de4a4e5cc072d38d7afb1bf20c986c69cbd60084216364426"
+      },
+      {
+        "path": "src/contracts/ticket-dto.ts",
+        "kind": "file",
+        "bytes": 298,
+        "sha256": "19eb7cc8d8aa9dfc545a56e27c47545a436aae351ad982cc40cd7866b08b6c64"
+      },
+      {
+        "path": "src/data-access/ticket-data-access.ts",
+        "kind": "file",
+        "bytes": 136,
+        "sha256": "e1b7d418296bcc67f8dd9d93eb75f4e1fbe4153d40bb1edae0f2fe71f2f8811a"
+      },
+      {
+        "path": "src/platform/pool.ts",
+        "kind": "file",
+        "bytes": 186,
+        "sha256": "ef753d42ec988a2072463e3b126729706026214024cf59b67c3813dc51bb8e4a"
+      },
+      {
+        "path": "src/platform/transaction.ts",
+        "kind": "file",
+        "bytes": 200,
+        "sha256": "3295413b1481372d739bbc0c636ab665ffc22603d6d2e4317d960f3859b0eb34"
+      },
+      {
+        "path": "src/presentation/ticket-controller.ts",
+        "kind": "file",
+        "bytes": 137,
+        "sha256": "90692bc33b9d6c3cdc7b9ae624015d5ad704f3105e9a2328dbc86a97a6296331"
+      },
+      {
+        "path": "src/prisma/contract.prisma",
+        "kind": "file",
+        "bytes": 452,
+        "sha256": "9b04b4a183550a0bee5d2cba48baa6b79bbee0c0242e00f026e78646e3142d1f"
+      },
+      {
+        "path": "tests/tickets.integration.test.ts",
+        "kind": "file",
+        "bytes": 143,
+        "sha256": "69b023b71955fc8257d91cfaec89707cbe744110bb7737191b0b88cefec5e0db"
+      },
+      {
+        "path": "tsconfig.json",
+        "kind": "file",
+        "bytes": 262,
+        "sha256": "0c9dc54045b6d1175cbaddfc4667ba7a2901f5cb609e4d4eea9a9f71181f6085"
+      }
+    ],
+    "findings": [],
+    "pass": true
+  },
+  "checks": [],
+  "events": [],
+  "cleanup": {
+    "status": "pass",
+    "schema": "pass",
+    "role": "pass",
+    "connection": "pass"
+  },
+  "startedAt": "2026-08-30T21:21:19.226Z",
+  "schema": "ashiba_v3_3f5af444a9325132",
+  "candidateRole": "ashiba_v3_candidate_c57cdf8739eaf790",
+  "status": "F",
+  "runnerError": {
+    "name": "Error",
+    "message": "AF-L baseline: implement the frozen G1 API"
+  },
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "10000"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "5000"
+      }
+    ],
+    "transferAudit": [],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8002",
+        "state": "queued",
+        "claimed_by": null
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  },
+  "preCleanupRecord": {
+    "status": "written",
+    "path": "C:\\tmp\\ashiba-benchmark-v3-secondary\\AF-L-P-r2-worker\\evidence\\final\\primary-g1.json.pre-cleanup.json",
+    "writtenAt": "2026-08-30T21:21:19.279Z"
+  },
+  "finishedAt": "2026-08-30T21:21:19.289Z"
+}

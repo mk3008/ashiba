@@ -1,0 +1,7 @@
+{
+  "status": "explicit-final-value",
+  "value": "pass",
+  "note": "Ashiba tarball compile/bind and native pg are candidate path; initial Q1 SQL/explain reporting did not meet runner metadata contract.",
+  "decidedAt": "2026-08-30T10:19:54.354Z",
+  "decidedBy": "coordinator-required"
+}

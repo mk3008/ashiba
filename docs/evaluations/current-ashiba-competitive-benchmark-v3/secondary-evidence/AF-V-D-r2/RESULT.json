@@ -1,0 +1,69 @@
+{
+  "cell": "AF-V-D-r2",
+  "protocol": "secondary-controls-v1",
+  "architectureHarness": "af-controls-v1",
+  "freshness": {
+    "candidateDirectory": "C:\\tmp\\ashiba-benchmark-v3-secondary-reliable\\AF-V-D-r2\\candidate",
+    "npmCache": "C:\\tmp\\ashiba-benchmark-v3-secondary-reliable\\AF-V-D-r2\\npm-cache",
+    "preActionSnapshot": "pre-action",
+    "candidateSnapshots": ["attempts/initial/source", "attempts/repair-1/source", "../../secondary-candidate-snapshots/AF-V-D-r2/final"]
+  },
+  "attempts": [
+    {
+      "attempt": "initial",
+      "candidateRepairIndex": 0,
+      "outcome": "F",
+      "classification": "type-system repair",
+      "failure": "Drizzle inferred identity primary-key fields as required because the initial table declarations did not mark generated identities.",
+      "evidence": ["attempts/initial/source", "attempts/initial/typecheck.log"]
+    },
+    {
+      "attempt": "repair-1",
+      "candidateRepairIndex": 1,
+      "outcome": "P",
+      "repair": "Added Drizzle generatedAlwaysAsIdentity declarations to the identity columns; no runner, packet, or baseline changed.",
+      "typecheck": "P",
+      "build": "P",
+      "candidateTests": "P (the packet exposes only its ordinary TypeScript integration-test seam; the candidate command was strict TypeScript validation)",
+      "staticInspection": "P",
+      "primaryG1": "P",
+      "architectureRunner": "P",
+      "cleanup": "P",
+      "evidence": [
+        "attempts/repair-1/source",
+        "attempts/repair-1/af-run.json",
+        "attempts/repair-1/primary-g1.json",
+        "attempts/repair-1/primary-g1.json.pre-cleanup.json",
+        "attempts/repair-1/static.json",
+        "attempts/repair-1/runner.log",
+        "attempts/repair-1/static.log"
+      ]
+    }
+  ],
+  "final": {
+    "status": "P",
+    "baselineIntegrity": "pass",
+    "sourceUnchangedDuringRunner": true,
+    "architectureDeltaComplete": true,
+    "architecture": {
+      "changedExistingFiles": ["src/application.ts"],
+      "missingExistingFiles": [],
+      "movedOrRenamedExistingFiles": [],
+      "newGlobalFiles": [],
+      "newConfigFiles": [],
+      "newGeneratedDirectories": [],
+      "changedPoolSeam": false,
+      "changedTransactionSeam": false,
+      "changedDtoSeam": false,
+      "changedTestSeam": false,
+      "featureLocalSql": "not-applicable",
+      "requiredGuarantees": ["Drizzle typed schema/query API"]
+    },
+    "cleanup": { "schema": "pass", "role": "pass", "connection": "pass" }
+  },
+  "repairCount": 1,
+  "retryCount": 0,
+  "escalationCount": 0,
+  "tokenTelemetry": "unavailable",
+  "creditTelemetry": "unavailable"
+}

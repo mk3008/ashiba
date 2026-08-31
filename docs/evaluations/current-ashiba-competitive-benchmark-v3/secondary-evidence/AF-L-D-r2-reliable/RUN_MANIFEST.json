@@ -1,0 +1,33 @@
+{
+  "cell": "AF-L-D-r2",
+  "runIdentity": "reliable-fresh-rerun-2026-08-31",
+  "protocol": "secondary-controls-v1",
+  "harness": "af-controls-v1",
+  "arm": "D",
+  "control": "AF-L",
+  "replicate": 2,
+  "repositoryHeadBeforeCandidateAction": "0e72b593f1491d8a8ed41a9a73581f024420e93d",
+  "candidateDirectory": "C:/tmp/ashiba-benchmark-v3-secondary-reliable/AF-L-D-r2/candidate",
+  "npmCacheDirectory": "C:/tmp/ashiba-benchmark-v3-secondary-reliable/AF-L-D-r2/npm-cache",
+  "externalEvidenceDirectory": "C:/tmp/ashiba-benchmark-v3-secondary-reliable/AF-L-D-r2/evidence",
+  "durableEvidenceDirectory": "docs/evaluations/current-ashiba-competitive-benchmark-v3/secondary-evidence/AF-L-D-r2-reliable",
+  "candidateIsolation": {
+    "freshMaterialization": true,
+    "previousExcludedCandidateInspectedOrReused": false,
+    "candidateDirectoryIsExternal": true,
+    "cacheIsPrivate": true,
+    "packetAndRunnerAreReadOnlyInputs": true
+  },
+  "runtime": {
+    "node": "v24.18.0",
+    "npm": "11.16.0",
+    "databaseAuthority": "runner-owned PostgreSQL nonce schema and role"
+  },
+  "repairPolicy": {
+    "initialAttempt": 0,
+    "maximumCandidateRepairs": 2,
+    "preserveBeforeRepair": true,
+    "initialArtifactDirectory": "attempts/00-initial"
+  },
+  "status": "materialized-before-candidate-action"
+}

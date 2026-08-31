@@ -1,0 +1,385 @@
+{
+  "protocol": "v2",
+  "canonicalRepresentation": "v2-logical-path-byte-sha256",
+  "protocolInputs": [
+    "benchmark/ARM_TREATMENTS.md",
+    "benchmark/EVALUATOR_SPEC.md",
+    "benchmark/EXECUTION_PROFILE.md",
+    "benchmark/EXCLUSION_AND_CORRECTION_LEDGER.md",
+    "benchmark/MANIFEST.md",
+    "benchmark/PREREGISTRATION.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_1.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_2.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_3.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_4.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_5.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_6.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_7.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_8.md",
+    "benchmark/PREREGISTRATION_AMENDMENT_9.md",
+    "benchmark/WORKLOADS.md",
+    "fixtures/packet/packet-hash.mjs"
+  ],
+  "files": [
+    {
+      "path": "benchmark/ARM_TREATMENTS.md",
+      "sha256": "854875c0ba218047447d19c14b8d583389bae211e487a1ab4b08eafc7933a6fe",
+      "bytes": 1556
+    },
+    {
+      "path": "benchmark/EVALUATOR_SPEC.md",
+      "sha256": "d5faaa35806845f8df5723859f8fd6fbd0ff53fb21ef573d5514bb88c80a1d37",
+      "bytes": 1069
+    },
+    {
+      "path": "benchmark/EXCLUSION_AND_CORRECTION_LEDGER.md",
+      "sha256": "f059e024101136649342456c0c00a29dd9d66537faf2960e5e66e345521d4fa3",
+      "bytes": 2269
+    },
+    {
+      "path": "benchmark/EXECUTION_PROFILE.md",
+      "sha256": "3b171eacd986620fd246dead0995fb7bba914cbab831c8c9691974d900dcf58e",
+      "bytes": 2216
+    },
+    {
+      "path": "benchmark/MANIFEST.md",
+      "sha256": "df97084b3ddf5179ea6c37b567f7508b40bbc6fc99c3b71481b385e1d33e30d6",
+      "bytes": 3932
+    },
+    {
+      "path": "benchmark/PREREGISTRATION.md",
+      "sha256": "67c375a5d0e594db299a66b877ff57df2506aa108443c8ead254349533fd67bc",
+      "bytes": 6927
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_1.md",
+      "sha256": "92f4905bb0a116bc69b7d70edf28ae9faac2e3fa94937343831afbbe008edf86",
+      "bytes": 7091
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_2.md",
+      "sha256": "550e9dac9b8a7b62f1f33726bccaa0702a02dfd2ad844531e55829cc846786b7",
+      "bytes": 1812
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_3.md",
+      "sha256": "2ec70c6661fc4d424bacb302c365d9e4e6b11d8ccdcecb85078e2d55682db42f",
+      "bytes": 2845
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_4.md",
+      "sha256": "b0967dfdfec2e1677161b5a5d8ffb336066bae085667bf16fc28f94b0c3c02f1",
+      "bytes": 2096
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_5.md",
+      "sha256": "325478c0688c12497faa7cd6337ab3db2e53a6bb36264bf92e4198f236598ae5",
+      "bytes": 1235
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_6.md",
+      "sha256": "cae1bd65e03077868de56345f477d164de413e5558f8621410218853cb9e612e",
+      "bytes": 1621
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_7.md",
+      "sha256": "9de1d60c43b5cc34a5505310f15c330b5100df971844718b67adfd882c2901d4",
+      "bytes": 966
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_8.md",
+      "sha256": "c70994b5ba32606d274fb0eb742dda6ae1757aa6c454e15cbe2323082148e11e",
+      "bytes": 1102
+    },
+    {
+      "path": "benchmark/PREREGISTRATION_AMENDMENT_9.md",
+      "sha256": "2e7bed6c612c3c60d831913f7c917f85b8d714765d5589fa715eb770d850cd22",
+      "bytes": 1730
+    },
+    {
+      "path": "benchmark/WORKLOADS.md",
+      "sha256": "cf8ed1ef417762133cd0fb0c699d5e1f995456ecabd338b81588cd2493b277ed",
+      "bytes": 1841
+    },
+    {
+      "path": "fixtures/COMMON_API.md",
+      "sha256": "6ade3d709f9a091e44d2ffcdb151491b5c5d1bc79c9f0c210566907b3b1b7128",
+      "bytes": 5781
+    },
+    {
+      "path": "fixtures/NEGATIVE_CONTROLS.md",
+      "sha256": "69ff021669b57ea906629f6a57a39944c06cdc235c1733a6ab84e0b91d4015c3",
+      "bytes": 1505
+    },
+    {
+      "path": "fixtures/REPRODUCE.md",
+      "sha256": "59fe4089c58983b4cad01317a0a978fccf34c6c4058212709b0dfd4c568d712f",
+      "bytes": 3652
+    },
+    {
+      "path": "fixtures/api-contract.mjs",
+      "sha256": "435e26edf7cc1b4b97ee074a679e3acf2fa168861ec5459b4555db6cd920642b",
+      "bytes": 1431
+    },
+    {
+      "path": "fixtures/artifacts/ashiba-ts-named-parameters-0.1.0.tgz",
+      "sha256": "64b95657af62120d5b8662224b298cc610a74280e515b33ee485e41247bdcc4d",
+      "bytes": 4703
+    },
+    {
+      "path": "fixtures/evidence-executor/MATERIALIZE_CELL.md",
+      "sha256": "2edd3aed86afe4943a3ad4805a105bf05627d49f33b32ed23a9d02f60109077f",
+      "bytes": 1063
+    },
+    {
+      "path": "fixtures/evidence-executor/REPORT.md",
+      "sha256": "621bd365c174079349d6b78ee4415053e2e697dd0764b1b79c98966bf77bbbbf",
+      "bytes": 917
+    },
+    {
+      "path": "fixtures/evidence-executor/SPEC.md",
+      "sha256": "8bc01af6fc494cd43bff6c7c69da18783b4c028d7fc2282fbe5b4d98a9e1002e",
+      "bytes": 4227
+    },
+    {
+      "path": "fixtures/evidence-executor/attempt-evidence-executor.mjs",
+      "sha256": "ff9a2d4071438bc3697a576bf21cc94eac1e02f11bb91c4c586376a53f74c357",
+      "bytes": 22258
+    },
+    {
+      "path": "fixtures/evidence-executor/materialize-cell.mjs",
+      "sha256": "dfadb720bb207d49f405426962fad162191faa372350f917dab6df31274cc2cf",
+      "bytes": 5513
+    },
+    {
+      "path": "fixtures/fixture.mjs",
+      "sha256": "ca0f262492ffc782f2dde93f2ee28903a7283e8d25b50c07c95a8c93ed2d8cfc",
+      "bytes": 6262
+    },
+    {
+      "path": "fixtures/negative-controls/admin-database-url-exfiltration/candidate.mjs",
+      "sha256": "6e7671d96cec8b425b3f3450da3d6b4bc2a7def01af2f06288418812ff0af1ed",
+      "bytes": 298
+    },
+    {
+      "path": "fixtures/negative-controls/duplicate-claim/candidate.mjs",
+      "sha256": "96c91e4ecf25d11b0776259d9948f49108cdf0bd3dc3bca0e77c9d1f0d1eb0f7",
+      "bytes": 355
+    },
+    {
+      "path": "fixtures/negative-controls/fabricated-stdout-missing-api/candidate.mjs",
+      "sha256": "18bfad8d19da271421610990f4a6078f101cb59f9a9c345ccc294acba5f0a2f5",
+      "bytes": 147
+    },
+    {
+      "path": "fixtures/negative-controls/hostile-value/candidate.mjs",
+      "sha256": "ecf9d538747bc4d9282d6c8b470efd864f0d72418874ab5253c0564b517e54dc",
+      "bytes": 360
+    },
+    {
+      "path": "fixtures/negative-controls/invalid-sort/candidate.mjs",
+      "sha256": "28fac0ea84bce59cf30d9caea408b7ad682bb067e0419b5fec64647d81d870aa",
+      "bytes": 383
+    },
+    {
+      "path": "fixtures/negative-controls/partial-transaction/candidate.mjs",
+      "sha256": "cea400f6aa51e18c1d64b514ef71f2d439920250794fbb84645127ab1880def0",
+      "bytes": 1605
+    },
+    {
+      "path": "fixtures/negative-controls/wrong-output/candidate.mjs",
+      "sha256": "7d41197681f5635d954302d0fba477d29b4f22b52ff53d94979e1da3448c434a",
+      "bytes": 274
+    },
+    {
+      "path": "fixtures/negative-controls/wrong-schema/candidate.mjs",
+      "sha256": "72a81faa18ce4a21cf6213c5ece7ae424a64fefe2c73b64d87ca107959393572",
+      "bytes": 222
+    },
+    {
+      "path": "fixtures/package-lock.json",
+      "sha256": "3e9ee9a2bbd5a493438444ff3b788936f6cb78f876900d50230fff5e53541750",
+      "bytes": 5710
+    },
+    {
+      "path": "fixtures/package.json",
+      "sha256": "5ab46feefe47f084743ea8bdeb3c46cb1ae86eec8567b7ce706b6a9309b34b04",
+      "bytes": 177
+    },
+    {
+      "path": "fixtures/packet/FETCH_SQLC_ARTIFACTS.md",
+      "sha256": "09a66b2eb18c13953aa30bb6cf0ca2b6b6d12c33fbfe7941b292e27c8140c969",
+      "bytes": 1072
+    },
+    {
+      "path": "fixtures/packet/OFFICIAL_SOURCES.md",
+      "sha256": "6cb1007848457b458928b90c362730ac66f807a00279d16cb0bba757b10cd690",
+      "bytes": 2280
+    },
+    {
+      "path": "fixtures/packet/PACKET_MANIFEST.md",
+      "sha256": "1a88914842e94a5e44f94c51433ad231c1465ddfc145af9ff7e902c843b541a4",
+      "bytes": 5672
+    },
+    {
+      "path": "fixtures/packet/arms/A/package-lock.json",
+      "sha256": "cbcc29215f436e35c2ef69f17888215f50955ac6e98e9ea18e801f9662ce2eaf",
+      "bytes": 7795
+    },
+    {
+      "path": "fixtures/packet/arms/A/package.json",
+      "sha256": "4bb0f9820e5bc64d76e3cecfe6ec0ecd5b112b46c76cae87fa78ffe5983c5e1e",
+      "bytes": 283
+    },
+    {
+      "path": "fixtures/packet/arms/D/package-lock.json",
+      "sha256": "cac39f8ae511d3ec72426dc5c913e5f6a870899e8e0160fee9733642276cef8a",
+      "bytes": 57528
+    },
+    {
+      "path": "fixtures/packet/arms/D/package.json",
+      "sha256": "77758e48a357e834f5c50cb7dc481739cbf03a506b36006edf3add0aec7dee8a",
+      "bytes": 237
+    },
+    {
+      "path": "fixtures/packet/arms/G/package-lock.json",
+      "sha256": "cf9b54a2fea735204650424a156dce87a2c4c949b1de00ecc2dc1ff3f268121c",
+      "bytes": 7321
+    },
+    {
+      "path": "fixtures/packet/arms/G/package.json",
+      "sha256": "c95591ace71cc0a166851160799f3f1891555fe559a3c79adfe6f5a32aefa4d6",
+      "bytes": 190
+    },
+    {
+      "path": "fixtures/packet/arms/K/package-lock.json",
+      "sha256": "7e75808f25529929668c2499b166eceec288c1e782e7036aa6f59da06a6d8da3",
+      "bytes": 7683
+    },
+    {
+      "path": "fixtures/packet/arms/K/package.json",
+      "sha256": "2989dfc6627118c332f6f2d47cf3ca18cac99651b79f525705f4218b76a96e20",
+      "bytes": 208
+    },
+    {
+      "path": "fixtures/packet/arms/P/package-lock.json",
+      "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c",
+      "bytes": 284626
+    },
+    {
+      "path": "fixtures/packet/arms/P/package.json",
+      "sha256": "6765ef348397969d46f26bea2cc2fefa9d6003203b7aba6ccfbf53649368f0b0",
+      "bytes": 235
+    },
+    {
+      "path": "fixtures/packet/arms/S/package-lock.json",
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "bytes": 7321
+    },
+    {
+      "path": "fixtures/packet/arms/S/package.json",
+      "sha256": "467ff0587ea0ab0966151b6cd9f5aa2675e4c903d87dd470e20bb37d52e0a8d8",
+      "bytes": 190
+    },
+    {
+      "path": "fixtures/packet/execution-order.json",
+      "sha256": "6dc192fceefdf840165e7f8558bd5b94d95770b1572713716766e96aa2b1a22b",
+      "bytes": 745
+    },
+    {
+      "path": "fixtures/packet/fetch-sqlc-artifacts.mjs",
+      "sha256": "49bf54708361c4ad179a94fe372f2d7631920431546fce65ce097a023547cf43",
+      "bytes": 2620
+    },
+    {
+      "path": "fixtures/packet/official-doc-snapshots-v1.zip",
+      "sha256": "8b86cf5abc883f57975b78fa06e3bd3d614486449e1e8b395bad1700695b8c57",
+      "bytes": 318135
+    },
+    {
+      "path": "fixtures/packet/packet-hash.mjs",
+      "sha256": "240126d20946b18a54fcf68764554ef621c844a0add438ee236c8a2acc4a7ae4",
+      "bytes": 8067
+    },
+    {
+      "path": "fixtures/prompts/A.md",
+      "sha256": "a261f7dbf1e8f5c248bdb1030e9f250faace4208ee597c4b891e4a603023d8ae",
+      "bytes": 322
+    },
+    {
+      "path": "fixtures/prompts/COMMON_ASSIGNMENT.md",
+      "sha256": "5cc995f358d664a69dae1ff30f369a8ba2d70becf24caa3fac61a4a11cba2af6",
+      "bytes": 750
+    },
+    {
+      "path": "fixtures/prompts/D.md",
+      "sha256": "bbcc3ae9a75d47e00c05e008017c155736a22c63ee1fa960a61071460687934a",
+      "bytes": 245
+    },
+    {
+      "path": "fixtures/prompts/G.md",
+      "sha256": "8abfb4a2bbd934ab31bf93cd194ec014b9076089cf13dd3122e3145472518a15",
+      "bytes": 211
+    },
+    {
+      "path": "fixtures/prompts/K.md",
+      "sha256": "1708ed590330755c4d4e4b5c5f1bf1e356866e0856aaf839cb4e4a640b0f80b3",
+      "bytes": 208
+    },
+    {
+      "path": "fixtures/prompts/P.md",
+      "sha256": "c696f9cde198e73a974f51c5e1254e7952081f6d181534a8b1d3649eeb0bf3e6",
+      "bytes": 442
+    },
+    {
+      "path": "fixtures/prompts/S.md",
+      "sha256": "b69b1458c5910f598bc9fd87aae5d088b4034e32c4eec0e77511fe79e11c6fa6",
+      "bytes": 248
+    },
+    {
+      "path": "fixtures/prompts/workloads/G1.md",
+      "sha256": "d92eb126ea1e755f5d36ba3246d893b777ca45f691029a876cc2d237d4d5c49c",
+      "bytes": 435
+    },
+    {
+      "path": "fixtures/prompts/workloads/Q1.md",
+      "sha256": "5d4035f978ff95183055f5ad512a06d5b9c4c02e934ef64ffdf995db0f67ff27",
+      "bytes": 352
+    },
+    {
+      "path": "fixtures/prompts/workloads/T1.md",
+      "sha256": "e4b746cfcd228b285bdcd52a9f4a772dbb91afbc15c6c87c88278feecdade496",
+      "bytes": 325
+    },
+    {
+      "path": "fixtures/prompts/workloads/T2.md",
+      "sha256": "27c56f9755ca74ca14d6def16f830a4477e16ee541377ce2cda96ad4667beaf4",
+      "bytes": 304
+    },
+    {
+      "path": "fixtures/q1.sql",
+      "sha256": "893033dc2fa5b8647c866562a8180bfb92dd8855b0dad0c0b68b250e1d173935",
+      "bytes": 1324
+    },
+    {
+      "path": "fixtures/reference/reference-application.mjs",
+      "sha256": "727ad3dc625b17d6b847f0b3ddc59589940372b7a6d07d43c662b86d4640e64e",
+      "bytes": 9296
+    },
+    {
+      "path": "fixtures/runner.mjs",
+      "sha256": "9adad00f7b153744f0583b403628561f24767321242b63149ed4cd34efd448a2",
+      "bytes": 29264
+    },
+    {
+      "path": "fixtures/schema.sql",
+      "sha256": "b0640163e0074fd25f6c0e3ea94d9f775c6d5ce3b069daecd7cd107fa532defc",
+      "bytes": 2886
+    },
+    {
+      "path": "fixtures/seed.sql",
+      "sha256": "a4b8536cb314738010219d66324022b0626770ae60f1310abfb7225ec3165c19",
+      "bytes": 1856
+    }
+  ]
+}

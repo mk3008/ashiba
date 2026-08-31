@@ -1,0 +1,5 @@
+{
+  "candidateTests": "not-configured",
+  "scripts": null,
+  "reason": "frozen arm package has no test script"
+}

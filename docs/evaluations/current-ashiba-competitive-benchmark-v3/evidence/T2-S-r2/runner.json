@@ -1,0 +1,327 @@
+{
+  "harness": "current-ashiba-competitive-benchmark-v3-fixture-runner-3",
+  "candidatePath": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-S-r2\\candidate\\dist\\application.js",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-S-r2\\candidate",
+  "workloads": [
+    "T2"
+  ],
+  "source": {
+    "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-S-r2\\candidate",
+    "files": [
+      {
+        "path": ".gitignore",
+        "kind": "file",
+        "bytes": 28,
+        "sha256": "93996d6238667980619ba2d71a51ec6d4d48e2e57abe58b2e2e660e36b33c1c8"
+      },
+      {
+        "path": "dist/application.d.ts",
+        "kind": "file",
+        "bytes": 459,
+        "sha256": "86994fb00c306bae20bdd2491da930ef3fe3878c8d5cbbc09c483d96fc6e6101"
+      },
+      {
+        "path": "dist/application.js",
+        "kind": "file",
+        "bytes": 1193,
+        "sha256": "2ae40d274522520d0e929f33048741a6bab77bd8b9420071051b93dc8ca10e12"
+      },
+      {
+        "path": "dist/generated/claim_sql.d.ts",
+        "kind": "file",
+        "bytes": 751,
+        "sha256": "494aaef830b26a84357f7f9f9710cb78bf2fc76363947ea5997c2f642d5a38af"
+      },
+      {
+        "path": "dist/generated/claim_sql.js",
+        "kind": "file",
+        "bytes": 659,
+        "sha256": "9eb21e282ee3d138e7180e284d6f470b3e1000d89f208965ab0ce3390fbc48c5"
+      },
+      {
+        "path": "GENERATION.md",
+        "kind": "file",
+        "bytes": 711,
+        "sha256": "f6405da272f37f57126c15a34ee36300bf5407f864683c4fcbc979e4ab4f8f07"
+      },
+      {
+        "path": "package-lock.json",
+        "kind": "file",
+        "bytes": 7321,
+        "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+      },
+      {
+        "path": "package.json",
+        "kind": "file",
+        "bytes": 304,
+        "sha256": "1ecce3fa2a46dbcc2024d6618c1249aa899bd5285db58257da0b9080ba57bb62"
+      },
+      {
+        "path": "queries/claim.sql",
+        "kind": "file",
+        "bytes": 288,
+        "sha256": "7a7147b76878c198c8410c560ebeae75d726e997d2963accc14a8579d21ec30a"
+      },
+      {
+        "path": "scripts/generate-sqlc.mjs",
+        "kind": "file",
+        "bytes": 1282,
+        "sha256": "6a4f0febbdb336c4d1f4d59278e90ed698a08da3f084057e036f9e3842514b91"
+      },
+      {
+        "path": "sqlc.yaml",
+        "kind": "file",
+        "bytes": 493,
+        "sha256": "60f7103c0140dca76accd2e4a784c28cc6e1e2d884ae9fefadd0342281b08170"
+      },
+      {
+        "path": "src/application.ts",
+        "kind": "file",
+        "bytes": 1643,
+        "sha256": "5ab902b6d126dc7ae50360e70c6f9a4d29e50a585067e7f082415dd5151f3407"
+      },
+      {
+        "path": "src/generated/claim_sql.ts",
+        "kind": "file",
+        "bytes": 1003,
+        "sha256": "28b4fb5904f6be254608975a6b8de7586759640403fa27ac74e560afc2753f2e"
+      },
+      {
+        "path": "tsconfig.json",
+        "kind": "file",
+        "bytes": 290,
+        "sha256": "cfc48a133485be6684cf54a9479eb94d42ede5a767c0eea1bff01ea89180ec68"
+      }
+    ],
+    "findings": [],
+    "pass": true
+  },
+  "checks": [
+    {
+      "id": "T2-distinct-claims",
+      "status": "pass",
+      "detail": "concurrent workers claim distinct queued rows"
+    },
+    {
+      "id": "T2-final-state",
+      "status": "pass",
+      "detail": "claims are committed"
+    },
+    {
+      "id": "T2-trigger-rollback",
+      "status": "pass",
+      "detail": "runner trigger restores failed claim"
+    },
+    {
+      "id": "T2-worker-a-close",
+      "status": "pass",
+      "detail": "close resolves with no value"
+    },
+    {
+      "id": "T2-worker-a-close-idempotent",
+      "status": "pass",
+      "detail": "close is idempotent"
+    },
+    {
+      "id": "T2-worker-a-closed-rejection",
+      "status": "pass",
+      "detail": "claim rejects after close"
+    },
+    {
+      "id": "T2-worker-b-close",
+      "status": "pass",
+      "detail": "close resolves with no value"
+    },
+    {
+      "id": "T2-worker-b-close-idempotent",
+      "status": "pass",
+      "detail": "close is idempotent"
+    },
+    {
+      "id": "T2-worker-b-closed-rejection",
+      "status": "pass",
+      "detail": "claim rejects after close"
+    }
+  ],
+  "events": [
+    {
+      "operation": "claim",
+      "input": {
+        "workerId": "worker-a"
+      },
+      "startedAt": "2026-08-30T10:06:29.347Z",
+      "status": "resolved",
+      "output": {
+        "claimedWorkId": "8001"
+      },
+      "durationMs": 13
+    },
+    {
+      "operation": "claim",
+      "input": {
+        "workerId": "worker-b"
+      },
+      "startedAt": "2026-08-30T10:06:29.348Z",
+      "status": "resolved",
+      "output": {
+        "claimedWorkId": "8002"
+      },
+      "durationMs": 12
+    },
+    {
+      "operation": "claim",
+      "input": {
+        "workerId": "worker-failure"
+      },
+      "startedAt": "2026-08-30T10:06:29.382Z",
+      "status": "rejected",
+      "error": {
+        "name": "error",
+        "code": "P0001",
+        "message": "runner-injected failure: claim_update"
+      },
+      "durationMs": 2
+    },
+    {
+      "operation": "close",
+      "input": {},
+      "startedAt": "2026-08-30T10:06:29.405Z",
+      "status": "resolved",
+      "durationMs": 0
+    },
+    {
+      "operation": "close",
+      "input": {},
+      "startedAt": "2026-08-30T10:06:29.405Z",
+      "status": "resolved",
+      "durationMs": 0
+    },
+    {
+      "operation": "claim",
+      "input": {},
+      "startedAt": "2026-08-30T10:06:29.405Z",
+      "status": "rejected",
+      "error": {
+        "name": "ApplicationError",
+        "code": "APPLICATION_CLOSED",
+        "message": "Application is closed"
+      },
+      "durationMs": 0
+    },
+    {
+      "operation": "close",
+      "input": {},
+      "startedAt": "2026-08-30T10:06:29.405Z",
+      "status": "resolved",
+      "durationMs": 0
+    },
+    {
+      "operation": "close",
+      "input": {},
+      "startedAt": "2026-08-30T10:06:29.405Z",
+      "status": "resolved",
+      "durationMs": 0
+    },
+    {
+      "operation": "claim",
+      "input": {},
+      "startedAt": "2026-08-30T10:06:29.405Z",
+      "status": "rejected",
+      "error": {
+        "name": "ApplicationError",
+        "code": "APPLICATION_CLOSED",
+        "message": "Application is closed"
+      },
+      "durationMs": 0
+    }
+  ],
+  "cleanup": {
+    "status": "pass",
+    "schema": "pass",
+    "role": "pass",
+    "connection": "pass"
+  },
+  "startedAt": "2026-08-30T10:06:29.285Z",
+  "schema": "ashiba_v3_d4925fced9d0686f",
+  "candidateRole": "ashiba_v3_candidate_a55b8dc5e4e98795",
+  "finalDatabaseState": {
+    "tickets": [
+      {
+        "id": "101",
+        "title": "Cannot sign in",
+        "status": "open",
+        "assignee": "alice",
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "102",
+        "title": "Export is slow",
+        "status": "pending",
+        "assignee": "bob",
+        "priority": 3,
+        "metadata": {
+          "channel": "web"
+        }
+      },
+      {
+        "id": "103",
+        "title": "Password reset",
+        "status": "open",
+        "assignee": null,
+        "priority": 5,
+        "metadata": {
+          "channel": "email"
+        }
+      },
+      {
+        "id": "104",
+        "title": "Close account",
+        "status": "closed",
+        "assignee": "alice",
+        "priority": 1,
+        "metadata": {
+          "channel": "web"
+        }
+      }
+    ],
+    "ticketAudit": [],
+    "accounts": [
+      {
+        "account_id": "7001",
+        "balance_cents": "10000"
+      },
+      {
+        "account_id": "7002",
+        "balance_cents": "5000"
+      }
+    ],
+    "transferAudit": [],
+    "workItems": [
+      {
+        "id": "8001",
+        "state": "claimed",
+        "claimed_by": "worker-a"
+      },
+      {
+        "id": "8002",
+        "state": "claimed",
+        "claimed_by": "worker-b"
+      },
+      {
+        "id": "8003",
+        "state": "queued",
+        "claimed_by": null
+      }
+    ]
+  },
+  "status": "P",
+  "preCleanupRecord": {
+    "status": "written",
+    "path": "C:\\tmp\\ashiba-benchmark-v3-cells\\T2-S-r2\\evidence\\runner.json.pre-cleanup.json",
+    "writtenAt": "2026-08-30T10:06:29.417Z"
+  },
+  "finishedAt": "2026-08-30T10:06:29.430Z"
+}

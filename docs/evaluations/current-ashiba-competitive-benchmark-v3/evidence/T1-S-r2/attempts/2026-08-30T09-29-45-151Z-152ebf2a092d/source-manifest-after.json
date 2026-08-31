@@ -1,0 +1,82 @@
+{
+  "root": "C:\\tmp\\ashiba-benchmark-v3-cells\\T1-S-r2\\candidate",
+  "fileCount": 10,
+  "declaredEntrypoint": {
+    "path": "dist/application.js",
+    "bytes": 3469,
+    "sha256": "6050be813f98c9763d85fe7dc388a9f195a981ad34ec48c15dd7399907ed45d2"
+  },
+  "files": [
+    {
+      "path": "CHECKS.md",
+      "bytes": 658,
+      "sha256": "3bfa7cf2a835cc12ad6be621468fff381ed4f31083cc3201863be31679a2c329",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "dist/application.js",
+      "bytes": 3469,
+      "sha256": "6050be813f98c9763d85fe7dc388a9f195a981ad34ec48c15dd7399907ed45d2",
+      "lockfile": false,
+      "excludedFromSnapshot": false,
+      "includedBecause": "declared-entrypoint"
+    },
+    {
+      "path": "GENERATION.md",
+      "bytes": 668,
+      "sha256": "67d0b1082ea4ad3d1e9275c2655df23ce71d7d7539f1e95e6059e7a032247fe4",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e",
+      "lockfile": true,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "package.json",
+      "bytes": 298,
+      "sha256": "12a3a5222222774a94ea4f6133a4bf5cb03cf6b4554a2c48d8aa17c2f2931213",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "sql/transfer.sql",
+      "bytes": 840,
+      "sha256": "3e1e0f40b55d8ec6a6946341e0df26caa09608b4c739dda4ed813d47e98f0ba7",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 412,
+      "sha256": "f36d88fe69ae40d8379aa05b903eff87c37b9c6c82323d9df01e3a0975978e69",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 3569,
+      "sha256": "1ccd87c7d629ad668e9b634e008235fc8b247779ca6b4d1ad445d80d29e7afdd",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "src/generated/transfer_sql.ts",
+      "bytes": 3518,
+      "sha256": "71940d3eb7c7bdc9f5dba2969708e75b1e630def59314484954013b9db3c867a",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 265,
+      "sha256": "4459d2b3faae9a86ba4b4b110c9bd157bde60ee8a34faa6dfe2835d803f9afe8",
+      "lockfile": false,
+      "excludedFromSnapshot": false
+    }
+  ]
+}

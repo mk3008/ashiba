@@ -1,0 +1,59 @@
+{
+  "cell": "E1-S-r1",
+  "control": "E1",
+  "arm": "S",
+  "sourceSnapshot": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\current-ashiba-competitive-benchmark-v3\\docs\\evaluations\\current-ashiba-competitive-benchmark-v3\\candidate-snapshots\\G1-S-r1",
+  "files": [
+    {
+      "path": "GENERATION.md",
+      "bytes": 711,
+      "sha256": "ac79243dc22f9d19b4f889e8ed0013a16ec3997a3050157b0f3973a82f336cb7"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 7321,
+      "sha256": "ad0924d2fae3d4931a5fc7b5961edd4e010317bb8f5ef8410acb801b5550e55e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 397,
+      "sha256": "70dca0312eea452ad65943a82f99e87ebf881cc2b20b9ef5201f546b85d0966e"
+    },
+    {
+      "path": "scripts/generate-sqlc.ps1",
+      "bytes": 1095,
+      "sha256": "73a3493be2d4559d5b0366ee4789ec0e92eb8e2746fb5065732bac4c6120b3fc"
+    },
+    {
+      "path": "sqlc.yaml",
+      "bytes": 576,
+      "sha256": "f3b2bdea78d2b8ff221a31a26fab943a5fab1b9a328e587574865d016c99cce7"
+    },
+    {
+      "path": "sqlc/queries.sql",
+      "bytes": 3820,
+      "sha256": "951860a46235e7234523d82c31c376133af2e6bb59b2488b1f8bfd801b185d11"
+    },
+    {
+      "path": "src/application.test.ts",
+      "bytes": 1265,
+      "sha256": "1c45082940f7f2dd1110127a8c5abd5b783ac5add9d8f469ddae202d688a5526"
+    },
+    {
+      "path": "src/application.ts",
+      "bytes": 9316,
+      "sha256": "7404cdadfdd958e0496fd13c6de5b567614ab9ac849e802352d6d404f5ccfa3b"
+    },
+    {
+      "path": "src/generated/queries_sql.ts",
+      "bytes": 12371,
+      "sha256": "67f342e821ac194802820f6f696ba6fa60929c263f7dce9a12de9ad1a61b071a"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 330,
+      "sha256": "e4e1699bea2b68430e903e48afcd184001cdc81e1728c71a67dc12f645288c23"
+    }
+  ],
+  "sha256": "eeb7e74b8bce18447d530e0033d8bdb89e90d5e805bddf21c7901e6cedb2003c"
+}

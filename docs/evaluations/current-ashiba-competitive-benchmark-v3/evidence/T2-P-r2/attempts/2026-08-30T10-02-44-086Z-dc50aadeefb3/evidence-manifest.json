@@ -1,0 +1,201 @@
+{
+  "algorithm": "sha256",
+  "createdAt": "2026-08-30T10:03:15.699Z",
+  "files": [
+    {
+      "path": "attempt.json",
+      "bytes": 453,
+      "sha256": "39a417d298b71fc5445bed59a0fab5c1ef5cd56b8619f885105cdcca95552a1f"
+    },
+    {
+      "path": "candidate-command-environment.json",
+      "bytes": 223,
+      "sha256": "718ae170b2c7105fc27a10f9e36e1b0ecb24b682248eeda5a3c89cc172520397"
+    },
+    {
+      "path": "candidate-snapshot-after.json",
+      "bytes": 2802,
+      "sha256": "98c6578099488783c6c19783c6aa0167018163d2c047656e4815342965846624"
+    },
+    {
+      "path": "candidate-snapshot-before.json",
+      "bytes": 2802,
+      "sha256": "98c6578099488783c6c19783c6aa0167018163d2c047656e4815342965846624"
+    },
+    {
+      "path": "candidate-source-before-cleanup/dist/application.js",
+      "bytes": 1896,
+      "sha256": "2cabc0725aa3b8c42df89237b6c0ed775cd82ad7c32c863792b8e7ad7c122e83"
+    },
+    {
+      "path": "candidate-source-before-cleanup/package-lock.json",
+      "bytes": 284626,
+      "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+    },
+    {
+      "path": "candidate-source-before-cleanup/package.json",
+      "bytes": 388,
+      "sha256": "d8fe20e7bdcf820b2bde012b90a633bb7fd96b068cf1a2994486605972fe607d"
+    },
+    {
+      "path": "candidate-source-before-cleanup/prisma.config.ts",
+      "bytes": 232,
+      "sha256": "b2ef51e3e4d63cb5629339c4707acbe710c207111163a20912ba0415cd952056"
+    },
+    {
+      "path": "candidate-source-before-cleanup/RUN_REPORT.md",
+      "bytes": 435,
+      "sha256": "e479c6c2ac461b42a1cfbcf617553d01ad3d2c2b6c9b390749a7271002034c4e"
+    },
+    {
+      "path": "candidate-source-before-cleanup/src/application.ts",
+      "bytes": 2249,
+      "sha256": "ad206ac6a0cb703d946e2551caca061b8daf69b1751b87910acc45fbada73e3e"
+    },
+    {
+      "path": "candidate-source-before-cleanup/src/prisma/contract.d.ts",
+      "bytes": 17268,
+      "sha256": "613ba57e4668878fd4a3544ff89a0a9bbb700152b74b37f1455db2b8f24ed5ca"
+    },
+    {
+      "path": "candidate-source-before-cleanup/src/prisma/contract.json",
+      "bytes": 3151,
+      "sha256": "52589a38ce2a375af2bbb9947661df52a795fcfe7b37fd703bb295635e2771e9"
+    },
+    {
+      "path": "candidate-source-before-cleanup/src/prisma/contract.prisma",
+      "bytes": 124,
+      "sha256": "95f6775f27a0ff4cea3356c816cb4e0f027a7e4ff09923f877bd512d81babb4a"
+    },
+    {
+      "path": "candidate-source-before-cleanup/tsconfig.json",
+      "bytes": 355,
+      "sha256": "1c1652c3ce3996b463fba81051187896af1f5c40a5d9ee643b7918f8a7cab82d"
+    },
+    {
+      "path": "candidate-source-before-execution/dist/application.js",
+      "bytes": 1896,
+      "sha256": "2cabc0725aa3b8c42df89237b6c0ed775cd82ad7c32c863792b8e7ad7c122e83"
+    },
+    {
+      "path": "candidate-source-before-execution/package-lock.json",
+      "bytes": 284626,
+      "sha256": "837f0d44a1c54c85cf7b0a146006bae336515eb8bd21bf4e7f447a8ac945d69c"
+    },
+    {
+      "path": "candidate-source-before-execution/package.json",
+      "bytes": 388,
+      "sha256": "d8fe20e7bdcf820b2bde012b90a633bb7fd96b068cf1a2994486605972fe607d"
+    },
+    {
+      "path": "candidate-source-before-execution/prisma.config.ts",
+      "bytes": 232,
+      "sha256": "b2ef51e3e4d63cb5629339c4707acbe710c207111163a20912ba0415cd952056"
+    },
+    {
+      "path": "candidate-source-before-execution/RUN_REPORT.md",
+      "bytes": 435,
+      "sha256": "e479c6c2ac461b42a1cfbcf617553d01ad3d2c2b6c9b390749a7271002034c4e"
+    },
+    {
+      "path": "candidate-source-before-execution/src/application.ts",
+      "bytes": 2249,
+      "sha256": "ad206ac6a0cb703d946e2551caca061b8daf69b1751b87910acc45fbada73e3e"
+    },
+    {
+      "path": "candidate-source-before-execution/src/prisma/contract.d.ts",
+      "bytes": 17268,
+      "sha256": "613ba57e4668878fd4a3544ff89a0a9bbb700152b74b37f1455db2b8f24ed5ca"
+    },
+    {
+      "path": "candidate-source-before-execution/src/prisma/contract.json",
+      "bytes": 3151,
+      "sha256": "52589a38ce2a375af2bbb9947661df52a795fcfe7b37fd703bb295635e2771e9"
+    },
+    {
+      "path": "candidate-source-before-execution/src/prisma/contract.prisma",
+      "bytes": 124,
+      "sha256": "95f6775f27a0ff4cea3356c816cb4e0f027a7e4ff09923f877bd512d81babb4a"
+    },
+    {
+      "path": "candidate-source-before-execution/tsconfig.json",
+      "bytes": 355,
+      "sha256": "1c1652c3ce3996b463fba81051187896af1f5c40a5d9ee643b7918f8a7cab82d"
+    },
+    {
+      "path": "commands.json",
+      "bytes": 1009,
+      "sha256": "1e6330a2bf2966366bbedf51edb438e32f1710ea93773e1de752a1ad55293c68"
+    },
+    {
+      "path": "database-final-state.json",
+      "bytes": 8570,
+      "sha256": "aa3d8c734b052cc3ede495be53d3f10e37d33947d9ef4197c3f02d451d1cce52"
+    },
+    {
+      "path": "finalization.json",
+      "bytes": 212,
+      "sha256": "e7f1774876d9d4210caf367e02694ce395b1a37603124660d0fdb0912684d60b"
+    },
+    {
+      "path": "first-pass.json",
+      "bytes": 448,
+      "sha256": "65f9c57d732a819cb8343ad657ab44defd959b95e862e552f5803026172266b1"
+    },
+    {
+      "path": "logs/build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/build.stdout.log",
+      "bytes": 33,
+      "sha256": "34fc8f532e8455212c5eeba2f44af8dd0d5a13e2138025e81ecd8272dd2f48fa"
+    },
+    {
+      "path": "logs/test.stderr.log",
+      "bytes": 226,
+      "sha256": "73bd36cafceb1f65ad72e02e6e2c2051c1cb73f8a7ae4906f91bf34a1802b44e"
+    },
+    {
+      "path": "logs/test.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/typecheck.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "logs/typecheck.stdout.log",
+      "bytes": 29,
+      "sha256": "8fa1cf5506304e8abac55868e7f1a136c9b1dde57a3981a382da4c21ea129a6f"
+    },
+    {
+      "path": "packet-hashes.json",
+      "bytes": 370,
+      "sha256": "3ed481b8565d11548a11e061f22c79a00b4939ffd151cb25fcd271f145630740"
+    },
+    {
+      "path": "runner-result.json",
+      "bytes": 8633,
+      "sha256": "8dfa680267886792c1f3ab184623a55e42e1df8d9bf427112d208db23f64d6a3"
+    },
+    {
+      "path": "source-manifest-after.json",
+      "bytes": 2470,
+      "sha256": "7ec8bd56f2ab75b789334c7f582a74b34f311a8c1632366be961c01799a7e215"
+    },
+    {
+      "path": "source-manifest-before.json",
+      "bytes": 2470,
+      "sha256": "7ec8bd56f2ab75b789334c7f582a74b34f311a8c1632366be961c01799a7e215"
+    },
+    {
+      "path": "treatment-review.json",
+      "bytes": 237,
+      "sha256": "2cade258c888709c3ce15a3b3e3308bdfe5d10ec1ba213a8f32de2cc6bb8e490"
+    }
+  ]
+}

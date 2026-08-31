@@ -1,0 +1,14 @@
+{
+  "control": "X1",
+  "arm": "S",
+  "remeasurement": "r3 evidence-preservation",
+  "protocol": "secondary-controls-v1",
+  "source": "fresh external materialization with corrected H-007 static isolation",
+  "attempt": "initial",
+  "repairPolicy": "at most one repair; only an r2-observed failure may be repaired",
+  "candidateRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary-h007-preservation-r3\\X1-S-r3\\candidate",
+  "npmCache": "C:\\tmp\\ashiba-benchmark-v3-secondary-h007-preservation-r3\\X1-S-r3\\npm-cache",
+  "packetRoot": "C:\\tmp\\ashiba-benchmark-v3-secondary-h007-preservation-r3\\X1-S-r3\\packet",
+  "snapshot": "C:\\Users\\mssgm\\github\\ashiba\\worktrees\\current-ashiba-competitive-benchmark-v3\\docs\\evaluations\\current-ashiba-competitive-benchmark-v3\\secondary-candidate-snapshots\\X1-S-r3\\evidence-preservation-remeasurement-h007\\initial",
+  "capturedAt": "2026-08-30T23:10:29.7679899Z"
+}
