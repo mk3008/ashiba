@@ -66,6 +66,15 @@ const required = [
   "evaluation/v4/probes/run2/a2/candidate/test/list_work_items.test.js",
   "evaluation/v4/probes/run2/b1/candidate/list-work-items.js",
   "evaluation/v4/probes/run2/b1/candidate/test/list-work-items.test.js",
+  "evaluation/v5/PLAN.md",
+  "evaluation/v5/bootstrap/fixture/README.md",
+  "evaluation/v5/bootstrap/fixture/schema.sql",
+  "evaluation/v5/bootstrap/fixture/sql/list-work-items.sql",
+  "evaluation/v5/bootstrap/candidate/regression.mjs",
+  "evaluation/v5/steady-state/select-change/candidate/regression.mjs",
+  "evaluation/v5/steady-state/insert-change/candidate/regression.mjs",
+  "evidence/v5/results.md",
+  "evidence/v5/independent-review.md",
 ];
 for (const relative of required) {
   if (!fs.existsSync(path.join(root, relative))) fail(`missing ${relative}`);

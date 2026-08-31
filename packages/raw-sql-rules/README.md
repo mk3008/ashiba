@@ -20,12 +20,11 @@ uses ordinary SQL plus a native driver with named-parameter support.
 
 ## Current decision
 
-**NOT-YET.** V3 found that Rules alone did not reliably produce real-database
-regression coverage. The corrected V4 packet gave concrete MySQL fixture
-details to two Rules-only and one completion-contract agent; all three created
-and ran live mysql2 tests. That does not demonstrate a completion-contract
-effect, and it conflicts with V3 rather than erasing it. Rule 8 remains
-unchanged; the evidence is insufficient to claim reliable behavior either way.
+**READY-WITH-LIMIT.** V5 preserves V3/V4 and evaluates a two-state contract.
+With no DB test, a short bootstrap task established one small MySQL/mysql2
+authority path. With that example visible, two ordinary Rules-only changes
+extended real DB coverage without extra completion prose or infrastructure.
+This is sufficient for the evaluated scope, not a universal reliability claim.
 
 ## Scope and evidence limit
 

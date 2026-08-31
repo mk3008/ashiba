@@ -140,3 +140,29 @@ The final decision remains **NOT-YET**. Keep Rule 8 as the runtime-authority
 principle; V4 does not establish that a short completion contract reliably
 causes live verification, nor that Rules alone reliably do so. Do not add more
 Rules prose or mechanical enforcement from this result alone.
+
+## V5 re-evaluation: READY-WITH-LIMIT
+
+V5 stops the V4 completion-contract line. A bootstrap fixture provided canonical
+DDL, one application SQL asset, mysql2, and a discoverable disposable MySQL
+endpoint, but no database-backed test. One bootstrap candidate established the
+smallest reusable path: canonical DDL, MySQL/native-driver execution of the
+actual asset, representative data, behavior assertions, relevant runtime type
+assertions, and one repeatable command. It did not add a framework.
+
+Two ordinary steady-state changes then received only Rules plus that visible
+repository example. Both naturally extended the pattern: a SELECT filter
+covered null compatibility and Date behavior; an INSERT covered returned
+values/types and ENUM/NOT NULL database constraints. All three live commands
+passed and independent review found no abstraction escape.
+
+| V5 acceptance item | Status | Evidence | Gap |
+| --- | --- | --- | --- |
+| Bootstrap authority path | done | `evaluation/v5/bootstrap/candidate/` and `evidence/v5/results.md`. | One MySQL fixture/query shape only. |
+| Steady-state reuse | done | Two candidate diffs and `evidence/v5/independent-review.md`. | Two agents/changes do not prove universal behavior. |
+| Rule amendment or mechanics | done | Rule 8 unchanged; no framework/helper/testkit added. | Bootstrap wording remains evaluated task guidance, not a permanent Rule. |
+
+The decision is **READY-WITH-LIMIT** for the evaluated two-state contract:
+when a DB-backed path is absent, establish one small authority path; afterward,
+Rules plus the visible repository example were sufficient in this study. The
+remaining limit is agent/task diversity, not a known unsafe escape.
