@@ -18,17 +18,37 @@ uses ordinary SQL plus a native driver with named-parameter support.
 - `scripts/check.mjs` — small deterministic structural checks; it is not a
   linter and does not prove database correctness.
 
+## Current decision
+
+**NOT-YET.** V3 successfully added a MySQL live lane and CI-connected checks,
+but two independent goal-driven sort/filter implementations used mock-only
+tests despite Rule 8. The contract is preserved; the evidence does not support
+claiming that Rules alone reliably induce real-database regression coverage.
+
 ## Scope and evidence limit
 
-The evaluated driver model is a native named-parameter-capable driver; SQL
-Server-style `@name` binding is the primary documented capability example.
-Fixtures use portable `:name` notation only to make parameter meaning readable,
-not as a claim of a selected live driver. This workbench does not install a
-driver or claim live database execution. Its mechanical results are
-source/rubric checks; human/fresh-agent judgments are recorded separately.
+The V3 live lane uses MySQL 8.4 with `mysql2@3.22.3` and its
+application-facing `namedPlaceholders: true` API. Its SQL assets use `:name`
+with object bindings. Live evidence and source/rubric evidence remain separate.
 PostgreSQL adaptation and ORM comparisons are out of scope.
 
 Run the local checks with `node scripts/check.mjs`.
+Run the optional local/container live lane with `pnpm test:live` from this
+package after starting a disposable MySQL 8.4 instance, for example:
+
+```sh
+docker run --rm --name raw-sql-rules-mysql \
+  -e MYSQL_DATABASE=raw_sql_rules \
+  -e MYSQL_USER=raw_sql_rules \
+  -e MYSQL_PASSWORD=raw_sql_rules \
+  -e MYSQL_ROOT_PASSWORD=raw_sql_rules_root \
+  -p 33306:3306 mysql:8.4
+```
+
+The defaults in `evaluation/v3/live-mysql/run-live.mjs` match that command.
+Set `RAW_SQL_RULES_MYSQL_HOST`, `RAW_SQL_RULES_MYSQL_PORT`,
+`RAW_SQL_RULES_MYSQL_USER`, `RAW_SQL_RULES_MYSQL_PASSWORD`, and
+`RAW_SQL_RULES_MYSQL_DATABASE` to use another disposable instance.
 
 ## Distribution conclusion
 

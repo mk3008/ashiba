@@ -4,6 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "test": "node scripts/check.mjs",
+    "test:live": "node evaluation/v3/live-mysql/run-live.mjs"
+  },
+  "devDependencies": {
+    "mysql2": "3.22.3"
   }
 }

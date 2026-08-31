@@ -30,6 +30,20 @@ const required = [
   "evidence/v1-important-boundary-matrix.md",
   "evidence/v2-database-boundary-matrix.md",
   "evidence/amendments.md",
+  "evaluation/v3/PLAN.md",
+  "evaluation/v3/live-mysql/run-live.mjs",
+  "evidence/v3/AMENDMENT.md",
+  "evidence/v3/rules-v3.sha256",
+  "evidence/v3/live-mysql.md",
+  "evidence/v3/probe-agent-output.md",
+  "evidence/v3/implementation-reviews.md",
+  "evidence/v3/harness-corrections.md",
+  "evidence/v3/verification.md",
+  "evaluation/v3/probes/p01-sort-filter/candidate/list-work-items.js",
+  "evaluation/v3/probes/p02-schema-context/candidate/account_status.py",
+  "evaluation/v3/probes/p03-difficult-query/candidate/report.py",
+  "evaluation/v3/probes/p04-database-regression/candidate/database-regression.test.mjs",
+  "evaluation/v3/probes/p05-sort-filter-decider/candidate/list-work-items.mjs",
 ];
 for (const relative of required) {
   if (!fs.existsSync(path.join(root, relative))) fail(`missing ${relative}`);
@@ -41,7 +55,7 @@ for (const phrase of [
   "canonical DDL",
   "finite whitelist",
   "complete reviewed SQL assets",
-  "named parameters",
+  "native named",
   "must not grow into a framework",
 ]) {
   if (!rules.includes(phrase)) fail(`RULES.md lacks required contract phrase: ${phrase}`);
@@ -67,6 +81,14 @@ for (const file of packageFiles) {
   if (/@ashiba-ts\/|prisma|drizzle|kysely|sqlc/i.test(manifest)) {
     fail(`${file} introduces prohibited dependency text`);
   }
+}
+
+const manifest = JSON.parse(read("package.json"));
+if (manifest.scripts?.test !== "node scripts/check.mjs") {
+  fail("package test must run the deterministic package check for recursive CI");
+}
+if (manifest.scripts?.["test:live"] !== "node evaluation/v3/live-mysql/run-live.mjs") {
+  fail("package must retain the explicit MySQL live-lane command");
 }
 
 if (process.exitCode) process.exit(process.exitCode);

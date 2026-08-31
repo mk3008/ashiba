@@ -1,4 +1,4 @@
-# Raw SQL Rules (v2)
+# Raw SQL Rules (v3)
 
 ## 1. One visible query representation
 
@@ -46,13 +46,15 @@ fragment-building API.
 
 ## 5. Preserve parameter meaning
 
-For this evaluation, use a driver whose application-facing native API accepts
-named parameters (for example SQL Server-style `@name` binding). Write the
-driver's named placeholders in source SQL and bind by name. Names describe the
-value's meaning, not its position. Repeated placeholders reuse the same meaning;
-a maintenance change must update the SQL asset and the named binding together.
-Positional-only drivers, including PostgreSQL source adaptation, are outside
-this evaluation.
+When the selected driver's application-facing API supports native named
+parameters, write the driver's named placeholders in source SQL and bind by
+name. Names describe a value's meaning, not its position. Repeated placeholders
+reuse the same meaning; a maintenance change updates the SQL asset and named
+binding together.
+
+For a positional-only driver, deterministic named-to-positional lowering may be
+needed. That adapter is application-owned and remains outside these Rules; it
+must not require adopting a framework.
 
 ## 6. Make non-obvious SQL reviewable
 

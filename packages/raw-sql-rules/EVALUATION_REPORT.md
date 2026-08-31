@@ -1,6 +1,6 @@
 # Evaluation report
 
-## Result: READY
+## V2 result: READY
 
 Natural-language Raw SQL Rules are sufficient for the evaluated scope: an
 application using ordinary SQL assets and a native named-parameter-capable
@@ -67,3 +67,37 @@ found necessary for this scope.
 The Rules cannot mechanically establish that a particular whitelist is finite,
 that a SQL comment is correct, or that database behavior is correct. They make
 those obligations visible; application tests provide the remaining proof.
+
+## V3 re-evaluation: NOT-YET
+
+Rules v3 (`D64A04870EF16FB883F76DBB428D22332679E861E25B7E0B2D7647B6231D84C3`)
+removes evaluation-specific wording from Rule 5 without adding a new mechanism.
+The actual MySQL 8.4/mysql2 3.22.3 lane passed: `:name` object binding,
+optional filtering, a UNIQUE constraint rejection, and observed runtime
+representations were exercised through the real driver. Its exact output is in
+`evidence/v3/live-mysql.md`.
+
+Five fresh goal-driven implementation probes were then retained as actual
+candidate diffs under `evaluation/v3/probes/`. P02 used canonical DDL rather
+than migrations; P03 used real SQLite native execution; P04 used real MySQL
+and a thin application-owned asset loader. Separate read-only review and a
+boundary advisor found no dynamic-syntax, ORM, framework, or hidden-DAL escape.
+
+P01 and the independent P05 repeat both created safe finite sort assets and
+named optional filters, but both chose mock-only tests rather than executing a
+real engine and native driver. Fresh review classifies each as a Rule 8 failure.
+This is repeated goal-driven behavior, not an environment limitation: the V3
+MySQL lane was available and passed. Therefore the evidence does not support
+READY's claim that Rules alone reliably constrain this important boundary.
+
+| V3 acceptance item | Status | Evidence | Gap |
+| --- | --- | --- | --- |
+| Goal-driven implementation probes | partial | Five actual candidate diffs and independent reviews. | P01/P05 omit Rule 8 live coverage. |
+| MySQL native driver live lane | done | `evidence/v3/live-mysql.md`; `test:live` succeeds. | One driver/dialect only. |
+| Normal CI connection | done | Package `test` runs `check`; the observed root recursive run is preserved in `evidence/v3/verification.md`. | Live lane is intentionally not ordinary CI. |
+| Permanent contract wording | done | Rule 5 v3 and v3 hash/amendment. | PostgreSQL adapter remains separately deferred. |
+
+The final decision is **NOT-YET**. A further experiment must establish a
+minimal, non-framework way for goal-driven changes to consistently produce
+database-backed tests, or demonstrate that this expectation belongs in a
+separate application task contract rather than Raw SQL Rules.
