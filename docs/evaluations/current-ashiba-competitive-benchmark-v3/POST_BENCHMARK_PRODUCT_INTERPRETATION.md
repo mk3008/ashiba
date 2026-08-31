@@ -124,6 +124,10 @@ unused extra value     → optional strictness / application policy
 
 That hypothesis should be tested rather than silently promoted into a new Scope decision.
 
+The current Scope continues to own strict missing **and** unused rejection.
+This document's question about unused values is a post-benchmark maturity and
+follow-up hypothesis, not a reinterpretation of the current product contract.
+
 ## 4. PostgreSQL-first support must not become PostgreSQL-centric design
 
 PostgreSQL is a sensible first-class support and benchmark target. It should remain heavily tested because it is important in the current ecosystem and because `pg` is the measured native-driver control.

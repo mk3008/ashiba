@@ -14,7 +14,7 @@ or calibration evidence.
 - **Observed:** 2026-08-31 during human publication review.
 - **Original evidence:** each immutable primary attempt already retained its
   runner capture and finalization record. The compact extractor nevertheless
-  used a cell-root initial `runner.json` as `finalLive` after later attempts
+  used a legacy cell-root `runner.json` as `finalLive` after later attempts
   were finalized. Six primary sqlc cell snapshots also used plugin 0.1.2
   although the frozen packet specifies 0.1.3.
 - **Correction:** `finalLive` now selects the most recent finalized attempt,
@@ -28,6 +28,28 @@ or calibration evidence.
   sources. See [PRIMARY_RESULT_CORRECTION.md](./PRIMARY_RESULT_CORRECTION.md).
 - **Status:** completed in this review-correction change; a future complete
   sqlc 0.1.3 remeasurement remains separate work.
+
+# H-011 — Compact-index reproducibility and qualification metadata
+
+- **Observed:** 2026-08-31 during follow-up human publication review.
+- **Original evidence:** the compact index already reproduced byte-identically
+  from the committed tree, including the AF-L-D-r2 reliable runner path and
+  the retained X1 r3 summary hash. That proof was not a required repository
+  verification, and frozen/observed sqlc version qualification was prose-only.
+- **Correction:** add an extractor-backed `pnpm verify:benchmark-index` gate
+  that rebuilds JSON/CSV in a fresh temporary directory, requires
+  byte-identical outputs, and validates every emitted path/SHA-256 reference.
+  Add explicit per-primary frozen-treatment, observed-version-audit,
+  frozen-pool-eligibility, and exclusion-reason fields. Clarify that
+  `cellRootLive` is legacy provenance, not a first or terminal authority.
+- **Affected cells:** all primary index records receive frozen-treatment
+  metadata; sqlc H-010 mapping is explicit for all eight sqlc primary records.
+  No live outcome, treatment result, pool membership, score, or candidate
+  evidence is reselected.
+- **Evidence handling:** no candidate, runner, attempt, snapshot, or source
+  hash is rewritten. This is an index/schema and verification-path correction.
+- **Status:** completed; a full frozen sqlc 0.1.3 remeasurement remains
+  separate work.
 
 # EXCL-002 — AF-V-S-r2 sqlc plugin 0.1.2 pre-execution setup incident
 

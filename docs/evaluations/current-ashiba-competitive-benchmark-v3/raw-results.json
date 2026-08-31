@@ -3,7 +3,7 @@
   "generatedAt": null,
   "generator": {
     "path": "fixtures/aggregate-results.mjs",
-    "sha256": "099a393d05a6efaedeec768f323fcae814a9f2a48deb311bd72e75cd44c08646"
+    "sha256": "d03911df1dc32305c5e183140d2f3573eddcec26d65906c58649eddd81afec29"
   },
   "inputRoot": ".",
   "interpretationPolicy": {
@@ -43,6 +43,13 @@
       "evidenceRoot": "evidence/G1-A-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -452,6 +459,13 @@
       "evidenceRoot": "evidence/G1-A-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -861,6 +875,13 @@
       "evidenceRoot": "evidence/G1-D-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -1270,6 +1291,13 @@
       "evidenceRoot": "evidence/G1-D-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -1679,6 +1707,13 @@
       "evidenceRoot": "evidence/G1-G-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "pg 8.23.0",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -2088,6 +2123,13 @@
       "evidenceRoot": "evidence/G1-G-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "pg 8.23.0",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -2497,6 +2539,13 @@
       "evidenceRoot": "evidence/G1-K-r1",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "kysely 0.29.5",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -3010,6 +3059,13 @@
       "evidenceRoot": "evidence/G1-K-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "kysely 0.29.5",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -3419,6 +3475,13 @@
       "evidenceRoot": "evidence/G1-P-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -3828,6 +3891,13 @@
       "evidenceRoot": "evidence/G1-P-r2",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -4341,6 +4411,13 @@
       "evidenceRoot": "evidence/G1-S-r1",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2",
+        "observedVersionAudit": "H-010 sqlc plugin-fidelity audit",
+        "eligibleForFrozenArmPool": false,
+        "exclusionReason": "Observed sqlc-gen-typescript 0.1.2 differs from the frozen 0.1.3 treatment packet; retained as an observation but ineligible for the frozen sqlc arm pool."
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -4838,6 +4915,13 @@
       "evidenceRoot": "evidence/G1-S-r2",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2",
+        "observedVersionAudit": "H-010 sqlc plugin-fidelity audit",
+        "eligibleForFrozenArmPool": false,
+        "exclusionReason": "Observed sqlc-gen-typescript 0.1.2 differs from the frozen 0.1.3 treatment packet; retained as an observation but ineligible for the frozen sqlc arm pool."
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -5347,6 +5431,13 @@
       "evidenceRoot": "evidence/Q1-A-r1",
       "attemptCount": 3,
       "additionalAttemptCount": 2,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -5964,6 +6055,13 @@
       "evidenceRoot": "evidence/Q1-A-r2",
       "attemptCount": 3,
       "additionalAttemptCount": 2,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -6577,6 +6675,13 @@
       "evidenceRoot": "evidence/Q1-D-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -6986,6 +7091,13 @@
       "evidenceRoot": "evidence/Q1-D-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -7395,6 +7507,13 @@
       "evidenceRoot": "evidence/Q1-G-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "pg 8.23.0",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -7804,6 +7923,13 @@
       "evidenceRoot": "evidence/Q1-G-r2",
       "attemptCount": 3,
       "additionalAttemptCount": 2,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "pg 8.23.0",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -8421,6 +8547,13 @@
       "evidenceRoot": "evidence/Q1-K-r1",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "kysely 0.29.5",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -8933,6 +9066,13 @@
       "evidenceRoot": "evidence/Q1-K-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "kysely 0.29.5",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -9342,6 +9482,13 @@
       "evidenceRoot": "evidence/Q1-P-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -9751,6 +9898,13 @@
       "evidenceRoot": "evidence/Q1-P-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -10160,6 +10314,13 @@
       "evidenceRoot": "evidence/Q1-S-r1",
       "attemptCount": 3,
       "additionalAttemptCount": 2,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2",
+        "observedVersionAudit": "H-010 sqlc plugin-fidelity audit",
+        "eligibleForFrozenArmPool": false,
+        "exclusionReason": "Observed sqlc-gen-typescript 0.1.2 differs from the frozen 0.1.3 treatment packet; retained as an observation but ineligible for the frozen sqlc arm pool."
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -10777,6 +10938,13 @@
       "evidenceRoot": "evidence/Q1-S-r2",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedVersionAudit": "H-010 sqlc plugin-fidelity audit",
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -11277,6 +11445,13 @@
       "evidenceRoot": "evidence/T1-A-r1",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -11790,6 +11965,13 @@
       "evidenceRoot": "evidence/T1-A-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -12199,6 +12381,13 @@
       "evidenceRoot": "evidence/T1-D-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -12608,6 +12797,13 @@
       "evidenceRoot": "evidence/T1-D-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -13017,6 +13213,13 @@
       "evidenceRoot": "evidence/T1-G-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "pg 8.23.0",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -13426,6 +13629,13 @@
       "evidenceRoot": "evidence/T1-G-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "pg 8.23.0",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -13835,6 +14045,13 @@
       "evidenceRoot": "evidence/T1-K-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "kysely 0.29.5",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -14244,6 +14461,13 @@
       "evidenceRoot": "evidence/T1-K-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "kysely 0.29.5",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -14653,6 +14877,13 @@
       "evidenceRoot": "evidence/T1-P-r1",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -15166,6 +15397,13 @@
       "evidenceRoot": "evidence/T1-P-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -15575,6 +15813,13 @@
       "evidenceRoot": "evidence/T1-S-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedVersionAudit": "H-010 sqlc plugin-fidelity audit",
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -15984,6 +16229,13 @@
       "evidenceRoot": "evidence/T1-S-r2",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2",
+        "observedVersionAudit": "H-010 sqlc plugin-fidelity audit",
+        "eligibleForFrozenArmPool": false,
+        "exclusionReason": "Observed sqlc-gen-typescript 0.1.2 differs from the frozen 0.1.3 treatment packet; retained as an observation but ineligible for the frozen sqlc arm pool."
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -16481,6 +16733,13 @@
       "evidenceRoot": "evidence/T2-A-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -16890,6 +17149,13 @@
       "evidenceRoot": "evidence/T2-A-r2",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -17403,6 +17669,13 @@
       "evidenceRoot": "evidence/T2-D-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -17812,6 +18085,13 @@
       "evidenceRoot": "evidence/T2-D-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -18221,6 +18501,13 @@
       "evidenceRoot": "evidence/T2-G-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "pg 8.23.0",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -18630,6 +18917,13 @@
       "evidenceRoot": "evidence/T2-G-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "pg 8.23.0",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -19039,6 +19333,13 @@
       "evidenceRoot": "evidence/T2-K-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "kysely 0.29.5",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -19448,6 +19749,13 @@
       "evidenceRoot": "evidence/T2-K-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "kysely 0.29.5",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -19857,6 +20165,13 @@
       "evidenceRoot": "evidence/T2-P-r1",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -20266,6 +20581,13 @@
       "evidenceRoot": "evidence/T2-P-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+        "observedTreatmentVersion": null,
+        "observedVersionAudit": null,
+        "eligibleForFrozenArmPool": true,
+        "exclusionReason": null
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -20675,6 +20997,13 @@
       "evidenceRoot": "evidence/T2-S-r1",
       "attemptCount": 2,
       "additionalAttemptCount": 1,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2",
+        "observedVersionAudit": "H-010 sqlc plugin-fidelity audit",
+        "eligibleForFrozenArmPool": false,
+        "exclusionReason": "Observed sqlc-gen-typescript 0.1.2 differs from the frozen 0.1.3 treatment packet; retained as an observation but ineligible for the frozen sqlc arm pool."
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,
@@ -21172,6 +21501,13 @@
       "evidenceRoot": "evidence/T2-S-r2",
       "attemptCount": 1,
       "additionalAttemptCount": 0,
+      "treatmentEligibility": {
+        "frozenTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+        "observedTreatmentVersion": "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2",
+        "observedVersionAudit": "H-010 sqlc plugin-fidelity audit",
+        "eligibleForFrozenArmPool": false,
+        "exclusionReason": "Observed sqlc-gen-typescript 0.1.2 differs from the frozen 0.1.3 treatment packet; retained as an observation but ineligible for the frozen sqlc arm pool."
+      },
       "firstAttempt": {
         "ordinal": 0,
         "additionalAttempt": false,

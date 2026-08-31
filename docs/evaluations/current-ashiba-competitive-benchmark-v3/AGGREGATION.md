@@ -41,9 +41,15 @@ primary cell, `firstLive` is the first chronological attempt's captured runner
 result. `finalLive` is the captured runner result from the most recent
 finalized attempt (falling back to the final chronological attempt only if no
 finalization record exists). The original cell-root `runner.json` remains
-preserved as `cellRootLive`; it is an initial observation, not a terminal
-verdict after a repair attempt. This makes first-oracle and final-live status
-visibly separate without deriving either from build/typecheck/test slots.
+preserved as `cellRootLive`; it is a legacy cell-root runner observation, not
+an authoritative first or terminal verdict when attempt evidence exists. This
+makes first-oracle and final-live status visibly separate without deriving
+either from build/typecheck/test slots.
+
+`pnpm verify:benchmark-index` regenerates both compact files in a fresh
+temporary directory, requires byte-identical output, and verifies every
+emitted `{ path, sha256 }` reference resolves under the committed benchmark
+root. It is part of `pnpm verify`.
 
 ## Interpretation boundary
 

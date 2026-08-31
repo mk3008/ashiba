@@ -16,6 +16,14 @@
   derived selections are listed in `PRIMARY_RESULT_CORRECTION.md`.
 - The six sqlc 0.1.2 primary snapshots are retained but excluded from a frozen
   0.1.3 arm-level conclusion rather than pooled into a misleading score.
+- The compact index is rebuilt byte-identically from committed evidence, and
+  every emitted path/SHA-256 reference is verified under the benchmark root.
+- Frozen treatment and H-010-audited sqlc observed-version eligibility are
+  machine-readable without changing any live or treatment outcome.
+- `cellRootLive` is described only as legacy cell-root provenance; it is not
+  presented as an authoritative first or terminal observation.
+- The measured AI-first interpretation and the human post-benchmark Rules /
+  A0 / A1 / A2 hypothesis are linked with their distinct, non-normative roles.
 - Ashiba is not given an author-written detailed tutorial that other arms lack.
 - Raw SQL escape hatches are treated as treatment-fidelity evidence, not
   silently accepted as an equivalent treatment.

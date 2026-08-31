@@ -30,6 +30,53 @@ const X1_SELECTED_FINAL_RUNNERS = new Map([
   ["X1-G-r2", "secondary-evidence/X1-G-r2/corrected-h007/runner-evidence/runner.json"],
 ]);
 
+// H-010 audited the sqlc TypeScript plugin version in every primary candidate.
+// Keep this explicit mapping in the extractor rather than inferring a version
+// from arbitrary candidate files. The index is an evidence inventory, not an
+// eligibility adjudicator for a new run.
+const FROZEN_TREATMENT_VERSION = {
+  A: "@ashiba-ts/named-parameters 0.1.0 (packed baseline artifact)",
+  P: "prisma 8.0.0-rc.12 + @prisma/orm-postgres 8.0.0-rc.8",
+  S: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3",
+  D: "drizzle-orm 0.45.2 + drizzle-kit 0.31.10",
+  K: "kysely 0.29.5",
+  G: "pg 8.23.0",
+};
+
+const SQLC_H010_VERSION_AUDIT = new Map([
+  ["G1-S-r1", { observed: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2", eligible: false }],
+  ["G1-S-r2", { observed: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2", eligible: false }],
+  ["T1-S-r1", { observed: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3", eligible: true }],
+  ["T1-S-r2", { observed: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2", eligible: false }],
+  ["T2-S-r1", { observed: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2", eligible: false }],
+  ["T2-S-r2", { observed: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2", eligible: false }],
+  ["Q1-S-r1", { observed: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.2", eligible: false }],
+  ["Q1-S-r2", { observed: "sqlc 1.31.1 + sqlc-gen-typescript 0.1.3", eligible: true }],
+]);
+
+function treatmentEligibility(cell, arm) {
+  const frozenTreatmentVersion = FROZEN_TREATMENT_VERSION[arm] ?? null;
+  const audit = SQLC_H010_VERSION_AUDIT.get(cell);
+  if (audit) {
+    return {
+      frozenTreatmentVersion,
+      observedTreatmentVersion: audit.observed,
+      observedVersionAudit: "H-010 sqlc plugin-fidelity audit",
+      eligibleForFrozenArmPool: audit.eligible,
+      exclusionReason: audit.eligible
+        ? null
+        : "Observed sqlc-gen-typescript 0.1.2 differs from the frozen 0.1.3 treatment packet; retained as an observation but ineligible for the frozen sqlc arm pool.",
+    };
+  }
+  return {
+    frozenTreatmentVersion,
+    observedTreatmentVersion: null,
+    observedVersionAudit: null,
+    eligibleForFrozenArmPool: true,
+    exclusionReason: null,
+  };
+}
+
 function usage(message) {
   console.error(`Usage: node fixtures/aggregate-results.mjs --root <benchmark-dir> [--json <path>] [--csv <path>]`);
   if (message) console.error(`Error: ${message}`);
@@ -183,11 +230,11 @@ function primaryRecords(root) {
       );
       const finalRunnerPath = join(cellRoot, "runner.json");
       const finalRunner = maybeJson(finalRunnerPath);
-      // The immutable cell-root runner is the initial runner observation. A
+      // The immutable cell-root runner is a legacy cell-root observation. A
       // repair is represented by a later, separately finalized attempt. The
       // terminal primary outcome must therefore select the most recent
-      // finalized attempt, rather than silently retaining the initial
-      // cell-root runner as the final live result.
+      // finalized attempt, rather than treating the cell-root runner as the
+      // final live result.
       const terminalAttempt = [...attempts].reverse().find((attempt) => attempt.finalization != null) ?? attempts.at(-1) ?? null;
       const record = {
         kind: "primary",
@@ -196,6 +243,7 @@ function primaryRecords(root) {
         evidenceRoot: relative(root, cellRoot).replaceAll("\\", "/"),
         attemptCount: attempts.length,
         additionalAttemptCount: Math.max(0, attempts.length - 1),
+        treatmentEligibility: treatmentEligibility(cell, metadata.arm),
         firstAttempt: attempts[0] ?? null,
         finalAttempt: terminalAttempt,
         // This is a direct alias of the first attempt's captured runner
@@ -205,9 +253,9 @@ function primaryRecords(root) {
         firstLiveSource: attempts[0]?.sources?.runner ?? null,
         finalLive: terminalAttempt?.live ?? null,
         finalLiveSource: terminalAttempt?.sources?.runner ?? null,
-        // Preserve the original cell-root runner independently. It is
-        // evidence of the initial runner observation, not a terminal verdict
-        // when a later attempt has been finalized.
+        // Preserve the legacy cell-root runner independently. It is not an
+        // authoritative first or terminal verdict when attempt evidence is
+        // present.
         cellRootLive: liveSummary(finalRunner),
         cellRootLiveSource: fileReference(root, finalRunnerPath),
         attempts,
@@ -515,6 +563,11 @@ function csvRows(primary, secondary) {
     "first_oracle_live_status",
     "final_live_status",
     "final_treatment_value",
+    "frozen_treatment_version",
+    "observed_treatment_version",
+    "observed_version_audit",
+    "eligible_for_frozen_arm_pool",
+    "treatment_exclusion_reason",
     "final_cleanup_status",
     "observation_index",
     "durable_schema",
@@ -542,6 +595,11 @@ function csvRows(primary, secondary) {
       record.firstLive?.status ?? null,
       record.finalLive?.status ?? null,
       record.finalAttempt?.treatment?.value ?? null,
+      record.treatmentEligibility.frozenTreatmentVersion,
+      record.treatmentEligibility.observedTreatmentVersion,
+      record.treatmentEligibility.observedVersionAudit,
+      record.treatmentEligibility.eligibleForFrozenArmPool,
+      record.treatmentEligibility.exclusionReason,
       record.finalLive?.cleanup?.status ?? null,
       null,
       null,
@@ -577,6 +635,11 @@ function csvRows(primary, secondary) {
         null,
         null,
         observation?.live?.status ?? durableSchema?.summary?.status ?? reliable?.live?.status ?? null,
+        null,
+        null,
+        null,
+        null,
+        null,
         null,
         observation?.live?.cleanup?.status ?? reliable?.live?.cleanup?.status ?? null,
         index,

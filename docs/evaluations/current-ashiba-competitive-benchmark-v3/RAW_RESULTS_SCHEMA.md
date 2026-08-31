@@ -20,7 +20,7 @@
 ## Primary record
 
 Each primary record preserves the cell identity, every chronological attempt,
-the first/final attempt aliases, the initial cell-root runner observation, and
+the first/final attempt aliases, the legacy cell-root runner observation, and
 `evidenceCounts`. `firstLive` and `firstLiveSource` are direct aliases of
 the first chronological attempt's captured `runner-result.json` / live summary;
 they are neither a reconstructed value nor a command-slot result. The count
@@ -41,7 +41,16 @@ not assigned a causal category.
 captured runner result; if no attempt has a finalization record, the extractor
 falls back to the final chronological attempt. `cellRootLive` and
 `cellRootLiveSource` retain the original `evidence/<cell>/runner.json`
-observation separately. The latter is not a terminal verdict after a repair.
+observation separately. It is neither an authoritative first nor terminal
+verdict when attempt evidence exists.
+
+`treatmentEligibility` records the frozen treatment version for every primary
+record. `observedTreatmentVersion` and `observedVersionAudit` remain `null`
+unless a bounded version audit recorded an observation. For sqlc, the explicit
+H-010 mapping records observed plugin version, frozen-pool eligibility, and an
+exclusion reason where the observed 0.1.2 plugin differs from the frozen 0.1.3
+packet. This is machine-readable qualification metadata, not a live-result
+selection or a new score.
 
 ## Secondary record
 
