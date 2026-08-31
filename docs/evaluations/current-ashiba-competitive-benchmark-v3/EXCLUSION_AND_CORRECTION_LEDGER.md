@@ -47,8 +47,10 @@ or calibration evidence.
   evidence is reselected.
 - **Evidence handling:** no candidate, runner, attempt, snapshot, or source
   hash is rewritten. This is an index/schema and verification-path correction.
-- **Status:** local packaging correction pending clean final-head `verify` CI;
-  a full frozen sqlc 0.1.3 remeasurement remains separate work.
+- **Status:** completed. A detached clean worktree rebuilt the compact index
+  byte-identically, and the evidence-content head `3f3ebeb` passed final
+  remote `verify` CI. A full frozen sqlc 0.1.3 remeasurement remains separate
+  work.
 
 # EXCL-002 — AF-V-S-r2 sqlc plugin 0.1.2 pre-execution setup incident
 
