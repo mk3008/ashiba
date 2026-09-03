@@ -1,0 +1,6 @@
+SELECT id, status
+FROM ownership_probe_items
+WHERE tenant_id = :tenantId::uuid
+  AND (:status::text IS NULL OR status = :status)
+  AND title <> :hostileValue
+ORDER BY id;

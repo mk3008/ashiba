@@ -13,7 +13,9 @@ The package centralizes assurance serious inline implementations would duplicate
 
 Indexed/reusable, anonymous positional, and native named are sufficient stable binding classes. Rendering is a driver concern, not a DBMS adapter. Current PostgreSQL lexical support follows the desired boundary: unknown grammar passes through, safe normal-context markers lower, protected lexical regions remain unchanged. Other common lexical forms are bounded scanner profiles, not a reason for an AST parser.
 
-Baseline build/typecheck/test passed (8 tests). The archived repository contains direct consumer and PostgreSQL compatibility evidence. New node-postgres and anonymous real probes remain `UNTESTED` because no bounded new-driver setup completed after the freeze; this is a limitation.
+Baseline build/typecheck/test passed (8 tests). The credible inline helper was completed and passed. The unchanged package also passed the required real node-postgres/PostgreSQL probe: readable canonical SQL with three values, repeated `:status`, casts, hostile value separation, missing/extra rejection, deterministic `$n` output, and correct result behavior (`NODE_POSTGRES_PROBE_PASS`).
+
+The anonymous real-driver probe remains `UNTESTED`: no SQLite/anonymous driver was already installed, and installing/provisioning one solely for symmetry was outside the frozen bounded approach.
 
 ## Raw SQL Rules implication and next decision
 
