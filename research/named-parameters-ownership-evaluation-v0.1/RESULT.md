@@ -21,4 +21,6 @@ The anonymous real-driver probe remains `UNTESTED`: no SQLite/anonymous driver w
 
 Raw SQL wording can remain: “Parameters are named by meaning at the human SQL review surface.” It may allow safe lowering without naming a package or DBMS syntax.
 
-Human decision: whether to sponsor a standalone reduced compiler/binder with canonical colon input, indexed/anonymous output, strict binding, and bounded lexical profiles. Do not rehome or publish it yet.
+## Human product decision
+
+Human product decision: **NO — do not sponsor or rehome a standalone package.** The technical evaluation remains `REDUCE` / `REHOME_STANDALONE_CANDIDATE`, meaning the responsibility is coherent enough to support such a package. However, that does not establish sufficient product value to justify creating and maintaining another active package. Leave the existing implementation in archived Ashiba as research/reference. Do not publish, rehome, or revive it.
