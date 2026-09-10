@@ -87,3 +87,7 @@ Current release.
 Historical evaluations and removed tooling are retained in the documentation
 archive as evidence, not as current product instructions. See the [scope
 boundary](docs/design/ashiba-scope.md).
+
+## Transfer moved to Velvet
+
+The experimental Transfer product and its DDL documentation CLI now live in [mk3008/velvet](https://github.com/mk3008/velvet). Its selected Ashiba history is preserved there. Transfer verification runs in Velvet; Ashiba no longer owns the Transfer workspace or its documentation generation scripts. Historical research records in this repository remain unchanged.
