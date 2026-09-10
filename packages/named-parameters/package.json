@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.11"
   },
   "engines": { "node": "^22.0.0 || ^24.0.0" },
   "license": "MIT",

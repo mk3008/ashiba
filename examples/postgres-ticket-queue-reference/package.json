@@ -9,5 +9,5 @@
     "db:up": "docker compose up -d"
   },
   "dependencies": { "@ashiba-ts/named-parameters": "workspace:*", "pg": "^8.16.3" },
-  "devDependencies": { "@types/node": "^22.13.10", "@types/pg": "^8.15.5", "typescript": "^5.9.3", "vitest": "^4.1.7" }
+  "devDependencies": { "@types/node": "^22.13.10", "@types/pg": "^8.15.5", "typescript": "^5.9.3", "vitest": "^4.1.11" }
 }
